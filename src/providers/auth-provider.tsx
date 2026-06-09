@@ -25,8 +25,16 @@ type AuthState = {
   ) => Promise<{ error: string | null; needsConfirmation: boolean }>;
   /** Passwordless: email a 6-digit code (creates the account if new). */
   sendCode: (email: string, fullName?: string) => Promise<{ error: string | null }>;
-  /** Verify the 6-digit code and start a session. */
-  verifyCode: (email: string, token: string) => Promise<{ error: string | null }>;
+  /** Verify a 6-digit code and start a session. `type` distinguishes sign-in / signup-confirm / recovery. */
+  verifyCode: (
+    email: string,
+    token: string,
+    type?: 'email' | 'signup' | 'recovery',
+  ) => Promise<{ error: string | null }>;
+  /** Email a 6-digit code to reset a forgotten password. */
+  resetPassword: (email: string) => Promise<{ error: string | null }>;
+  /** Set a new password for the signed-in (or recovery) session. */
+  updatePassword: (password: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
 };
 
@@ -111,8 +119,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         });
         return { error: error?.message ?? null };
       },
-      async verifyCode(email, token) {
-        const { error } = await supabase.auth.verifyOtp({ email, token, type: 'email' });
+      async verifyCode(email, token, type = 'email') {
+        const { error } = await supabase.auth.verifyOtp({ email, token, type });
+        return { error: error?.message ?? null };
+      },
+      async resetPassword(email) {
+        const { error } = await supabase.auth.resetPasswordForEmail(email);
+        return { error: error?.message ?? null };
+      },
+      async updatePassword(password) {
+        const { error } = await supabase.auth.updateUser({ password });
         return { error: error?.message ?? null };
       },
       async signOut() {
