@@ -42,12 +42,13 @@ export default function AuthScreen() {
     setTimeout(() => codeRef.current?.focus(), 250);
   }
 
-  async function verify() {
+  async function verify(value?: string) {
+    const c = (value ?? code).replace(/\D/g, '').slice(0, 6);
     setMsg(null);
-    if (code.length !== 6) return setMsg({ text: 'Enter the 6-digit code.', ok: false });
+    if (c.length !== 6) return setMsg({ text: 'Enter the 6-digit code.', ok: false });
     setBusy(true);
     if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    const { error } = await verifyCode(email.trim().toLowerCase(), code);
+    const { error } = await verifyCode(email.trim().toLowerCase(), c);
     if (error) {
       setBusy(false);
       return setMsg({ text: error, ok: false });
@@ -131,11 +132,11 @@ export default function AuthScreen() {
               onChangeText={(t) => {
                 const digits = t.replace(/\D/g, '').slice(0, 6);
                 setCode(digits);
-                if (digits.length === 6) setTimeout(verify, 50);
+                if (digits.length === 6) verify(digits);
               }}
             />
             {msg ? <Text style={{ fontFamily: Font.medium, fontSize: 14, color: msg.ok ? '#16a34a' : '#ef4444', paddingHorizontal: 4, textAlign: 'center' }}>{msg.text}</Text> : null}
-            <Pressable onPress={verify} disabled={busy} style={{ height: 54, borderRadius: 16, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', marginTop: 4, opacity: busy ? 0.7 : 1 }}>
+            <Pressable onPress={() => verify()} disabled={busy} style={{ height: 54, borderRadius: 16, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', marginTop: 4, opacity: busy ? 0.7 : 1 }}>
               {busy ? <ActivityIndicator color="#fff" /> : <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>Verify & continue</Text>}
             </Pressable>
             <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 18, marginTop: 8 }}>
