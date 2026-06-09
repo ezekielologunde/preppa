@@ -63,6 +63,34 @@ export type Prepper = {
   image: string;
   badge: { label: string; color: string; icon: string };
 };
+// --- Experiences (primary product): curated bookable food experiences ---
+export type ExperienceType = { key: string; label: string; icon: string; blurb: string };
+export const experienceTypes: ExperienceType[] = [
+  { key: 'catering', label: 'Catering', icon: 'UtensilsCrossed', blurb: 'Feed your event' },
+  { key: 'private_chef', label: 'Private chef', icon: 'ChefHat', blurb: 'Cooked at home' },
+  { key: 'class', label: 'Cooking class', icon: 'GraduationCap', blurb: 'Learn hands-on' },
+  { key: 'tasting', label: 'Tasting', icon: 'Wine', blurb: 'Curated menus' },
+];
+
+export type Experience = {
+  id: string;
+  title: string;
+  host: string;
+  type: string;
+  rating: number;
+  reviews: number;
+  from: number;
+  per: string;
+  location: string;
+  image: string;
+};
+export const featuredExperiences: Experience[] = [
+  { id: 'e1', title: 'Private Caribbean Feast', host: 'Chef Kelsey', type: 'private_chef', rating: 4.9, reviews: 42, from: 65, per: 'per guest', location: 'Harlem, NY', image: img('photo-1555939594-58d7cb561ad1') },
+  { id: 'e2', title: 'Hands-on Pasta Class', host: 'Island Bites', type: 'class', rating: 4.8, reviews: 38, from: 45, per: 'per seat', location: 'Brooklyn, NY', image: img('photo-1556910103-1c02745aae4d') },
+  { id: 'e3', title: 'Event Catering — up to 50', host: 'Spice Haus', type: 'catering', rating: 4.9, reviews: 27, from: 18, per: 'per head', location: 'Queens, NY', image: img('photo-1414235077428-338989a2e8c0') },
+  { id: 'e4', title: 'West-African Tasting Menu', host: 'Green Plates', type: 'tasting', rating: 5.0, reviews: 19, from: 80, per: 'per guest', location: 'Manhattan, NY', image: img('photo-1559339352-11d035aa65de') },
+];
+
 export const preppers: Prepper[] = [
   { id: 'pr1', name: 'Chef Kelsey', verified: true, rating: 4.9, reviews: 128, location: 'Harlem, NY', options: 'delivers · pickup', from: 12, image: img('photo-1583394293214-28a5b0f5a5b8'), badge: { label: 'top rated', color: STATUS, icon: 'Trophy' } },
   { id: 'pr2', name: 'Island Bites', verified: true, rating: 4.8, reviews: 96, location: 'Queens, NY', options: 'delivers · cook at home', from: 10, image: img('photo-1577219491135-ce391730fb2c'), badge: { label: 'fast responder', color: STATUS, icon: 'Zap' } },

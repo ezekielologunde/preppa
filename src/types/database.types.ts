@@ -11,6 +11,9 @@ export type MealStatus = 'draft' | 'published' | 'paused' | 'archived';
 export type FulfillmentType = 'delivery' | 'pickup';
 export type PrepperStatus = 'pending' | 'approved' | 'rejected' | 'suspended';
 export type UserStatus = 'active' | 'suspended' | 'deleted';
+export type ExperienceKind = 'catering' | 'private_chef' | 'class' | 'tasting' | 'other';
+export type ExperienceStatus = 'open' | 'booked' | 'completed' | 'cancelled';
+export type BidStatus = 'pending' | 'accepted' | 'declined' | 'withdrawn';
 
 /** Row shape returned by the admin_prepper_earnings() RPC. */
 export type PrepperEarningsRow = {
@@ -153,6 +156,18 @@ export interface Database {
         Update: Partial<{ label: string | null; line1: string; line2: string | null; city: string | null; state: string | null; postal_code: string | null; is_default: boolean }>;
         Relationships: [];
       };
+      experience_requests: {
+        Row: { id: string; customer_id: string; kind: ExperienceKind; title: string; details: string | null; guests: number | null; budget: number | null; event_date: string | null; location: string | null; status: ExperienceStatus } & Timestamps & { updated_at: string };
+        Insert: { customer_id: string; title: string; kind?: ExperienceKind; details?: string | null; guests?: number | null; budget?: number | null; event_date?: string | null; location?: string | null };
+        Update: Partial<{ title: string; details: string | null; guests: number | null; budget: number | null; event_date: string | null; location: string | null; status: ExperienceStatus }>;
+        Relationships: [];
+      };
+      experience_bids: {
+        Row: { id: string; request_id: string; prepper_id: string; amount: number; message: string | null; status: BidStatus } & Timestamps;
+        Insert: { request_id: string; prepper_id: string; amount: number; message?: string | null };
+        Update: Partial<{ amount: number; message: string | null; status: BidStatus }>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -166,6 +181,7 @@ export interface Database {
       admin_set_user_status: { Args: { p_user: string; p_status: UserStatus }; Returns: undefined };
       admin_prepper_earnings: { Args: Record<string, never>; Returns: PrepperEarningsRow[] };
       admin_platform_stats: { Args: Record<string, never>; Returns: PlatformStats };
+      accept_experience_bid: { Args: { p_bid: string }; Returns: undefined };
     };
     Enums: {
       order_status: OrderStatus;
@@ -173,6 +189,9 @@ export interface Database {
       fulfillment_type: FulfillmentType;
       prepper_status: PrepperStatus;
       user_status: UserStatus;
+      experience_kind: ExperienceKind;
+      experience_status: ExperienceStatus;
+      bid_status: BidStatus;
     };
     CompositeTypes: Record<string, never>;
   };
