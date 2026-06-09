@@ -158,7 +158,7 @@ export default function ProfileScreen() {
             {hub.map((h, i) => (
               <PressableScale
                 key={h.label}
-                onPress={() => h.accent && router.push('/dashboard')}
+                onPress={() => h.accent && router.push('/become-prepper')}
                 accessibilityRole="button"
                 accessibilityLabel={`${h.label}, ${h.sub}`}
                 style={{ flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 16, paddingVertical: 15, borderTopWidth: i === 0 ? 0 : 1, borderTopColor: '#f3f4f6' }}>

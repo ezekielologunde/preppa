@@ -1,6 +1,7 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { supabase } from '@/lib/supabase';
+import type { PrepperStatus } from '@/types/database.types';
 
 export type TopPrepper = {
   id: string;
@@ -61,5 +62,48 @@ export function useTopPreppers(limit = 10) {
       if (error) throw error;
       return ((data ?? []) as unknown as Row[]).map(mapPrepper);
     },
+  });
+}
+
+export type MyPrepperApplication = {
+  id: string;
+  display_name: string;
+  bio: string | null;
+  status: PrepperStatus;
+  verified: boolean;
+  rejection_note: string | null;
+} | null;
+
+/** The signed-in user's own prepper application (null if they haven't applied). */
+export function useMyPrepperApplication(userId?: string | null) {
+  return useQuery({
+    queryKey: ['prepper', 'mine', userId ?? 'anon'],
+    enabled: !!userId,
+    queryFn: async (): Promise<MyPrepperApplication> => {
+      const { data, error } = await supabase
+        .from('prepper_profiles')
+        .select('id,display_name,bio,status,verified,rejection_note')
+        .eq('user_id', userId!)
+        .maybeSingle();
+      if (error) throw error;
+      return (data as MyPrepperApplication) ?? null;
+    },
+  });
+}
+
+/** Submit a prepper application — creates a pending prepper_profiles row. */
+export function useApplyAsPrepper() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (v: { userId: string; displayName: string; bio: string; specialties: string[] }) => {
+      const { error } = await supabase.from('prepper_profiles').insert({
+        user_id: v.userId,
+        display_name: v.displayName,
+        bio: v.bio || null,
+        specialties: v.specialties.length ? v.specialties : null,
+      });
+      if (error) throw error;
+    },
+    onSuccess: (_d, v) => qc.invalidateQueries({ queryKey: ['prepper', 'mine', v.userId] }),
   });
 }
