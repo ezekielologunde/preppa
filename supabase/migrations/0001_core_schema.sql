@@ -427,6 +427,59 @@ create trigger t_orders_updated      before update on orders           for each 
 create trigger t_carts_updated       before update on carts            for each row execute function set_updated_at();
 
 -- ============================================================================
+-- Privilege guards — force admin-only columns server-side so users can't
+-- self-elevate (verified prepper, verified cert, kitchen health score) or
+-- rewrite review pivots. Belt-and-suspenders on top of RLS.
+-- ============================================================================
+create or replace function guard_prepper_profile() returns trigger
+  language plpgsql security definer set search_path = public as $$
+begin
+  if not is_admin() then
+    if tg_op = 'INSERT' then new.verified := false;
+    else new.verified := old.verified; end if;
+  end if;
+  return new;
+end $$;
+create trigger t_guard_prepper before insert or update on prepper_profiles
+  for each row execute function guard_prepper_profile();
+
+create or replace function guard_certification() returns trigger
+  language plpgsql security definer set search_path = public as $$
+begin
+  if not (is_admin() or has_role('moderator')) then
+    if tg_op = 'INSERT' then new.status := 'pending'; new.verified_by := null;
+    else new.status := old.status; new.verified_by := old.verified_by; end if;
+  end if;
+  return new;
+end $$;
+create trigger t_guard_cert before insert or update on certifications
+  for each row execute function guard_certification();
+
+create or replace function guard_kitchen() returns trigger
+  language plpgsql security definer set search_path = public as $$
+begin
+  if not (is_admin() or has_role('moderator')) then
+    if tg_op = 'INSERT' then new.health_score := null;
+    else new.health_score := old.health_score; end if;
+  end if;
+  return new;
+end $$;
+create trigger t_guard_kitchen before insert or update on kitchens
+  for each row execute function guard_kitchen();
+
+create or replace function guard_review_update() returns trigger
+  language plpgsql as $$
+begin
+  if new.order_id <> old.order_id or new.prepper_id <> old.prepper_id
+     or new.author_id <> old.author_id or new.meal_id is distinct from old.meal_id then
+    raise exception 'Cannot change review pivot columns';
+  end if;
+  return new;
+end $$;
+create trigger t_guard_review before update on reviews
+  for each row execute function guard_review_update();
+
+-- ============================================================================
 -- Indexes (index aggressively — query keys + created_at)
 -- ============================================================================
 create index idx_user_roles_user      on user_roles(user_id);
@@ -566,13 +619,14 @@ create policy p_cart_items on cart_items for all
   using (exists (select 1 from carts c where c.id = cart_id and c.user_id = auth.uid()))
   with check (exists (select 1 from carts c where c.id = cart_id and c.user_id = auth.uid()));
 create policy p_coupons_read on coupons for select using (active or is_admin());
-create policy p_orders_read   on orders for select using (customer_id = auth.uid() or prepper_id = my_prepper_id() or is_admin());
-create policy p_orders_insert on orders for insert with check (customer_id = auth.uid());
-create policy p_orders_update on orders for update using (prepper_id = my_prepper_id() or customer_id = auth.uid() or is_admin());
+-- Orders/order_items are READ-ONLY to clients. Every write goes through the
+-- SECURITY DEFINER RPCs below (create_order / advance_order / cancel_order),
+-- which compute authoritative pricing and enforce the status state-machine.
+-- No insert/update policy => clients cannot tamper with totals, prepper_id, or
+-- status directly (default-deny).
+create policy p_orders_read on orders for select using (customer_id = auth.uid() or prepper_id = my_prepper_id() or is_admin());
 create policy p_order_items_read on order_items for select using (
   exists (select 1 from orders o where o.id = order_id and (o.customer_id = auth.uid() or o.prepper_id = my_prepper_id() or is_admin())));
-create policy p_order_items_insert on order_items for insert with check (
-  exists (select 1 from orders o where o.id = order_id and o.customer_id = auth.uid()));
 -- payments/refunds: READ for related parties; WRITE only via service_role (Stripe webhook).
 create policy p_payments_read on payments for select using (
   exists (select 1 from orders o where o.id = order_id and (o.customer_id = auth.uid() or o.prepper_id = my_prepper_id() or is_admin())));
@@ -593,7 +647,7 @@ create policy p_reviews_read   on reviews for select using (true);
 create policy p_reviews_insert on reviews for insert with check (
   author_id = auth.uid() and
   exists (select 1 from orders o where o.id = order_id and o.customer_id = auth.uid() and o.status = 'completed'));
-create policy p_reviews_update on reviews for update using (author_id = auth.uid() or is_admin());
+create policy p_reviews_update on reviews for update using (author_id = auth.uid() or is_admin()) with check (author_id = auth.uid());
 create policy p_reviews_delete on reviews for delete using (author_id = auth.uid() or is_admin());
 create policy p_rating_read    on prepper_rating_summary for select using (true);  -- write = service/trigger only
 create policy p_conv_read on conversations for select using (
@@ -614,3 +668,96 @@ create policy p_notifications_update on notifications for update using (user_id 
 drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created after insert on auth.users
   for each row execute function handle_new_user();
+
+-- ============================================================================
+-- COMMERCE RPCs — the only path to mutate orders. SECURITY DEFINER (bypass RLS)
+-- but enforce ownership + authoritative pricing + the order state-machine
+-- internally. This is the "critical security boundary" from the backend doc.
+-- ============================================================================
+
+-- Build an order from the caller's cart with SERVER-COMPUTED prices.
+-- Enforces a single prepper per order and only published meals.
+create or replace function create_order(p_address_id uuid default null, p_tip numeric default 0)
+  returns uuid language plpgsql security definer set search_path = public as $$
+declare
+  v_user     uuid := auth.uid();
+  v_cart     uuid;
+  v_prepper  uuid;
+  v_count    int;
+  v_order    uuid := gen_random_uuid();
+  v_subtotal numeric := 0;
+begin
+  if v_user is null then raise exception 'Not authenticated'; end if;
+  select id into v_cart from carts where user_id = v_user;
+  if v_cart is null then raise exception 'No cart for user'; end if;
+
+  select count(distinct m.prepper_id), min(m.prepper_id)
+    into v_count, v_prepper
+    from cart_items ci join meals m on m.id = ci.meal_id
+    where ci.cart_id = v_cart;
+
+  if coalesce(v_count,0) = 0 then raise exception 'Cart is empty'; end if;
+  if v_count > 1 then raise exception 'Cart has items from multiple preppers'; end if;
+  if exists (select 1 from cart_items ci join meals m on m.id = ci.meal_id
+             where ci.cart_id = v_cart and m.status <> 'published') then
+    raise exception 'Cart contains an unavailable meal';
+  end if;
+
+  insert into orders (id, customer_id, prepper_id, status, address_id, tip)
+    values (v_order, v_user, v_prepper, 'pending', p_address_id, greatest(coalesce(p_tip,0),0));
+
+  insert into order_items (order_id, meal_id, variant_id, quantity, unit_price, total)
+    select v_order, ci.meal_id, ci.variant_id, ci.quantity,
+           (m.base_price + coalesce(v.price_delta,0)),
+           (m.base_price + coalesce(v.price_delta,0)) * ci.quantity
+    from cart_items ci
+    join meals m on m.id = ci.meal_id
+    left join meal_variants v on v.id = ci.variant_id
+    where ci.cart_id = v_cart;
+
+  select coalesce(sum(total),0) into v_subtotal from order_items where order_id = v_order;
+  -- tax + delivery/service fees are layered by the checkout service (Stripe) later.
+  update orders set subtotal = v_subtotal, total = v_subtotal + tip where id = v_order;
+
+  delete from cart_items where cart_id = v_cart;
+  return v_order;
+end $$;
+
+-- Advance an order along the legal state-machine (prepper or admin only).
+create or replace function advance_order(p_order_id uuid, p_next order_status)
+  returns void language plpgsql security definer set search_path = public as $$
+declare v_cur order_status; v_prepper uuid;
+begin
+  select status, prepper_id into v_cur, v_prepper from orders where id = p_order_id;
+  if v_cur is null then raise exception 'Order not found'; end if;
+  if not (is_admin() or v_prepper = my_prepper_id()) then raise exception 'Not authorized'; end if;
+  if not (
+    (v_cur='pending'          and p_next='confirmed') or
+    (v_cur='confirmed'        and p_next='preparing') or
+    (v_cur='preparing'        and p_next='ready') or
+    (v_cur='ready'            and p_next in ('out_for_delivery','completed')) or
+    (v_cur='out_for_delivery' and p_next='completed')
+  ) then raise exception 'Illegal transition % -> %', v_cur, p_next; end if;
+  update orders set status = p_next where id = p_order_id;
+end $$;
+
+-- Cancel: customer only while pending; prepper before preparing; admin always.
+create or replace function cancel_order(p_order_id uuid)
+  returns void language plpgsql security definer set search_path = public as $$
+declare v_cur order_status; v_customer uuid; v_prepper uuid;
+begin
+  select status, customer_id, prepper_id into v_cur, v_customer, v_prepper
+    from orders where id = p_order_id;
+  if v_cur is null then raise exception 'Order not found'; end if;
+  if is_admin() then null;
+  elsif v_customer = auth.uid() then
+    if v_cur <> 'pending' then raise exception 'Customers can only cancel pending orders'; end if;
+  elsif v_prepper = my_prepper_id() then
+    if v_cur not in ('pending','confirmed') then raise exception 'Too late to cancel'; end if;
+  else raise exception 'Not authorized'; end if;
+  update orders set status = 'cancelled' where id = p_order_id;
+end $$;
+
+grant execute on function create_order(uuid, numeric)        to authenticated;
+grant execute on function advance_order(uuid, order_status)  to authenticated;
+grant execute on function cancel_order(uuid)                 to authenticated;
