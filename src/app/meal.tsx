@@ -1,6 +1,6 @@
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { BadgeCheck, Check, ChevronLeft, Clock, Heart, Star } from 'lucide-react-native';
+import { BadgeCheck, Check, ChevronLeft, Clock, Heart, MessageCircle, Star } from 'lucide-react-native';
 import { useState } from 'react';
 import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -10,6 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Font } from '@/constants/fonts';
 import { Palette } from '@/constants/theme';
 import { useMeal } from '@/lib/queries/meals';
+import { useStartConversation } from '@/lib/queries/messages';
 import { useAuth } from '@/providers/auth-provider';
 
 const ORANGE = Palette.brand;
@@ -31,6 +32,15 @@ export default function MealScreen() {
   const { user } = useAuth();
   const { data: meal, isLoading, isError } = useMeal(id);
   const [added, setAdded] = useState(false);
+  const startConv = useStartConversation();
+
+  function messagePrepper() {
+    if (!user) return router.push('/auth?mode=signin');
+    if (!meal?.prepperUserId) return;
+    startConv.mutate(meal.prepperUserId, {
+      onSuccess: (convId) => router.push(`/chat?id=${convId}&name=${encodeURIComponent(meal.prepper)}`),
+    });
+  }
 
   function addToCart() {
     if (!user) {
@@ -76,12 +86,25 @@ export default function MealScreen() {
             <>
               <Text style={{ fontFamily: Font.display, fontSize: 28, color: INK, letterSpacing: -0.6 }}>{meal.title}</Text>
 
-              <PressableScale
-                onPress={() => meal.prepperId && router.push(`/explore`)}
-                style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#374151' }}>by {meal.prepper}</Text>
-                {meal.prepperVerified ? <BadgeCheck size={16} color={ORANGE} fill={ORANGE} stroke="#fff" /> : null}
-              </PressableScale>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <PressableScale
+                  onPress={() => meal.prepperId && router.push(`/explore`)}
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
+                  <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#374151' }}>by {meal.prepper}</Text>
+                  {meal.prepperVerified ? <BadgeCheck size={16} color={ORANGE} fill={ORANGE} stroke="#fff" /> : null}
+                </PressableScale>
+                {meal.prepperUserId ? (
+                  <PressableScale
+                    onPress={messagePrepper}
+                    disabled={startConv.isPending}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Message ${meal.prepper}`}
+                    style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, height: 36, borderRadius: 18, backgroundColor: Palette.brandTint }}>
+                    <MessageCircle size={15} color={ORANGE} />
+                    <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: ORANGE }}>Message</Text>
+                  </PressableScale>
+                ) : null}
+              </View>
 
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>

@@ -16,6 +16,7 @@ import {
   HelpCircle,
   Leaf,
   MapPin,
+  MessageCircle,
   Moon,
   Pencil,
   Settings,
@@ -44,7 +45,8 @@ const quickLinks = [
   { label: 'referrals', sub: 'invite', Icon: Ticket, color: '#f59e0b', bg: '#FEF3C7' },
 ];
 
-const hub: { label: string; sub: string; Icon: LucideIcon; accent?: boolean }[] = [
+const hub: { label: string; sub: string; Icon: LucideIcon; accent?: boolean; route?: string }[] = [
+  { label: 'messages', sub: 'chat with preppers', Icon: MessageCircle, route: '/messages' },
   { label: 'addresses', sub: '2 saved', Icon: MapPin },
   { label: 'payment methods', sub: 'Visa •••• 4242', Icon: CreditCard },
   { label: 'notifications', sub: 'email, sms, push', Icon: Bell },
@@ -158,7 +160,7 @@ export default function ProfileScreen() {
             {hub.map((h, i) => (
               <PressableScale
                 key={h.label}
-                onPress={() => h.accent && router.push('/become-prepper')}
+                onPress={() => (h.accent ? router.push('/become-prepper') : h.route ? router.push(h.route as never) : undefined)}
                 accessibilityRole="button"
                 accessibilityLabel={`${h.label}, ${h.sub}`}
                 style={{ flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 16, paddingVertical: 15, borderTopWidth: i === 0 ? 0 : 1, borderTopColor: '#f3f4f6' }}>

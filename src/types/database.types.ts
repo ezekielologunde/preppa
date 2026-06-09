@@ -152,6 +152,24 @@ export interface Database {
         Update: Partial<{ read: boolean }>;
         Relationships: [];
       };
+      conversations: {
+        Row: { id: string } & Timestamps;
+        Insert: never; // created via start_conversation() RPC
+        Update: never;
+        Relationships: [];
+      };
+      conversation_participants: {
+        Row: { conversation_id: string; user_id: string; last_read_at: string | null };
+        Insert: never; // created via start_conversation() RPC
+        Update: Partial<{ last_read_at: string | null }>;
+        Relationships: [];
+      };
+      messages: {
+        Row: { id: string; conversation_id: string; sender_id: string; body: string | null; attachment_url: string | null } & Timestamps;
+        Insert: { conversation_id: string; sender_id: string; body?: string | null; attachment_url?: string | null };
+        Update: never;
+        Relationships: [];
+      };
       addresses: {
         Row: { id: string; user_id: string; label: string | null; line1: string; line2: string | null; city: string | null; state: string | null; postal_code: string | null; country: string | null; lat: number | null; lng: number | null; is_default: boolean } & Timestamps;
         Insert: { user_id: string; line1: string; label?: string | null; line2?: string | null; city?: string | null; state?: string | null; postal_code?: string | null; is_default?: boolean };
@@ -196,6 +214,8 @@ export interface Database {
       admin_prepper_earnings: { Args: Record<string, never>; Returns: PrepperEarningsRow[] };
       admin_platform_stats: { Args: Record<string, never>; Returns: PlatformStats };
       accept_experience_bid: { Args: { p_bid: string }; Returns: undefined };
+      start_conversation: { Args: { p_other: string }; Returns: string };
+      mark_conversation_read: { Args: { p_conversation: string }; Returns: undefined };
     };
     Enums: {
       order_status: OrderStatus;

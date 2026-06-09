@@ -105,6 +105,7 @@ export type MealDetail = {
   price: number;
   time: string;
   prepperId: string;
+  prepperUserId: string | null;
   prepper: string;
   prepperVerified: boolean;
   prepperBio: string | null;
@@ -116,7 +117,7 @@ export type MealDetail = {
 
 const DETAIL_SELECT =
   'id,title,description,base_price,prep_time_min,' +
-  'prepper:prepper_profiles(id,display_name,verified,bio,rating:prepper_rating_summary(average_rating,total_reviews)),' +
+  'prepper:prepper_profiles(id,user_id,display_name,verified,bio,rating:prepper_rating_summary(average_rating,total_reviews)),' +
   'images:meal_images(url,order_index),' +
   'nutrition:nutrition_profiles(calories,protein,carbs,fat)';
 
@@ -130,7 +131,7 @@ export function useMeal(id?: string) {
       if (error) throw error;
       const row = data as unknown as Record<string, unknown>;
       const prepper = one(row.prepper as never) as
-        | { id: string; display_name: string; verified: boolean; bio: string | null; rating: unknown }
+        | { id: string; user_id: string; display_name: string; verified: boolean; bio: string | null; rating: unknown }
         | undefined;
       const rating = one(prepper?.rating as never) as { average_rating: number; total_reviews: number } | undefined;
       const prep = row.prep_time_min as number | null;
@@ -145,6 +146,7 @@ export function useMeal(id?: string) {
         price: row.base_price as number,
         time: prep ? `${Math.max(prep - 5, 5)}–${prep + 5} min` : '20–30 min',
         prepperId: prepper?.id ?? '',
+        prepperUserId: prepper?.user_id ?? null,
         prepper: prepper?.display_name ?? 'preppa',
         prepperVerified: prepper?.verified ?? false,
         prepperBio: prepper?.bio ?? null,
