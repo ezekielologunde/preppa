@@ -13,6 +13,7 @@ import { useAddToCart, useCart } from '@/lib/queries/cart';
 import { useFeatureEnabled } from '@/lib/queries/feature-flags';
 import { useMeal } from '@/lib/queries/meals';
 import { useStartConversation } from '@/lib/queries/messages';
+import { usePrepperReviews } from '@/lib/queries/reviews';
 import { useAuth } from '@/providers/auth-provider';
 
 const ORANGE = Palette.brand;
@@ -37,6 +38,7 @@ export default function MealScreen() {
   const startConv = useStartConversation();
   const addToCart = useAddToCart();
   const { data: cart } = useCart(user?.id);
+  const { data: reviews } = usePrepperReviews(meal?.prepperId);
   const orderingOn = useFeatureEnabled('ordering');
 
   function messagePrepper() {
@@ -157,6 +159,25 @@ export default function MealScreen() {
                 <View style={{ backgroundColor: '#FAF7F4', borderRadius: 16, padding: 14, marginTop: 4 }}>
                   <Text style={{ fontFamily: Font.heading, fontSize: 13, color: INK, marginBottom: 4 }}>about the prepper</Text>
                   <Text style={{ fontFamily: Font.body, fontSize: 13, lineHeight: 20, color: '#6b7280' }}>{meal.prepperBio}</Text>
+                </View>
+              ) : null}
+
+              {reviews && reviews.length > 0 ? (
+                <View style={{ gap: 12, marginTop: 6 }}>
+                  <Text style={{ fontFamily: Font.heading, fontSize: 15, color: INK }}>reviews ({reviews.length})</Text>
+                  {reviews.slice(0, 4).map((rv) => (
+                    <View key={rv.id} style={{ gap: 5 }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                        <Text style={{ fontFamily: Font.semibold, fontSize: 13.5, color: INK }}>{rv.author}</Text>
+                        <View style={{ flexDirection: 'row', gap: 1 }}>
+                          {[1, 2, 3, 4, 5].map((n) => (
+                            <Star key={n} size={12} color="#f59e0b" fill={n <= rv.rating ? '#f59e0b' : 'transparent'} />
+                          ))}
+                        </View>
+                      </View>
+                      {rv.body ? <Text style={{ fontFamily: Font.body, fontSize: 13.5, lineHeight: 20, color: '#4b5563' }}>{rv.body}</Text> : null}
+                    </View>
+                  ))}
                 </View>
               ) : null}
             </>

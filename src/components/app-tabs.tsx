@@ -25,7 +25,7 @@ function PreppaTabBar({ state, navigation }: TabBarProps) {
   const { data: flags } = useFeatureFlags();
   // Full-screen modes (prepper dashboard, auth) hide the customer tab bar.
   const active = state.routes[state.index]?.name;
-  if (active === 'dashboard' || active === 'auth' || active === 'meal' || active === 'search' || active === 'category' || active === 'admin' || active === 'become-prepper' || active === 'experience-request' || active === 'meal-plans' || active === 'messages' || active === 'chat' || active === 'opportunities' || active === 'cart' || active === 'orders' || active === 'prepper-orders') return null;
+  if (active === 'dashboard' || active === 'auth' || active === 'meal' || active === 'search' || active === 'category' || active === 'admin' || active === 'become-prepper' || active === 'experience-request' || active === 'meal-plans' || active === 'messages' || active === 'chat' || active === 'opportunities' || active === 'cart' || active === 'orders' || active === 'prepper-orders' || active === 'review') return null;
   // Admin-toggleable tabs disappear when their flag is explicitly off.
   const visibleTabs = TABS.filter((t) => !('flag' in t) || flags?.[t.flag] !== false);
   return (
@@ -90,6 +90,7 @@ export default function AppTabs() {
       <Tabs.Screen name="cart" options={{ href: null }} />
       <Tabs.Screen name="orders" options={{ href: null }} />
       <Tabs.Screen name="prepper-orders" options={{ href: null }} />
+      <Tabs.Screen name="review" options={{ href: null }} />
     </Tabs>
   );
 }

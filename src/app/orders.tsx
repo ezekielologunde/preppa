@@ -1,6 +1,6 @@
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
-import { ChevronLeft, Receipt } from 'lucide-react-native';
+import { ChevronLeft, Receipt, Star } from 'lucide-react-native';
 import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -36,7 +36,7 @@ function dateLabel(iso: string): string {
   return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
 
-function OrderCard({ order, onCancel, cancelling }: { order: OrderSummary; onCancel: () => void; cancelling: boolean }) {
+function OrderCard({ order, onCancel, onReview, cancelling }: { order: OrderSummary; onCancel: () => void; onReview: () => void; cancelling: boolean }) {
   const st = statusStyle(order.status);
   return (
     <View style={{ backgroundColor: '#fff', borderRadius: Radius.md, padding: 14, gap: 12 }}>
@@ -75,6 +75,15 @@ function OrderCard({ order, onCancel, cancelling }: { order: OrderSummary; onCan
           accessibilityLabel="Cancel order"
           style={{ height: 42, borderRadius: Radius.sm, borderWidth: 1, borderColor: Palette.border, alignItems: 'center', justifyContent: 'center', opacity: cancelling ? 0.6 : 1 }}>
           <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: Palette.textSecondary }}>Cancel order</Text>
+        </PressableScale>
+      ) : order.status === 'completed' && !order.reviewed ? (
+        <PressableScale
+          onPress={onReview}
+          accessibilityRole="button"
+          accessibilityLabel="Leave a review"
+          style={{ height: 42, borderRadius: Radius.sm, backgroundColor: Palette.brandTint, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 6 }}>
+          <Star size={15} color={Palette.brandPressed} fill={Palette.brandPressed} />
+          <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: Palette.brandPressed }}>Leave a review</Text>
         </PressableScale>
       ) : null}
     </View>
@@ -131,6 +140,7 @@ export default function OrdersScreen() {
                 order={o}
                 cancelling={cancelOrder.isPending && cancelOrder.variables === o.id}
                 onCancel={() => cancelOrder.mutate(o.id)}
+                onReview={() => router.push(`/review?orderId=${o.id}&prepperId=${o.prepperId}&mealId=${o.firstMealId ?? ''}&prepper=${encodeURIComponent(o.prepper)}`)}
               />
             ))}
           </ScrollView>

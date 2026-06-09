@@ -18,9 +18,12 @@ export type OrderSummary = {
   tip: number;
   total: number;
   created_at: string;
+  prepperId: string;
   prepper: string;
   customer: string;
   paymentStatus: string | null;
+  firstMealId: string | null;
+  reviewed: boolean;
   items: OrderLine[];
 };
 
@@ -28,6 +31,7 @@ const one = <T,>(v: T | T[] | null | undefined): T | undefined => (Array.isArray
 
 type Row = {
   id: string;
+  prepper_id: string;
   status: OrderStatus;
   subtotal: number;
   tip: number;
@@ -36,9 +40,11 @@ type Row = {
   prepper: { display_name: string } | { display_name: string }[] | null;
   customer: { display_name: string } | { display_name: string }[] | null;
   payment: { status: string } | { status: string }[] | null;
+  review: { id: string }[] | null;
   items:
     | {
         id: string;
+        meal_id: string;
         quantity: number;
         total: number;
         meal: { title: string; images: { url: string }[] | null } | { title: string; images: { url: string }[] | null }[] | null;
@@ -47,11 +53,12 @@ type Row = {
 };
 
 const SELECT =
-  'id,status,subtotal,tip,total,created_at,' +
+  'id,prepper_id,status,subtotal,tip,total,created_at,' +
   'prepper:prepper_profiles(display_name),' +
   'customer:profiles(display_name),' +
   'payment:payments(status),' +
-  'items:order_items(id,quantity,total,meal:meals(title,images:meal_images(url)))';
+  'review:reviews(id),' +
+  'items:order_items(id,meal_id,quantity,total,meal:meals(title,images:meal_images(url)))';
 
 function toSummary(r: Row): OrderSummary {
   const prepper = one(r.prepper);
@@ -64,9 +71,12 @@ function toSummary(r: Row): OrderSummary {
     tip: r.tip,
     total: r.total,
     created_at: r.created_at,
+    prepperId: r.prepper_id,
     prepper: prepper?.display_name ?? 'preppa',
     customer: customer?.display_name ?? 'customer',
     paymentStatus: payment?.status ?? null,
+    firstMealId: r.items?.[0]?.meal_id ?? null,
+    reviewed: !!(r.review && r.review.length),
     items: (r.items ?? []).map((it) => {
       const meal = one(it.meal);
       return { id: it.id, title: meal?.title ?? 'meal', image: meal?.images?.[0]?.url ?? null, quantity: it.quantity, total: it.total };
