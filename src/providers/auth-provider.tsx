@@ -23,6 +23,10 @@ type AuthState = {
     password: string,
     fullName: string,
   ) => Promise<{ error: string | null; needsConfirmation: boolean }>;
+  /** Passwordless: email a 6-digit code (creates the account if new). */
+  sendCode: (email: string, fullName?: string) => Promise<{ error: string | null }>;
+  /** Verify the 6-digit code and start a session. */
+  verifyCode: (email: string, token: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
 };
 
@@ -99,6 +103,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // If email confirmation is on, there's a user but no active session yet.
         const needsConfirmation = !error && !!data.user && !data.session;
         return { error: error?.message ?? null, needsConfirmation };
+      },
+      async sendCode(email, fullName) {
+        const { error } = await supabase.auth.signInWithOtp({
+          email,
+          options: { shouldCreateUser: true, data: fullName ? { full_name: fullName } : undefined },
+        });
+        return { error: error?.message ?? null };
+      },
+      async verifyCode(email, token) {
+        const { error } = await supabase.auth.verifyOtp({ email, token, type: 'email' });
+        return { error: error?.message ?? null };
       },
       async signOut() {
         await supabase.auth.signOut();
