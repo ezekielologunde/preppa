@@ -3,9 +3,11 @@ import { useRouter } from 'expo-router';
 import {
   Bell,
   Boxes,
+  Briefcase,
   ChefHat,
   DollarSign,
   Flame,
+  Gift,
   Home,
   MessageSquare,
   Plus,
@@ -13,8 +15,10 @@ import {
   ShoppingBag,
   Star,
   TrendingUp,
+  User,
   Users,
   UtensilsCrossed,
+  Video,
   type LucideIcon,
 } from 'lucide-react-native';
 import { Platform, ScrollView, Text, View } from 'react-native';
@@ -293,39 +297,56 @@ export default function DashboardScreen() {
           </View>
         </ScrollView>
 
-        {/* Prepper bottom nav (dark) */}
-        <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', backgroundColor: '#15181f', paddingTop: 12, paddingBottom: 24, borderTopLeftRadius: 24, borderTopRightRadius: 24 }}>
-          {([
-            { Icon: Home, label: 'home', route: '/' },
-            { Icon: ShoppingBag, label: 'orders', badge: newCount || undefined, route: '/prepper-orders' },
-          ] as const).map((t) => (
-            <PressableScale key={t.label} onPress={() => router.push(t.route as never)} accessibilityRole="button" accessibilityLabel={t.label} style={{ alignItems: 'center', gap: 3 }}>
-              <View>
-                <t.Icon size={22} color="#6b7280" />
-                {'badge' in t && t.badge ? (
-                  <View style={{ position: 'absolute', top: -5, right: -8, minWidth: 16, height: 16, borderRadius: 8, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3 }}>
-                    <Text style={{ fontFamily: Font.semibold, fontSize: 9, color: '#fff' }}>{t.badge}</Text>
-                  </View>
-                ) : null}
-              </View>
-              <Text style={{ fontFamily: Font.medium, fontSize: 10, color: '#6b7280' }}>{t.label}</Text>
-            </PressableScale>
-          ))}
+        {/* Floating action bar (add meal · go live · + · new drop · opportunity) */}
+        <View style={{ position: 'absolute', left: 16, right: 16, bottom: 78, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: CARD, borderRadius: 26, paddingVertical: 12, paddingHorizontal: 18, ...Shadow.floating }}>
+          <ActionItem Icon={UtensilsCrossed} label="add meal" color="#fff" />
+          <ActionItem Icon={Video} label="go live" color={PINK} />
           <PressableScale accessibilityRole="button" accessibilityLabel="Add new meal">
-            <View style={{ width: 54, height: 54, borderRadius: 27, alignItems: 'center', justifyContent: 'center', marginTop: -20, backgroundColor: ORANGE, ...Shadow.floating, shadowColor: ORANGE, shadowOpacity: 0.4 }}>
-              <Plus size={26} color="#fff" />
+            <View style={{ width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center', marginTop: -26, backgroundColor: ORANGE, ...Shadow.floating, shadowColor: ORANGE, shadowOpacity: 0.45 }}>
+              <Plus size={28} color="#fff" />
             </View>
           </PressableScale>
-          <PressableScale accessibilityRole="button" accessibilityLabel="kitchen" style={{ alignItems: 'center', gap: 3 }}>
-            <ChefHat size={22} color={ORANGE} />
-            <Text style={{ fontFamily: Font.medium, fontSize: 10, color: ORANGE }}>kitchen</Text>
-          </PressableScale>
-          <PressableScale onPress={() => router.push('/messages')} accessibilityRole="button" accessibilityLabel="messages" style={{ alignItems: 'center', gap: 3 }}>
-            <MessageSquare size={22} color="#6b7280" />
-            <Text style={{ fontFamily: Font.medium, fontSize: 10, color: '#6b7280' }}>messages</Text>
-          </PressableScale>
+          <ActionItem Icon={Gift} label="new drop" color="#fff" />
+          <ActionItem Icon={Briefcase} label="opportunity" color={ORANGE} onPress={() => router.push('/opportunities')} />
+        </View>
+
+        {/* Prepper tab nav (dark) */}
+        <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', backgroundColor: '#15181f', paddingTop: 10, paddingBottom: 22, borderTopLeftRadius: 24, borderTopRightRadius: 24 }}>
+          <NavTab Icon={Home} label="home" onPress={() => router.push('/')} />
+          <NavTab Icon={ShoppingBag} label="orders" badge={newCount || undefined} onPress={() => router.push('/prepper-orders')} />
+          <NavTab Icon={ChefHat} label="kitchen" active />
+          <NavTab Icon={MessageSquare} label="messages" onPress={() => router.push('/messages')} />
+          <NavTab Icon={User} label="profile" onPress={() => router.push('/profile')} />
         </View>
       </SafeAreaView>
     </View>
+  );
+}
+
+function ActionItem({ Icon, label, color, onPress }: { Icon: LucideIcon; label: string; color: string; onPress?: () => void }) {
+  return (
+    <PressableScale onPress={onPress} accessibilityRole="button" accessibilityLabel={label} style={{ alignItems: 'center', gap: 5, width: 58 }}>
+      <View style={{ width: 38, height: 38, borderRadius: 19, borderWidth: 1.5, borderColor: color === '#fff' ? '#3f4451' : color + '66', alignItems: 'center', justifyContent: 'center' }}>
+        <Icon size={18} color={color} />
+      </View>
+      <Text style={{ fontFamily: Font.medium, fontSize: 10, color: '#9ca3af' }} numberOfLines={1}>{label}</Text>
+    </PressableScale>
+  );
+}
+
+function NavTab({ Icon, label, active, badge, onPress }: { Icon: LucideIcon; label: string; active?: boolean; badge?: number; onPress?: () => void }) {
+  const color = active ? ORANGE : '#6b7280';
+  return (
+    <PressableScale onPress={onPress} accessibilityRole="button" accessibilityState={{ selected: !!active }} accessibilityLabel={label} style={{ alignItems: 'center', gap: 3 }}>
+      <View>
+        <Icon size={22} color={color} strokeWidth={active ? 2.4 : 2} />
+        {badge ? (
+          <View style={{ position: 'absolute', top: -5, right: -8, minWidth: 16, height: 16, borderRadius: 8, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3 }}>
+            <Text style={{ fontFamily: Font.semibold, fontSize: 9, color: '#fff' }}>{badge}</Text>
+          </View>
+        ) : null}
+      </View>
+      <Text style={{ fontFamily: Font.medium, fontSize: 10, color }}>{label}</Text>
+    </PressableScale>
   );
 }
