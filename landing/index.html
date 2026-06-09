@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Preppa — building something awesome</title>
+    <meta name="description" content="Preppa is building something awesome. Join the waitlist to be first in line." />
+
+    <!-- Open Graph / social preview -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Preppa — building something awesome" />
+    <meta property="og:description" content="We're building something awesome. Join the waitlist." />
+    <meta property="og:url" content="https://preppa.live/" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>" />
+    <link rel="preconnect" href="https://nfwfnnfbikjxwflpmsnu.supabase.co" crossorigin />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      :root {
+        --bg: #07070b;
+        --fg: #f4f4f6;
+        --muted: #a1a1b3;
+        --brand: #6d5cff;
+        --brand-2: #00d4ff;
+        --ring: rgba(109, 92, 255, 0.55);
+        --card: rgba(255, 255, 255, 0.04);
+        --border: rgba(255, 255, 255, 0.1);
+      }
+
+      * { box-sizing: border-box; }
+
+      html, body { height: 100%; }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--fg);
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+        overflow-x: hidden;
+      }
+
+      /* Animated aurora background */
+      .aurora {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        overflow: hidden;
+        pointer-events: none;
+      }
+      .blob {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(90px);
+        opacity: 0.55;
+        animation: drift 22s ease-in-out infinite;
+      }
+      .blob.a { width: 46vmax; height: 46vmax; left: -10vmax; top: -12vmax; background: var(--brand); }
+      .blob.b { width: 40vmax; height: 40vmax; right: -12vmax; top: 10vmax; background: var(--brand-2); animation-delay: -7s; }
+      .blob.c { width: 36vmax; height: 36vmax; left: 25vmax; bottom: -16vmax; background: #ff5cae; animation-delay: -13s; }
+
+      @keyframes drift {
+        0%, 100% { transform: translate(0, 0) scale(1); }
+        33% { transform: translate(6vmax, 4vmax) scale(1.08); }
+        66% { transform: translate(-4vmax, 6vmax) scale(0.96); }
+      }
+
+      .grain {
+        position: fixed;
+        inset: 0;
+        z-index: 1;
+        opacity: 0.04;
+        pointer-events: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      }
+
+      main {
+        position: relative;
+        z-index: 2;
+        min-height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 32px 24px calc(32px + env(safe-area-inset-bottom));
+        text-align: center;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 14px;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        background: var(--card);
+        backdrop-filter: blur(10px);
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--muted);
+        margin-bottom: 28px;
+        animation: rise 0.7s 0.05s both cubic-bezier(0.2, 0.7, 0.2, 1);
+      }
+      .dot {
+        width: 8px; height: 8px; border-radius: 50%;
+        background: #28e07b;
+        box-shadow: 0 0 0 0 rgba(40, 224, 123, 0.7);
+        animation: pulse 2s infinite;
+      }
+      @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(40, 224, 123, 0.6); }
+        70% { box-shadow: 0 0 0 10px rgba(40, 224, 123, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(40, 224, 123, 0); }
+      }
+
+      .wordmark {
+        font-size: 22px;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        margin: 0 0 20px;
+        animation: rise 0.7s 0.1s both cubic-bezier(0.2, 0.7, 0.2, 1);
+      }
+      .wordmark span {
+        background: linear-gradient(90deg, var(--brand), var(--brand-2));
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
+      h1 {
+        font-size: clamp(38px, 9vw, 76px);
+        line-height: 1.02;
+        letter-spacing: -0.035em;
+        font-weight: 800;
+        margin: 0 0 20px;
+        max-width: 16ch;
+        animation: rise 0.8s 0.15s both cubic-bezier(0.2, 0.7, 0.2, 1);
+      }
+      h1 .grad {
+        background: linear-gradient(100deg, #fff 10%, var(--brand-2) 55%, var(--brand) 95%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
+      p.sub {
+        font-size: clamp(16px, 2.4vw, 19px);
+        color: var(--muted);
+        max-width: 52ch;
+        line-height: 1.6;
+        margin: 0 0 40px;
+        animation: rise 0.8s 0.2s both cubic-bezier(0.2, 0.7, 0.2, 1);
+      }
+
+      form {
+        display: flex;
+        gap: 10px;
+        width: 100%;
+        max-width: 460px;
+        animation: rise 0.8s 0.25s both cubic-bezier(0.2, 0.7, 0.2, 1);
+      }
+      @media (max-width: 520px) {
+        form { flex-direction: column; }
+      }
+
+      input[type='email'] {
+        flex: 1;
+        min-width: 0;
+        padding: 16px 18px;
+        font-size: 16px;
+        color: var(--fg);
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        outline: none;
+        transition: border-color 0.2s, box-shadow 0.2s;
+      }
+      input[type='email']::placeholder { color: #6b6b80; }
+      input[type='email']:focus {
+        border-color: var(--ring);
+        box-shadow: 0 0 0 4px rgba(109, 92, 255, 0.18);
+      }
+
+      button {
+        padding: 16px 22px;
+        font-size: 16px;
+        font-weight: 600;
+        color: #0a0a0f;
+        background: linear-gradient(90deg, var(--brand-2), var(--brand));
+        border: 0;
+        border-radius: 14px;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: transform 0.12s ease, box-shadow 0.2s, opacity 0.2s;
+        box-shadow: 0 8px 30px rgba(109, 92, 255, 0.35);
+      }
+      button:hover { transform: translateY(-1px); box-shadow: 0 12px 38px rgba(109, 92, 255, 0.5); }
+      button:active { transform: translateY(0); }
+      button:disabled { opacity: 0.6; cursor: default; transform: none; }
+
+      .msg {
+        min-height: 22px;
+        margin-top: 18px;
+        font-size: 15px;
+        font-weight: 500;
+        opacity: 0;
+        transform: translateY(4px);
+        transition: opacity 0.3s, transform 0.3s;
+      }
+      .msg.show { opacity: 1; transform: translateY(0); }
+      .msg.ok { color: #34e08a; }
+      .msg.err { color: #ff7a8a; }
+
+      footer {
+        position: relative;
+        z-index: 2;
+        text-align: center;
+        padding: 24px;
+        font-size: 13px;
+        color: #5a5a6e;
+      }
+
+      @keyframes rise {
+        from { opacity: 0; transform: translateY(16px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .blob { animation: none; }
+        .badge, .wordmark, h1, p.sub, form { animation: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="aurora" aria-hidden="true">
+      <div class="blob a"></div>
+      <div class="blob b"></div>
+      <div class="blob c"></div>
+    </div>
+    <div class="grain" aria-hidden="true"></div>
+
+    <main>
+      <span class="badge"><span class="dot"></span> Launching soon</span>
+      <p class="wordmark"><span>⚡ Preppa</span></p>
+
+      <h1>We're building <span class="grad">something awesome</span></h1>
+      <p class="sub">
+        A new way to prep, plan, and stay ahead — beautifully simple across iPhone, iPad,
+        Android, and the web. Be the first to get in.
+      </p>
+
+      <form id="waitlist" novalidate>
+        <input
+          id="email"
+          type="email"
+          name="email"
+          placeholder="you@email.com"
+          autocomplete="email"
+          required
+          aria-label="Email address"
+        />
+        <button id="submit" type="submit">Join the waitlist</button>
+      </form>
+
+      <p id="msg" class="msg" role="status" aria-live="polite"></p>
+    </main>
+
+    <footer>© <span id="year"></span> Preppa · preppa.live</footer>
+
+    <script>
+      // Client-safe Supabase config (publishable key, protected by RLS).
+      const SUPABASE_URL = 'https://nfwfnnfbikjxwflpmsnu.supabase.co';
+      const SUPABASE_KEY = 'sb_publishable_awl6aQ3V1nyEXL2QAx5cYg_fgXU41y5';
+
+      document.getElementById('year').textContent = new Date().getFullYear();
+
+      const form = document.getElementById('waitlist');
+      const emailEl = document.getElementById('email');
+      const btn = document.getElementById('submit');
+      const msg = document.getElementById('msg');
+
+      function show(text, kind) {
+        msg.textContent = text;
+        msg.className = 'msg show ' + kind;
+      }
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = emailEl.value.trim().toLowerCase();
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          show('Please enter a valid email address.', 'err');
+          return;
+        }
+
+        btn.disabled = true;
+        const original = btn.textContent;
+        btn.textContent = 'Joining…';
+
+        try {
+          const res = await fetch(SUPABASE_URL + '/rest/v1/waitlist', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              apikey: SUPABASE_KEY,
+              Authorization: 'Bearer ' + SUPABASE_KEY,
+              Prefer: 'return=minimal',
+            },
+            body: JSON.stringify({ email }),
+          });
+
+          if (res.ok) {
+            form.style.display = 'none';
+            show("You're on the list — we'll be in touch. 🎉", 'ok');
+          } else if (res.status === 409) {
+            show("You're already on the list. 🙌", 'ok');
+          } else {
+            const body = await res.text();
+            console.error('Waitlist error', res.status, body);
+            show('Something went wrong. Please try again.', 'err');
+            btn.disabled = false;
+            btn.textContent = original;
+          }
+        } catch (err) {
+          console.error(err);
+          show('Network error. Please try again.', 'err');
+          btn.disabled = false;
+          btn.textContent = original;
+        }
+      });
+    </script>
+  </body>
+</html>
