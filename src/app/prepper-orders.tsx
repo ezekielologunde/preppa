@@ -119,6 +119,13 @@ export default function PrepperOrdersScreen() {
   const busyId = advance.isPending ? advance.variables?.orderId : cancel.isPending ? cancel.variables : undefined;
   const [actionErr, setActionErr] = useState<string | null>(null);
   const onErr = (e: unknown) => setActionErr(e instanceof Error ? e.message : 'Could not update the order. Try again.');
+  // Declining is destructive (refunds the customer) → confirm first.
+  const [declineOrder, setDeclineOrder] = useState<OrderSummary | null>(null);
+  function doDecline(o: OrderSummary) {
+    setDeclineOrder(null);
+    setActionErr(null);
+    cancel.mutate(o.id, { onSuccess: () => refund.mutate(o.id), onError: onErr });
+  }
 
   // Handoff verification modal (pickup/meetup): cook keys the customer's PIN.
   const [verifyOrder, setVerifyOrder] = useState<OrderSummary | null>(null);
@@ -177,13 +184,34 @@ export default function PrepperOrdersScreen() {
                 order={o}
                 busy={busyId === o.id}
                 onAdvance={(next) => { setActionErr(null); advance.mutate({ orderId: o.id, next }, { onError: onErr }); }}
-                onCancel={() => { setActionErr(null); cancel.mutate(o.id, { onSuccess: () => refund.mutate(o.id), onError: onErr }); }}
+                onCancel={() => { feedback.warning(); setDeclineOrder(o); }}
                 onVerify={() => openVerify(o)}
               />
             ))}
           </ScrollView>
         )}
       </SafeAreaView>
+
+      {/* Decline confirmation */}
+      <Modal visible={!!declineOrder} transparent animationType="fade" onRequestClose={() => setDeclineOrder(null)}>
+        <Pressable onPress={() => setDeclineOrder(null)} style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center', padding: 28 }}>
+          <Pressable onPress={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 360, backgroundColor: CARD, borderRadius: 22, padding: 22, gap: 14 }}>
+            <View style={{ width: 50, height: 50, borderRadius: 15, backgroundColor: '#7f1d1d', alignItems: 'center', justifyContent: 'center' }}>
+              <X size={24} color="#fca5a5" strokeWidth={2.6} />
+            </View>
+            <Text style={{ fontFamily: Font.display, fontSize: 20, color: '#fff', letterSpacing: -0.4 }}>Decline this order?</Text>
+            <Text style={{ fontFamily: Font.body, fontSize: 13.5, color: '#9ca3af', lineHeight: 19 }}>
+              {declineOrder ? `${declineOrder.customer}'s order (${money(declineOrder.total)}) will be cancelled and the customer refunded automatically.` : ''}
+            </Text>
+            <PressableScale onPress={() => declineOrder && doDecline(declineOrder)} accessibilityRole="button" accessibilityLabel="Yes, decline the order" style={{ height: 50, borderRadius: 14, backgroundColor: '#ef4444', alignItems: 'center', justifyContent: 'center' }}>
+              <Text style={{ fontFamily: Font.heading, fontSize: 15.5, color: '#fff' }}>Yes, decline</Text>
+            </PressableScale>
+            <PressableScale onPress={() => setDeclineOrder(null)} accessibilityRole="button" accessibilityLabel="Keep the order" style={{ height: 48, borderRadius: 14, alignItems: 'center', justifyContent: 'center' }}>
+              <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#9ca3af' }}>Keep the order</Text>
+            </PressableScale>
+          </Pressable>
+        </Pressable>
+      </Modal>
 
       {/* Verify handoff — cook keys the customer's pickup/meetup PIN */}
       <Modal visible={!!verifyOrder} transparent animationType="fade" onRequestClose={() => setVerifyOrder(null)}>
