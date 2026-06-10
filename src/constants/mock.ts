@@ -87,6 +87,8 @@ export type ExperienceType = { key: string; label: string; icon: string; blurb: 
 export const experienceTypes: ExperienceType[] = [
   { key: 'catering', label: 'Catering', icon: 'UtensilsCrossed', blurb: 'Feed your event' },
   { key: 'private_chef', label: 'Private chef', icon: 'ChefHat', blurb: 'Cooked at home' },
+  { key: 'food_service', label: 'Food service', icon: 'HandPlatter', blurb: 'Servers & staff' },
+  { key: 'cleaning', label: 'Cleaning', icon: 'Sparkles', blurb: 'Before & after' },
   { key: 'class', label: 'Cooking class', icon: 'GraduationCap', blurb: 'Learn hands-on' },
   { key: 'tasting', label: 'Tasting', icon: 'Wine', blurb: 'Curated menus' },
 ];

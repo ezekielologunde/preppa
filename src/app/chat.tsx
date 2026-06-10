@@ -1,14 +1,15 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ChevronLeft, Send } from 'lucide-react-native';
+import { ChevronLeft, ChevronRight, Phone, Receipt, Send } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, KeyboardAvoidingView, Linking, Platform, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
+import { feedback } from '@/lib/feedback';
 import { Palette, Radius } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
-import { useMessages, useSendMessage } from '@/lib/queries/messages';
+import { useChatContext, useMessages, useSendMessage } from '@/lib/queries/messages';
 import { useAuth } from '@/providers/auth-provider';
 
 const ORANGE = Palette.brand;
@@ -19,9 +20,18 @@ export default function ChatScreen() {
   const { user } = useAuth();
   const { id, name } = useLocalSearchParams<{ id?: string; name?: string }>();
   const { data: messages, isLoading } = useMessages(id, user?.id);
+  const { data: ctx } = useChatContext(id, user?.id);
   const send = useSendMessage();
   const [text, setText] = useState('');
   const scrollRef = useRef<ScrollView>(null);
+
+  function call() {
+    if (!ctx?.otherPhone) {
+      feedback.warning();
+      return;
+    }
+    Linking.openURL(`tel:${ctx.otherPhone}`).catch(() => feedback.error());
+  }
 
   // Mark read on open / when new messages arrive.
   useEffect(() => {
@@ -53,8 +63,35 @@ export default function ChatScreen() {
           <PressableScale onPress={goBack} accessibilityRole="button" accessibilityLabel="Go back" style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: Palette.canvas, alignItems: 'center', justifyContent: 'center' }}>
             <ChevronLeft size={22} color={INK} />
           </PressableScale>
-          <Text style={{ fontFamily: Font.heading, fontSize: 17, color: INK }} numberOfLines={1}>{name ?? 'Chat'}</Text>
+          <Text style={{ flex: 1, fontFamily: Font.heading, fontSize: 17, color: INK }} numberOfLines={1}>{name ?? 'Chat'}</Text>
+          {ctx?.otherPhone ? (
+            <PressableScale onPress={call} accessibilityRole="button" accessibilityLabel={`Call ${name ?? 'them'}`} style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: Palette.brandTint, alignItems: 'center', justifyContent: 'center' }}>
+              <Phone size={18} color={ORANGE} />
+            </PressableScale>
+          ) : null}
         </View>
+
+        {/* Shared-order context — the conversation's order details, always in view */}
+        {ctx?.order ? (
+          <PressableScale
+            onPress={() => router.push(ctx.order!.iAmPrepper ? '/prepper-orders' : '/orders')}
+            accessibilityRole="button"
+            accessibilityLabel={`Order ${ctx.order.status}, $${ctx.order.total.toFixed(2)}`}
+            style={{ marginHorizontal: 16, marginTop: 10, backgroundColor: Palette.brandTint, borderRadius: Radius.md, padding: 12, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+            <View style={{ width: 36, height: 36, borderRadius: 11, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' }}>
+              <Receipt size={17} color={ORANGE} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text numberOfLines={1} style={{ fontFamily: Font.heading, fontSize: 13.5, color: INK }}>
+                {ctx.order.firstItem ?? 'Order'}{ctx.order.items > 1 ? ` +${ctx.order.items - 1} more` : ''}
+              </Text>
+              <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.brandPressed, textTransform: 'capitalize' }}>
+                {ctx.order.status.replace(/_/g, ' ')} · ${ctx.order.total.toFixed(2)}
+              </Text>
+            </View>
+            <ChevronRight size={16} color={Palette.brandPressed} />
+          </PressableScale>
+        ) : null}
 
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={8}>
           {isLoading ? (

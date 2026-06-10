@@ -4,10 +4,12 @@ import {
   ChefHat,
   ClipboardList,
   GraduationCap,
+  HandPlatter,
   MapPin,
   MessageSquareQuote,
   PartyPopper,
   Plus,
+  Sparkles,
   Star,
   UtensilsCrossed,
   Wine,
@@ -24,7 +26,7 @@ import { Palette, Radius, Shadow } from '@/constants/theme';
 const ORANGE = Palette.brand;
 const INK = Palette.ink;
 
-const TYPE_ICONS: Record<string, LucideIcon> = { UtensilsCrossed, ChefHat, GraduationCap, Wine };
+const TYPE_ICONS: Record<string, LucideIcon> = { UtensilsCrossed, ChefHat, GraduationCap, Wine, HandPlatter, Sparkles };
 const STEPS: { Icon: LucideIcon; title: string; body: string }[] = [
   { Icon: ClipboardList, title: 'Post a request', body: 'Tell us your event, date and budget' },
   { Icon: MessageSquareQuote, title: 'Compare bids', body: 'Local preppers send quotes to you' },

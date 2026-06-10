@@ -13,7 +13,7 @@ export type PrepperStatus = 'pending' | 'approved' | 'rejected' | 'suspended';
 export type UserStatus = 'active' | 'suspended' | 'deleted';
 export type PlanFrequency = 'weekly' | 'biweekly' | 'monthly';
 export type SubscriptionStatus = 'active' | 'paused' | 'cancelled';
-export type ExperienceKind = 'catering' | 'private_chef' | 'class' | 'tasting' | 'other';
+export type ExperienceKind = 'catering' | 'private_chef' | 'food_service' | 'cleaning' | 'class' | 'tasting' | 'other';
 export type ExperienceStatus = 'open' | 'booked' | 'completed' | 'cancelled';
 export type BidStatus = 'pending' | 'accepted' | 'declined' | 'withdrawn';
 
