@@ -1,0 +1,130 @@
+import { useRouter } from 'expo-router';
+import { ChevronLeft, DollarSign, Receipt, TrendingUp, Wallet } from 'lucide-react-native';
+import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+import { PressableScale } from '@/components/ui/pressable-scale';
+import { Font } from '@/constants/fonts';
+import { Palette } from '@/constants/theme';
+import { useMyEarnings, type EarningsRecent } from '@/lib/queries/earnings';
+
+const ORANGE = Palette.brand;
+const GREEN = '#34d399';
+const CARD = Palette.prepperCard;
+const BG = Palette.prepperBg;
+const MUTED = '#9ca3af';
+
+const money = (n: number) => `$${(n ?? 0).toFixed(2)}`;
+const shortDate = (iso: string) => {
+  const d = new Date(iso);
+  return isNaN(d.getTime()) ? '' : d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+};
+
+function MiniStat({ label, value, Icon, color }: { label: string; value: string; Icon: typeof Wallet; color: string }) {
+  return (
+    <View style={{ flex: 1, backgroundColor: CARD, borderRadius: 18, padding: 16, gap: 8 }}>
+      <View style={{ width: 34, height: 34, borderRadius: 11, backgroundColor: color + '22', alignItems: 'center', justifyContent: 'center' }}>
+        <Icon size={18} color={color} />
+      </View>
+      <Text style={{ fontFamily: Font.heading, fontSize: 19, color: '#fff' }}>{value}</Text>
+      <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: MUTED }}>{label}</Text>
+    </View>
+  );
+}
+
+function EarningRow({ item }: { item: EarningsRecent }) {
+  const refunded = Number(item.refunded) > 0;
+  const net = Number(item.amount) - Number(item.refunded);
+  const extra = item.item_count > 1 ? ` +${item.item_count - 1} more` : '';
+  const title = (item.first_item ?? 'Order') + extra;
+  const who = item.customer_first ? `${item.customer_first} · ` : '';
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: CARD, borderRadius: 16, padding: 14 }}>
+      <View style={{ width: 38, height: 38, borderRadius: 12, backgroundColor: refunded ? '#7f1d1d' : ORANGE + '22', alignItems: 'center', justifyContent: 'center' }}>
+        <Receipt size={18} color={refunded ? '#fecaca' : ORANGE} />
+      </View>
+      <View style={{ flex: 1 }}>
+        <Text numberOfLines={1} style={{ fontFamily: Font.semibold, fontSize: 14.5, color: '#fff' }}>{title}</Text>
+        <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: MUTED }}>{who}{shortDate(item.created_at)}</Text>
+      </View>
+      <View style={{ alignItems: 'flex-end' }}>
+        <Text style={{ fontFamily: Font.heading, fontSize: 15, color: refunded ? MUTED : GREEN }}>{refunded ? money(0) : `+${money(net)}`}</Text>
+        {refunded ? <Text style={{ fontFamily: Font.medium, fontSize: 11.5, color: '#fca5a5' }}>refunded</Text> : null}
+      </View>
+    </View>
+  );
+}
+
+export default function EarningsScreen() {
+  const router = useRouter();
+  const { data, isLoading } = useMyEarnings();
+
+  return (
+    <View style={{ flex: 1, backgroundColor: BG }}>
+      <SafeAreaView edges={['top']} style={{ flex: 1 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingTop: 8, paddingBottom: 8 }}>
+          <PressableScale onPress={() => (router.canGoBack() ? router.back() : router.replace('/dashboard'))} accessibilityRole="button" accessibilityLabel="Go back" style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center' }}>
+            <ChevronLeft size={22} color="#fff" />
+          </PressableScale>
+          <Text style={{ fontFamily: Font.display, fontSize: 24, color: '#fff', letterSpacing: -0.6 }}>earnings</Text>
+        </View>
+
+        {isLoading ? (
+          <ActivityIndicator color={ORANGE} style={{ marginTop: 40 }} />
+        ) : !data?.is_prepper ? (
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
+            <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center' }}>
+              <Wallet size={28} color="#5b6170" />
+            </View>
+            <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>No earnings yet</Text>
+            <Text style={{ fontFamily: Font.body, fontSize: 14, color: MUTED, textAlign: 'center' }}>Become a prepper and your sales will show up here.</Text>
+            <PressableScale onPress={() => router.push('/become-prepper')} accessibilityRole="button" accessibilityLabel="Become a prepper" style={{ marginTop: 6, backgroundColor: ORANGE, borderRadius: 14, paddingHorizontal: 22, paddingVertical: 12 }}>
+              <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: '#fff' }}>Become a prepper</Text>
+            </PressableScale>
+          </View>
+        ) : (
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 20, gap: 14, paddingBottom: 48 }}>
+            {/* Hero: net earnings */}
+            <View style={{ backgroundColor: CARD, borderRadius: 22, padding: 22, gap: 6 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <View style={{ width: 30, height: 30, borderRadius: 10, backgroundColor: GREEN + '22', alignItems: 'center', justifyContent: 'center' }}>
+                  <DollarSign size={17} color={GREEN} />
+                </View>
+                <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: MUTED }}>Net earnings</Text>
+              </View>
+              <Text style={{ fontFamily: Font.display, fontSize: 40, color: '#fff', letterSpacing: -1 }}>{money(data.net_total)}</Text>
+              <Text style={{ fontFamily: Font.body, fontSize: 13, color: MUTED }}>
+                from {data.orders_paid} paid {data.orders_paid === 1 ? 'order' : 'orders'}
+                {Number(data.refunded_total) > 0 ? ` · ${money(data.refunded_total)} refunded` : ''}
+              </Text>
+            </View>
+
+            {/* Week / month */}
+            <View style={{ flexDirection: 'row', gap: 14 }}>
+              <MiniStat label="This week" value={money(data.net_week)} Icon={TrendingUp} color={ORANGE} />
+              <MiniStat label="This month" value={money(data.net_month)} Icon={Wallet} color="#a78bfa" />
+            </View>
+
+            {/* Honest payout status (Connect deferred) */}
+            <View style={{ backgroundColor: '#1f2937', borderRadius: 16, padding: 14, flexDirection: 'row', gap: 10, alignItems: 'flex-start' }}>
+              <Wallet size={18} color={ORANGE} style={{ marginTop: 1 }} />
+              <Text style={{ flex: 1, fontFamily: Font.body, fontSize: 12.5, color: '#cbd5e1', lineHeight: 18 }}>
+                Payouts to your bank arrive via Stripe. Direct bank transfers are coming soon — for now, earnings are collected by Preppa on your behalf.
+              </Text>
+            </View>
+
+            {/* Recent paid orders */}
+            <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff', marginTop: 4 }}>Recent</Text>
+            {data.recent.length === 0 ? (
+              <Text style={{ fontFamily: Font.body, fontSize: 13.5, color: MUTED }}>No paid orders yet. They&apos;ll appear here as customers check out.</Text>
+            ) : (
+              <View style={{ gap: 10 }}>
+                {data.recent.map((it) => <EarningRow key={it.order_id} item={it} />)}
+              </View>
+            )}
+          </ScrollView>
+        )}
+      </SafeAreaView>
+    </View>
+  );
+}

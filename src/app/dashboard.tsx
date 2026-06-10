@@ -259,7 +259,7 @@ export default function DashboardScreen() {
             <QuickAction Icon={ShoppingBag} label="orders" color={ORANGE} badge={newCount || undefined} onPress={() => router.push('/prepper-orders')} />
             <QuickAction Icon={UtensilsCrossed} label="menu" color={GREEN} />
             <QuickAction Icon={Boxes} label="inventory" color={BLUE} />
-            <QuickAction Icon={DollarSign} label="earnings" color={GREEN} />
+            <QuickAction Icon={DollarSign} label="earnings" color={GREEN} onPress={() => router.push('/earnings')} />
             <QuickAction Icon={Users} label="customers" color={PURPLE} />
             <QuickAction Icon={TrendingUp} label="insights" color={BLUE} />
           </ScrollView>
