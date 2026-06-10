@@ -121,3 +121,16 @@ export function useUpdateSubscription(userId?: string | null) {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['subscriptions', 'mine', userId ?? 'anon'] }),
   });
 }
+
+/** Skip the next delivery — bumps next_billing_at forward one cycle, no charge. */
+export function useSkipDelivery(userId?: string | null) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string): Promise<{ ok: boolean; next?: string; reason?: string }> => {
+      const { data, error } = await supabase.rpc('skip_subscription_delivery', { p_id: id });
+      if (error) throw error;
+      return data as unknown as { ok: boolean; next?: string; reason?: string };
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['subscriptions', 'mine', userId ?? 'anon'] }),
+  });
+}

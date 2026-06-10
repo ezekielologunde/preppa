@@ -14,6 +14,7 @@ import {
   nextDeliveryDate,
   useMealPlans,
   useMySubscriptions,
+  useSkipDelivery,
   useSubscribeToPlan,
   useUpdateSubscription,
   type DeliveryDay,
@@ -98,6 +99,7 @@ export default function MealPlansScreen() {
   const { data: subs } = useMySubscriptions(user?.id);
   const subscribe = useSubscribeToPlan();
   const updateSub = useUpdateSubscription(user?.id);
+  const skipDelivery = useSkipDelivery(user?.id);
 
   // Subscribe sheet state — servings + delivery-day schedule for the chosen plan.
   const [sheetPlan, setSheetPlan] = useState<MealPlan | null>(null);
@@ -170,6 +172,16 @@ export default function MealPlansScreen() {
                       </View>
                     </View>
                     <View style={{ flexDirection: 'row', gap: 8 }}>
+                      {s.status === 'active' ? (
+                        <PressableScale
+                          onPress={() => skipDelivery.mutate(s.id, { onSuccess: (r) => (r.ok ? feedback.success() : feedback.warning()) })}
+                          disabled={skipDelivery.isPending}
+                          accessibilityRole="button"
+                          accessibilityLabel="Skip next delivery"
+                          style={{ flex: 1, height: 38, borderRadius: Radius.sm, backgroundColor: Palette.brandTint, alignItems: 'center', justifyContent: 'center' }}>
+                          <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: Palette.brandPressed }}>Skip next</Text>
+                        </PressableScale>
+                      ) : null}
                       <PressableScale
                         onPress={() => updateSub.mutate({ id: s.id, status: s.status === 'active' ? 'paused' : 'active' })}
                         disabled={updateSub.isPending}
