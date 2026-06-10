@@ -136,7 +136,15 @@ export default function ExploreScreen() {
           )}
 
           {/* Can't decide — flat brand-tint accent */}
-          <Pressable style={{ marginHorizontal: 20 }}>
+          <Pressable
+            onPress={() => {
+              const pool = meals ?? [];
+              const pick = pool[Math.floor(Math.random() * pool.length)];
+              if (pick) router.push(`/meal?id=${pick.id}`);
+            }}
+            accessibilityRole="button"
+            accessibilityLabel="Surprise me with a meal"
+            style={{ marginHorizontal: 20 }}>
             <View style={{ backgroundColor: Palette.brandTint, borderRadius: Radius.lg, padding: 18, flexDirection: 'row', alignItems: 'center', gap: 14 }}>
               <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
                 <Compass size={24} color="#fff" />

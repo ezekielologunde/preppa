@@ -10,7 +10,6 @@ import {
   Leaf,
   MapPin,
   MoreHorizontal,
-  MoreVertical,
   Salad,
   Search,
   SlidersHorizontal,
@@ -25,13 +24,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { MealCard } from '@/components/meal-card';
 import { Font } from '@/constants/fonts';
-import { categories, orderAgain, recommendedMeals } from '@/constants/mock';
+import { categories, recommendedMeals } from '@/constants/mock';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { CardRowSkeleton } from '@/components/ui/skeleton';
 import { Palette, Radius } from '@/constants/theme';
 import { greeting } from '@/lib/greeting';
 import { useFeaturedMeals } from '@/lib/queries/meals';
 import { useFeatureFlags } from '@/lib/queries/feature-flags';
+import { useMyOrders } from '@/lib/queries/orders';
 import { useAuth } from '@/providers/auth-provider';
 
 const ORANGE = Palette.brand;
@@ -73,6 +73,9 @@ export default function HomeScreen() {
   const { data: flags } = useFeatureFlags();
   const showPlans = flags?.meal_plans !== false;
   const showExperiences = flags?.experiences !== false;
+  // "Order again" = the user's most recent delivered order (hidden until one exists).
+  const { data: myOrders } = useMyOrders(user?.id);
+  const lastDone = myOrders?.find((o) => o.status === 'completed');
 
   return (
     <View style={{ flex: 1, backgroundColor: '#F7F7F8' }}>
@@ -174,7 +177,14 @@ export default function HomeScreen() {
           ) : null}
 
           {/* Chef surprise me — flat brand-tint accent (the one accent surface on Home) */}
-          <Pressable style={{ marginHorizontal: 20, marginBottom: 26 }}>
+          <Pressable
+            onPress={() => {
+              const pick = meals[Math.floor(Math.random() * meals.length)];
+              if (pick) router.push(`/meal?id=${pick.id}`);
+            }}
+            accessibilityRole="button"
+            accessibilityLabel="Surprise me with a meal"
+            style={{ marginHorizontal: 20, marginBottom: 26 }}>
             <View style={{ backgroundColor: Palette.brandTint, borderRadius: Radius.lg, padding: 20, flexDirection: 'row', alignItems: 'center', overflow: 'hidden' }}>
               <View style={{ flex: 1, gap: 6 }}>
                 <Text style={{ fontFamily: Font.display, fontSize: 20, color: INK, letterSpacing: -0.5 }}>chef surprise me</Text>
@@ -217,22 +227,33 @@ export default function HomeScreen() {
             </View>
           </View>
 
-          {/* Order again */}
-          <SectionHeader title="order again" />
-          <View style={{ marginHorizontal: 20, backgroundColor: '#fff', borderRadius: 20, padding: 12, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-            <Image source={orderAgain.image} style={{ width: 60, height: 60, borderRadius: 14 }} contentFit="cover" />
-            <View style={{ flex: 1 }}>
-              <Text style={{ fontFamily: Font.heading, fontSize: 15, color: INK }}>{orderAgain.title}</Text>
-              <Text style={{ fontFamily: Font.body, fontSize: 12, color: MUTED, marginTop: 2 }}>by {orderAgain.prepper}</Text>
-              <Text style={{ fontFamily: Font.medium, fontSize: 12, color: '#6b7280', marginTop: 4 }}>${orderAgain.price.toFixed(2)} · delivered on {orderAgain.date}</Text>
-            </View>
-            <Pressable style={{ backgroundColor: ORANGE, borderRadius: 999, paddingHorizontal: 16, paddingVertical: 10 }}>
-              <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: '#fff' }}>order again</Text>
-            </Pressable>
-            <Pressable hitSlop={8}>
-              <MoreVertical size={18} color={MUTED} />
-            </Pressable>
-          </View>
+          {/* Order again — the user's real last delivered order */}
+          {lastDone ? (
+            <>
+              <SectionHeader title="order again" />
+              <View style={{ marginHorizontal: 20, backgroundColor: '#fff', borderRadius: 20, padding: 12, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                {lastDone.items[0]?.image ? (
+                  <Image source={lastDone.items[0].image} style={{ width: 60, height: 60, borderRadius: 14 }} contentFit="cover" />
+                ) : (
+                  <View style={{ width: 60, height: 60, borderRadius: 14, backgroundColor: '#FCE9DD' }} />
+                )}
+                <View style={{ flex: 1 }}>
+                  <Text numberOfLines={1} style={{ fontFamily: Font.heading, fontSize: 15, color: INK }}>{lastDone.items[0]?.title ?? 'Your order'}</Text>
+                  <Text style={{ fontFamily: Font.body, fontSize: 12, color: MUTED, marginTop: 2 }}>by {lastDone.prepper}</Text>
+                  <Text style={{ fontFamily: Font.medium, fontSize: 12, color: '#6b7280', marginTop: 4 }}>
+                    ${lastDone.total.toFixed(2)} · delivered {new Date(lastDone.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                  </Text>
+                </View>
+                <PressableScale
+                  onPress={() => lastDone.firstMealId && router.push(`/meal?id=${lastDone.firstMealId}`)}
+                  accessibilityRole="button"
+                  accessibilityLabel="Order again"
+                  style={{ backgroundColor: ORANGE, borderRadius: 999, paddingHorizontal: 16, paddingVertical: 10 }}>
+                  <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: '#fff' }}>order again</Text>
+                </PressableScale>
+              </View>
+            </>
+          ) : null}
         </ScrollView>
       </SafeAreaView>
     </View>
