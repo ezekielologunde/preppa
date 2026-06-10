@@ -1,0 +1,4 @@
+-- 0035 — Fraud hardening: pickup/meetup handoff code minted ONLY after payment
+-- succeeds (record_payment), 3-digit. create_order no longer mints it; new
+-- mint_order_handoff() helper is idempotent + service_role only. Canonical
+-- bodies in DB. See migration history.

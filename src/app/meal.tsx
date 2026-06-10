@@ -2,6 +2,7 @@ import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { BadgeCheck, Check, ChevronLeft, Clock, MessageCircle, ShoppingBag, Star } from 'lucide-react-native';
 import { useState } from 'react';
+import { MotiView } from 'moti';
 import { ActivityIndicator, Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -207,6 +208,23 @@ export default function MealScreen() {
       {/* Sticky CTA */}
       {meal ? (
         <SafeAreaView edges={['bottom']} style={{ position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: '#f3f4f6' }}>
+          {/* Delightful add confirmation — springs up, offers a fast path to cart */}
+          {added && orderingOn ? (
+            <MotiView
+              from={{ opacity: 0, translateY: 14, scale: 0.92 }}
+              animate={{ opacity: 1, translateY: 0, scale: 1 }}
+              transition={{ type: 'spring', damping: 15, stiffness: 240 }}
+              pointerEvents="box-none"
+              style={{ position: 'absolute', top: -54, alignSelf: 'center', flexDirection: 'row', alignItems: 'center', gap: 9, backgroundColor: INK, borderRadius: 999, paddingLeft: 8, paddingRight: 14, height: 44, shadowColor: '#000', shadowOpacity: 0.18, shadowRadius: 14, shadowOffset: { width: 0, height: 6 } }}>
+              <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: Palette.success, alignItems: 'center', justifyContent: 'center' }}>
+                <Check size={15} color="#fff" strokeWidth={3} />
+              </View>
+              <Text style={{ fontFamily: Font.semibold, fontSize: 13.5, color: '#fff' }}>Added to cart</Text>
+              <Pressable onPress={() => router.push('/cart')} hitSlop={8} accessibilityRole="button" accessibilityLabel="View cart">
+                <Text style={{ fontFamily: Font.heading, fontSize: 13.5, color: ORANGE }}>View →</Text>
+              </Pressable>
+            </MotiView>
+          ) : null}
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 20, paddingVertical: 12 }}>
             <View>
               <Text style={{ fontFamily: Font.body, fontSize: 12, color: '#9ca3af' }}>price</Text>

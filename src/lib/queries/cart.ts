@@ -104,9 +104,11 @@ export function useAddToCart() {
   });
 }
 
-/** Set a line item's quantity (0 removes it). */
+/** Set a line item's quantity (0 removes it). Optimistic — the UI updates
+ * instantly and rolls back only if the server rejects it. */
 export function useUpdateCartItem(userId?: string | null) {
   const qc = useQueryClient();
+  const key = ['cart', userId ?? 'anon'];
   return useMutation({
     mutationFn: async (v: { itemId: string; quantity: number }) => {
       if (v.quantity <= 0) {
@@ -117,7 +119,21 @@ export function useUpdateCartItem(userId?: string | null) {
         if (error) throw error;
       }
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['cart', userId ?? 'anon'] }),
+    onMutate: async (v) => {
+      await qc.cancelQueries({ queryKey: key });
+      const prev = qc.getQueryData<Cart>(key);
+      if (prev) {
+        const items = prev.items
+          .map((it) => (it.id === v.itemId ? { ...it, quantity: v.quantity } : it))
+          .filter((it) => it.quantity > 0);
+        const subtotal = items.reduce((s, i) => s + i.price_snapshot * i.quantity, 0);
+        const count = items.reduce((s, i) => s + i.quantity, 0);
+        qc.setQueryData<Cart>(key, { items, subtotal, count });
+      }
+      return { prev };
+    },
+    onError: (_e, _v, ctx) => { if (ctx?.prev) qc.setQueryData(key, ctx.prev); },
+    onSettled: () => qc.invalidateQueries({ queryKey: key }),
   });
 }
 
