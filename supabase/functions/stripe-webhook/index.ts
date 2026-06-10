@@ -153,6 +153,22 @@ Deno.serve(async (req) => {
             p_status: 'succeeded',
             p_amount: (s.amount_total ?? 0) / 100,
           });
+          // Frictionless payouts: Preppa collects, the cook never touches
+          // Stripe. Pull the EXACT processing fee from the balance transaction
+          // and snapshot stripe+platform fees on the payment (the RPC falls
+          // back to a fee_config estimate when we pass null).
+          let stripeFee: number | null = null;
+          try {
+            const pi = await stripe.paymentIntents.retrieve(String(s.payment_intent), {
+              expand: ['latest_charge.balance_transaction'],
+            });
+            const charge = pi.latest_charge as Stripe.Charge | null;
+            const bt = charge?.balance_transaction as Stripe.BalanceTransaction | null;
+            if (bt && typeof bt.fee === 'number') stripeFee = bt.fee / 100;
+          } catch (e) {
+            console.error('balance txn fetch failed (estimating fee)', e instanceof Error ? e.message : e);
+          }
+          await supabase.rpc('apply_payment_fees', { p_order_id: orderId, p_stripe_fee: stripeFee });
           try {
             await sendOrderEmails(supabase, orderId);
           } catch (e) {

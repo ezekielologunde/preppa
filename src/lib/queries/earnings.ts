@@ -8,6 +8,8 @@ export type EarningsRecent = {
   created_at: string;
   status: string;
   amount: number;
+  fees: number;
+  net: number;
   refunded: number;
   customer_first: string;
   first_item: string | null;
@@ -17,6 +19,8 @@ export type EarningsRecent = {
 export type Earnings = {
   is_prepper: boolean;
   gross_total: number;
+  stripe_fees: number;
+  platform_fees: number;
   refunded_total: number;
   net_total: number;
   net_week: number;

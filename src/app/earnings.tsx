@@ -34,7 +34,7 @@ function MiniStat({ label, value, Icon, color }: { label: string; value: string;
 
 function EarningRow({ item }: { item: EarningsRecent }) {
   const refunded = Number(item.refunded) > 0;
-  const net = Number(item.amount) - Number(item.refunded);
+  const net = Number(item.net);
   const extra = item.item_count > 1 ? ` +${item.item_count - 1} more` : '';
   const title = (item.first_item ?? 'Order') + extra;
   const who = item.customer_first ? `${item.customer_first} · ` : '';
@@ -45,7 +45,9 @@ function EarningRow({ item }: { item: EarningsRecent }) {
       </View>
       <View style={{ flex: 1 }}>
         <Text numberOfLines={1} style={{ fontFamily: Font.semibold, fontSize: 14.5, color: '#fff' }}>{title}</Text>
-        <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: MUTED }}>{who}{shortDate(item.created_at)}</Text>
+        <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: MUTED }}>
+          {who}{shortDate(item.created_at)}{!refunded && Number(item.fees) > 0 ? ` · ${money(item.amount)} − ${money(item.fees)} fees` : ''}
+        </Text>
       </View>
       <View style={{ alignItems: 'flex-end' }}>
         <Text style={{ fontFamily: Font.heading, fontSize: 15, color: refunded ? MUTED : GREEN }}>{refunded ? money(0) : `+${money(net)}`}</Text>
@@ -97,6 +99,13 @@ export default function EarningsScreen() {
                 from {data.orders_paid} paid {data.orders_paid === 1 ? 'order' : 'orders'}
                 {Number(data.refunded_total) > 0 ? ` · ${money(data.refunded_total)} refunded` : ''}
               </Text>
+              {Number(data.gross_total) > 0 ? (
+                <View style={{ flexDirection: 'row', gap: 14, marginTop: 8, flexWrap: 'wrap' }}>
+                  <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: MUTED }}>Gross {money(data.gross_total)}</Text>
+                  <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: MUTED }}>Card fees −{money(data.stripe_fees)}</Text>
+                  <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: MUTED }}>Preppa fee −{money(data.platform_fees)}</Text>
+                </View>
+              ) : null}
             </View>
 
             {/* Week / month */}
@@ -105,11 +114,11 @@ export default function EarningsScreen() {
               <MiniStat label="This month" value={money(data.net_month)} Icon={Wallet} color="#a78bfa" />
             </View>
 
-            {/* Honest payout status (Connect deferred) */}
+            {/* Frictionless payouts: Preppa pays the cook — no Stripe account needed */}
             <View style={{ backgroundColor: '#1f2937', borderRadius: 16, padding: 14, flexDirection: 'row', gap: 10, alignItems: 'flex-start' }}>
               <Wallet size={18} color={ORANGE} style={{ marginTop: 1 }} />
               <Text style={{ flex: 1, fontFamily: Font.body, fontSize: 12.5, color: '#cbd5e1', lineHeight: 18 }}>
-                Payouts to your bank arrive via Stripe. Direct bank transfers are coming soon — for now, earnings are collected by Preppa on your behalf.
+                Preppa pays you directly — no Stripe account or setup needed. Card processing and the Preppa platform fee are calculated automatically on each order and already deducted from the amounts shown here.
               </Text>
             </View>
 
