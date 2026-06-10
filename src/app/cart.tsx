@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
-import { Bike, Check, ChevronLeft, Lock, MapPin, Minus, Plus, ShoppingBag, Store, Trash2 } from 'lucide-react-native';
+import { Bike, Check, ChevronLeft, Lock, MapPin, Minus, Plus, ShoppingBag, Store, Trash2, Heart } from 'lucide-react-native';
 import { useState, type ComponentType } from 'react';
 import { ActivityIndicator, Platform, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -22,10 +22,10 @@ const DELIVERY_FEE = 3.99;
 const money = (n: number) => `$${n.toFixed(2)}`;
 
 type IconType = ComponentType<{ size?: number; color?: string }>;
-const METHODS: { key: FulfillmentType; label: string; Icon: IconType; fee: string }[] = [
-  { key: 'delivery', label: 'Delivery', Icon: Bike, fee: money(DELIVERY_FEE) },
-  { key: 'pickup', label: 'Pickup', Icon: Store, fee: 'Free' },
-  { key: 'meetup', label: 'Meet up', Icon: MapPin, fee: 'Free' },
+const METHODS: { key: FulfillmentType; label: string; Icon: IconType; fee: string; eta: string }[] = [
+  { key: 'delivery', label: 'Delivery', Icon: Bike, fee: money(DELIVERY_FEE), eta: '30–45 min' },
+  { key: 'pickup', label: 'Pickup', Icon: Store, fee: 'Free', eta: 'ready ~20 min' },
+  { key: 'meetup', label: 'Meet up', Icon: MapPin, fee: 'Free', eta: 'you pick a spot' },
 ];
 const TIPS = [0, 1, 2, 5];
 
@@ -44,6 +44,7 @@ export default function CartScreen() {
   const [method, setMethod] = useState<FulfillmentType>('delivery');
   const [note, setNote] = useState('');
   const [tip, setTip] = useState(0);
+  const [customTip, setCustomTip] = useState(false);
   const busy = placeOrder.isPending || checkoutStripe.isPending;
 
   const prepper = cart?.items[0]?.prepper ?? 'the prepper';
@@ -223,21 +224,29 @@ export default function CartScreen() {
               ))}
 
               {/* Fulfillment method */}
-              <Text style={{ fontFamily: Font.heading, fontSize: 15, color: INK, marginTop: 8 }}>How do you want it?</Text>
+              <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK, marginTop: 8 }}>How do you want it?</Text>
               <View style={{ flexDirection: 'row', gap: 10 }}>
                 {METHODS.map((m) => {
                   const on = method === m.key;
                   return (
                     <PressableScale
                       key={m.key}
-                      onPress={() => { setMethod(m.key); setErr(null); }}
+                      onPress={() => { feedback.tap(); setMethod(m.key); setErr(null); }}
                       accessibilityRole="button"
                       accessibilityState={{ selected: on }}
-                      accessibilityLabel={`${m.label}, ${m.fee}`}
-                      style={{ flex: 1, backgroundColor: on ? Palette.brandTint : '#fff', borderWidth: 1.5, borderColor: on ? ORANGE : Palette.border, borderRadius: Radius.md, paddingVertical: 14, alignItems: 'center', gap: 6 }}>
-                      <m.Icon size={22} color={on ? Palette.brandPressed : Palette.textSecondary} />
-                      <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: on ? Palette.brandPressed : INK }}>{m.label}</Text>
-                      <Text style={{ fontFamily: Font.body, fontSize: 11, color: on ? Palette.brandPressed : Palette.textMuted }}>{m.fee}</Text>
+                      accessibilityLabel={`${m.label}, ${m.fee}, ${m.eta}`}
+                      style={{ flex: 1, backgroundColor: on ? Palette.brandTint : '#fff', borderWidth: 1.5, borderColor: on ? ORANGE : Palette.border, borderRadius: Radius.md, paddingTop: 16, paddingBottom: 12, alignItems: 'center', gap: 7, overflow: 'hidden' }}>
+                      {on ? (
+                        <View style={{ position: 'absolute', top: 7, right: 7, width: 18, height: 18, borderRadius: 9, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
+                          <Check size={11} color="#fff" strokeWidth={3.5} />
+                        </View>
+                      ) : null}
+                      <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: on ? ORANGE : Palette.chip, alignItems: 'center', justifyContent: 'center' }}>
+                        <m.Icon size={20} color={on ? '#fff' : Palette.textSecondary} />
+                      </View>
+                      <Text style={{ fontFamily: Font.heading, fontSize: 13.5, color: on ? Palette.brandPressed : INK }}>{m.label}</Text>
+                      <Text style={{ fontFamily: Font.semibold, fontSize: 11.5, color: m.fee === 'Free' ? Palette.success : on ? Palette.brandPressed : Palette.textSecondary }}>{m.fee}</Text>
+                      <Text style={{ fontFamily: Font.body, fontSize: 10.5, color: Palette.textMuted, textAlign: 'center' }} numberOfLines={1}>{m.eta}</Text>
                     </PressableScale>
                   );
                 })}
@@ -264,23 +273,50 @@ export default function CartScreen() {
               ) : null}
 
               {/* Tip */}
-              <Text style={{ fontFamily: Font.heading, fontSize: 15, color: INK, marginTop: 4 }}>Add a tip</Text>
-              <View style={{ flexDirection: 'row', gap: 10 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7, marginTop: 4 }}>
+                <Heart size={16} color={ORANGE} fill={ORANGE} />
+                <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>Add a tip</Text>
+                <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary }}>· 100% goes to {prepper}</Text>
+              </View>
+              <View style={{ flexDirection: 'row', gap: 8 }}>
                 {TIPS.map((t) => {
-                  const on = tip === t;
+                  const on = !customTip && tip === t;
                   return (
                     <PressableScale
                       key={t}
-                      onPress={() => setTip(t)}
+                      onPress={() => { feedback.tap(); setCustomTip(false); setTip(t); }}
                       accessibilityRole="button"
                       accessibilityState={{ selected: on }}
                       accessibilityLabel={t === 0 ? 'No tip' : `Tip ${money(t)}`}
-                      style={{ flex: 1, height: 44, borderRadius: Radius.pill, borderWidth: 1.5, borderColor: on ? ORANGE : Palette.border, backgroundColor: on ? Palette.brandTint : '#fff', alignItems: 'center', justifyContent: 'center' }}>
-                      <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: on ? Palette.brandPressed : INK }}>{t === 0 ? 'None' : money(t)}</Text>
+                      style={{ flex: 1, height: 46, borderRadius: Radius.pill, borderWidth: 1.5, borderColor: on ? ORANGE : Palette.border, backgroundColor: on ? ORANGE : '#fff', alignItems: 'center', justifyContent: 'center' }}>
+                      <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: on ? '#fff' : INK }}>{t === 0 ? 'None' : money(t)}</Text>
                     </PressableScale>
                   );
                 })}
+                <PressableScale
+                  onPress={() => { feedback.tap(); setCustomTip(true); setTip(0); }}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: customTip }}
+                  accessibilityLabel="Custom tip"
+                  style={{ flex: 1, height: 46, borderRadius: Radius.pill, borderWidth: 1.5, borderColor: customTip ? ORANGE : Palette.border, backgroundColor: customTip ? Palette.brandTint : '#fff', alignItems: 'center', justifyContent: 'center' }}>
+                  <Text style={{ fontFamily: Font.semibold, fontSize: 13.5, color: customTip ? Palette.brandPressed : INK }}>Custom</Text>
+                </PressableScale>
               </View>
+              {customTip ? (
+                <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: Radius.md, borderWidth: 1.5, borderColor: ORANGE, paddingHorizontal: 14, height: 50, gap: 6 }}>
+                  <Text style={{ fontFamily: Font.display, fontSize: 20, color: INK }}>$</Text>
+                  <TextInput
+                    value={tip ? String(tip) : ''}
+                    onChangeText={(t) => { const n = Number(t.replace(/[^0-9.]/g, '')); setTip(Number.isFinite(n) ? Math.min(n, 200) : 0); }}
+                    placeholder="0"
+                    placeholderTextColor={Palette.textMuted}
+                    keyboardType="decimal-pad"
+                    autoFocus
+                    accessibilityLabel="Custom tip amount"
+                    style={{ flex: 1, fontFamily: Font.display, fontSize: 20, color: INK }}
+                  />
+                </View>
+              ) : null}
 
               {err ? <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: '#ef4444', textAlign: 'center' }}>{err}</Text> : null}
             </ScrollView>
