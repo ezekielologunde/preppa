@@ -26,7 +26,7 @@ type Item = { qty: number; price: number; title: string };
 type Payload = {
   order_id: string;
   subtotal: number; tip: number; delivery_fee: number; total: number;
-  fulfillment: string; note: string | null;
+  fulfillment: string; note: string | null; handoff_pin: string | null;
   customer_email: string | null; customer_name: string | null;
   prepper_name: string | null; prepper_email: string | null;
   items: Item[];
@@ -106,13 +106,18 @@ async function sendOrderEmails(supabase: SupabaseClient, orderId: string) {
     : `<p style="margin:0 0 10px;font-size:13px;color:#6b7280">${esc(fLabel)}</p>`;
 
   const custFirst = firstName(payload.customer_name);
+  // Pickup/meet-up orders show the anti-fraud handoff code in the receipt.
+  const isPickup = payload.fulfillment === 'pickup' || payload.fulfillment === 'meetup';
+  const codeRow = isPickup && payload.handoff_pin
+    ? `<div style="margin:0 0 12px;background:#FDEDE4;border-radius:12px;padding:12px 14px"><span style="font-size:12.5px;color:#9a3412">Your ${esc(fulfillmentLabel(payload.fulfillment).toLowerCase())} code — show it when you collect</span><div style="font-size:30px;letter-spacing:8px;font-weight:700;color:#F15F22;margin-top:4px">${esc(payload.handoff_pin)}</div></div>`
+    : '';
   const tasks: Promise<void>[] = [];
   if (payload.customer_email) {
     const html = shell(
       'Order confirmed 🎉',
       `Thanks${custFirst ? ' ' + esc(custFirst) : ''}! <b>${esc(payload.prepper_name ?? 'Your prepper')}</b> got your order and will confirm it shortly.`,
       payload,
-      noteRow,
+      codeRow + noteRow,
       { label: 'View your order', url: `${SITE}/orders` },
     );
     tasks.push(sendEmail(payload.customer_email, 'Your Preppa order is confirmed', html));

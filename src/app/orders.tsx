@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { ActivityIndicator, Platform, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { HandoffCard } from '@/components/handoff-card';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
 import { Palette, Radius } from '@/constants/theme';
@@ -66,6 +67,16 @@ function OrderCard({ order, onCancel, onReview, onPay, cancelling, needsPayment,
           </View>
         ))}
       </View>
+
+      {/* Pickup/meetup handoff code — shown to the customer until completed */}
+      {order.handoff && (order.fulfillment === 'pickup' || order.fulfillment === 'meetup') && order.status !== 'completed' && order.status !== 'cancelled' ? (
+        <HandoffCard
+          pin={order.handoff.pin}
+          token={order.handoff.token}
+          verified={order.handoff.verified}
+          label={order.fulfillment === 'pickup' ? 'Pickup code' : 'Meet-up code'}
+        />
+      ) : null}
 
       {/* Footer: total + cancel */}
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderTopWidth: 1, borderTopColor: '#f3f4f6', paddingTop: 11 }}>

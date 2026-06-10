@@ -1,14 +1,15 @@
 import { useRouter } from 'expo-router';
-import { ChevronLeft, ShoppingBag } from 'lucide-react-native';
+import { ChevronLeft, QrCode, ShoppingBag, X } from 'lucide-react-native';
 import { useState } from 'react';
-import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
-import { Palette } from '@/constants/theme';
+import { feedback } from '@/lib/feedback';
+import { Palette, Radius } from '@/constants/theme';
 import { useRefundOrder } from '@/lib/queries/cart';
-import { useAdvanceOrder, useCancelOrder, useOrdersRealtime, usePrepperOrders, type OrderSummary } from '@/lib/queries/orders';
+import { useAdvanceOrder, useCancelOrder, useOrdersRealtime, usePrepperOrders, useVerifyHandoff, type OrderSummary } from '@/lib/queries/orders';
 import { useMyPrepperApplication } from '@/lib/queries/preppers';
 import { useAuth } from '@/providers/auth-provider';
 import type { OrderStatus } from '@/types/database.types';
@@ -41,14 +42,17 @@ function OrderCard({
   order,
   onAdvance,
   onCancel,
+  onVerify,
   busy,
 }: {
   order: OrderSummary;
   onAdvance: (next: OrderStatus) => void;
   onCancel: () => void;
+  onVerify: () => void;
   busy: boolean;
 }) {
   const step = NEXT[order.status];
+  const needsHandoff = step?.next === 'completed' && (order.fulfillment === 'pickup' || order.fulfillment === 'meetup');
   const canCancel = order.status === 'pending' || order.status === 'confirmed';
   const done = order.status === 'completed' || order.status === 'cancelled';
   return (
@@ -87,8 +91,13 @@ function OrderCard({
               <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: '#9ca3af' }}>Decline</Text>
             </PressableScale>
           ) : null}
-          <PressableScale onPress={() => onAdvance(step.next)} disabled={busy} accessibilityRole="button" accessibilityLabel={step.cta} style={{ flex: 1, height: 46, borderRadius: 14, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', opacity: busy ? 0.6 : 1 }}>
-            {busy ? <ActivityIndicator color="#fff" /> : <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#fff' }}>{step.cta}</Text>}
+          <PressableScale onPress={() => (needsHandoff ? onVerify() : onAdvance(step.next))} disabled={busy} accessibilityRole="button" accessibilityLabel={needsHandoff ? 'Verify handoff and complete' : step.cta} style={{ flex: 1, height: 46, borderRadius: 14, backgroundColor: ORANGE, flexDirection: 'row', gap: 7, alignItems: 'center', justifyContent: 'center', opacity: busy ? 0.6 : 1 }}>
+            {busy ? <ActivityIndicator color="#fff" /> : (
+              <>
+                {needsHandoff ? <QrCode size={16} color="#fff" /> : null}
+                <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#fff' }}>{needsHandoff ? 'Verify & complete' : step.cta}</Text>
+              </>
+            )}
           </PressableScale>
         </View>
       ) : null}
@@ -106,9 +115,28 @@ export default function PrepperOrdersScreen() {
   const advance = useAdvanceOrder();
   const cancel = useCancelOrder();
   const refund = useRefundOrder();
+  const verify = useVerifyHandoff();
   const busyId = advance.isPending ? advance.variables?.orderId : cancel.isPending ? cancel.variables : undefined;
   const [actionErr, setActionErr] = useState<string | null>(null);
   const onErr = (e: unknown) => setActionErr(e instanceof Error ? e.message : 'Could not update the order. Try again.');
+
+  // Handoff verification modal (pickup/meetup): cook keys the customer's PIN.
+  const [verifyOrder, setVerifyOrder] = useState<OrderSummary | null>(null);
+  const [pin, setPin] = useState('');
+  const [verifyMsg, setVerifyMsg] = useState<string | null>(null);
+  function openVerify(o: OrderSummary) { setVerifyOrder(o); setPin(''); setVerifyMsg(null); }
+  function submitPin() {
+    if (!verifyOrder || pin.replace(/\D/g, '').length !== 4) { setVerifyMsg('Enter the 4-digit code.'); return; }
+    setVerifyMsg(null);
+    verify.mutate({ orderId: verifyOrder.id, pin }, {
+      onSuccess: (r) => {
+        if (r.ok && r.completed) { feedback.success(); setVerifyOrder(null); }
+        else if (r.locked) { feedback.error(); setVerifyMsg(r.reason ?? 'Locked — ask for the QR code.'); }
+        else { feedback.error(); setVerifyMsg(`${r.reason ?? 'Wrong code'}${typeof r.attempts_left === 'number' ? ` · ${r.attempts_left} tries left` : ''}`); setPin(''); }
+      },
+      onError: (e) => { feedback.error(); setVerifyMsg(e instanceof Error ? e.message : 'Could not verify.'); },
+    });
+  }
 
   return (
     <View style={{ flex: 1, backgroundColor: BG }}>
@@ -150,11 +178,46 @@ export default function PrepperOrdersScreen() {
                 busy={busyId === o.id}
                 onAdvance={(next) => { setActionErr(null); advance.mutate({ orderId: o.id, next }, { onError: onErr }); }}
                 onCancel={() => { setActionErr(null); cancel.mutate(o.id, { onSuccess: () => refund.mutate(o.id), onError: onErr }); }}
+                onVerify={() => openVerify(o)}
               />
             ))}
           </ScrollView>
         )}
       </SafeAreaView>
+
+      {/* Verify handoff — cook keys the customer's pickup/meetup PIN */}
+      <Modal visible={!!verifyOrder} transparent animationType="fade" onRequestClose={() => setVerifyOrder(null)}>
+        <Pressable onPress={() => setVerifyOrder(null)} style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center', padding: 28 }}>
+          <Pressable onPress={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 360, backgroundColor: CARD, borderRadius: 22, padding: 22, gap: 14 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <View style={{ width: 46, height: 46, borderRadius: 14, backgroundColor: ORANGE + '26', alignItems: 'center', justifyContent: 'center' }}>
+                <QrCode size={22} color={ORANGE} />
+              </View>
+              <PressableScale onPress={() => setVerifyOrder(null)} accessibilityRole="button" accessibilityLabel="Close" style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: '#252a34', alignItems: 'center', justifyContent: 'center' }}>
+                <X size={17} color="#9ca3af" />
+              </PressableScale>
+            </View>
+            <Text style={{ fontFamily: Font.display, fontSize: 20, color: '#fff', letterSpacing: -0.4 }}>Verify the handoff</Text>
+            <Text style={{ fontFamily: Font.body, fontSize: 13.5, color: '#9ca3af', lineHeight: 19 }}>
+              Ask {verifyOrder?.customer ?? 'the customer'} for their 4-digit code, or scan their QR with your camera.
+            </Text>
+            <TextInput
+              value={pin}
+              onChangeText={(t) => { setPin(t.replace(/\D/g, '').slice(0, 4)); setVerifyMsg(null); }}
+              placeholder="••••"
+              placeholderTextColor="#4b5563"
+              keyboardType="number-pad"
+              maxLength={4}
+              autoFocus
+              style={{ height: 64, borderRadius: 16, backgroundColor: '#1d2129', textAlign: 'center', fontSize: 30, letterSpacing: 16, fontFamily: Font.display, color: '#fff' }}
+            />
+            {verifyMsg ? <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: '#fca5a5', textAlign: 'center' }}>{verifyMsg}</Text> : null}
+            <PressableScale onPress={submitPin} disabled={verify.isPending} accessibilityRole="button" accessibilityLabel="Confirm handoff" style={{ height: 52, borderRadius: 14, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', opacity: verify.isPending ? 0.7 : 1 }}>
+              {verify.isPending ? <ActivityIndicator color="#fff" /> : <Text style={{ fontFamily: Font.heading, fontSize: 15.5, color: '#fff' }}>Confirm & complete</Text>}
+            </PressableScale>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </View>
   );
 }

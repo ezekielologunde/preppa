@@ -206,6 +206,8 @@ export interface Database {
       create_order: { Args: { p_fulfillment?: FulfillmentType; p_address_id?: string | null; p_note?: string | null; p_tip?: number }; Returns: string };
       advance_order: { Args: { p_order_id: string; p_next: OrderStatus }; Returns: undefined };
       cancel_order: { Args: { p_order_id: string }; Returns: undefined };
+      verify_handoff: { Args: { p_order_id: string; p_pin: string }; Returns: Json };
+      verify_handoff_token: { Args: { p_token: string }; Returns: Json };
       my_prepper_earnings: { Args: Record<string, never>; Returns: Json };
       admin_set_prepper_status: { Args: { p_prepper: string; p_status: PrepperStatus; p_note?: string | null }; Returns: undefined };
       admin_grant_role: { Args: { p_user: string; p_role: string }; Returns: undefined };
