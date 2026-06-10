@@ -1,6 +1,6 @@
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
-import { ChevronLeft, ImageIcon, Plus, UtensilsCrossed } from 'lucide-react-native';
+import { ChevronLeft, ImageIcon, Plus, Upload, UtensilsCrossed } from 'lucide-react-native';
 import { useState } from 'react';
 import { ActivityIndicator, Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -9,6 +9,7 @@ import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
 import { Palette, Radius } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
+import { pickAndUploadImage, uploadSupported } from '@/lib/upload';
 import { useMealCategories, useMyMeals, useSaveMeal, useSetMealStatus, type MealDraft, type MyMeal } from '@/lib/queries/my-meals';
 import { useMyPrepperApplication } from '@/lib/queries/preppers';
 import { useAuth } from '@/providers/auth-provider';
@@ -99,6 +100,22 @@ export default function MealEditorScreen() {
   const [priceText, setPriceText] = useState('');
   const [timeText, setTimeText] = useState('');
   const [formErr, setFormErr] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+
+  async function pickPhoto() {
+    if (!prepperId || !user?.id) return;
+    setFormErr(null);
+    setUploading(true);
+    try {
+      const url = await pickAndUploadImage('meal-images', user.id);
+      if (url) { setDraft((d) => d && { ...d, imageUrl: url }); feedback.success(); }
+    } catch (e) {
+      feedback.error();
+      setFormErr(e instanceof Error ? e.message : 'Could not upload the photo.');
+    } finally {
+      setUploading(false);
+    }
+  }
 
   function openCreate() {
     setDraft({ ...EMPTY });
@@ -211,8 +228,26 @@ export default function MealEditorScreen() {
               <Field label="DESCRIPTION">
                 <TextInput value={draft?.description ?? ''} onChangeText={(t) => setDraft((d) => d && { ...d, description: t })} placeholder="What makes this meal great?" placeholderTextColor="#4b5563" multiline style={[inputStyle, { height: 84, paddingTop: 12, textAlignVertical: 'top' }]} maxLength={500} />
               </Field>
-              <Field label="PHOTO URL">
-                <TextInput value={draft?.imageUrl ?? ''} onChangeText={(t) => setDraft((d) => d && { ...d, imageUrl: t })} placeholder="https://…" placeholderTextColor="#4b5563" autoCapitalize="none" style={inputStyle} />
+              <Field label="PHOTO">
+                <View style={{ flexDirection: 'row', gap: 12, alignItems: 'center' }}>
+                  {draft?.imageUrl ? (
+                    <Image source={draft.imageUrl} style={{ width: 64, height: 64, borderRadius: 13 }} contentFit="cover" accessibilityLabel="Meal photo preview" />
+                  ) : (
+                    <View style={{ width: 64, height: 64, borderRadius: 13, backgroundColor: '#1d2129', alignItems: 'center', justifyContent: 'center' }}>
+                      <ImageIcon size={22} color="#5b6170" />
+                    </View>
+                  )}
+                  {uploadSupported ? (
+                    <PressableScale onPress={pickPhoto} disabled={uploading} accessibilityRole="button" accessibilityLabel="Upload a photo" style={{ flex: 1, height: 48, borderRadius: 12, borderWidth: 1, borderColor: '#3f4451', flexDirection: 'row', gap: 8, alignItems: 'center', justifyContent: 'center', opacity: uploading ? 0.6 : 1 }}>
+                      {uploading ? <ActivityIndicator color="#fff" /> : <Upload size={17} color="#d1d5db" />}
+                      <Text style={{ fontFamily: Font.semibold, fontSize: 13.5, color: '#d1d5db' }}>{uploading ? 'Uploading…' : draft?.imageUrl ? 'Change photo' : 'Upload photo'}</Text>
+                    </PressableScale>
+                  ) : (
+                    <View style={{ flex: 1 }}>
+                      <TextInput value={draft?.imageUrl ?? ''} onChangeText={(t) => setDraft((d) => d && { ...d, imageUrl: t })} placeholder="Paste image URL" placeholderTextColor="#4b5563" autoCapitalize="none" style={inputStyle} />
+                    </View>
+                  )}
+                </View>
               </Field>
               {formErr ? <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: '#fca5a5' }}>{formErr}</Text> : null}
               <PressableScale onPress={submit} disabled={save.isPending} accessibilityRole="button" accessibilityLabel="Save meal" style={{ height: 52, borderRadius: 14, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', opacity: save.isPending ? 0.7 : 1 }}>
