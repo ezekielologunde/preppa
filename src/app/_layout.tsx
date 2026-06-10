@@ -6,6 +6,7 @@ import { DarkTheme, DefaultTheme, ThemeProvider, usePathname, useRouter } from '
 import { useEffect, useState, type ReactNode } from 'react';
 import { Platform, useColorScheme, useWindowDimensions, View } from 'react-native';
 
+import { maxWidthFor } from '@/lib/layout';
 import { useDarkMode } from '@/lib/theme-mode';
 
 import AppTabs from '@/components/app-tabs';
@@ -20,13 +21,14 @@ const ONBOARDED_KEY = 'preppa.onboarded.v1';
 const DARK_BY_DESIGN = ['/dashboard', '/prepper-orders', '/earnings', '/admin'];
 
 /**
- * On desktop web the app is a phone-class layout — let it stretch across a
- * monitor and every card's proportions break. Frame it as a centered,
- * phone-width column instead (native and small windows are untouched).
+ * Responsive frame for web. Each route class gets an intentional width
+ * (lib/layout.ts): focused flows stay a phone-class column, content lists get
+ * a comfortable reading width, and browse/business surfaces widen into real
+ * tablet/desktop layouts (the screens add grid columns to match).
  * The frame also carries dark mode on web: a smart-invert flips every light
  * surface dark in one move; photos are counter-inverted (see theme-mode.ts).
  */
-function PhoneFrame({ children }: { children: ReactNode }) {
+function ResponsiveFrame({ children }: { children: ReactNode }) {
   const { width } = useWindowDimensions();
   const dark = useDarkMode();
   const pathname = usePathname();
@@ -35,15 +37,18 @@ function PhoneFrame({ children }: { children: ReactNode }) {
     ? { dataSet: { preppadark: 'true' }, style: { flex: 1, filter: 'invert(0.93) hue-rotate(180deg)' } as never }
     : { style: { flex: 1 } };
   if (Platform.OS !== 'web' || width <= 560) return <View {...darkProps}>{children}</View>;
+  const frameWidth = maxWidthFor(pathname ?? '/', width);
+  // Business (prepper/admin) surfaces are dark — match the gutter to them.
+  const darkSurface = DARK_BY_DESIGN.some((r) => (pathname ?? '').startsWith(r)) || (pathname ?? '').startsWith('/customers') || (pathname ?? '').startsWith('/meal-editor') || (pathname ?? '').startsWith('/prepper-orders');
   return (
     <View {...darkProps}>
-      <View style={{ flex: 1, backgroundColor: '#E9E7E4', alignItems: 'center' }}>
+      <View style={{ flex: 1, backgroundColor: darkSurface ? '#08090C' : '#E9E7E4', alignItems: 'center' }}>
         <View
           style={{
             flex: 1,
             width: '100%',
-            maxWidth: 480,
-            backgroundColor: '#F7F7F8',
+            maxWidth: frameWidth,
+            backgroundColor: darkSurface ? '#0C0E13' : '#F7F7F8',
             overflow: 'hidden',
             shadowColor: '#000',
             shadowOpacity: 0.12,
@@ -95,14 +100,14 @@ export default function RootLayout() {
   return (
     <AppProviders>
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <PhoneFrame>
+        <ResponsiveFrame>
           {/* Navigator always mounted so routing stays valid; overlays sit on top. */}
           <AppTabs />
           {ready && !onboarded && (
             <Onboarding onGetStarted={() => goToAuth('signup')} onSignIn={() => goToAuth('signin')} />
           )}
           {!ready && <LoadingSplash />}
-        </PhoneFrame>
+        </ResponsiveFrame>
       </ThemeProvider>
     </AppProviders>
   );

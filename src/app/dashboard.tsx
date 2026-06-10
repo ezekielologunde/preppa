@@ -29,6 +29,7 @@ import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
 import { Palette, Shadow } from '@/constants/theme';
 import { greeting } from '@/lib/greeting';
+import { useBreakpoint } from '@/lib/layout';
 import { useAdvanceOrder, usePrepperOrders, type OrderSummary } from '@/lib/queries/orders';
 import { useMyPrepperApplication } from '@/lib/queries/preppers';
 import { usePrepperReviews } from '@/lib/queries/reviews';
@@ -127,6 +128,7 @@ function QuickAction({ Icon, label, color, badge, onPress }: { Icon: LucideIcon;
 
 export default function DashboardScreen() {
   const router = useRouter();
+  const desktop = useBreakpoint() === 'desktop';
   const { user } = useAuth();
   const { data: prepper } = useMyPrepperApplication(user?.id);
   const { data: orders } = usePrepperOrders(prepper?.id);
@@ -183,14 +185,26 @@ export default function DashboardScreen() {
             </PressableScale>
           </View>
 
-          {/* Stat cards */}
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 12, paddingVertical: 20 }}>
-            <StatCard Icon={ShoppingBag} value={money(revenue)} label="total sales" trend={revenue > 0 ? 'earned' : '—'} color={ORANGE} spark={[3, 5, 4, 6, 5, 8, 7, 9]} />
-            <StatCard Icon={Boxes} value={String(list.length)} label="orders" trend={`${newCount} new`} color={GREEN} spark={[2, 3, 3, 4, 6, 5, 7, 8]} />
-            <StatCard Icon={Users} value={String(subscribers)} label="customers" trend="unique" color={PURPLE} spark={[1, 2, 2, 3, 4, 4, 5, 6]} />
-            <StatCard Icon={Star} value={avgRating ? avgRating.toFixed(1) : '—'} label="rating" trend={`${reviewCount} reviews`} color={YELLOW} spark={[4, 4, 5, 5, 4, 5, 5, 5]} />
-          </ScrollView>
+          {/* Stat cards — KPI row on desktop, swipeable on phones */}
+          {(() => {
+            const cards = (
+              <>
+                <StatCard Icon={ShoppingBag} value={money(revenue)} label="total sales" trend={revenue > 0 ? 'earned' : '—'} color={ORANGE} spark={[3, 5, 4, 6, 5, 8, 7, 9]} />
+                <StatCard Icon={Boxes} value={String(list.length)} label="orders" trend={`${newCount} new`} color={GREEN} spark={[2, 3, 3, 4, 6, 5, 7, 8]} />
+                <StatCard Icon={Users} value={String(subscribers)} label="customers" trend="unique" color={PURPLE} spark={[1, 2, 2, 3, 4, 4, 5, 6]} />
+                <StatCard Icon={Star} value={avgRating ? avgRating.toFixed(1) : '—'} label="rating" trend={`${reviewCount} reviews`} color={YELLOW} spark={[4, 4, 5, 5, 4, 5, 5, 5]} />
+              </>
+            );
+            return desktop ? (
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 20, gap: 12 }}>{cards}</View>
+            ) : (
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 12, paddingVertical: 20 }}>{cards}</ScrollView>
+            );
+          })()}
 
+          {/* Desktop: operations on the left, performance on the right */}
+          <View style={desktop ? { flexDirection: 'row', alignItems: 'flex-start' } : undefined}>
+          <View style={desktop ? { flex: 3 } : undefined}>
           {/* Next order */}
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 20, marginBottom: 12 }}>
             <Text style={{ fontFamily: Font.display, fontSize: 20, color: '#fff', letterSpacing: -0.5 }}>next order</Text>
@@ -257,9 +271,11 @@ export default function DashboardScreen() {
             <QuickAction Icon={Users} label="customers" color={PURPLE} onPress={() => router.push('/customers')} />
             <QuickAction Icon={TrendingUp} label="insights" color={BLUE} />
           </ScrollView>
+          </View>
 
           {/* Goal + streak */}
-          <View style={{ flexDirection: 'row', gap: 12, paddingHorizontal: 20, marginTop: 22 }}>
+          <View style={desktop ? { flex: 2 } : undefined}>
+          <View style={{ flexDirection: 'row', gap: 12, paddingHorizontal: 20, marginTop: desktop ? 0 : 22 }}>
             <View style={{ flex: 1, backgroundColor: CARD, borderRadius: 22, padding: 16, gap: 12 }}>
               <Text style={{ fontFamily: Font.heading, fontSize: 13.5, color: '#fff' }}>today&apos;s goal</Text>
               <View style={{ alignItems: 'center', justifyContent: 'center' }}>
@@ -289,10 +305,12 @@ export default function DashboardScreen() {
               </View>
             </View>
           </View>
+          </View>
+          </View>
         </ScrollView>
 
         {/* Floating action bar (add meal · go live · + · new drop · opportunity) */}
-        <View style={{ position: 'absolute', left: 16, right: 16, bottom: 78, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: CARD, borderRadius: 26, paddingVertical: 12, paddingHorizontal: 18, ...Shadow.floating }}>
+        <View style={[{ position: 'absolute', left: 16, right: 16, bottom: 78, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: CARD, borderRadius: 26, paddingVertical: 12, paddingHorizontal: 18, ...Shadow.floating }, desktop && { left: undefined, right: undefined, alignSelf: 'center', width: 520 }]}>
           <ActionItem Icon={UtensilsCrossed} label="add meal" color="#fff" />
           <ActionItem Icon={Video} label="go live" color={PINK} />
           <PressableScale accessibilityRole="button" accessibilityLabel="Add new meal">

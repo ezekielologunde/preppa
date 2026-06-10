@@ -1,7 +1,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ChevronLeft, Search, X } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
-import { Dimensions, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { MealCard } from '@/components/meal-card';
@@ -9,12 +9,12 @@ import { PressableScale } from '@/components/ui/pressable-scale';
 import { CardSkeleton } from '@/components/ui/skeleton';
 import { Font } from '@/constants/fonts';
 import { Palette } from '@/constants/theme';
+import { gridCardWidth, useContentWidth } from '@/lib/layout';
 import { useMealSearch } from '@/lib/queries/meals';
 import { useMealCategories } from '@/lib/queries/my-meals';
 
 const ORANGE = Palette.brand;
 const INK = Palette.ink;
-const CARD_W = (Dimensions.get('window').width - 52) / 2;
 
 const PRICES = [
   { key: 'under10', label: 'under $10', min: null, max: 10 },
@@ -45,6 +45,8 @@ function Chip({ label, selected, onPress }: { label: string; selected: boolean; 
 
 export default function SearchScreen() {
   const router = useRouter();
+  // Frame-aware grid: 2 columns on phones, 3 on tablet, 4 on desktop.
+  const CARD_W = gridCardWidth(useContentWidth());
   const { q } = useLocalSearchParams<{ q?: string }>();
   const initial = (q || '').toString();
   const [text, setText] = useState(initial);

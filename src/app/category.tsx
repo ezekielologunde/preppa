@@ -1,9 +1,10 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ChevronLeft, UtensilsCrossed } from 'lucide-react-native';
-import { Dimensions, ScrollView, Text, View } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { MealCard } from '@/components/meal-card';
+import { gridCardWidth, useContentWidth } from '@/lib/layout';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { CardSkeleton } from '@/components/ui/skeleton';
 import { Font } from '@/constants/fonts';
@@ -11,10 +12,10 @@ import { useMealsByCategory } from '@/lib/queries/meals';
 
 const ORANGE = '#f15f22';
 const INK = '#111827';
-const CARD_W = (Dimensions.get('window').width - 52) / 2;
 
 export default function CategoryScreen() {
   const router = useRouter();
+  const CARD_W = gridCardWidth(useContentWidth());
   const { key, label } = useLocalSearchParams<{ key?: string; label?: string }>();
   const { data: meals, isLoading } = useMealsByCategory(key);
   const title = (label || key || 'all meals').toString();
