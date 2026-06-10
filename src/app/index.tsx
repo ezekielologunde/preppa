@@ -64,10 +64,9 @@ function SectionHeader({ title, onSeeAll }: { title: string; onSeeAll?: () => vo
 export default function HomeScreen() {
   const router = useRouter();
   const { user } = useAuth();
-  const firstName =
-    ((user?.user_metadata?.full_name as string | undefined)?.trim().split(/\s+/)[0] ??
-      user?.email?.split('@')[0] ??
-      'there').toLowerCase();
+  // Greet by first name only when a real name exists — never the email handle.
+  const rawFirst = (user?.user_metadata?.full_name as string | undefined)?.trim().split(/\s+/)[0];
+  const firstName = rawFirst ? rawFirst.toLowerCase() : null;
   // Live meals from Supabase (RLS-scoped); fall back to mock if the query is empty.
   const { data: liveMeals, isLoading: mealsLoading } = useFeaturedMeals();
   const meals = liveMeals && liveMeals.length > 0 ? liveMeals : recommendedMeals;
@@ -91,10 +90,10 @@ export default function HomeScreen() {
               accessibilityRole="button"
               accessibilityLabel="Your profile"
               style={{ width: 52, height: 52, borderRadius: 26, borderWidth: 2, borderColor: ORANGE, padding: 2 }}>
-              <Avatar name={firstName} url={user?.user_metadata?.avatar_url as string | undefined} size={44} />
+              <Avatar name={firstName ?? user?.email ?? 'guest'} url={user?.user_metadata?.avatar_url as string | undefined} size={44} />
             </PressableScale>
             <View style={{ flex: 1 }}>
-              <Text style={{ fontFamily: Font.medium, fontSize: 14, color: Palette.textSecondary }}>{greeting()}, {firstName} 👋</Text>
+              <Text style={{ fontFamily: Font.medium, fontSize: 14, color: Palette.textSecondary }}>{greeting()}{firstName ? `, ${firstName}` : ''} 👋</Text>
               <Text style={{ fontFamily: Font.display, fontSize: 24, color: INK, letterSpacing: -0.6, lineHeight: 28 }}>
                 what are you{'\n'}
                 <Text style={{ color: ORANGE }}>craving today?</Text>
@@ -173,6 +172,20 @@ export default function HomeScreen() {
             </View>
           ) : null}
 
+          {/* Recommended — real meals lead; discovery toys come after */}
+          <SectionHeader title="recommended for you" onSeeAll={() => router.push('/category?key=all&label=recommended')} />
+          {mealsLoading ? (
+            <View style={{ paddingBottom: 26 }}>
+              <CardRowSkeleton count={3} />
+            </View>
+          ) : (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 14, paddingBottom: 26 }}>
+              {meals.map((m) => (
+                <MealCard key={m.id} meal={m} />
+              ))}
+            </ScrollView>
+          )}
+
           {/* Chef surprise me — flat brand-tint accent (the one accent surface on Home) */}
           <Pressable
             onPress={() => {
@@ -194,20 +207,6 @@ export default function HomeScreen() {
               <Image source="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=300&q=60" style={{ width: 110, height: 110, borderRadius: 55 }} contentFit="cover" />
             </View>
           </Pressable>
-
-          {/* Recommended */}
-          <SectionHeader title="recommended for you" onSeeAll={() => router.push('/category?key=all&label=recommended')} />
-          {mealsLoading ? (
-            <View style={{ paddingBottom: 26 }}>
-              <CardRowSkeleton count={3} />
-            </View>
-          ) : (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 14, paddingBottom: 26 }}>
-              {meals.map((m) => (
-                <MealCard key={m.id} meal={m} />
-              ))}
-            </ScrollView>
-          )}
 
           {/* Points banner */}
           <View style={{ marginHorizontal: 20, marginBottom: 28, backgroundColor: '#E7F6EC', borderRadius: 20, padding: 16, flexDirection: 'row', alignItems: 'center', gap: 12 }}>

@@ -7,6 +7,7 @@ import { ActivityIndicator, Platform, ScrollView, Text, TextInput, View } from '
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PressableScale } from '@/components/ui/pressable-scale';
+import { ListSkeleton } from '@/components/ui/skeleton';
 import { Font } from '@/constants/fonts';
 import { feedback } from '@/lib/feedback';
 import { Palette, Radius } from '@/constants/theme';
@@ -155,7 +156,7 @@ export default function CartScreen() {
             </PressableScale>
           </View>
         ) : isLoading ? (
-          <ActivityIndicator color={ORANGE} style={{ marginTop: 40 }} />
+          <ListSkeleton count={3} />
         ) : !cart?.items.length ? (
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 10 }}>
             <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' }}>
@@ -209,11 +210,11 @@ export default function CartScreen() {
                   {/* Qty stepper */}
                   <View style={{ alignItems: 'center', gap: 8 }}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: Palette.canvas, borderRadius: Radius.pill, paddingHorizontal: 6, paddingVertical: 4 }}>
-                      <PressableScale onPress={() => updateItem.mutate({ itemId: it.id, quantity: it.quantity - 1 })} accessibilityRole="button" accessibilityLabel="Decrease quantity" style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' }}>
+                      <PressableScale onPress={() => updateItem.mutate({ itemId: it.id, quantity: it.quantity - 1 })} accessibilityRole="button" accessibilityLabel="Decrease quantity" hitSlop={8} style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' }}>
                         {it.quantity <= 1 ? <Trash2 size={14} color="#ef4444" /> : <Minus size={14} color={INK} />}
                       </PressableScale>
                       <Text style={{ fontFamily: Font.heading, fontSize: 15, color: INK, minWidth: 18, textAlign: 'center', fontVariant: ['tabular-nums'] }}>{it.quantity}</Text>
-                      <PressableScale onPress={() => updateItem.mutate({ itemId: it.id, quantity: it.quantity + 1 })} accessibilityRole="button" accessibilityLabel="Increase quantity" style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
+                      <PressableScale onPress={() => updateItem.mutate({ itemId: it.id, quantity: it.quantity + 1 })} accessibilityRole="button" accessibilityLabel="Increase quantity" hitSlop={8} style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
                         <Plus size={14} color="#fff" />
                       </PressableScale>
                     </View>

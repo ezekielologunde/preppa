@@ -167,7 +167,7 @@ export default function MessagesScreen() {
               ) : !orders?.length ? (
                 <Empty Icon={Bell} title="No updates yet" sub="Order updates — confirmed, preparing, on the way — will show up here." />
               ) : (
-                <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: Platform.OS === 'web' ? 8 : 4, paddingBottom: 40 }}>
+                <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: Platform.OS === 'web' ? 8 : 4, paddingBottom: 130 }}>
                   {orders.map((o) => (
                     <NotificationRow key={o.id} o={o} onPress={() => router.push('/orders')} />
                   ))}
@@ -178,7 +178,7 @@ export default function MessagesScreen() {
             ) : !conversations?.length ? (
               <Empty Icon={MessageCircle} title="No messages yet" sub="Message a prepper from a meal or experience to start a conversation." />
             ) : (
-              <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: Platform.OS === 'web' ? 8 : 4, paddingBottom: 40 }}>
+              <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: Platform.OS === 'web' ? 8 : 4, paddingBottom: 130 }}>
                 {conversations.map((c) => (
                   <ConversationRow key={c.id} c={c} onPress={() => router.push(`/chat?id=${c.id}&name=${encodeURIComponent(c.otherName)}`)} />
                 ))}

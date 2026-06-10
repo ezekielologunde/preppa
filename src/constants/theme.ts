@@ -78,6 +78,7 @@ export const Palette = {
 
   // Neutral ink ramp
   ink: '#111827', // primary text, headings, dark buttons
+  inkSoft: '#374151', // labels and emphasized secondary text (between ink and textSecondary)
   textSecondary: '#6B7280', // real secondary copy — AA on white
   textMuted: '#9CA3AF', // DECORATIVE/disabled only — never load-bearing text
 
@@ -85,9 +86,13 @@ export const Palette = {
   surface: '#FFFFFF',
   canvas: '#F7F7F8',
   border: '#E5E7EB',
+  chip: '#F3F4F6', // light icon-chip / inset background on white cards
+  divider: '#D1D5DB', // hairlines on tinted surfaces; disabled outlines
 
-  // The ONLY non-brand semantic accent
+  // Semantic accents — used with a text/icon pairing, never color alone
   success: '#16A34A', // verified, healthy, positive deltas, confirmed status
+  amber: '#F59E0B', // star ratings, "popular" badges, gentle warnings
+  danger: '#EF4444', // destructive actions, errors, favorites heart
 
   // Prepper (dark) app — intentionally an operations tool
   prepperBg: '#0C0E13',

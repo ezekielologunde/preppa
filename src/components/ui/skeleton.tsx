@@ -47,3 +47,21 @@ export function CardRowSkeleton({ count = 3, width = 200 }: { count?: number; wi
     </View>
   );
 }
+
+/** Stacked full-width row placeholders for list screens (cart, orders, inbox). */
+export function ListSkeleton({ count = 3, rowHeight = 96 }: { count?: number; rowHeight?: number }) {
+  return (
+    <View style={{ gap: 12, paddingHorizontal: 20, paddingTop: 8 }}>
+      {Array.from({ length: count }).map((_, i) => (
+        <View key={i} style={{ backgroundColor: '#fff', borderRadius: 20, padding: 14, flexDirection: 'row', gap: 12, alignItems: 'center' }}>
+          <Skeleton width={60} height={60} radius={14} />
+          <View style={{ flex: 1, gap: 8 }}>
+            <Skeleton width="65%" height={14} radius={6} />
+            <Skeleton width="40%" height={12} radius={6} />
+            <Skeleton width="30%" height={Math.max(rowHeight - 84, 10)} radius={6} />
+          </View>
+        </View>
+      ))}
+    </View>
+  );
+}
