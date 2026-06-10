@@ -172,6 +172,8 @@ export function usePlaceOrder() {
         p_tip: v.tip ?? 0,
       });
       if (error) throw error;
+      // Fire-and-forget analytics — never block or fail the order on telemetry.
+      supabase.rpc('record_event', { p_event: 'order_created', p_props: { order_id: data, fulfillment: v.fulfillment } }).then(() => {}, () => {});
       return data as string;
     },
     onSuccess: (_d, v) => {

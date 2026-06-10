@@ -1,0 +1,5 @@
+-- 0033 — Analytics event stream. analytics_events table (write-only for users:
+-- insert own; admin-only SELECT — raw rows never exposed to clients).
+-- record_event(event, props) whitelists event names and stamps auth.uid()
+-- server-side. admin_event_metrics(days) returns aggregates only. Canonical
+-- bodies in the DB.

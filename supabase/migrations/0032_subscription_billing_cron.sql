@@ -1,0 +1,6 @@
+-- 0032 — Recurring subscription billing scheduler. Daily pg_cron job
+-- (process-due-subscriptions, 0 13 * * *) advances active subscriptions whose
+-- next_billing_at has arrived and notifies the customer each cycle (catch-up
+-- safe via generate_series). Does NOT auto-charge a saved card — off-session
+-- billing needs a stored Stripe payment method (Customer + SetupIntent), a
+-- separate product/compliance decision. Canonical body in the DB.

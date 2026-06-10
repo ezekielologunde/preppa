@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Bell, Bike, ChefHat, ChevronLeft, CircleCheck, CircleX, MessageCircle, Package, Star, UtensilsCrossed } from 'lucide-react-native';
-import { useState } from 'react';
+import { Bell, Bike, CalendarCheck, ChefHat, ChevronLeft, CircleCheck, CircleX, Heart, MessageCircle, MessageSquareQuote, Package, Star, UtensilsCrossed } from 'lucide-react-native';
+import { useEffect, useState } from 'react';
 import { ActivityIndicator, Platform, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -9,6 +9,7 @@ import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
 import { Palette, Radius } from '@/constants/theme';
 import { useConversations, type Conversation } from '@/lib/queries/messages';
+import { useNotifications, useMarkNotificationsRead, type AppNotification } from '@/lib/queries/notifications';
 import { useMyOrders, type OrderSummary } from '@/lib/queries/orders';
 import { useAuth } from '@/providers/auth-provider';
 import type { OrderStatus } from '@/types/database.types';
@@ -93,6 +94,37 @@ function NotificationRow({ o, onPress }: { o: OrderSummary; onPress: () => void 
   );
 }
 
+const NOTIF_STYLE: Record<AppNotification['type'], { Icon: LucideIcon; color: string; bg: string }> = {
+  order: { Icon: MessageSquareQuote, color: ORANGE, bg: Palette.brandTint },
+  payment: { Icon: Package, color: '#16a34a', bg: '#DCFCE7' },
+  chat: { Icon: MessageCircle, color: '#8b5cf6', bg: '#EDE9FE' },
+  follow: { Icon: Heart, color: '#ef4444', bg: '#FEE2E2' },
+  review: { Icon: Star, color: '#f59e0b', bg: '#FEF3C7' },
+  promotion: { Icon: CalendarCheck, color: ORANGE, bg: Palette.brandTint },
+  drop: { Icon: Package, color: ORANGE, bg: Palette.brandTint },
+  live: { Icon: Bell, color: '#ef4444', bg: '#FEE2E2' },
+};
+
+function NotificationItemRow({ n, onPress }: { n: AppNotification; onPress: () => void }) {
+  const s = NOTIF_STYLE[n.type] ?? NOTIF_STYLE.order;
+  return (
+    <PressableScale onPress={onPress} accessibilityRole="button" accessibilityLabel={n.title}
+      style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 20, paddingVertical: 12, backgroundColor: n.read ? 'transparent' : Palette.brandTint + '40' }}>
+      <View style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: s.bg, alignItems: 'center', justifyContent: 'center' }}>
+        <s.Icon size={20} color={s.color} />
+      </View>
+      <View style={{ flex: 1 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <Text style={{ fontFamily: Font.heading, fontSize: 14.5, color: INK, flex: 1 }} numberOfLines={1}>{n.title}</Text>
+          {!n.read ? <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: ORANGE }} /> : null}
+          <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted }}>{timeAgo(n.created_at)}</Text>
+        </View>
+        {n.body ? <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary, marginTop: 2 }} numberOfLines={2}>{n.body}</Text> : null}
+      </View>
+    </PressableScale>
+  );
+}
+
 function Empty({ Icon, title, sub }: { Icon: LucideIcon; title: string; sub: string }) {
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 10 }}>
@@ -112,6 +144,22 @@ export default function MessagesScreen() {
   const [tab, setTab] = useState<'updates' | 'messages'>(tabParam === 'messages' ? 'messages' : 'updates');
   const { data: conversations, isLoading: convLoading } = useConversations(user?.id);
   const { data: orders, isLoading: ordersLoading } = useMyOrders(user?.id);
+  const { data: notifications } = useNotifications(user?.id);
+  const markRead = useMarkNotificationsRead(user?.id);
+
+  // Opening the inbox clears the unread notification badge.
+  const hasUnread = (notifications ?? []).some((n) => !n.read);
+  useEffect(() => {
+    if (tab === 'updates' && hasUnread) markRead.mutate(undefined);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab, hasUnread]);
+
+  function routeNotification(n: AppNotification) {
+    if (n.type === 'order' && n.data?.request_id) return router.push('/experience-request');
+    if (n.type === 'review') return router.push('/dashboard');
+    if (n.type === 'follow') return router.push('/dashboard');
+    return router.push('/orders');
+  }
 
   function goBack() {
     if (router.canGoBack()) router.back();
@@ -164,11 +212,14 @@ export default function MessagesScreen() {
             {tab === 'updates' ? (
               ordersLoading ? (
                 <ActivityIndicator color={ORANGE} style={{ marginTop: 40 }} />
-              ) : !orders?.length ? (
-                <Empty Icon={Bell} title="No updates yet" sub="Order updates — confirmed, preparing, on the way — will show up here." />
+              ) : !orders?.length && !notifications?.length ? (
+                <Empty Icon={Bell} title="No updates yet" sub="Order updates, new bids, reviews and renewals will show up here." />
               ) : (
                 <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: Platform.OS === 'web' ? 8 : 4, paddingBottom: 130 }}>
-                  {orders.map((o) => (
+                  {(notifications ?? []).map((n) => (
+                    <NotificationItemRow key={n.id} n={n} onPress={() => routeNotification(n)} />
+                  ))}
+                  {orders?.map((o) => (
                     <NotificationRow key={o.id} o={o} onPress={() => router.push('/orders')} />
                   ))}
                 </ScrollView>

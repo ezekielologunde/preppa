@@ -33,6 +33,7 @@ import { greeting } from '@/lib/greeting';
 import { useFeaturedMeals } from '@/lib/queries/meals';
 import { useFeatureFlags } from '@/lib/queries/feature-flags';
 import { useMyOrders } from '@/lib/queries/orders';
+import { useNotifications } from '@/lib/queries/notifications';
 import { useAuth } from '@/providers/auth-provider';
 
 const ORANGE = Palette.brand;
@@ -76,10 +77,13 @@ export default function HomeScreen() {
   // "Order again" = the user's most recent delivered order (hidden until one exists).
   const { data: myOrders } = useMyOrders(user?.id);
   const lastDone = myOrders?.find((o) => o.status === 'completed');
-  // Bell badge = orders still in motion (real, actionable) — not a fake count.
+  const { data: notifications } = useNotifications(user?.id);
+  // Bell badge = orders in motion + unread notifications (real, actionable).
   const activeOrders = (myOrders ?? []).filter(
     (o) => o.status !== 'completed' && o.status !== 'cancelled',
   ).length;
+  const unreadNotifs = (notifications ?? []).filter((n) => !n.read).length;
+  const badgeCount = activeOrders + unreadNotifs;
 
   return (
     <View style={{ flex: 1, backgroundColor: '#F7F7F8' }}>
@@ -103,11 +107,11 @@ export default function HomeScreen() {
                 <Text style={{ color: ORANGE }}>craving today?</Text>
               </Text>
             </View>
-            <PressableScale onPress={() => router.push('/messages')} accessibilityRole="button" accessibilityLabel={activeOrders ? `Inbox, ${activeOrders} active orders` : 'Inbox'} style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' }}>
+            <PressableScale onPress={() => router.push('/messages')} accessibilityRole="button" accessibilityLabel={badgeCount ? `Inbox, ${badgeCount} updates` : 'Inbox'} style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' }}>
               <Bell size={20} color={INK} />
-              {activeOrders > 0 ? (
+              {badgeCount > 0 ? (
                 <View style={{ position: 'absolute', top: 8, right: 9, minWidth: 16, height: 16, borderRadius: 8, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3 }}>
-                  <Text style={{ fontFamily: Font.semibold, fontSize: 9, color: '#fff' }}>{activeOrders}</Text>
+                  <Text style={{ fontFamily: Font.semibold, fontSize: 9, color: '#fff' }}>{badgeCount}</Text>
                 </View>
               ) : null}
             </PressableScale>
