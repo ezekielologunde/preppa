@@ -2,7 +2,7 @@ import { useRouter } from 'expo-router';
 import { ChevronLeft, Clock, DollarSign, Plus, Users, X } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useState } from 'react';
-import { ActivityIndicator, Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Modal, Pressable, RefreshControl, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PressableScale } from '@/components/ui/pressable-scale';
@@ -71,12 +71,14 @@ export default function BidRequestsScreen() {
   const { data: prepper } = useMyPrepperApplication(user?.id);
   const isPrepper = prepper?.status === 'approved';
 
-  const { data: requests = [], isLoading } = useMealRequests();
+  const { data: requests = [], isLoading, refetch } = useMealRequests();
   const postRequest = usePostMealRequest();
   const placeBid = usePlaceBid();
 
   const [showPost, setShowPost] = useState(false);
   const [bidTarget, setBidTarget] = useState<Request | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+  async function handleRefresh() { setRefreshing(true); await refetch(); setRefreshing(false); }
 
   // Post request form state
   const [reqTitle, setReqTitle] = useState('');
@@ -138,7 +140,7 @@ export default function BidRequestsScreen() {
           ) : null}
         </View>
 
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 16, paddingBottom: 60 }}>
+        <ScrollView showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={ORANGE} colors={[ORANGE]} />} contentContainerStyle={{ padding: 16, paddingBottom: 60 }}>
           {isLoading ? (
             <ActivityIndicator color={ORANGE} style={{ marginTop: 40 }} />
           ) : requests.length === 0 ? (

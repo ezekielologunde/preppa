@@ -21,7 +21,8 @@ import {
   type LucideIcon,
 } from 'lucide-react-native';
 import { MotiView } from 'moti';
-import { Platform, Pressable, ScrollView, Text, View } from 'react-native';
+import { useState } from 'react';
+import { Platform, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { CuisineCard } from '@/components/cuisine-card';
@@ -66,15 +67,17 @@ function SectionHeader({ title, onSeeAll }: { title: string; onSeeAll?: () => vo
 
 export default function ExploreScreen() {
   const router = useRouter();
-  const { data: preppers, isLoading: preppersLoading } = useTopPreppers();
-  const { data: kitchenTags } = useKitchenTags();
-  const { data: meals, isLoading: mealsLoading } = useFeaturedMeals();
-  const { data: drops } = useLimitedDrops(6);
+  const { data: preppers, isLoading: preppersLoading, refetch: refetchPreppers } = useTopPreppers();
+  const { data: kitchenTags, refetch: refetchTags } = useKitchenTags();
+  const { data: meals, isLoading: mealsLoading, refetch: refetchMeals } = useFeaturedMeals();
+  const { data: drops, refetch: refetchDrops } = useLimitedDrops(6);
+  const [refreshing, setRefreshing] = useState(false);
+  async function handleRefresh() { setRefreshing(true); await Promise.all([refetchPreppers(), refetchTags(), refetchMeals(), refetchDrops()]); setRefreshing(false); }
 
   return (
     <View style={{ flex: 1, backgroundColor: Palette.canvas }}>
       <SafeAreaView edges={['top']} style={{ flex: 1 }}>
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: Platform.OS === 'web' ? 16 : 8, paddingBottom: 130 }}>
+        <ScrollView showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={Palette.brand} colors={[Palette.brand]} />} contentContainerStyle={{ paddingTop: Platform.OS === 'web' ? 16 : 8, paddingBottom: 130 }}>
           {/* Header */}
           <View style={{ flexDirection: 'row', alignItems: 'flex-start', paddingHorizontal: 20, gap: 12 }}>
             <View style={{ flex: 1 }}>

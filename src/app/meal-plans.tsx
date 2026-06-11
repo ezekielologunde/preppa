@@ -3,7 +3,7 @@ import { useRouter } from 'expo-router';
 import { CalendarCheck, Check, ChefHat, ChevronLeft, ChevronRight, Plus, RefreshCw, Users } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useState } from 'react';
-import { ActivityIndicator, Platform, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Platform, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { SubscribePlanSheet } from '@/components/subscribe-sheet';
@@ -121,15 +121,17 @@ function FeaturedCard({ plan }: { plan: MealPlanCard }) {
 export default function MealPlansScreen() {
   const router = useRouter();
   const { user } = useAuth();
-  const { data: livePlans, isLoading } = useMealPlans();
-  const { data: subs } = useMySubscriptions(user?.id);
-  const { data: customPlans } = useMyCustomPlans(user?.id);
+  const { data: livePlans, isLoading, refetch: refetchPlans } = useMealPlans();
+  const { data: subs, refetch: refetchSubs } = useMySubscriptions(user?.id);
+  const { data: customPlans, refetch: refetchCustom } = useMyCustomPlans(user?.id);
   const updateSub = useUpdateSubscription(user?.id);
   const updateCustomPlan = useUpdateCustomPlan(user?.id);
   const skipDelivery = useSkipDelivery(user?.id);
 
   // Subscribe sheet — the chosen plan (null = closed).
   const [sheetPlan, setSheetPlan] = useState<MealPlan | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+  async function handleRefresh() { setRefreshing(true); await Promise.all([refetchPlans(), refetchSubs(), refetchCustom()]); setRefreshing(false); }
 
   function goBack() {
     if (router.canGoBack()) router.back();
@@ -156,7 +158,7 @@ export default function MealPlansScreen() {
           </View>
         </View>
 
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: Platform.OS === 'web' ? 12 : 6, paddingBottom: 130 }}>
+        <ScrollView showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={ORANGE} colors={[ORANGE]} />} contentContainerStyle={{ paddingTop: Platform.OS === 'web' ? 12 : 6, paddingBottom: 130 }}>
           {/* Build your own plan CTA */}
           <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260 }}>
             <PressableScale onPress={() => router.push('/create-meal-plan')} accessibilityRole="button" accessibilityLabel="Build your own meal plan"

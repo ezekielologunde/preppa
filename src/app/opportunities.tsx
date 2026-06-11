@@ -2,7 +2,7 @@ import { useRouter } from 'expo-router';
 import { Check, ChevronLeft, Inbox, Lock, MapPin, Users, Wallet } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useState } from 'react';
-import { ActivityIndicator, Platform, ScrollView, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Platform, RefreshControl, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PressableScale } from '@/components/ui/pressable-scale';
@@ -102,7 +102,9 @@ export default function OpportunitiesScreen() {
   const { user } = useAuth();
   const { data: application, isLoading: appLoading } = useMyPrepperApplication(user?.id);
   const approved = application?.status === 'approved';
-  const { data: requests, isLoading } = useOpenRequests(approved ? application?.id : null);
+  const { data: requests, isLoading, refetch } = useOpenRequests(approved ? application?.id : null);
+  const [refreshing, setRefreshing] = useState(false);
+  async function handleRefresh() { setRefreshing(true); await refetch(); setRefreshing(false); }
 
   function goBack() {
     if (router.canGoBack()) router.back();
@@ -139,7 +141,7 @@ export default function OpportunitiesScreen() {
             <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center' }}>No open requests right now. Check back soon.</Text>
           </View>
         ) : (
-          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 20, paddingTop: Platform.OS === 'web' ? 12 : 8, gap: 12, paddingBottom: 60 }}>
+          <ScrollView showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={ORANGE} colors={[ORANGE]} />} contentContainerStyle={{ padding: 20, paddingTop: Platform.OS === 'web' ? 12 : 8, gap: 12, paddingBottom: 60 }}>
             {requests.map((r, i) => (
               <MotiView key={r.id} from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: i * 60 }}>
                 <RequestCard req={r} prepperId={application!.id} />
