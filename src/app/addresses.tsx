@@ -6,7 +6,6 @@ import {
   ActivityIndicator,
   ScrollView,
   Text,
-  TouchableOpacity,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -172,7 +171,7 @@ function AddressCard({
 
           {/* Actions */}
           <View style={{ flexDirection: 'row', gap: 4, flexShrink: 0 }}>
-            <TouchableOpacity
+            <PressableScale
               onPress={onEdit}
               accessibilityRole="button"
               accessibilityLabel={`Edit ${address.label} address`}
@@ -185,8 +184,8 @@ function AddressCard({
                 justifyContent: 'center',
               }}>
               <Pencil size={16} color={Palette.textSecondary} />
-            </TouchableOpacity>
-            <TouchableOpacity
+            </PressableScale>
+            <PressableScale
               onPress={onDelete}
               accessibilityRole="button"
               accessibilityLabel={`Delete ${address.label} address`}
@@ -199,7 +198,7 @@ function AddressCard({
                 justifyContent: 'center',
               }}>
               <Trash2 size={16} color={Palette.danger} />
-            </TouchableOpacity>
+            </PressableScale>
           </View>
         </PressableScale>
       )}

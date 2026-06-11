@@ -429,16 +429,17 @@ export function AddCardSheet({
               accessibilityRole="button"
               accessibilityLabel="Save card"
               style={{
-                backgroundColor: saving ? Palette.brandTint : Palette.brand,
+                backgroundColor: Palette.brand,
                 borderRadius: Radius.md,
                 paddingVertical: 16,
                 alignItems: 'center',
                 marginTop: Spacing.two,
                 minHeight: 54,
                 justifyContent: 'center',
+                opacity: saving ? 0.75 : 1,
               }}>
               {saving ? (
-                <ActivityIndicator color={Palette.brand} />
+                <ActivityIndicator color="#fff" />
               ) : (
                 <Text
                   style={{
