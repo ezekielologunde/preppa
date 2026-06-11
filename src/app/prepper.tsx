@@ -1,6 +1,6 @@
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { BadgeCheck, CalendarCheck, Check, ChevronLeft, MapPin, MessageCircle, RefreshCw, Repeat, ShieldCheck, ShoppingBag, Star, UserPlus, Users } from 'lucide-react-native';
+import { Award, BadgeCheck, Bike, CalendarCheck, Check, ChevronLeft, MapPin, MessageCircle, RefreshCw, Repeat, ShieldCheck, ShoppingBag, Star, Store, UserPlus, Users } from 'lucide-react-native';
 import { useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -151,17 +151,52 @@ export default function PrepperScreen() {
           </View>
         ) : null}
 
-        {/* Bio + specialties */}
-        {p?.bio ? (
-          <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, lineHeight: 21, marginHorizontal: 20, marginTop: 16 }}>{p.bio}</Text>
-        ) : null}
-        {p?.specialties.length ? (
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginHorizontal: 16, marginTop: 14 }}>
-            {p.specialties.map((s) => (
-              <View key={s} style={{ backgroundColor: Palette.brandTint, borderRadius: 999, paddingHorizontal: 13, height: 32, alignItems: 'center', justifyContent: 'center' }}>
-                <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: Palette.brandPressed }}>{s}</Text>
+        {/* About — creator identity: bio, specialties, certifications, fulfillment */}
+        {(p?.bio || p?.specialties.length || p?.certifications.length || p?.delivers || p?.pickup) ? (
+          <View style={{ marginHorizontal: 16, marginTop: 20, gap: 14 }}>
+            <Text style={{ fontFamily: Font.display, fontSize: 20, color: INK, letterSpacing: -0.4 }}>about</Text>
+
+            {p?.bio ? (
+              <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, lineHeight: 21 }}>{p.bio}</Text>
+            ) : null}
+
+            {p?.specialties.length ? (
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                {p.specialties.map((s) => (
+                  <View key={s} style={{ backgroundColor: Palette.brandTint, borderRadius: 999, paddingHorizontal: 13, height: 30, alignItems: 'center', justifyContent: 'center' }}>
+                    <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: Palette.brandPressed }}>{s}</Text>
+                  </View>
+                ))}
               </View>
-            ))}
+            ) : null}
+
+            {p?.certifications.length ? (
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                {p.certifications.map((c) => (
+                  <View key={c} style={{ flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: Palette.success + '14', borderRadius: 999, paddingHorizontal: 11, height: 30 }}>
+                    <Award size={12} color={Palette.success} />
+                    <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: '#15803d' }}>{c}</Text>
+                  </View>
+                ))}
+              </View>
+            ) : null}
+
+            {(p?.delivers || p?.pickup) ? (
+              <View style={{ flexDirection: 'row', gap: 8 }}>
+                {p?.delivers ? (
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: '#fff', borderRadius: 999, paddingHorizontal: 11, height: 30, borderWidth: 1, borderColor: Palette.border }}>
+                    <Bike size={13} color={Palette.textSecondary} />
+                    <Text style={{ fontFamily: Font.medium, fontSize: 12.5, color: Palette.textSecondary }}>Delivery</Text>
+                  </View>
+                ) : null}
+                {p?.pickup ? (
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: '#fff', borderRadius: 999, paddingHorizontal: 11, height: 30, borderWidth: 1, borderColor: Palette.border }}>
+                    <Store size={13} color={Palette.textSecondary} />
+                    <Text style={{ fontFamily: Font.medium, fontSize: 12.5, color: Palette.textSecondary }}>Pickup</Text>
+                  </View>
+                ) : null}
+              </View>
+            ) : null}
           </View>
         ) : null}
 

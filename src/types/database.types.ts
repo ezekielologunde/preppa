@@ -99,9 +99,9 @@ export interface Database {
         Relationships: [];
       };
       prepper_profiles: {
-        Row: { id: string; user_id: string; display_name: string; bio: string | null; verified: boolean; status: PrepperStatus; reviewed_by: string | null; reviewed_at: string | null; rejection_note: string | null; delivery_radius_km: number | null; specialties: string[] | null } & Timestamps;
-        Insert: { user_id: string; display_name: string; bio?: string | null; specialties?: string[] | null };
-        Update: Partial<{ display_name: string; bio: string | null; specialties: string[] | null }>;
+        Row: { id: string; user_id: string; display_name: string; bio: string | null; verified: boolean; status: PrepperStatus; reviewed_by: string | null; reviewed_at: string | null; rejection_note: string | null; delivery_radius_km: number | null; specialties: string[] | null; certifications: string[] } & Timestamps;
+        Insert: { user_id: string; display_name: string; bio?: string | null; specialties?: string[] | null; certifications?: string[] };
+        Update: Partial<{ display_name: string; bio: string | null; specialties: string[] | null; certifications: string[] }>;
         Relationships: [];
       };
       prepper_rating_summary: {
