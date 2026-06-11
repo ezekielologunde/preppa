@@ -20,7 +20,7 @@ type Request = MealRequest;
 
 function RequestCard({ r, isPrepper, onBid }: { r: Request; isPrepper: boolean; onBid: (r: Request) => void }) {
   return (
-    <View style={{ backgroundColor: '#fff', borderRadius: 20, padding: 16, gap: 10, marginBottom: 12 }}>
+    <View style={{ backgroundColor: Palette.surface, borderRadius: 20, padding: 16, gap: 10, marginBottom: 12 }}>
       <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8 }}>
         <View style={{ flex: 1 }}>
           <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>{r.title}</Text>
@@ -116,7 +116,7 @@ export default function BidRequestsScreen() {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#F7F7F8' }}>
+    <View style={{ flex: 1, backgroundColor: Palette.canvas }}>
       <SafeAreaView edges={['top']} style={{ flex: 1 }}>
         {/* Header */}
         <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 8, paddingBottom: 6, gap: 12 }}>
@@ -161,17 +161,17 @@ export default function BidRequestsScreen() {
         {/* Post request modal */}
         <Modal visible={showPost} transparent animationType="slide" onRequestClose={() => setShowPost(false)}>
           <Pressable onPress={() => setShowPost(false)} style={{ flex: 1, backgroundColor: 'rgba(17,24,39,0.5)', justifyContent: 'flex-end' }}>
-            <Pressable onPress={(e) => e.stopPropagation()} style={{ backgroundColor: '#fff', borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: 24, gap: 14 }}>
+            <Pressable onPress={(e) => e.stopPropagation()} style={{ backgroundColor: Palette.surface, borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: 24, gap: 14 }}>
               <Text style={{ fontFamily: Font.display, fontSize: 22, color: INK, letterSpacing: -0.5 }}>post a meal request</Text>
-              <TextInput value={reqTitle} onChangeText={setReqTitle} placeholder="What do you need? (e.g. Jerk chicken meal prep)" placeholderTextColor="#9ca3af"
-                style={{ height: 50, backgroundColor: '#F4F4F6', borderRadius: 14, paddingHorizontal: 14, fontFamily: Font.body, fontSize: 15, color: INK }} />
-              <TextInput value={reqDesc} onChangeText={setReqDesc} placeholder="Details — servings, dietary needs, deadline…" placeholderTextColor="#9ca3af" multiline
-                style={{ minHeight: 80, backgroundColor: '#F4F4F6', borderRadius: 14, padding: 14, fontFamily: Font.body, fontSize: 14, color: INK, textAlignVertical: 'top' }} />
+              <TextInput value={reqTitle} onChangeText={setReqTitle} placeholder="What do you need? (e.g. Jerk chicken meal prep)" placeholderTextColor={Palette.textMuted}
+                style={{ height: 50, backgroundColor: Palette.canvas, borderRadius: 14, paddingHorizontal: 14, fontFamily: Font.body, fontSize: 15, color: INK }} />
+              <TextInput value={reqDesc} onChangeText={setReqDesc} placeholder="Details — servings, dietary needs, deadline…" placeholderTextColor={Palette.textMuted} multiline
+                style={{ minHeight: 80, backgroundColor: Palette.canvas, borderRadius: 14, padding: 14, fontFamily: Font.body, fontSize: 14, color: INK, textAlignVertical: 'top' }} />
               <View style={{ flexDirection: 'row', gap: 10 }}>
-                <TextInput value={reqServings} onChangeText={setReqServings} placeholder="Servings" placeholderTextColor="#9ca3af" keyboardType="number-pad"
-                  style={{ flex: 1, height: 50, backgroundColor: '#F4F4F6', borderRadius: 14, paddingHorizontal: 14, fontFamily: Font.body, fontSize: 15, color: INK }} />
-                <TextInput value={reqBudget} onChangeText={setReqBudget} placeholder="$ budget / serving" placeholderTextColor="#9ca3af" keyboardType="decimal-pad"
-                  style={{ flex: 1, height: 50, backgroundColor: '#F4F4F6', borderRadius: 14, paddingHorizontal: 14, fontFamily: Font.body, fontSize: 15, color: INK }} />
+                <TextInput value={reqServings} onChangeText={setReqServings} placeholder="Servings" placeholderTextColor={Palette.textMuted} keyboardType="number-pad"
+                  style={{ flex: 1, height: 50, backgroundColor: Palette.canvas, borderRadius: 14, paddingHorizontal: 14, fontFamily: Font.body, fontSize: 15, color: INK }} />
+                <TextInput value={reqBudget} onChangeText={setReqBudget} placeholder="$ budget / serving" placeholderTextColor={Palette.textMuted} keyboardType="decimal-pad"
+                  style={{ flex: 1, height: 50, backgroundColor: Palette.canvas, borderRadius: 14, paddingHorizontal: 14, fontFamily: Font.body, fontSize: 15, color: INK }} />
               </View>
               <PressableScale onPress={submitRequest} disabled={postRequest.isPending || !reqTitle.trim()} accessibilityRole="button" accessibilityLabel="Submit request"
                 style={{ height: 54, borderRadius: 16, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', opacity: postRequest.isPending || !reqTitle.trim() ? 0.6 : 1 }}>
@@ -184,7 +184,7 @@ export default function BidRequestsScreen() {
         {/* Bid modal */}
         <Modal visible={!!bidTarget} transparent animationType="slide" onRequestClose={() => setBidTarget(null)}>
           <Pressable onPress={() => setBidTarget(null)} style={{ flex: 1, backgroundColor: 'rgba(17,24,39,0.5)', justifyContent: 'flex-end' }}>
-            <Pressable onPress={(e) => e.stopPropagation()} style={{ backgroundColor: '#fff', borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: 24, gap: 14 }}>
+            <Pressable onPress={(e) => e.stopPropagation()} style={{ backgroundColor: Palette.surface, borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: 24, gap: 14 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                 <Text style={{ fontFamily: Font.display, fontSize: 20, color: INK, letterSpacing: -0.4, flex: 1 }} numberOfLines={1}>{bidTarget?.title}</Text>
                 <PressableScale onPress={() => setBidTarget(null)} accessibilityRole="button" accessibilityLabel="Close" style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: Palette.canvas, alignItems: 'center', justifyContent: 'center' }}>
@@ -195,12 +195,12 @@ export default function BidRequestsScreen() {
               <View style={{ flexDirection: 'row', gap: 10 }}>
                 <View style={{ flex: 1 }}>
                   <Text style={{ fontFamily: Font.medium, fontSize: 13, color: INK, marginBottom: 6 }}>your price per serving ($)</Text>
-                  <TextInput value={bidPrice} onChangeText={setBidPrice} placeholder={bidTarget?.budget_per_serving != null ? `budget: $${bidTarget.budget_per_serving}/serving` : 'your price per serving'} placeholderTextColor="#9ca3af" keyboardType="decimal-pad"
-                    style={{ height: 50, backgroundColor: '#F4F4F6', borderRadius: 14, paddingHorizontal: 14, fontFamily: Font.body, fontSize: 15, color: INK }} />
+                  <TextInput value={bidPrice} onChangeText={setBidPrice} placeholder={bidTarget?.budget_per_serving != null ? `budget: $${bidTarget.budget_per_serving}/serving` : 'your price per serving'} placeholderTextColor={Palette.textMuted} keyboardType="decimal-pad"
+                    style={{ height: 50, backgroundColor: Palette.canvas, borderRadius: 14, paddingHorizontal: 14, fontFamily: Font.body, fontSize: 15, color: INK }} />
                 </View>
               </View>
-              <TextInput value={bidNote} onChangeText={setBidNote} placeholder="Message to the customer (optional)" placeholderTextColor="#9ca3af" multiline
-                style={{ minHeight: 70, backgroundColor: '#F4F4F6', borderRadius: 14, padding: 14, fontFamily: Font.body, fontSize: 14, color: INK, textAlignVertical: 'top' }} />
+              <TextInput value={bidNote} onChangeText={setBidNote} placeholder="Message to the customer (optional)" placeholderTextColor={Palette.textMuted} multiline
+                style={{ minHeight: 70, backgroundColor: Palette.canvas, borderRadius: 14, padding: 14, fontFamily: Font.body, fontSize: 14, color: INK, textAlignVertical: 'top' }} />
               <PressableScale onPress={submitBid} disabled={placeBid.isPending || !bidPrice} accessibilityRole="button" accessibilityLabel="Submit bid"
                 style={{ height: 54, borderRadius: 16, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', opacity: placeBid.isPending || !bidPrice ? 0.6 : 1 }}>
                 {placeBid.isPending ? <ActivityIndicator color="#fff" /> : <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>submit bid</Text>}

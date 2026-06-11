@@ -23,7 +23,7 @@ const money = (n: number) => `$${n.toFixed(2)}`;
 
 const STATUS_STYLE: Record<MealStatus, { label: string; color: string }> = {
   published: { label: 'live', color: Palette.success },
-  draft: { label: 'draft', color: '#9ca3af' },
+  draft: { label: 'draft', color: Palette.textMuted },
   paused: { label: 'paused', color: Palette.amber },
   archived: { label: 'archived', color: '#6b7280' },
 };
@@ -49,7 +49,7 @@ function dropChipFor(expiresAt: string | null | undefined): string {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <View style={{ gap: 6 }}>
-      <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: '#9ca3af' }}>{label}</Text>
+      <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: Palette.textMuted }}>{label}</Text>
       {children}
     </View>
   );
@@ -79,7 +79,7 @@ function MealRow({ meal, busy, onEdit, onSetStatus }: { meal: MyMeal; busy: bool
       )}
       <View style={{ flex: 1, gap: 3 }}>
         <Text style={{ fontFamily: Font.heading, fontSize: 14.5, color: '#fff' }} numberOfLines={1}>{meal.title}</Text>
-        <Text style={{ fontFamily: Font.medium, fontSize: 12.5, color: '#9ca3af', fontVariant: ['tabular-nums'] }}>{money(meal.base_price)}{meal.prep_time_min ? ` · ${meal.prep_time_min} min` : ''}</Text>
+        <Text style={{ fontFamily: Font.medium, fontSize: 12.5, color: Palette.textMuted, fontVariant: ['tabular-nums'] }}>{money(meal.base_price)}{meal.prep_time_min ? ` · ${meal.prep_time_min} min` : ''}</Text>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
           <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: st.color }} />
           <Text style={{ fontFamily: Font.semibold, fontSize: 11.5, color: st.color }}>{st.label}</Text>
@@ -87,7 +87,7 @@ function MealRow({ meal, busy, onEdit, onSetStatus }: { meal: MyMeal; busy: bool
       </View>
       <View style={{ gap: 6, alignItems: 'flex-end' }}>
         <PressableScale onPress={onEdit} accessibilityRole="button" accessibilityLabel={`Edit ${meal.title}`} hitSlop={6} style={{ paddingHorizontal: 12, height: 32, borderRadius: 10, borderWidth: 1, borderColor: '#3f4451', alignItems: 'center', justifyContent: 'center' }}>
-          <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: '#d1d5db' }}>Edit</Text>
+          <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: Palette.divider }}>Edit</Text>
         </PressableScale>
         <PressableScale
           onPress={() => onSetStatus(isLive ? 'paused' : 'published')}
@@ -182,7 +182,7 @@ export default function MealEditorScreen() {
         {!prepperId ? (
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
             <UtensilsCrossed size={28} color="#5b6170" />
-            <Text style={{ fontFamily: Font.body, fontSize: 14, color: '#9ca3af', textAlign: 'center' }}>Approved preppers manage their menu here.</Text>
+            <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textMuted, textAlign: 'center' }}>Approved preppers manage their menu here.</Text>
           </View>
         ) : isLoading ? (
           <ActivityIndicator color={ORANGE} style={{ marginTop: 40 }} />
@@ -192,14 +192,14 @@ export default function MealEditorScreen() {
               <UtensilsCrossed size={28} color="#5b6170" />
             </View>
             <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>Your menu is empty</Text>
-            <Text style={{ fontFamily: Font.body, fontSize: 14, color: '#9ca3af', textAlign: 'center', maxWidth: 280 }}>Add your first meal and publish it — customers see live meals instantly.</Text>
+            <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textMuted, textAlign: 'center', maxWidth: 280 }}>Add your first meal and publish it — customers see live meals instantly.</Text>
             <PressableScale onPress={openCreate} accessibilityRole="button" accessibilityLabel="Add your first meal" style={{ marginTop: 4, paddingHorizontal: 20, height: 48, borderRadius: 13, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
               <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#fff' }}>Add your first meal</Text>
             </PressableScale>
           </View>
         ) : (
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 20, gap: 10, paddingBottom: 40 }}>
-            <Text style={{ fontFamily: Font.body, fontSize: 13, color: '#9ca3af', marginBottom: 4 }}>
+            <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textMuted, marginBottom: 4 }}>
               {meals.filter((m) => m.status === 'published').length} live · {meals.length} total
             </Text>
             {meals.map((m) => (
@@ -256,8 +256,8 @@ export default function MealEditorScreen() {
                   )}
                   {uploadSupported ? (
                     <PressableScale onPress={pickPhoto} disabled={uploading} accessibilityRole="button" accessibilityLabel="Upload a photo" style={{ flex: 1, height: 48, borderRadius: 12, borderWidth: 1, borderColor: '#3f4451', flexDirection: 'row', gap: 8, alignItems: 'center', justifyContent: 'center', opacity: uploading ? 0.6 : 1 }}>
-                      {uploading ? <ActivityIndicator color="#fff" /> : <Upload size={17} color="#d1d5db" />}
-                      <Text style={{ fontFamily: Font.semibold, fontSize: 13.5, color: '#d1d5db' }}>{uploading ? 'Uploading…' : draft?.imageUrl ? 'Change photo' : 'Upload photo'}</Text>
+                      {uploading ? <ActivityIndicator color="#fff" /> : <Upload size={17} color={Palette.divider} />}
+                      <Text style={{ fontFamily: Font.semibold, fontSize: 13.5, color: Palette.divider }}>{uploading ? 'Uploading…' : draft?.imageUrl ? 'Change photo' : 'Upload photo'}</Text>
                     </PressableScale>
                   ) : (
                     <View style={{ flex: 1 }}>
@@ -275,7 +275,7 @@ export default function MealEditorScreen() {
                 style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#1d2129', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 13 }}>
                 <View style={{ flex: 1, gap: 2 }}>
                   <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: '#fff' }}>Limited drop</Text>
-                  <Text style={{ fontFamily: Font.body, fontSize: 12, color: '#6b7280' }}>Show a &quot;limited drop&quot; badge — builds scarcity & hype</Text>
+                  <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary }}>Show a &quot;limited drop&quot; badge — builds scarcity & hype</Text>
                 </View>
                 <MotiView
                   animate={{ backgroundColor: draft?.is_limited ? ORANGE : '#374151' }}
@@ -294,7 +294,7 @@ export default function MealEditorScreen() {
                   animate={{ opacity: 1, translateY: 0 }}
                   transition={{ type: 'timing', duration: 220 }}
                   style={{ gap: 6 }}>
-                  <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: '#9ca3af' }}>Drop ends</Text>
+                  <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: Palette.textMuted }}>Drop ends</Text>
                   <View style={{ flexDirection: 'row', gap: 8 }}>
                     {DROP_DURATIONS.map((d) => {
                       const on = dropChipFor(draft?.expires_at) === d.key;
@@ -324,7 +324,7 @@ export default function MealEditorScreen() {
               <PressableScale onPress={submit} disabled={save.isPending} accessibilityRole="button" accessibilityLabel="Save meal" style={{ height: 52, borderRadius: 14, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', opacity: save.isPending ? 0.7 : 1 }}>
                 {save.isPending ? <ActivityIndicator color="#fff" /> : <Text style={{ fontFamily: Font.heading, fontSize: 15.5, color: '#fff' }}>{draft?.id ? 'Save changes' : 'Create meal'}</Text>}
               </PressableScale>
-              {!draft?.id ? <Text style={{ fontFamily: Font.body, fontSize: 12, color: '#6b7280', textAlign: 'center' }}>New meals start as drafts — publish when you&apos;re ready.</Text> : null}
+              {!draft?.id ? <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary, textAlign: 'center' }}>New meals start as drafts — publish when you&apos;re ready.</Text> : null}
             </ScrollView>
           </Pressable>
         </Pressable>

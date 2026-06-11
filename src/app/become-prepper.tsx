@@ -61,7 +61,7 @@ export default function BecomePrepperScreen() {
 
   if (isLoading) {
     return (
-      <View style={{ flex: 1, backgroundColor: '#fff' }}>
+      <View style={{ flex: 1, backgroundColor: Palette.surface }}>
         <SafeAreaView style={{ flex: 1 }}>{Header}<Centered><ActivityIndicator color={ORANGE} /></Centered></SafeAreaView>
       </View>
     );
@@ -76,7 +76,7 @@ export default function BecomePrepperScreen() {
       suspended: { Icon: ShieldX, tint: '#6B7280', title: 'Kitchen paused', body: 'Your prepper account is currently paused. Contact support to reactivate.', cta: null },
     }[application.status];
     return (
-      <View style={{ flex: 1, backgroundColor: '#fff' }}>
+      <View style={{ flex: 1, backgroundColor: Palette.surface }}>
         <SafeAreaView style={{ flex: 1 }}>
           {Header}
           <Centered>
@@ -89,7 +89,7 @@ export default function BecomePrepperScreen() {
               <Text style={{ fontFamily: Font.display, fontSize: 24, color: INK, textAlign: 'center', letterSpacing: -0.6 }}>{map.title}</Text>
             </MotiView>
             <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280, delay: 140 }}>
-              <Text style={{ fontFamily: Font.body, fontSize: 15, color: '#6b7280', textAlign: 'center', lineHeight: 22, maxWidth: 320 }}>{map.body}</Text>
+              <Text style={{ fontFamily: Font.body, fontSize: 15, color: Palette.textSecondary, textAlign: 'center', lineHeight: 22, maxWidth: 320 }}>{map.body}</Text>
             </MotiView>
             {map.cta ? (
               <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280, delay: 200 }}>
@@ -107,15 +107,15 @@ export default function BecomePrepperScreen() {
   // --- Signups closed (admin feature flag off) ---
   if (!signupsOpen) {
     return (
-      <View style={{ flex: 1, backgroundColor: '#fff' }}>
+      <View style={{ flex: 1, backgroundColor: Palette.surface }}>
         <SafeAreaView style={{ flex: 1 }}>
           {Header}
           <Centered>
             <View style={{ width: 72, height: 72, borderRadius: 22, backgroundColor: Palette.canvas, alignItems: 'center', justifyContent: 'center' }}>
-              <Clock size={30} color="#9ca3af" />
+              <Clock size={30} color={Palette.textMuted} />
             </View>
             <Text style={{ fontFamily: Font.display, fontSize: 22, color: INK, textAlign: 'center' }}>Applications are closed</Text>
-            <Text style={{ fontFamily: Font.body, fontSize: 15, color: '#6b7280', textAlign: 'center', lineHeight: 22, maxWidth: 300 }}>
+            <Text style={{ fontFamily: Font.body, fontSize: 15, color: Palette.textSecondary, textAlign: 'center', lineHeight: 22, maxWidth: 300 }}>
               We&apos;re not accepting new preppers right now. Check back soon!
             </Text>
           </Centered>
@@ -136,19 +136,19 @@ export default function BecomePrepperScreen() {
               <ChefHat size={30} color={ORANGE} />
             </View>
             <Text style={{ fontFamily: Font.display, fontSize: 28, color: INK, letterSpacing: -0.8 }}>Become a Prepper</Text>
-            <Text style={{ fontFamily: Font.body, fontSize: 15, color: '#6b7280', textAlign: 'center', maxWidth: 300, lineHeight: 22 }}>
+            <Text style={{ fontFamily: Font.body, fontSize: 15, color: Palette.textSecondary, textAlign: 'center', maxWidth: 300, lineHeight: 22 }}>
               Share your cooking, build a following, and earn from your kitchen.
             </Text>
           </View>
           </MotiView>
 
           <Text style={{ fontFamily: Font.heading, fontSize: 14, color: INK, marginBottom: 8 }}>Kitchen / chef name</Text>
-          <TextInput value={name} onChangeText={setName} placeholder="e.g. Kelsi's Kitchen" placeholderTextColor="#9ca3af" autoCapitalize="words"
-            style={{ height: 54, borderRadius: 16, backgroundColor: '#F4F4F6', paddingHorizontal: 16, fontSize: 16, fontFamily: Font.body, color: INK }} />
+          <TextInput value={name} onChangeText={setName} placeholder="e.g. Kelsi's Kitchen" placeholderTextColor={Palette.textMuted} autoCapitalize="words"
+            style={{ height: 54, borderRadius: 16, backgroundColor: Palette.canvas, paddingHorizontal: 16, fontSize: 16, fontFamily: Font.body, color: INK }} />
 
           <Text style={{ fontFamily: Font.heading, fontSize: 14, color: INK, marginTop: 18, marginBottom: 8 }}>About your kitchen</Text>
-          <TextInput value={bio} onChangeText={setBio} placeholder="Tell customers what makes your food special…" placeholderTextColor="#9ca3af" multiline
-            style={{ minHeight: 96, borderRadius: 16, backgroundColor: '#F4F4F6', padding: 16, fontSize: 15, fontFamily: Font.body, color: INK, textAlignVertical: 'top' }} />
+          <TextInput value={bio} onChangeText={setBio} placeholder="Tell customers what makes your food special…" placeholderTextColor={Palette.textMuted} multiline
+            style={{ minHeight: 96, borderRadius: 16, backgroundColor: Palette.canvas, padding: 16, fontSize: 15, fontFamily: Font.body, color: INK, textAlignVertical: 'top' }} />
 
           <Text style={{ fontFamily: Font.heading, fontSize: 14, color: INK, marginTop: 18, marginBottom: 10 }}>Specialties</Text>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
@@ -157,19 +157,19 @@ export default function BecomePrepperScreen() {
               return (
                 <PressableScale key={s} onPress={() => toggle(s)} accessibilityRole="button" accessibilityState={{ selected: on }} accessibilityLabel={s}
                   style={{ paddingHorizontal: 14, paddingVertical: 9, borderRadius: Radius.pill, backgroundColor: on ? Palette.brandTint : '#F4F4F6', borderWidth: 1, borderColor: on ? ORANGE : 'transparent' }}>
-                  <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: on ? ORANGE : '#374151' }}>{s}</Text>
+                  <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: on ? ORANGE : Palette.inkSoft }}>{s}</Text>
                 </PressableScale>
               );
             })}
           </View>
 
-          {err ? <Text style={{ fontFamily: Font.medium, fontSize: 14, color: '#ef4444', marginTop: 16 }}>{err}</Text> : null}
+          {err ? <Text style={{ fontFamily: Font.medium, fontSize: 14, color: Palette.danger, marginTop: 16 }}>{err}</Text> : null}
 
           <PressableScale onPress={submit} disabled={apply.isPending} accessibilityRole="button" accessibilityLabel="Submit application"
             style={{ height: 54, borderRadius: 16, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', marginTop: 24, opacity: apply.isPending ? 0.7 : 1 }}>
             {apply.isPending ? <ActivityIndicator color="#fff" /> : <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>Submit application</Text>}
           </PressableScale>
-          <Text style={{ fontFamily: Font.body, fontSize: 12, color: '#9ca3af', textAlign: 'center', marginTop: 12 }}>
+          <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted, textAlign: 'center', marginTop: 12 }}>
             Reviewed within 1–2 days. You&apos;ll be notified once approved.
           </Text>
         </ScrollView>

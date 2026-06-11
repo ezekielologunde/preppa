@@ -68,10 +68,10 @@ export default function ChatScreen() {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#fff' }}>
+    <View style={{ flex: 1, backgroundColor: Palette.surface }}>
       <SafeAreaView edges={['top']} style={{ flex: 1 }}>
         {/* Header */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingTop: 8, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: '#f3f4f6' }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingTop: 8, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: Palette.chip }}>
           <PressableScale onPress={goBack} accessibilityRole="button" accessibilityLabel="Go back" style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: Palette.canvas, alignItems: 'center', justifyContent: 'center' }}>
             <ChevronLeft size={22} color={INK} />
           </PressableScale>
@@ -90,7 +90,7 @@ export default function ChatScreen() {
             accessibilityRole="button"
             accessibilityLabel={`Order ${ctx.order.status}, $${ctx.order.total.toFixed(2)}`}
             style={{ marginHorizontal: 16, marginTop: 10, backgroundColor: Palette.brandTint, borderRadius: Radius.md, padding: 12, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-            <View style={{ width: 36, height: 36, borderRadius: 11, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' }}>
+            <View style={{ width: 36, height: 36, borderRadius: 11, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
               <Receipt size={17} color={ORANGE} />
             </View>
             <View style={{ flex: 1 }}>
@@ -146,12 +146,12 @@ export default function ChatScreen() {
           )}
 
           {/* Composer */}
-          <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 10, paddingHorizontal: 12, paddingVertical: 8, borderTopWidth: 1, borderTopColor: '#f3f4f6' }}>
+          <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 10, paddingHorizontal: 12, paddingVertical: 8, borderTopWidth: 1, borderTopColor: Palette.chip }}>
             <TextInput
               value={text}
               onChangeText={setText}
               placeholder="Message…"
-              placeholderTextColor="#9ca3af"
+              placeholderTextColor={Palette.textMuted}
               multiline
               style={{ flex: 1, maxHeight: 120, minHeight: 44, borderRadius: 22, backgroundColor: Palette.canvas, paddingHorizontal: 16, paddingTop: 11, paddingBottom: 11, fontFamily: Font.body, fontSize: 15, color: INK }}
             />
