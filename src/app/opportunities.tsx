@@ -57,20 +57,20 @@ function RequestCard({ req, prepperId }: { req: OpenRequest; prepperId: string }
       </View>
 
       {req.myBid ? (
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 14, paddingTop: 12, borderTopWidth: 1, borderTopColor: '#f3f4f6' }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 14, paddingTop: 12, borderTopWidth: 1, borderTopColor: Palette.border }}>
           <Check size={16} color={Palette.success} strokeWidth={3} />
           <Text style={{ fontFamily: Font.semibold, fontSize: 13.5, color: INK }}>Your bid: {money(req.myBid.amount)}</Text>
           <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: Palette.textMuted, textTransform: 'capitalize' }}>· {req.myBid.status}</Text>
         </View>
       ) : (
-        <View style={{ marginTop: 14, paddingTop: 12, borderTopWidth: 1, borderTopColor: '#f3f4f6', gap: 10 }}>
+        <View style={{ marginTop: 14, paddingTop: 12, borderTopWidth: 1, borderTopColor: Palette.border, gap: 10 }}>
           <View style={{ flexDirection: 'row', gap: 10 }}>
-            <TextInput value={amount} onChangeText={setAmount} placeholder="Your quote $" placeholderTextColor="#9ca3af" keyboardType="decimal-pad"
+            <TextInput value={amount} onChangeText={setAmount} placeholder="Your quote $" placeholderTextColor={Palette.textMuted} keyboardType="decimal-pad"
               style={{ width: 120, height: 46, borderRadius: 12, backgroundColor: Palette.canvas, paddingHorizontal: 14, fontFamily: Font.body, fontSize: 15, color: INK }} />
-            <TextInput value={message} onChangeText={setMessage} placeholder="Short note (optional)" placeholderTextColor="#9ca3af"
+            <TextInput value={message} onChangeText={setMessage} placeholder="Short note (optional)" placeholderTextColor={Palette.textMuted}
               style={{ flex: 1, height: 46, borderRadius: 12, backgroundColor: Palette.canvas, paddingHorizontal: 14, fontFamily: Font.body, fontSize: 15, color: INK }} />
           </View>
-          {err ? <Text style={{ fontFamily: Font.medium, fontSize: 13, color: '#ef4444' }}>{err}</Text> : null}
+          {err ? <Text style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.danger }}>{err}</Text> : null}
           <PressableScale onPress={send} disabled={submit.isPending} accessibilityRole="button" accessibilityLabel="Submit bid"
             style={{ height: 46, borderRadius: 12, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', opacity: submit.isPending ? 0.7 : 1 }}>
             <Text style={{ fontFamily: Font.heading, fontSize: 14, color: '#fff' }}>Submit bid</Text>

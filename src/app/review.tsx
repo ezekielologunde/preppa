@@ -87,7 +87,7 @@ export default function ReviewScreen() {
             <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 8 }}>
               {[1, 2, 3, 4, 5].map((n) => (
                 <PressableScale key={n} onPress={() => setRating(n)} accessibilityRole="button" accessibilityLabel={`${n} star${n > 1 ? 's' : ''}`} style={{ padding: 4 }}>
-                  <Star size={40} color={n <= rating ? '#fbbf24' : Palette.border} fill={n <= rating ? '#fbbf24' : 'transparent'} />
+                  <Star size={40} color={n <= rating ? Palette.amber : Palette.border} fill={n <= rating ? Palette.amber : 'transparent'} />
                 </PressableScale>
               ))}
             </View>
@@ -104,7 +104,7 @@ export default function ReviewScreen() {
             />
           </MotiView>
 
-          {err ? <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: '#ef4444', textAlign: 'center' }}>{err}</Text> : null}
+          {err ? <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: Palette.danger, textAlign: 'center' }}>{err}</Text> : null}
 
           <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280, delay: 240 }}>
             <PressableScale

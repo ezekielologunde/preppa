@@ -8,11 +8,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { PreppaLogo } from '@/components/preppa-logo';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
+import { Palette } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
 import { useAuth } from '@/providers/auth-provider';
 
-const ORANGE = '#f15f22';
-const INK = '#111827';
+const ORANGE = Palette.brand;
+const INK = Palette.ink;
 
 type Mode = 'signin' | 'signup';
 // What an in-progress 6-digit code is for.
@@ -135,7 +136,7 @@ export default function AuthScreen() {
   const input = {
     height: 54,
     borderRadius: 16,
-    backgroundColor: '#F4F4F6',
+    backgroundColor: Palette.canvas,
     paddingHorizontal: 16,
     fontSize: 16,
     fontFamily: Font.body,
@@ -174,7 +175,7 @@ export default function AuthScreen() {
       />
       <SafeAreaView style={{ flex: 1, paddingHorizontal: 24 }}>
         <Pressable onPress={() => router.replace('/')} style={{ alignSelf: 'flex-end', paddingVertical: 12 }}>
-          <Text style={{ fontFamily: Font.medium, fontSize: 14, color: '#9ca3af' }}>continue as guest →</Text>
+          <Text style={{ fontFamily: Font.medium, fontSize: 14, color: Palette.textMuted }}>continue as guest →</Text>
         </Pressable>
 
         <MotiView
@@ -190,7 +191,7 @@ export default function AuthScreen() {
             transition={{ type: 'timing', duration: 220 }}
             style={{ alignItems: 'center', gap: 8 }}>
             <Text style={{ fontFamily: Font.display, fontSize: 30, color: INK, letterSpacing: -0.8 }}>{title}</Text>
-            <Text style={{ fontFamily: Font.body, fontSize: 15, color: '#6b7280', textAlign: 'center', maxWidth: 300 }}>{subtitle}</Text>
+            <Text style={{ fontFamily: Font.body, fontSize: 15, color: Palette.textSecondary, textAlign: 'center', maxWidth: 300 }}>{subtitle}</Text>
           </MotiView>
         </MotiView>
 
@@ -202,12 +203,12 @@ export default function AuthScreen() {
             transition={{ type: 'spring', damping: 17, stiffness: 170 }}
             style={{ gap: 12 }}>
             {mode === 'signup' ? (
-              <TextInput style={input} placeholder="full name" placeholderTextColor="#9ca3af" autoCapitalize="words" textContentType="name" value={name} onChangeText={setName} />
+              <TextInput style={input} placeholder="full name" placeholderTextColor={Palette.textMuted} autoCapitalize="words" textContentType="name" value={name} onChangeText={setName} />
             ) : null}
             <TextInput
               style={input}
               placeholder="you@email.com"
-              placeholderTextColor="#9ca3af"
+              placeholderTextColor={Palette.textMuted}
               autoCapitalize="none"
               autoComplete="email"
               textContentType="emailAddress"
@@ -219,7 +220,7 @@ export default function AuthScreen() {
               <TextInput
                 style={[input, { paddingRight: 52 }]}
                 placeholder="password"
-                placeholderTextColor="#9ca3af"
+                placeholderTextColor={Palette.textMuted}
                 autoCapitalize="none"
                 secureTextEntry={!showPw}
                 textContentType={mode === 'signup' ? 'newPassword' : 'password'}
@@ -229,19 +230,19 @@ export default function AuthScreen() {
                 returnKeyType={mode === 'signup' ? 'next' : 'go'}
               />
               <Pressable onPress={() => setShowPw((v) => !v)} hitSlop={10} style={{ position: 'absolute', right: 16 }} accessibilityRole="button" accessibilityLabel={showPw ? 'Hide password' : 'Show password'}>
-                {showPw ? <EyeOff size={20} color="#9ca3af" /> : <Eye size={20} color="#9ca3af" />}
+                {showPw ? <EyeOff size={20} color={Palette.textMuted} /> : <Eye size={20} color={Palette.textMuted} />}
               </Pressable>
             </View>
 
             {mode === 'signin' ? (
               <Pressable onPress={forgot} disabled={busy} style={{ alignSelf: 'flex-end' }}>
-                <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: '#6b7280' }}>Forgot password?</Text>
+                <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: Palette.textSecondary }}>Forgot password?</Text>
               </Pressable>
             ) : null}
 
             {msg ? (
               <MotiView from={{ opacity: 0, translateY: 6 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 180 }}>
-                <Text style={{ fontFamily: Font.medium, fontSize: 14, color: msg.ok ? '#16a34a' : '#ef4444', paddingHorizontal: 4 }}>{msg.text}</Text>
+                <Text style={{ fontFamily: Font.medium, fontSize: 14, color: msg.ok ? Palette.success : Palette.danger, paddingHorizontal: 4 }}>{msg.text}</Text>
               </MotiView>
             ) : null}
 
@@ -250,7 +251,7 @@ export default function AuthScreen() {
             </PressableScale>
 
             <Pressable onPress={sendOtp} disabled={busy} style={{ alignItems: 'center', paddingVertical: 10 }}>
-              <Text style={{ fontFamily: Font.medium, fontSize: 14, color: '#6b7280' }}>
+              <Text style={{ fontFamily: Font.medium, fontSize: 14, color: Palette.textSecondary }}>
                 Email me a sign-in code <Text style={{ fontFamily: Font.heading, color: ORANGE }}>instead</Text>
               </Text>
             </Pressable>
@@ -283,7 +284,7 @@ export default function AuthScreen() {
                 <TextInput
                   style={[input, { paddingRight: 52 }]}
                   placeholder="new password"
-                  placeholderTextColor="#9ca3af"
+                  placeholderTextColor={Palette.textMuted}
                   autoCapitalize="none"
                   secureTextEntry={!showPw}
                   textContentType="newPassword"
@@ -291,14 +292,14 @@ export default function AuthScreen() {
                   onChangeText={setNewPassword}
                 />
                 <Pressable onPress={() => setShowPw((v) => !v)} hitSlop={10} style={{ position: 'absolute', right: 16 }} accessibilityRole="button" accessibilityLabel={showPw ? 'Hide password' : 'Show password'}>
-                  {showPw ? <EyeOff size={20} color="#9ca3af" /> : <Eye size={20} color="#9ca3af" />}
+                  {showPw ? <EyeOff size={20} color={Palette.textMuted} /> : <Eye size={20} color={Palette.textMuted} />}
                 </Pressable>
               </View>
             ) : null}
 
             {msg ? (
               <MotiView from={{ opacity: 0, translateY: 6 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 180 }}>
-                <Text style={{ fontFamily: Font.medium, fontSize: 14, color: msg.ok ? '#16a34a' : '#ef4444', paddingHorizontal: 4, textAlign: 'center' }}>{msg.text}</Text>
+                <Text style={{ fontFamily: Font.medium, fontSize: 14, color: msg.ok ? Palette.success : Palette.danger, paddingHorizontal: 4, textAlign: 'center' }}>{msg.text}</Text>
               </MotiView>
             ) : null}
 
@@ -307,7 +308,7 @@ export default function AuthScreen() {
             </PressableScale>
             <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 18, marginTop: 8 }}>
               <Pressable onPress={() => { setStep('form'); setCode(''); setMsg(null); }}>
-                <Text style={{ fontFamily: Font.medium, fontSize: 14, color: '#6b7280' }}>← back</Text>
+                <Text style={{ fontFamily: Font.medium, fontSize: 14, color: Palette.textSecondary }}>← back</Text>
               </Pressable>
               <Pressable onPress={resend} disabled={busy}>
                 <Text style={{ fontFamily: Font.heading, fontSize: 14, color: ORANGE }}>Resend code</Text>
@@ -318,7 +319,7 @@ export default function AuthScreen() {
 
         {step === 'form' ? (
           <Pressable onPress={() => { setMode(mode === 'signin' ? 'signup' : 'signin'); setMsg(null); }} style={{ alignItems: 'center', marginTop: 18 }}>
-            <Text style={{ fontFamily: Font.body, fontSize: 14, color: '#6b7280' }}>
+            <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary }}>
               {mode === 'signin' ? 'New here? ' : 'Already a member? '}
               <Text style={{ fontFamily: Font.heading, color: ORANGE }}>{mode === 'signin' ? 'Create account' : 'Sign in'}</Text>
             </Text>

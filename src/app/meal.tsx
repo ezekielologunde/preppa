@@ -38,9 +38,9 @@ function dropTimeLeft(expiresAt: string | null): string | null {
 function Macro({ label, value }: { label: string; value: number | null }) {
   if (value == null) return null;
   return (
-    <View style={{ flex: 1, alignItems: 'center', backgroundColor: '#F4F4F6', borderRadius: 14, paddingVertical: 12 }}>
+    <View style={{ flex: 1, alignItems: 'center', backgroundColor: Palette.canvas, borderRadius: 14, paddingVertical: 12 }}>
       <Text style={{ fontFamily: Font.display, fontSize: 18, color: INK, fontVariant: ['tabular-nums'] }}>{value}</Text>
-      <Text style={{ fontFamily: Font.body, fontSize: 11, color: '#9ca3af' }}>{label}</Text>
+      <Text style={{ fontFamily: Font.body, fontSize: 11, color: Palette.textMuted }}>{label}</Text>
     </View>
   );
 }
@@ -106,7 +106,7 @@ export default function MealScreen() {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#fff' }}>
+    <View style={{ flex: 1, backgroundColor: Palette.surface }}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
         {/* Hero */}
         <View style={{ height: 320, backgroundColor: '#FCE9DD' }}>
@@ -142,7 +142,7 @@ export default function MealScreen() {
               <Skeleton width="100%" height={60} radius={10} />
             </>
           ) : isError || !meal ? (
-            <Text style={{ fontFamily: Font.medium, fontSize: 15, color: '#ef4444' }}>Couldn&apos;t load this meal. Please try again.</Text>
+            <Text style={{ fontFamily: Font.medium, fontSize: 15, color: Palette.danger }}>Couldn&apos;t load this meal. Please try again.</Text>
           ) : (
             <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260 }}>
               {meal.isLimited ? (
@@ -164,7 +164,7 @@ export default function MealScreen() {
                 <PressableScale
                   onPress={() => meal.prepperId && router.push(`/prepper?id=${meal.prepperId}`)}
                   style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
-                  <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#374151' }}>by {meal.prepper}</Text>
+                  <Text style={{ fontFamily: Font.heading, fontSize: 15, color: Palette.inkSoft }}>by {meal.prepper}</Text>
                   {meal.prepperVerified ? <BadgeCheck size={16} color={ORANGE} fill={ORANGE} stroke="#fff" /> : null}
                 </PressableScale>
                 {meal.prepperUserId ? (
@@ -182,18 +182,18 @@ export default function MealScreen() {
 
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-                  <Star size={15} color="#f59e0b" fill="#f59e0b" />
+                  <Star size={15} color={Palette.amber} fill={Palette.amber} />
                   <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: INK }}>{meal.rating.toFixed(1)}</Text>
-                  <Text style={{ fontFamily: Font.body, fontSize: 13, color: '#9ca3af' }}>({meal.reviews})</Text>
+                  <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textMuted }}>({meal.reviews})</Text>
                 </View>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-                  <Clock size={15} color="#9ca3af" />
-                  <Text style={{ fontFamily: Font.body, fontSize: 13, color: '#6b7280' }}>{meal.time}</Text>
+                  <Clock size={15} color={Palette.textMuted} />
+                  <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary }}>{meal.time}</Text>
                 </View>
               </View>
 
               {meal.description ? (
-                <Text style={{ fontFamily: Font.body, fontSize: 15, lineHeight: 23, color: '#4b5563' }}>{meal.description}</Text>
+                <Text style={{ fontFamily: Font.body, fontSize: 15, lineHeight: 23, color: Palette.inkSoft }}>{meal.description}</Text>
               ) : null}
 
               {meal.nutrition && (meal.nutrition.calories != null || meal.nutrition.protein != null) ? (
@@ -208,7 +208,7 @@ export default function MealScreen() {
               {meal.prepperBio ? (
                 <View style={{ backgroundColor: '#FAF7F4', borderRadius: 16, padding: 14, marginTop: 4 }}>
                   <Text style={{ fontFamily: Font.heading, fontSize: 13, color: INK, marginBottom: 4 }}>about the prepper</Text>
-                  <Text style={{ fontFamily: Font.body, fontSize: 13, lineHeight: 20, color: '#6b7280' }}>{meal.prepperBio}</Text>
+                  <Text style={{ fontFamily: Font.body, fontSize: 13, lineHeight: 20, color: Palette.textSecondary }}>{meal.prepperBio}</Text>
                 </View>
               ) : null}
 
@@ -221,11 +221,11 @@ export default function MealScreen() {
                         <Text style={{ fontFamily: Font.semibold, fontSize: 13.5, color: INK }}>{rv.author}</Text>
                         <View style={{ flexDirection: 'row', gap: 1 }}>
                           {[1, 2, 3, 4, 5].map((n) => (
-                            <Star key={n} size={12} color="#f59e0b" fill={n <= rv.rating ? '#f59e0b' : 'transparent'} />
+                            <Star key={n} size={12} color={Palette.amber} fill={n <= rv.rating ? Palette.amber : 'transparent'} />
                           ))}
                         </View>
                       </View>
-                      {rv.body ? <Text style={{ fontFamily: Font.body, fontSize: 13.5, lineHeight: 20, color: '#4b5563' }}>{rv.body}</Text> : null}
+                      {rv.body ? <Text style={{ fontFamily: Font.body, fontSize: 13.5, lineHeight: 20, color: Palette.inkSoft }}>{rv.body}</Text> : null}
                     </View>
                   ))}
                 </View>
@@ -237,7 +237,7 @@ export default function MealScreen() {
 
       {/* Sticky CTA */}
       {meal ? (
-        <SafeAreaView edges={['bottom']} style={{ position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: '#f3f4f6' }}>
+        <SafeAreaView edges={['bottom']} style={{ position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: Palette.surface, borderTopWidth: 1, borderTopColor: Palette.border }}>
           {/* Delightful add confirmation — springs up, offers a fast path to cart */}
           {added && orderingOn ? (
             <MotiView
@@ -257,7 +257,7 @@ export default function MealScreen() {
           ) : null}
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 20, paddingVertical: 12 }}>
             <View>
-              <Text style={{ fontFamily: Font.body, fontSize: 12, color: '#9ca3af' }}>price</Text>
+              <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted }}>price</Text>
               <Text style={{ fontFamily: Font.display, fontSize: 24, color: INK, fontVariant: ['tabular-nums'] }}>${meal.price.toFixed(2)}</Text>
             </View>
             <PressableScale
@@ -284,7 +284,7 @@ export default function MealScreen() {
       {/* Switching kitchens — one prepper per cart */}
       <Modal visible={switchPrompt} transparent animationType="fade" onRequestClose={() => setSwitchPrompt(false)}>
         <Pressable onPress={() => setSwitchPrompt(false)} style={{ flex: 1, backgroundColor: 'rgba(17,24,39,0.5)', alignItems: 'center', justifyContent: 'center', padding: 28 }}>
-          <Pressable onPress={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 360, backgroundColor: '#fff', borderRadius: 22, padding: 22, gap: 10 }}>
+          <Pressable onPress={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 360, backgroundColor: Palette.surface, borderRadius: 22, padding: 22, gap: 10 }}>
             <View style={{ width: 48, height: 48, borderRadius: 16, backgroundColor: Palette.brandTint, alignItems: 'center', justifyContent: 'center' }}>
               <ShoppingBag size={22} color={ORANGE} />
             </View>
