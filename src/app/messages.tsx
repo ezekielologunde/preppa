@@ -8,6 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ListSkeleton } from '@/components/ui/skeleton';
 import { PressableScale } from '@/components/ui/pressable-scale';
+import { feedback } from '@/lib/feedback';
 import { Font } from '@/constants/fonts';
 import { Palette, Radius } from '@/constants/theme';
 import { useConversations, type Conversation } from '@/lib/queries/messages';
@@ -212,8 +213,8 @@ export default function MessagesScreen() {
           <>
             {/* Tabs */}
             <View style={{ flexDirection: 'row', marginHorizontal: 16, marginBottom: 6, backgroundColor: Palette.canvas, borderRadius: 999, padding: 4 }}>
-              <TabButton active={tab === 'updates'} label="Updates" onPress={() => setTab('updates')} />
-              <TabButton active={tab === 'messages'} label="Messages" count={unreadCount || undefined} onPress={() => setTab('messages')} />
+              <TabButton active={tab === 'updates'} label="Updates" onPress={() => { feedback.tap(); setTab('updates'); }} />
+              <TabButton active={tab === 'messages'} label="Messages" count={unreadCount || undefined} onPress={() => { feedback.tap(); setTab('messages'); }} />
             </View>
 
             {tab === 'updates' ? (

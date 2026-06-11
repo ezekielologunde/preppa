@@ -9,6 +9,7 @@ import { ListSkeleton } from '@/components/ui/skeleton';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
 import { Palette, Radius } from '@/constants/theme';
+import { feedback } from '@/lib/feedback';
 import { useOpenRequests, useSubmitBid, type OpenRequest } from '@/lib/queries/experiences';
 import { useMyPrepperApplication } from '@/lib/queries/preppers';
 import { useAuth } from '@/providers/auth-provider';
@@ -35,7 +36,8 @@ function RequestCard({ req, prepperId }: { req: OpenRequest; prepperId: string }
   function send() {
     setErr(null);
     const amt = parseFloat(amount);
-    if (!amt || amt <= 0) return setErr('Enter your quote amount.');
+    if (!amt || amt <= 0) { feedback.warning(); return setErr('Enter your quote amount.'); }
+    feedback.tap();
     submit.mutate(
       { requestId: req.id, prepperId, amount: amt, message: message.trim() },
       { onError: (e) => setErr(e instanceof Error ? e.message : 'Could not submit bid.') },
@@ -91,7 +93,7 @@ function Gate({ title, body }: { title: string; body: string }) {
       </View>
       <Text style={{ fontFamily: Font.display, fontSize: 20, color: INK, textAlign: 'center' }}>{title}</Text>
       <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center', lineHeight: 20, maxWidth: 300 }}>{body}</Text>
-      <PressableScale onPress={() => router.push('/become-prepper')} accessibilityRole="button" accessibilityLabel="Become a prepper" style={{ marginTop: 4, paddingHorizontal: 22, height: 48, borderRadius: Radius.sm, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
+      <PressableScale onPress={() => { feedback.tap(); router.push('/become-prepper'); }} accessibilityRole="button" accessibilityLabel="Become a prepper" style={{ marginTop: 4, paddingHorizontal: 22, height: 48, borderRadius: Radius.sm, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
         <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#fff' }}>Become a prepper</Text>
       </PressableScale>
     </View>
