@@ -6,6 +6,7 @@ import type { FulfillmentType, OrderStatus } from '@/types/database.types';
 
 export type OrderLine = {
   id: string;
+  mealId: string;
   title: string;
   image: string | null;
   quantity: number;
@@ -106,7 +107,7 @@ function toSummary(r: Row): OrderSummary {
     deliveryFee: r.delivery_fee,
     items: (r.items ?? []).map((it) => {
       const meal = one(it.meal);
-      return { id: it.id, title: meal?.title ?? 'meal', image: meal?.images?.[0]?.url ?? null, quantity: it.quantity, total: it.total };
+      return { id: it.id, mealId: it.meal_id, title: meal?.title ?? 'meal', image: meal?.images?.[0]?.url ?? null, quantity: it.quantity, total: it.total };
     }),
     handoff: (() => {
       const h = one(r.handoff);

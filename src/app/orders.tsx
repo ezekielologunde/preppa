@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
-import { Check, ChevronLeft, Lock, Receipt, Star, X } from 'lucide-react-native';
+import { Check, ChevronLeft, Lock, Receipt, RotateCcw, Star, X } from 'lucide-react-native';
 import { useState } from 'react';
 import { ActivityIndicator, Modal, Platform, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -12,7 +12,7 @@ import { PressableScale } from '@/components/ui/pressable-scale';
 import { ListSkeleton } from '@/components/ui/skeleton';
 import { Font } from '@/constants/fonts';
 import { Palette, Radius } from '@/constants/theme';
-import { useEmbeddedCheckout, useRefundOrder, useStripeCheckout, type EmbeddedPay } from '@/lib/queries/cart';
+import { useAddToCart, useEmbeddedCheckout, useRefundOrder, useStripeCheckout, type EmbeddedPay } from '@/lib/queries/cart';
 import { useFeatureEnabled } from '@/lib/queries/feature-flags';
 import { feedback } from '@/lib/feedback';
 import { useCancelOrder, useMyOrders, useOrdersRealtime, type OrderSummary } from '@/lib/queries/orders';
@@ -44,7 +44,7 @@ function dateLabel(iso: string): string {
   return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
 
-function OrderCard({ order, onCancel, onReview, onPay, cancelling, needsPayment, paying }: { order: OrderSummary; onCancel: () => void; onReview: () => void; onPay: () => void; cancelling: boolean; needsPayment: boolean; paying: boolean }) {
+function OrderCard({ order, onCancel, onReview, onPay, onReorder, cancelling, needsPayment, paying, reordering }: { order: OrderSummary; onCancel: () => void; onReview: () => void; onPay: () => void; onReorder: () => void; cancelling: boolean; needsPayment: boolean; paying: boolean; reordering: boolean }) {
   const st = statusStyle(order.status);
   return (
     <View style={{ backgroundColor: '#fff', borderRadius: Radius.md, padding: 14, gap: 12 }}>
@@ -118,15 +118,28 @@ function OrderCard({ order, onCancel, onReview, onPay, cancelling, needsPayment,
           style={{ height: 42, borderRadius: Radius.sm, borderWidth: 1, borderColor: Palette.border, alignItems: 'center', justifyContent: 'center', opacity: cancelling ? 0.6 : 1 }}>
           <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: Palette.textSecondary }}>Cancel order</Text>
         </PressableScale>
-      ) : order.status === 'completed' && !order.reviewed ? (
-        <PressableScale
-          onPress={onReview}
-          accessibilityRole="button"
-          accessibilityLabel="Leave a review"
-          style={{ height: 42, borderRadius: Radius.sm, backgroundColor: Palette.brandTint, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 6 }}>
-          <Star size={15} color={Palette.brandPressed} fill={Palette.brandPressed} />
-          <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: Palette.brandPressed }}>Leave a review</Text>
-        </PressableScale>
+      ) : order.status === 'completed' ? (
+        <View style={{ flexDirection: 'row', gap: 10 }}>
+          {!order.reviewed ? (
+            <PressableScale
+              onPress={onReview}
+              accessibilityRole="button"
+              accessibilityLabel="Leave a review"
+              style={{ flex: 1, height: 44, borderRadius: Radius.sm, backgroundColor: Palette.brandTint, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 6 }}>
+              <Star size={15} color={Palette.brandPressed} fill={Palette.brandPressed} />
+              <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: Palette.brandPressed }}>Leave a review</Text>
+            </PressableScale>
+          ) : null}
+          <PressableScale
+            onPress={onReorder}
+            disabled={reordering}
+            accessibilityRole="button"
+            accessibilityLabel="Reorder these meals"
+            style={{ flex: 1, height: 44, borderRadius: Radius.sm, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 6, opacity: reordering ? 0.7 : 1 }}>
+            {reordering ? <ActivityIndicator color="#fff" /> : <RotateCcw size={15} color="#fff" />}
+            <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: '#fff' }}>Reorder</Text>
+          </PressableScale>
+        </View>
       ) : null}
     </View>
   );
@@ -147,6 +160,34 @@ export default function OrdersScreen() {
   const [actionErr, setActionErr] = useState<string | null>(null);
   const [showPaid, setShowPaid] = useState(!!paid);
   const [payingId, setPayingId] = useState<string | null>(null);
+  // Reorder: refill the cart with this order's items and jump to checkout.
+  const addToCart = useAddToCart();
+  const [reorderingId, setReorderingId] = useState<string | null>(null);
+  async function reorder(o: OrderSummary) {
+    if (!user) return;
+    setActionErr(null);
+    setReorderingId(o.id);
+    try {
+      for (let i = 0; i < o.items.length; i++) {
+        const it = o.items[i];
+        await addToCart.mutateAsync({
+          userId: user.id,
+          mealId: it.mealId,
+          price: it.quantity ? it.total / it.quantity : it.total,
+          quantity: it.quantity,
+          replace: i === 0, // start a fresh cart so kitchens never mix
+        });
+      }
+      feedback.success();
+      router.push('/cart');
+    } catch (e) {
+      feedback.error();
+      setActionErr(e instanceof Error ? e.message : 'Could not reorder. The meals may no longer be available.');
+    } finally {
+      setReorderingId(null);
+    }
+  }
+
   // Cancelling is destructive → confirm in an overlay first.
   const [confirmCancel, setConfirmCancel] = useState<OrderSummary | null>(null);
 
@@ -244,6 +285,8 @@ export default function OrdersScreen() {
                 cancelling={cancelOrder.isPending && cancelOrder.variables === o.id}
                 onCancel={() => { feedback.warning(); setConfirmCancel(o); }}
                 onReview={() => router.push(`/review?orderId=${o.id}&prepperId=${o.prepperId}&mealId=${o.firstMealId ?? ''}&prepper=${encodeURIComponent(o.prepper)}`)}
+                onReorder={() => reorder(o)}
+                reordering={reorderingId === o.id}
               />
             ))}
           </ScrollView>
