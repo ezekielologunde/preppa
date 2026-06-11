@@ -1,5 +1,6 @@
 import { useRouter } from 'expo-router';
 import { Check, ChevronLeft, Gift, Lock, Sparkles, Star } from 'lucide-react-native';
+import { MotiView } from 'moti';
 import { ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -76,6 +77,7 @@ export default function RewardsScreen() {
         ) : (
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 20, gap: 16, paddingBottom: 130 }}>
             {/* Points hero */}
+            <MotiView from={{ opacity: 0, translateY: 12 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 300 }}>
             <View style={{ backgroundColor: r.tier.color, borderRadius: Radius.lg, padding: 22, gap: 6, overflow: 'hidden' }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
                 <Sparkles size={16} color="#fff" />
@@ -98,7 +100,9 @@ export default function RewardsScreen() {
               )}
             </View>
 
+            </MotiView>
             {/* How it works */}
+            <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 80 }}>
             <View style={{ backgroundColor: '#fff', borderRadius: Radius.lg, padding: 16, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
               <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: Palette.brandTint, alignItems: 'center', justifyContent: 'center' }}>
                 <Gift size={19} color={ORANGE} />
@@ -108,10 +112,13 @@ export default function RewardsScreen() {
               </Text>
             </View>
 
+            </MotiView>
             {/* Tiers */}
             <Text style={{ fontFamily: Font.display, fontSize: 18, color: INK, letterSpacing: -0.4, marginTop: 2 }}>your tiers</Text>
-            {TIERS.map((t) => (
-              <TierCard key={t.key} tier={t} reached={r.lifetimeSpend >= t.min} current={t.key === r.tier.key} />
+            {TIERS.map((t, i) => (
+              <MotiView key={t.key} from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 240, delay: 160 + i * 60 }}>
+                <TierCard tier={t} reached={r.lifetimeSpend >= t.min} current={t.key === r.tier.key} />
+              </MotiView>
             ))}
 
             <PressableScale onPress={() => router.push('/')} accessibilityRole="button" accessibilityLabel="Browse meals to earn points" style={{ height: 52, borderRadius: Radius.sm, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', marginTop: 4 }}>
