@@ -37,6 +37,7 @@ import { CustomerBadgeShelf } from '@/components/badge-shelf';
 import { Avatar } from '@/components/ui/avatar';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
+import { Palette } from '@/constants/theme';
 import { useFavoritesCount } from '@/lib/favorites';
 import { feedback } from '@/lib/feedback';
 import { useMySubscriptions } from '@/lib/queries/meal-plans';
@@ -44,33 +45,69 @@ import { useCustomerBadges, useMyPrepperApplication } from '@/lib/queries/preppe
 import { toggleDarkMode, useDarkMode } from '@/lib/theme-mode';
 import { useAuth } from '@/providers/auth-provider';
 
-const ORANGE = '#f15f22';
-const INK = '#111827';
-
 const quickLinks = [
-  { label: 'favorites', sub: '24 meals', Icon: Heart, color: '#ef4444', bg: '#FEE2E2' },
-  { label: 'saved', sub: '18 items', Icon: Bookmark, color: '#f59e0b', bg: '#FEF3C7' },
-  { label: 'recently viewed', sub: '32 meals', Icon: Clock, color: '#16a34a', bg: '#DCFCE7' },
-  { label: 'following', sub: '12 preppers', Icon: Users, color: '#8b5cf6', bg: '#EDE9FE' },
-  { label: 'referrals', sub: 'invite', Icon: Ticket, color: '#f59e0b', bg: '#FEF3C7' },
+  { label: 'favorites', sub: '0 meals', Icon: Heart, color: Palette.danger, bg: '#FEE2E2' },
+  { label: 'saved', sub: '0 items', Icon: Bookmark, color: Palette.amber, bg: '#FEF3C7' },
+  { label: 'recently viewed', sub: '32 meals', Icon: Clock, color: Palette.success, bg: '#DCFCE7' }, // TODO: replace with real query
+  { label: 'following', sub: '0 preppers', Icon: Users, color: '#8b5cf6', bg: '#EDE9FE' },
+  { label: 'referrals', sub: 'invite', Icon: Ticket, color: Palette.amber, bg: '#FEF3C7' },
 ];
 
 const BASE_HUB: { label: string; sub: string; Icon: LucideIcon; accent?: boolean; route?: string }[] = [
   { label: 'your orders', sub: 'track & reorder', Icon: Receipt, route: '/orders' },
   { label: 'messages', sub: 'chat with preppers', Icon: MessageCircle, route: '/messages?tab=messages' },
-  { label: 'addresses', sub: '2 saved', Icon: MapPin },
-  { label: 'payment methods', sub: 'Visa •••• 4242', Icon: CreditCard },
+  { label: 'addresses', sub: '2 saved', Icon: MapPin, route: '/addresses' },
+  { label: 'payment methods', sub: 'Visa •••• 4242', Icon: CreditCard, route: '/payment-methods' },
   { label: 'notifications', sub: 'email, sms, push', Icon: Bell },
   { label: 'help center', sub: 'faq & support', Icon: HelpCircle },
   { label: 'dietary preferences', sub: 'manage', Icon: Leaf },
   { label: 'invite friends', sub: 'earn rewards', Icon: UserPlus },
 ];
 
-function Badge({ Icon, label, color }: { Icon: LucideIcon; label: string; color: string }) {
+function SmallBadge({ Icon, label, color }: { Icon: LucideIcon; label: string; color: string }) {
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: '#fff', borderRadius: 999, paddingHorizontal: 12, paddingVertical: 7 }}>
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: Palette.surface, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 7 }}>
       <Icon size={14} color={color} />
-      <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: '#374151' }}>{label}</Text>
+      <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: Palette.inkSoft }}>{label}</Text>
+    </View>
+  );
+}
+
+type HubItem = { label: string; sub: string; Icon: LucideIcon; accent?: boolean; route?: string };
+
+function HubGrid({ hub, dark, onHub }: { hub: HubItem[]; dark: boolean; onHub: (h: HubItem) => void }) {
+  return (
+    <View style={{ marginHorizontal: 20, flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
+      {hub.map((h) => (
+        <PressableScale
+          key={h.label}
+          onPress={() => onHub(h)}
+          accessibilityRole="button"
+          accessibilityLabel={`${h.label}, ${h.sub}`}
+          style={{ flexGrow: 1, flexBasis: '46%', backgroundColor: Palette.surface, borderRadius: 16, padding: 13, flexDirection: 'row', alignItems: 'center', gap: 11 }}>
+          <View style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: h.accent ? Palette.brandTint : Palette.chip, alignItems: 'center', justifyContent: 'center' }}>
+            <h.Icon size={17} color={h.accent ? Palette.brand : Palette.textSecondary} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text numberOfLines={1} style={{ fontFamily: Font.heading, fontSize: 13.5, color: h.accent ? Palette.brand : Palette.ink }}>{h.label}</Text>
+            <Text numberOfLines={1} style={{ fontFamily: Font.body, fontSize: 11, color: Palette.textMuted, marginTop: 1 }}>{h.sub}</Text>
+          </View>
+          <ChevronRight size={15} color={Palette.divider} />
+        </PressableScale>
+      ))}
+      <PressableScale onPress={toggleDarkMode} accessibilityRole="switch" accessibilityState={{ checked: dark }} accessibilityLabel="Dark mode"
+        style={{ flexGrow: 1, flexBasis: '46%', backgroundColor: Palette.surface, borderRadius: 16, padding: 13, flexDirection: 'row', alignItems: 'center', gap: 11 }}>
+        <View style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: Palette.chip, alignItems: 'center', justifyContent: 'center' }}>
+          <Moon size={17} color={Palette.textSecondary} />
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text numberOfLines={1} style={{ fontFamily: Font.heading, fontSize: 13.5, color: Palette.ink }}>dark mode</Text>
+          <Text numberOfLines={1} style={{ fontFamily: Font.body, fontSize: 11, color: Palette.textMuted, marginTop: 1 }}>{dark ? 'on' : 'off'}</Text>
+        </View>
+        <View style={{ width: 40, height: 24, borderRadius: 12, backgroundColor: dark ? Palette.brand : Palette.border, justifyContent: 'center', paddingHorizontal: 3, alignItems: dark ? 'flex-end' : 'flex-start' }}>
+          <MotiView animate={{ translateX: 0 }} style={{ width: 18, height: 18, borderRadius: 9, backgroundColor: Palette.surface }} />
+        </View>
+      </PressableScale>
     </View>
   );
 }
@@ -82,16 +119,17 @@ export default function ProfileScreen() {
   const { data: earnedBadges } = useCustomerBadges(user?.id);
   const { data: myPrepper } = useMyPrepperApplication(user?.id);
   const isApprovedPrepper = myPrepper?.status === 'approved';
-  const hub = [
+  const isPendingPrepper = myPrepper?.status === 'pending';
+
+  const hub: HubItem[] = [
     ...BASE_HUB,
-    isApprovedPrepper
-      ? { label: 'my kitchen', sub: 'dashboard & earnings', Icon: ChefHat, accent: true, route: '/dashboard' }
-      : { label: 'become a prepper', sub: 'share your kitchen', Icon: ChefHat, accent: true },
+    ...(isApprovedPrepper ? [{ label: 'my kitchen', sub: 'dashboard & earnings', Icon: ChefHat, accent: true, route: '/dashboard' }] : []),
   ];
   const favMeals = useFavoritesCount('meal:');
   const followed = useFavoritesCount('prepper:');
   const displayName =
     (user?.user_metadata?.full_name as string | undefined) ?? user?.email?.split('@')[0] ?? 'guest';
+  const bio = (user?.user_metadata?.bio as string | undefined) || 'good food. good mood. always.';
 
   const [toast, setToast] = useState<string | null>(null);
   const dark = useDarkMode();
@@ -111,8 +149,8 @@ export default function ProfileScreen() {
     if (label === 'following') return go('/explore');
     return soon(label.replace(/\b\w/, (c) => c.toUpperCase()));
   };
-  const onHub = (h: { label: string; route?: string; accent?: boolean }) => {
-    if (h.accent) return go(isApprovedPrepper ? '/dashboard' : '/become-prepper');
+  const onHub = (h: HubItem) => {
+    if (h.accent) return go('/dashboard');
     if (h.route) return go(h.route);
     if (h.label === 'notifications') return go('/messages');
     if (h.label === 'help center') {
@@ -133,31 +171,47 @@ export default function ProfileScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#F7F7F8' }}>
+    <View style={{ flex: 1, backgroundColor: Palette.canvas }}>
       <SafeAreaView edges={['top']} style={{ flex: 1 }}>
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: Platform.OS === 'web' ? 16 : 8, paddingBottom: 130 }}>
           {/* Top actions */}
           <View style={{ flexDirection: 'row', justifyContent: 'flex-end', paddingHorizontal: 20, gap: 10 }}>
-            <PressableScale onPress={() => soon('Settings')} accessibilityRole="button" accessibilityLabel="Settings" style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' }}><Settings size={19} color={INK} /></PressableScale>
-            <PressableScale onPress={() => go('/messages')} accessibilityRole="button" accessibilityLabel="Notifications" style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' }}><Bell size={19} color={INK} /></PressableScale>
+            <PressableScale onPress={() => router.push('/settings')} accessibilityRole="button" accessibilityLabel="Settings" style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
+              <Settings size={19} color={Palette.ink} />
+            </PressableScale>
+            <PressableScale onPress={() => go('/messages')} accessibilityRole="button" accessibilityLabel="Notifications" style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
+              <Bell size={19} color={Palette.ink} />
+            </PressableScale>
           </View>
 
           {/* Identity */}
           <View style={{ alignItems: 'center', paddingHorizontal: 20, marginTop: 6 }}>
-            <View style={{ width: 96, height: 96, borderRadius: 48, borderWidth: 3, borderColor: ORANGE, padding: 3 }}>
+            <View style={{ width: 96, height: 96, borderRadius: 48, borderWidth: 3, borderColor: Palette.brand, padding: 3 }}>
               <Avatar name={displayName} url={user?.user_metadata?.avatar_url as string | undefined} size={84} />
-              <PressableScale onPress={() => soon('Change photo')} accessibilityRole="button" accessibilityLabel="Change photo" style={{ position: 'absolute', bottom: 0, right: 0, width: 30, height: 30, borderRadius: 15, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#F7F7F8' }}>
-                <Camera size={14} color="#fff" />
+              <PressableScale onPress={() => soon('Change photo')} accessibilityRole="button" accessibilityLabel="Change photo" style={{ position: 'absolute', bottom: 0, right: 0, width: 30, height: 30, borderRadius: 15, backgroundColor: Palette.brand, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: Palette.canvas }}>
+                <Camera size={14} color={Palette.surface} />
               </PressableScale>
             </View>
-            <PressableScale onPress={() => soon('Edit profile')} accessibilityRole="button" accessibilityLabel="Edit profile" style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12 }}>
-              <Text style={{ fontFamily: Font.display, fontSize: 26, color: INK, letterSpacing: -0.6 }}>{displayName}</Text>
-              <Pencil size={16} color={ORANGE} />
+            <PressableScale onPress={() => router.push('/edit-profile')} accessibilityRole="button" accessibilityLabel="Edit profile" style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12 }}>
+              <Text style={{ fontFamily: Font.display, fontSize: 26, color: Palette.ink, letterSpacing: -0.6 }}>{displayName}</Text>
+              <Pencil size={16} color={Palette.brand} />
             </PressableScale>
-            <Text style={{ fontFamily: Font.body, fontSize: 14, color: '#6b7280', marginTop: 2 }}>good food. good mood. always.</Text>
+
+            {/* Role badge */}
+            {isApprovedPrepper ? (
+              <View style={{ marginTop: 6, backgroundColor: Palette.brandTint, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 4 }}>
+                <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: Palette.brand }}>prepper ✓</Text>
+              </View>
+            ) : isAdmin ? (
+              <View style={{ marginTop: 6, backgroundColor: '#EDE9FE', borderRadius: 999, paddingHorizontal: 12, paddingVertical: 4 }}>
+                <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: '#7C3AED' }}>admin</Text>
+              </View>
+            ) : null}
+
+            <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, marginTop: 6 }}>{bio}</Text>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6 }}>
-              <MapPin size={13} color="#9ca3af" />
-              <Text style={{ fontFamily: Font.medium, fontSize: 13, color: '#6b7280' }}>New York, NY</Text>
+              <MapPin size={13} color={Palette.textMuted} />
+              <Text style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.textSecondary }}>New York, NY</Text>
             </View>
             {earnedBadges?.length ? (
               <View style={{ marginTop: 14, maxWidth: '100%' }}>
@@ -165,9 +219,9 @@ export default function ProfileScreen() {
               </View>
             ) : (
               <View style={{ flexDirection: 'row', gap: 8, marginTop: 14 }}>
-                <Badge Icon={Sparkles} label="foodie" color="#f59e0b" />
-                <Badge Icon={Compass} label="explorer" color="#8b5cf6" />
-                <Badge Icon={Heart} label="plan lover" color="#ef4444" />
+                <SmallBadge Icon={Sparkles} label="foodie" color={Palette.amber} />
+                <SmallBadge Icon={Compass} label="explorer" color="#8b5cf6" />
+                <SmallBadge Icon={Heart} label="plan lover" color={Palette.danger} />
               </View>
             )}
           </View>
@@ -176,51 +230,51 @@ export default function ProfileScreen() {
           <LinearGradient colors={['#FFE9D6', '#FFDDBE']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ marginHorizontal: 20, marginTop: 22, borderRadius: 22, padding: 18, flexDirection: 'row', alignItems: 'center' }}>
             <View style={{ flex: 1 }}>
               <Text style={{ fontFamily: Font.body, fontSize: 13, color: '#7c5a42' }}>your balance</Text>
-              <Text style={{ fontFamily: Font.display, fontSize: 28, color: ORANGE, letterSpacing: -0.5 }}>1,250 <Text style={{ fontSize: 15 }}>pts</Text></Text>
+              <Text style={{ fontFamily: Font.display, fontSize: 28, color: Palette.brand, letterSpacing: -0.5 }}>1,250 <Text style={{ fontSize: 15 }}>pts</Text></Text>
               <Text style={{ fontFamily: Font.medium, fontSize: 12, color: '#7c5a42', marginTop: 2 }}>$12.50 in rewards ›</Text>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 12 }}>
                 <Crown size={15} color="#d97706" />
-                <Text style={{ fontFamily: Font.heading, fontSize: 14, color: INK }}>gold chef</Text>
+                <Text style={{ fontFamily: Font.heading, fontSize: 14, color: Palette.ink }}>gold chef</Text>
                 <Text style={{ fontFamily: Font.body, fontSize: 12, color: '#7c5a42' }}>· 750 pts to go</Text>
               </View>
               <View style={{ height: 7, borderRadius: 4, backgroundColor: 'rgba(0,0,0,0.08)', marginTop: 8, overflow: 'hidden' }}>
-                <View style={{ width: '62%', height: 7, borderRadius: 4, backgroundColor: ORANGE }} />
+                <View style={{ width: '62%', height: 7, borderRadius: 4, backgroundColor: Palette.brand }} />
               </View>
             </View>
             <Gift size={56} color="#d97706" />
           </LinearGradient>
 
-          {/* My Kitchen — approved preppers get a persistent mode-switch card */}
+          {/* My Kitchen — approved preppers */}
           {isApprovedPrepper ? (
             <PressableScale
               onPress={() => router.push('/dashboard')}
               accessibilityRole="button"
               accessibilityLabel="Open my kitchen"
-              style={{ marginHorizontal: 20, marginTop: 16, backgroundColor: Palette.prepperBg ?? '#0C0E13', borderRadius: 18, padding: 16, flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+              style={{ marginHorizontal: 20, marginTop: 16, backgroundColor: Palette.prepperBg, borderRadius: 18, padding: 16, flexDirection: 'row', alignItems: 'center', gap: 14 }}>
               <View style={{ width: 42, height: 42, borderRadius: 13, backgroundColor: 'rgba(241,95,34,0.18)', alignItems: 'center', justifyContent: 'center' }}>
-                <ChefHat size={20} color={ORANGE} />
+                <ChefHat size={20} color={Palette.brand} />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#fff' }}>my kitchen</Text>
+                <Text style={{ fontFamily: Font.heading, fontSize: 15, color: Palette.surface }}>my kitchen</Text>
                 <Text style={{ fontFamily: Font.body, fontSize: 12, color: '#9AA1AD', marginTop: 1 }}>meals, orders, earnings & go live</Text>
               </View>
               <ChevronRight size={18} color="#6B7280" />
             </PressableScale>
           ) : null}
 
-          {/* Admin console — only granted admins see this */}
+          {/* Admin console */}
           {isAdmin ? (
             <PressableScale
               onPress={() => router.push('/admin')}
               accessibilityRole="button"
               accessibilityLabel="Open admin console"
               {...({ dataSet: { noinvert: 'true' } } as object)}
-              style={{ marginHorizontal: 20, marginTop: 16, backgroundColor: '#0C0E13', borderRadius: 18, padding: 16, flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+              style={{ marginHorizontal: 20, marginTop: 16, backgroundColor: Palette.prepperBg, borderRadius: 18, padding: 16, flexDirection: 'row', alignItems: 'center', gap: 14 }}>
               <View style={{ width: 42, height: 42, borderRadius: 13, backgroundColor: 'rgba(241,95,34,0.18)', alignItems: 'center', justifyContent: 'center' }}>
-                <ShieldCheck size={20} color={ORANGE} />
+                <ShieldCheck size={20} color={Palette.brand} />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#fff' }}>admin console</Text>
+                <Text style={{ fontFamily: Font.heading, fontSize: 15, color: Palette.surface }}>admin console</Text>
                 <Text style={{ fontFamily: Font.body, fontSize: 12, color: '#9AA1AD', marginTop: 1 }}>approvals, orders, earnings & features</Text>
               </View>
               <ChevronRight size={18} color="#6B7280" />
@@ -228,15 +282,21 @@ export default function ProfileScreen() {
           ) : null}
 
           {/* Quick links */}
-          <View style={{ marginHorizontal: 20, marginTop: 16, backgroundColor: '#fff', borderRadius: 20, padding: 16, flexDirection: 'row', justifyContent: 'space-between' }}>
+          <View style={{ marginHorizontal: 20, marginTop: 16, backgroundColor: Palette.surface, borderRadius: 20, padding: 16, flexDirection: 'row', justifyContent: 'space-between' }}>
             {quickLinks.map((q) => (
-              <PressableScale key={q.label} onPress={() => onQuick(q.label)} accessibilityRole="button" accessibilityLabel={`${q.label}, ${q.sub}`} style={{ alignItems: 'center', gap: 7, flex: 1 }}>
+              <PressableScale key={q.label} onPress={() => onQuick(q.label)} accessibilityRole="button" accessibilityLabel={q.label} style={{ alignItems: 'center', gap: 7, flex: 1 }}>
                 <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: q.bg, alignItems: 'center', justifyContent: 'center' }}>
                   <q.Icon size={19} color={q.color} />
                 </View>
-                <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: '#374151' }}>{q.label}</Text>
-                <Text style={{ fontFamily: Font.body, fontSize: 10, color: '#9ca3af' }}>
-                  {q.label === 'favorites' ? `${favMeals} meal${favMeals === 1 ? '' : 's'}` : q.label === 'following' ? `${followed} prepper${followed === 1 ? '' : 's'}` : q.sub}
+                <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: Palette.inkSoft }}>{q.label}</Text>
+                <Text style={{ fontFamily: Font.body, fontSize: 10, color: Palette.textMuted }}>
+                  {q.label === 'favorites'
+                    ? `${favMeals} meal${favMeals === 1 ? '' : 's'}`
+                    : q.label === 'following'
+                    ? `${followed} prepper${followed === 1 ? '' : 's'}`
+                    : q.label === 'saved'
+                    ? `${favMeals + followed} items`
+                    : q.sub}
                 </Text>
               </PressableScale>
             ))}
@@ -244,96 +304,93 @@ export default function ProfileScreen() {
 
           {/* Meal plans & subscriptions */}
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, marginTop: 28, marginBottom: 12 }}>
-            <Text style={{ fontFamily: Font.display, fontSize: 22, color: INK, letterSpacing: -0.5 }}>meal plans &amp; subscriptions</Text>
+            <Text style={{ fontFamily: Font.display, fontSize: 22, color: Palette.ink, letterSpacing: -0.5 }}>meal plans &amp; subscriptions</Text>
             <PressableScale onPress={() => go('/meal-plans')} accessibilityRole="button" accessibilityLabel="View all meal plans">
-              <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: ORANGE }}>view all</Text>
+              <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: Palette.brand }}>view all</Text>
             </PressableScale>
           </View>
           {subs && subs.length > 0 ? (
             <View style={{ marginHorizontal: 20, gap: 10 }}>
               {subs.map((s) => {
                 const active = s.status === 'active';
-                const badge = active ? { bg: '#DCFCE7', fg: '#15803d' } : s.status === 'paused' ? { bg: '#FEF3C7', fg: '#b45309' } : { bg: '#F3F4F6', fg: '#6b7280' };
+                const badge = active ? { bg: '#DCFCE7', fg: '#15803d' } : s.status === 'paused' ? { bg: '#FEF3C7', fg: '#b45309' } : { bg: Palette.chip, fg: Palette.textSecondary };
                 const next = s.next_billing_at ? new Date(s.next_billing_at) : null;
                 const nextLabel = next && !isNaN(next.getTime()) ? next.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : null;
                 return (
                   <PressableScale key={s.id} onPress={() => go('/meal-plans')} accessibilityRole="button" accessibilityLabel={`${s.plan_name}, ${s.status}`}
-                    style={{ backgroundColor: '#fff', borderRadius: 18, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                    <View style={{ width: 56, height: 56, borderRadius: 14, backgroundColor: '#FDEDE4', alignItems: 'center', justifyContent: 'center' }}>
-                      <CalendarCheck size={24} color={ORANGE} />
+                    style={{ backgroundColor: Palette.surface, borderRadius: 18, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                    <View style={{ width: 56, height: 56, borderRadius: 14, backgroundColor: Palette.brandTint, alignItems: 'center', justifyContent: 'center' }}>
+                      <CalendarCheck size={24} color={Palette.brand} />
                     </View>
                     <View style={{ flex: 1, gap: 3 }}>
-                      <Text style={{ fontFamily: Font.heading, fontSize: 15, color: INK }} numberOfLines={1}>{s.plan_name}</Text>
-                      {s.prepper?.display_name ? <Text style={{ fontFamily: Font.body, fontSize: 12, color: '#9ca3af' }}>by {s.prepper.display_name}</Text> : null}
+                      <Text style={{ fontFamily: Font.heading, fontSize: 15, color: Palette.ink }} numberOfLines={1}>{s.plan_name}</Text>
+                      {s.prepper?.display_name ? <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted }}>by {s.prepper.display_name}</Text> : null}
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 2 }}>
                         <View style={{ paddingHorizontal: 9, height: 22, borderRadius: 999, backgroundColor: badge.bg, alignItems: 'center', justifyContent: 'center' }}>
                           <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: badge.fg, textTransform: 'capitalize' }}>{s.status}</Text>
                         </View>
-                        <Text style={{ fontFamily: Font.body, fontSize: 12, color: '#6b7280', textTransform: 'capitalize' }}>
+                        <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary, textTransform: 'capitalize' }}>
                           {nextLabel ? `next: ${nextLabel} · ` : ''}{s.frequency}
                         </Text>
                       </View>
                     </View>
-                    <ChevronRight size={18} color="#d1d5db" />
+                    <ChevronRight size={18} color={Palette.divider} />
                   </PressableScale>
                 );
               })}
             </View>
           ) : (
             <PressableScale onPress={() => go('/meal-plans')} accessibilityRole="button" accessibilityLabel="Discover meal plans"
-              style={{ marginHorizontal: 20, backgroundColor: '#fff', borderRadius: 18, padding: 16, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-              <View style={{ width: 48, height: 48, borderRadius: 14, backgroundColor: '#FDEDE4', alignItems: 'center', justifyContent: 'center' }}>
-                <CalendarCheck size={22} color={ORANGE} />
+              style={{ marginHorizontal: 20, backgroundColor: Palette.surface, borderRadius: 18, padding: 16, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+              <View style={{ width: 48, height: 48, borderRadius: 14, backgroundColor: Palette.brandTint, alignItems: 'center', justifyContent: 'center' }}>
+                <CalendarCheck size={22} color={Palette.brand} />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={{ fontFamily: Font.heading, fontSize: 15, color: INK }}>Subscribe & save</Text>
-                <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: '#9ca3af', marginTop: 1 }}>Weekly meal plans from your favorite kitchens, on repeat.</Text>
+                <Text style={{ fontFamily: Font.heading, fontSize: 15, color: Palette.ink }}>Subscribe & save</Text>
+                <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: Palette.textMuted, marginTop: 1 }}>Weekly meal plans from your favorite kitchens, on repeat.</Text>
               </View>
-              <ChevronRight size={18} color="#d1d5db" />
+              <ChevronRight size={18} color={Palette.divider} />
             </PressableScale>
           )}
 
-          {/* Hub — two-column grid (mockup) */}
-          <Text style={{ fontFamily: Font.display, fontSize: 22, color: INK, letterSpacing: -0.5, paddingHorizontal: 20, marginTop: 28, marginBottom: 12 }}>your hub</Text>
-          <View style={{ marginHorizontal: 20, flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
-            {hub.map((h) => (
-              <PressableScale
-                key={h.label}
-                onPress={() => onHub(h)}
-                accessibilityRole="button"
-                accessibilityLabel={`${h.label}, ${h.sub}`}
-                style={{ flexGrow: 1, flexBasis: '46%', backgroundColor: '#fff', borderRadius: 16, padding: 13, flexDirection: 'row', alignItems: 'center', gap: 11 }}>
-                <View style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: h.accent ? '#FDEDE4' : '#F3F4F6', alignItems: 'center', justifyContent: 'center' }}>
-                  <h.Icon size={17} color={h.accent ? ORANGE : '#6b7280'} />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text numberOfLines={1} style={{ fontFamily: Font.heading, fontSize: 13.5, color: h.accent ? ORANGE : INK }}>{h.label}</Text>
-                  <Text numberOfLines={1} style={{ fontFamily: Font.body, fontSize: 11, color: '#9ca3af', marginTop: 1 }}>{h.sub}</Text>
-                </View>
-                <ChevronRight size={15} color="#d1d5db" />
-              </PressableScale>
-            ))}
-            <PressableScale onPress={toggleDarkMode} accessibilityRole="switch" accessibilityState={{ checked: dark }} accessibilityLabel="Dark mode"
-              style={{ flexGrow: 1, flexBasis: '46%', backgroundColor: '#fff', borderRadius: 16, padding: 13, flexDirection: 'row', alignItems: 'center', gap: 11 }}>
-              <View style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: '#F3F4F6', alignItems: 'center', justifyContent: 'center' }}>
-                <Moon size={17} color="#6b7280" />
+          {/* Hub */}
+          <Text style={{ fontFamily: Font.display, fontSize: 22, color: Palette.ink, letterSpacing: -0.5, paddingHorizontal: 20, marginTop: 28, marginBottom: 12 }}>your hub</Text>
+          <HubGrid hub={hub} dark={dark} onHub={onHub} />
+
+          {/* Become a prepper — only for non-approved, non-pending users */}
+          {!isApprovedPrepper && !isPendingPrepper ? (
+            <PressableScale
+              onPress={() => router.push('/become-prepper')}
+              accessibilityRole="button"
+              accessibilityLabel="Become a prepper, start earning with your cooking"
+              style={{ marginHorizontal: 20, marginTop: 10, backgroundColor: Palette.prepperBg, borderRadius: 18, padding: 16, flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+              <View style={{ width: 42, height: 42, borderRadius: 13, backgroundColor: 'rgba(241,95,34,0.18)', alignItems: 'center', justifyContent: 'center' }}>
+                <ChefHat size={20} color={Palette.brand} />
               </View>
               <View style={{ flex: 1 }}>
-                <Text numberOfLines={1} style={{ fontFamily: Font.heading, fontSize: 13.5, color: INK }}>dark mode</Text>
-                <Text numberOfLines={1} style={{ fontFamily: Font.body, fontSize: 11, color: '#9ca3af', marginTop: 1 }}>{dark ? 'on' : 'off'}</Text>
+                <Text style={{ fontFamily: Font.heading, fontSize: 15, color: Palette.surface }}>become a prepper</Text>
+                <Text style={{ fontFamily: Font.body, fontSize: 12, color: '#9AA1AD', marginTop: 1 }}>start earning with your cooking</Text>
               </View>
-              <View style={{ width: 40, height: 24, borderRadius: 12, backgroundColor: dark ? ORANGE : '#e5e7eb', justifyContent: 'center', paddingHorizontal: 3, alignItems: dark ? 'flex-end' : 'flex-start' }}>
-                <MotiView animate={{ translateX: 0 }} style={{ width: 18, height: 18, borderRadius: 9, backgroundColor: '#fff' }} />
-              </View>
+              <ChevronRight size={18} color="#6B7280" />
             </PressableScale>
-          </View>
+          ) : isPendingPrepper ? (
+            <View style={{ marginHorizontal: 20, marginTop: 10, backgroundColor: '#FEF3C7', borderRadius: 18, padding: 16, flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+              <View style={{ width: 42, height: 42, borderRadius: 13, backgroundColor: 'rgba(245,158,11,0.15)', alignItems: 'center', justifyContent: 'center' }}>
+                <Clock size={20} color={Palette.amber} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontFamily: Font.heading, fontSize: 15, color: Palette.ink }}>application pending</Text>
+                <Text style={{ fontFamily: Font.body, fontSize: 12, color: '#92400E', marginTop: 1 }}>we'll notify you within 48h</Text>
+              </View>
+            </View>
+          ) : null}
 
           <PressableScale
             onPress={() => (user ? signOut() : router.push('/auth?mode=signin'))}
             accessibilityRole="button"
             accessibilityLabel={user ? 'Sign out' : 'Sign in or create account'}
-            style={{ marginHorizontal: 20, marginTop: 16, alignItems: 'center', paddingVertical: 15, borderRadius: 16, backgroundColor: user ? '#fff' : ORANGE }}>
-            <Text style={{ fontFamily: Font.heading, fontSize: 15, color: user ? '#ef4444' : '#fff' }}>
+            style={{ marginHorizontal: 20, marginTop: 16, alignItems: 'center', paddingVertical: 15, borderRadius: 16, backgroundColor: user ? Palette.surface : Palette.brand }}>
+            <Text style={{ fontFamily: Font.heading, fontSize: 15, color: user ? Palette.danger : Palette.surface }}>
               {user ? 'sign out' : 'sign in / create account'}
             </Text>
           </PressableScale>
@@ -344,8 +401,8 @@ export default function ProfileScreen() {
             from={{ opacity: 0, translateY: 14 }}
             animate={{ opacity: 1, translateY: 0 }}
             transition={{ type: 'timing', duration: 200 }}
-            style={{ position: 'absolute', left: 20, right: 20, bottom: 24, backgroundColor: INK, borderRadius: 14, paddingHorizontal: 16, paddingVertical: 13, shadowColor: '#000', shadowOpacity: 0.18, shadowRadius: 14, shadowOffset: { width: 0, height: 6 } }}>
-            <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: '#fff', textAlign: 'center' }}>{toast}</Text>
+            style={{ position: 'absolute', left: 20, right: 20, bottom: 24, backgroundColor: Palette.ink, borderRadius: 14, paddingHorizontal: 16, paddingVertical: 13, shadowColor: '#000', shadowOpacity: 0.18, shadowRadius: 14, shadowOffset: { width: 0, height: 6 } }}>
+            <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: Palette.surface, textAlign: 'center' }}>{toast}</Text>
           </MotiView>
         ) : null}
       </SafeAreaView>
