@@ -1,5 +1,6 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ChevronLeft, UtensilsCrossed } from 'lucide-react-native';
+import { MotiView } from 'moti';
 import { ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -8,10 +9,11 @@ import { gridCardWidth, useContentWidth } from '@/lib/layout';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { CardSkeleton } from '@/components/ui/skeleton';
 import { Font } from '@/constants/fonts';
+import { Palette } from '@/constants/theme';
 import { useMealsByCategory } from '@/lib/queries/meals';
 
-const ORANGE = '#f15f22';
-const INK = '#111827';
+const ORANGE = Palette.brand;
+const INK = Palette.ink;
 
 export default function CategoryScreen() {
   const router = useRouter();

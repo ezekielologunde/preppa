@@ -47,7 +47,7 @@ export type AdminPrepper = {
   status: PrepperStatus;
   rejection_note: string | null;
   created_at: string;
-  user: { full_name: string | null; email: string | null } | null;
+  user: { full_name: string | null; email: string | null; phone: string | null } | null;
 };
 
 /** Preppers filtered by application status — drives the approval queue. */
@@ -55,9 +55,11 @@ export function useAdminPreppers(status?: PrepperStatus) {
   return useQuery({
     queryKey: ['admin', 'preppers', status ?? 'all'],
     queryFn: async (): Promise<AdminPrepper[]> => {
+      // Disambiguate: prepper_profiles has two FKs to profiles (user_id + reviewed_by).
+      // PostgREST requires an explicit hint when multiple FKs point to the same table.
       let q = supabase
         .from('prepper_profiles')
-        .select('id,display_name,bio,verified,status,rejection_note,created_at,user:profiles(full_name,email)')
+        .select('id,display_name,bio,verified,status,rejection_note,created_at,user:profiles!prepper_profiles_user_id_fkey(full_name,email,phone)')
         .order('created_at', { ascending: false });
       if (status) q = q.eq('status', status);
       const { data, error } = await q;
