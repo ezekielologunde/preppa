@@ -1,6 +1,6 @@
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { BadgeCheck, Check, ChevronLeft, Clock, MessageCircle, ShoppingBag, Star } from 'lucide-react-native';
+import { BadgeCheck, Check, ChevronLeft, Clock, MessageCircle, ShoppingBag, Star, Zap } from 'lucide-react-native';
 import { useState } from 'react';
 import { MotiView } from 'moti';
 import { ActivityIndicator, Modal, Pressable, ScrollView, Text, View } from 'react-native';
@@ -22,6 +22,17 @@ import { useAuth } from '@/providers/auth-provider';
 
 const ORANGE = Palette.brand;
 const INK = Palette.ink;
+
+/** "ends in 3h" / "ends in 2d" — null when no expiry or already past. */
+function dropTimeLeft(expiresAt: string | null): string | null {
+  if (!expiresAt) return null;
+  const ms = new Date(expiresAt).getTime() - Date.now();
+  if (ms <= 0) return null;
+  const hours = Math.round(ms / 3_600_000);
+  if (hours < 1) return 'ends soon';
+  if (hours < 24) return `ends in ${hours}h`;
+  return `ends in ${Math.round(hours / 24)}d`;
+}
 
 function Macro({ label, value }: { label: string; value: number | null }) {
   if (value == null) return null;
@@ -129,6 +140,19 @@ export default function MealScreen() {
             <Text style={{ fontFamily: Font.medium, fontSize: 15, color: '#ef4444' }}>Couldn&apos;t load this meal. Please try again.</Text>
           ) : (
             <>
+              {meal.isLimited ? (
+                <MotiView
+                  from={{ opacity: 0, translateY: -4 }}
+                  animate={{ opacity: 1, translateY: 0 }}
+                  transition={{ type: 'timing', duration: 240 }}
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', backgroundColor: '#f5f3ff', borderRadius: 999, paddingHorizontal: 12, paddingVertical: 6 }}>
+                  <Zap size={13} color="#8b5cf6" fill="#8b5cf6" />
+                  <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: '#8b5cf6' }}>
+                    limited drop{dropTimeLeft(meal.expiresAt) ? ` · ${dropTimeLeft(meal.expiresAt)}` : ''}
+                  </Text>
+                </MotiView>
+              ) : null}
+
               <Text style={{ fontFamily: Font.display, fontSize: 28, color: INK, letterSpacing: -0.6 }}>{meal.title}</Text>
 
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>

@@ -178,10 +178,12 @@ export type MealDetail = {
   reviews: number;
   images: string[];
   nutrition: { calories: number | null; protein: number | null; carbs: number | null; fat: number | null } | null;
+  isLimited: boolean;
+  expiresAt: string | null;
 };
 
 const DETAIL_SELECT =
-  'id,title,description,base_price,prep_time_min,' +
+  'id,title,description,base_price,prep_time_min,is_limited,expires_at,' +
   'prepper:prepper_profiles(id,user_id,display_name,verified,bio,rating:prepper_rating_summary(average_rating,total_reviews)),' +
   'images:meal_images(url,order_index),' +
   'nutrition:nutrition_profiles(calories,protein,carbs,fat)';
@@ -219,6 +221,8 @@ export function useMeal(id?: string) {
         reviews: rating?.total_reviews ?? 0,
         images,
         nutrition: nutrition ?? null,
+        isLimited: (row.is_limited as boolean) ?? false,
+        expiresAt: (row.expires_at as string | null) ?? null,
       };
     },
   });
