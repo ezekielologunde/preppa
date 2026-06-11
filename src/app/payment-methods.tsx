@@ -1,9 +1,9 @@
-// TODO: replace with Stripe payment methods API
 import { useRouter } from 'expo-router';
 import { Lock, Plus, Trash2, X } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useState } from 'react';
 import {
+  ActivityIndicator,
   ScrollView,
   Text,
   View,
@@ -13,48 +13,16 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   AddCardSheet,
   BRAND_CONFIG,
-  CardBrand,
-  CardForm,
-  detectBrand,
 } from '@/components/add-card-sheet';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
 import { Palette, Radius, Shadow, Spacing, Type } from '@/constants/theme';
-
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-interface PaymentMethod {
-  id: string;
-  brand: CardBrand;
-  last4: string;
-  expMonth: string;
-  expYear: string;
-  cardholderName: string;
-  isDefault: boolean;
-}
-
-// ─── Mock data ────────────────────────────────────────────────────────────────
-
-const MOCK_CARDS: PaymentMethod[] = [
-  {
-    id: '1',
-    brand: 'visa',
-    last4: '4242',
-    expMonth: '12',
-    expYear: '27',
-    cardholderName: 'Alex Johnson',
-    isDefault: true,
-  },
-  {
-    id: '2',
-    brand: 'mastercard',
-    last4: '5100',
-    expMonth: '08',
-    expYear: '26',
-    cardholderName: 'Alex Johnson',
-    isDefault: false,
-  },
-];
+import {
+  PaymentMethod,
+  useDetachPaymentMethod,
+  usePaymentMethods,
+  useSetDefaultPaymentMethod,
+} from '@/lib/queries/payment-methods';
 
 // ─── Payment card item ────────────────────────────────────────────────────────
 
@@ -237,7 +205,10 @@ function PaymentCard({
 
 export default function PaymentMethodsScreen() {
   const router = useRouter();
-  const [cards, setCards] = useState<PaymentMethod[]>(MOCK_CARDS);
+  const { data, isLoading } = usePaymentMethods();
+  const detachPM = useDetachPaymentMethod();
+  const setDefaultPM = useSetDefaultPaymentMethod();
+  const cards = data?.methods ?? [];
   const [sheetVisible, setSheetVisible] = useState(false);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
@@ -247,28 +218,8 @@ export default function PaymentMethodsScreen() {
   };
 
   const confirmDelete = (id: string) => {
-    setCards((prev) => prev.filter((c) => c.id !== id));
+    detachPM.mutate(id);
     setPendingDeleteId(null);
-  };
-
-  const setDefault = (id: string) => {
-    setCards((prev) => prev.map((c) => ({ ...c, isDefault: c.id === id })));
-  };
-
-  const handleSave = (form: CardForm) => {
-    const digits = form.cardNumber.replace(/\s/g, '');
-    const [expMonth, expYear] = form.expiry.split('/');
-    const newCard: PaymentMethod = {
-      id: Date.now().toString(),
-      brand: detectBrand(digits),
-      last4: digits.slice(-4),
-      expMonth,
-      expYear,
-      cardholderName: form.cardholderName.trim(),
-      isDefault: cards.length === 0,
-    };
-    setCards((prev) => [...prev, newCard]);
-    setSheetVisible(false);
   };
 
   return (
@@ -309,97 +260,104 @@ export default function PaymentMethodsScreen() {
           </Text>
         </View>
 
-        <ScrollView
-          contentContainerStyle={{
-            padding: Spacing.three,
-            gap: Spacing.three,
-            paddingBottom: 120,
-          }}
-          showsVerticalScrollIndicator={false}>
+        {isLoading ? (
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+            <ActivityIndicator color={Palette.brand} />
+          </View>
+        ) : (
+          <ScrollView
+            contentContainerStyle={{
+              padding: Spacing.three,
+              gap: Spacing.three,
+              paddingBottom: 120,
+            }}
+            showsVerticalScrollIndicator={false}>
 
-          {/* Card list */}
-          {cards.map((card, index) => (
-            <PaymentCard
-              key={card.id}
-              card={card}
-              index={index}
-              pendingDelete={pendingDeleteId === card.id}
-              onSetDefault={() => setDefault(card.id)}
-              onDelete={() => triggerDelete(card.id)}
-              onConfirmDelete={() => confirmDelete(card.id)}
-              onCancelDelete={() => setPendingDeleteId(null)}
-            />
-          ))}
+            {/* Card list */}
+            {cards.map((card, index) => (
+              <PaymentCard
+                key={card.id}
+                card={card}
+                index={index}
+                pendingDelete={pendingDeleteId === card.id}
+                onSetDefault={() => setDefaultPM.mutate(card.id)}
+                onDelete={() => triggerDelete(card.id)}
+                onConfirmDelete={() => confirmDelete(card.id)}
+                onCancelDelete={() => setPendingDeleteId(null)}
+              />
+            ))}
 
-          {/* Add new card row */}
-          <MotiView
-            from={{ opacity: 0, translateY: 12 }}
-            animate={{ opacity: 1, translateY: 0 }}
-            transition={{ type: 'timing', duration: 280, delay: cards.length * 40 }}>
-            <PressableScale
-              onPress={() => setSheetVisible(true)}
-              accessibilityRole="button"
-              accessibilityLabel="Add new payment card"
+            {/* Add new card row */}
+            <MotiView
+              from={{ opacity: 0, translateY: 12 }}
+              animate={{ opacity: 1, translateY: 0 }}
+              transition={{ type: 'timing', duration: 280, delay: cards.length * 40 }}>
+              <PressableScale
+                onPress={() => setSheetVisible(true)}
+                accessibilityRole="button"
+                accessibilityLabel="Add new payment card"
+                style={{
+                  backgroundColor: Palette.surface,
+                  borderRadius: Radius.md,
+                  padding: Spacing.three,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: Spacing.three,
+                  borderWidth: 1.5,
+                  borderColor: Palette.border,
+                  borderStyle: 'dashed',
+                  minHeight: 68,
+                }}>
+                <View
+                  style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: 14,
+                    backgroundColor: Palette.brandTint,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}>
+                  <Plus size={20} color={Palette.brand} />
+                </View>
+                <Text
+                  style={{
+                    fontFamily: Font.heading,
+                    fontSize: Type.body,
+                    color: Palette.brand,
+                  }}>
+                  add new card
+                </Text>
+              </PressableScale>
+            </MotiView>
+
+            {/* Security note at bottom */}
+            <View
               style={{
-                backgroundColor: Palette.surface,
-                borderRadius: Radius.md,
-                padding: Spacing.three,
                 flexDirection: 'row',
                 alignItems: 'center',
-                gap: Spacing.three,
-                borderWidth: 1.5,
-                borderColor: Palette.border,
-                borderStyle: 'dashed',
-                minHeight: 68,
+                justifyContent: 'center',
+                gap: 6,
+                marginTop: Spacing.two,
               }}>
-              <View
-                style={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: 14,
-                  backgroundColor: Palette.brandTint,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}>
-                <Plus size={20} color={Palette.brand} />
-              </View>
+              <Lock size={13} color={Palette.textMuted} />
               <Text
                 style={{
-                  fontFamily: Font.heading,
-                  fontSize: Type.body,
-                  color: Palette.brand,
+                  fontFamily: Font.body,
+                  fontSize: Type.micro,
+                  color: Palette.textMuted,
                 }}>
-                add new card
+                Cards are secured with 256-bit encryption
               </Text>
-            </PressableScale>
-          </MotiView>
-
-          {/* Security note at bottom */}
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 6,
-              marginTop: Spacing.two,
-            }}>
-            <Lock size={13} color={Palette.textMuted} />
-            <Text
-              style={{
-                fontFamily: Font.body,
-                fontSize: Type.micro,
-                color: Palette.textMuted,
-              }}>
-              Cards are secured with 256-bit encryption
-            </Text>
-          </View>
-        </ScrollView>
+            </View>
+          </ScrollView>
+        )}
       </SafeAreaView>
 
       <AddCardSheet
         visible={sheetVisible}
+        stripePublishableKey={data?.pk}
         onClose={() => setSheetVisible(false)}
-        onSave={handleSave}
+        onSave={() => setSheetVisible(false)}
       />
     </View>
   );

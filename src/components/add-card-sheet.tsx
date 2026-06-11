@@ -2,6 +2,7 @@ import { Lock, X } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useState } from 'react';
 import {
+  ActivityIndicator,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -11,6 +12,8 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+import { supabase } from '@/lib/supabase';
 
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
@@ -207,15 +210,19 @@ function CardFormField({
 
 export function AddCardSheet({
   visible,
+  stripePublishableKey,
   onClose,
   onSave,
 }: {
   visible: boolean;
+  stripePublishableKey: string | undefined;
   onClose: () => void;
-  onSave: (form: CardForm) => void;
+  onSave: () => void;
 }) {
   const [form, setForm] = useState<CardForm>({ ...EMPTY_FORM });
   const [errors, setErrors] = useState<CardErrors>({});
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const set = (key: keyof CardForm) => (val: string) =>
     setForm((f) => ({ ...f, [key]: val }));
@@ -230,15 +237,47 @@ export function AddCardSheet({
     if (errors.expiry) setErrors((e) => ({ ...e, expiry: undefined }));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const errs = validateCard(form);
-    if (Object.keys(errs).length) {
-      setErrors(errs);
-      return;
+    if (Object.keys(errs).length) { setErrors(errs); return; }
+    if (!stripePublishableKey) { setSaveError('Payment system unavailable'); return; }
+
+    setSaving(true);
+    setSaveError(null);
+    try {
+      const digits = form.cardNumber.replace(/\s/g, '');
+      const [expMonth, expYear] = form.expiry.split('/');
+      const res = await fetch('https://api.stripe.com/v1/payment_methods', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${stripePublishableKey}`,
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          type: 'card',
+          'card[number]': digits,
+          'card[exp_month]': expMonth,
+          'card[exp_year]': `20${expYear}`,
+          'card[cvc]': form.cvv,
+        }).toString(),
+      });
+      const pmData = await res.json();
+      if (!pmData.id) throw new Error(pmData.error?.message ?? 'Card declined');
+
+      const { error: fnErr } = await supabase.functions.invoke('stripe-payment-methods', {
+        body: { action: 'attach', pmId: pmData.id },
+      });
+      if (fnErr) throw new Error('Failed to save card. Please try again.');
+
+      setForm({ ...EMPTY_FORM });
+      setErrors({});
+      setSaveError(null);
+      onSave();
+    } catch (e) {
+      setSaveError(e instanceof Error ? e.message : 'Something went wrong');
+    } finally {
+      setSaving(false);
     }
-    onSave(form);
-    setForm({ ...EMPTY_FORM });
-    setErrors({});
   };
 
   const detectedBrand = detectBrand(form.cardNumber.replace(/\s/g, ''));
@@ -368,13 +407,29 @@ export function AddCardSheet({
               </View>
             </View>
 
+            {/* Save error */}
+            {saveError ? (
+              <Text
+                style={{
+                  fontFamily: Font.body,
+                  fontSize: Type.label,
+                  color: Palette.danger,
+                  textAlign: 'center',
+                  marginBottom: Spacing.two,
+                }}
+                accessibilityRole="alert">
+                {saveError}
+              </Text>
+            ) : null}
+
             {/* Save button */}
             <PressableScale
               onPress={handleSave}
+              disabled={saving}
               accessibilityRole="button"
               accessibilityLabel="Save card"
               style={{
-                backgroundColor: Palette.brand,
+                backgroundColor: saving ? Palette.brandTint : Palette.brand,
                 borderRadius: Radius.md,
                 paddingVertical: 16,
                 alignItems: 'center',
@@ -382,14 +437,18 @@ export function AddCardSheet({
                 minHeight: 54,
                 justifyContent: 'center',
               }}>
-              <Text
-                style={{
-                  fontFamily: Font.heading,
-                  fontSize: Type.body,
-                  color: Palette.surface,
-                }}>
-                save card
-              </Text>
+              {saving ? (
+                <ActivityIndicator color={Palette.brand} />
+              ) : (
+                <Text
+                  style={{
+                    fontFamily: Font.heading,
+                    fontSize: Type.body,
+                    color: Palette.surface,
+                  }}>
+                  save card
+                </Text>
+              )}
             </PressableScale>
 
             {/* Security note */}
