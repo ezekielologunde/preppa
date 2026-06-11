@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { ActivityIndicator, Modal, Pressable, RefreshControl, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { ListSkeleton } from '@/components/ui/skeleton';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
 import { Palette } from '@/constants/theme';
@@ -142,7 +143,7 @@ export default function BidRequestsScreen() {
 
         <ScrollView showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={ORANGE} colors={[ORANGE]} />} contentContainerStyle={{ padding: 16, paddingBottom: 60 }}>
           {isLoading ? (
-            <ActivityIndicator color={ORANGE} style={{ marginTop: 40 }} />
+            <ListSkeleton count={4} />
           ) : requests.length === 0 ? (
             <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 240 }}
               style={{ alignItems: 'center', paddingTop: 60, gap: 10 }}>

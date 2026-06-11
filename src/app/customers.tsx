@@ -6,6 +6,7 @@ import { ActivityIndicator, RefreshControl, ScrollView, Text, View } from 'react
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Avatar } from '@/components/ui/avatar';
+import { ListSkeleton } from '@/components/ui/skeleton';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
 import { Palette } from '@/constants/theme';
@@ -70,7 +71,7 @@ export default function CustomersScreen() {
             <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textMuted, textAlign: 'center' }}>Approved preppers see their customer roster here.</Text>
           </View>
         ) : isLoading ? (
-          <ActivityIndicator color={ORANGE} style={{ marginTop: 40 }} />
+          <ListSkeleton count={5} />
         ) : !rows.length ? (
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 10 }}>
             <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center' }}>
