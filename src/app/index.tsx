@@ -31,6 +31,7 @@ import { PreppaLogo } from '@/components/preppa-logo';
 import { Font } from '@/constants/fonts';
 import { categories, recommendedMeals } from '@/constants/mock';
 import { PressableScale } from '@/components/ui/pressable-scale';
+import { feedback } from '@/lib/feedback';
 import { CardRowSkeleton } from '@/components/ui/skeleton';
 import { Palette, Radius } from '@/constants/theme';
 import { greeting } from '@/lib/greeting';
@@ -165,7 +166,7 @@ export default function HomeScreen() {
           {/* Search */}
           <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280, delay: 60 }}>
           <PressableScale
-            onPress={() => router.push('/search')}
+            onPress={() => { feedback.tap(); router.push('/search'); }}
             accessibilityRole="search"
             accessibilityLabel="Search meals, cuisines, or preppers"
             style={{ flexDirection: 'row', alignItems: 'center', marginHorizontal: 20, marginTop: 16, backgroundColor: Palette.surface, borderRadius: 18, paddingHorizontal: 16, height: 54, gap: 10 }}>
@@ -179,7 +180,7 @@ export default function HomeScreen() {
           {activeOrder ? (
             <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280, delay: 80 }}>
             <PressableScale
-              onPress={() => router.push('/orders')}
+              onPress={() => { feedback.tap(); router.push('/orders'); }}
               accessibilityRole="button"
               accessibilityLabel={`Track your order from ${activeOrder.prepper}, ${ORDER_STATUS_LABEL[activeOrder.status]}`}
               style={{ marginHorizontal: 20, marginTop: 16, backgroundColor: INK, borderRadius: Radius.lg, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
@@ -203,10 +204,7 @@ export default function HomeScreen() {
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 18, paddingVertical: 20 }}>
             {categories.map((c, i) => {
               const Icon = ICONS[c.icon] ?? MoreHorizontal;
-              const onPress = () =>
-                c.key === 'more'
-                  ? router.push('/explore')
-                  : router.push(`/category?key=${c.key}&label=${encodeURIComponent(c.label)}`);
+              const onPress = () => { feedback.tap(); c.key === 'more' ? router.push('/explore') : router.push(`/category?key=${c.key}&label=${encodeURIComponent(c.label)}`); };
               return (
                 <MotiView key={c.key} from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 240, delay: 100 + i * 35 }}>
                 <PressableScale onPress={onPress} accessibilityRole="button" accessibilityLabel={`${c.label} meals`} style={{ alignItems: 'center', gap: 8, width: 58 }}>
@@ -224,7 +222,7 @@ export default function HomeScreen() {
           <View style={{ flexDirection: 'row', paddingHorizontal: 20, gap: 12, marginBottom: 26 }}>
             {showPlans ? (
               <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 180 }} style={{ flex: 1 }}>
-              <PressableScale onPress={() => router.push('/meal-plans')} accessibilityRole="button" accessibilityLabel="Meal plans"
+              <PressableScale onPress={() => { feedback.tap(); router.push('/meal-plans'); }} accessibilityRole="button" accessibilityLabel="Meal plans"
                 style={{ flex: 1, backgroundColor: Palette.surface, borderRadius: Radius.lg, padding: 16, gap: 10 }}>
                 <View style={{ width: 42, height: 42, borderRadius: 13, backgroundColor: Palette.brandTint, alignItems: 'center', justifyContent: 'center' }}>
                   <CalendarCheck size={20} color={ORANGE} />
@@ -236,7 +234,7 @@ export default function HomeScreen() {
             ) : null}
             {showExperiences ? (
               <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 220 }} style={{ flex: 1 }}>
-              <PressableScale onPress={() => router.push('/experiences')} accessibilityRole="button" accessibilityLabel="Experiences"
+              <PressableScale onPress={() => { feedback.tap(); router.push('/experiences'); }} accessibilityRole="button" accessibilityLabel="Experiences"
                 style={{ flex: 1, backgroundColor: Palette.surface, borderRadius: Radius.lg, padding: 16, gap: 10 }}>
                 <View style={{ width: 42, height: 42, borderRadius: 13, backgroundColor: Palette.brandTint, alignItems: 'center', justifyContent: 'center' }}>
                   <Ticket size={20} color={ORANGE} />
@@ -247,7 +245,7 @@ export default function HomeScreen() {
               </MotiView>
             ) : null}
             <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 260 }} style={{ flex: 1 }}>
-            <PressableScale onPress={() => router.push('/bid-requests')} accessibilityRole="button" accessibilityLabel="Meal requests"
+            <PressableScale onPress={() => { feedback.tap(); router.push('/bid-requests'); }} accessibilityRole="button" accessibilityLabel="Meal requests"
               style={{ flex: 1, backgroundColor: Palette.surface, borderRadius: Radius.lg, padding: 16, gap: 10 }}>
               <View style={{ width: 42, height: 42, borderRadius: 13, backgroundColor: Palette.brandTint, alignItems: 'center', justifyContent: 'center' }}>
                 <UtensilsCrossed size={20} color={ORANGE} />
@@ -271,7 +269,7 @@ export default function HomeScreen() {
           ) : null}
 
           {/* Recommended — personalized, dynamic mix of a big hero + carousel */}
-          <SectionHeader title="recommended for you" onSeeAll={() => router.push('/category?key=all&label=recommended')} />
+          <SectionHeader title="recommended for you" onSeeAll={() => { feedback.tap(); router.push('/category?key=all&label=recommended'); }} />
           {mealsLoading ? (
             <View style={{ paddingBottom: 26 }}>
               <CardRowSkeleton count={3} />
@@ -318,7 +316,7 @@ export default function HomeScreen() {
 
           {/* Points banner — real points from completed orders */}
           <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260 }}>
-          <PressableScale onPress={() => router.push('/rewards')} accessibilityRole="button" accessibilityLabel={`Rewards, ${rewards.points} points, ${rewards.tier.name} tier`} style={{ marginHorizontal: 20, marginBottom: 28, backgroundColor: '#E7F6EC', borderRadius: 20, padding: 16, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+          <PressableScale onPress={() => { feedback.tap(); router.push('/rewards'); }} accessibilityRole="button" accessibilityLabel={`Rewards, ${rewards.points} points, ${rewards.tier.name} tier`} style={{ marginHorizontal: 20, marginBottom: 28, backgroundColor: '#E7F6EC', borderRadius: 20, padding: 16, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
             <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: '#22c55e', alignItems: 'center', justifyContent: 'center' }}>
               <Gift size={20} color="#fff" />
             </View>
@@ -355,7 +353,7 @@ export default function HomeScreen() {
                   </Text>
                 </View>
                 <PressableScale
-                  onPress={() => lastDone.firstMealId && router.push(`/meal?id=${lastDone.firstMealId}`)}
+                  onPress={() => { feedback.tap(); lastDone.firstMealId && router.push(`/meal?id=${lastDone.firstMealId}`); }}
                   accessibilityRole="button"
                   accessibilityLabel="Order again"
                   style={{ backgroundColor: ORANGE, borderRadius: 999, paddingHorizontal: 16, paddingVertical: 10 }}>
