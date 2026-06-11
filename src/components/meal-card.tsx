@@ -10,6 +10,7 @@ import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
 import { imgUrl } from '@/lib/img';
 import { Palette } from '@/constants/theme';
+import { feedback } from '@/lib/feedback';
 
 export type Meal = {
   id: string;
@@ -86,7 +87,7 @@ export function MealCard({ meal, width = 200, variant = 'normal' }: { meal: Meal
 
   return (
     <PressableScale
-      onPress={() => router.push(`/meal?id=${meal.id}`)}
+      onPress={() => { feedback.tap(); router.push(`/meal?id=${meal.id}`); }}
       onHoverIn={() => setHovered(true)}
       onHoverOut={() => setHovered(false)}
       style={width === null ? { width: '100%' } : { width }}
