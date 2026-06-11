@@ -204,6 +204,7 @@ export default function ProfileScreen() {
           </View>
 
           {/* Identity */}
+          <MotiView from={{ opacity: 0, translateY: 14 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 320 }}>
           <View style={{ alignItems: 'center', paddingHorizontal: 20, marginTop: 6 }}>
             <View style={{ width: 96, height: 96, borderRadius: 48, borderWidth: 3, borderColor: Palette.brand, padding: 3 }}>
               <Avatar name={displayName} url={user?.user_metadata?.avatar_url as string | undefined} size={84} />
@@ -244,8 +245,10 @@ export default function ProfileScreen() {
               </View>
             )}
           </View>
+          </MotiView>
 
           {/* Rewards / tier */}
+          <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280, delay: 80 }}>
           <PressableScale onPress={() => go('/rewards')} accessibilityRole="button" accessibilityLabel="View your rewards" style={{ marginHorizontal: 20, marginTop: 22 }}>
             <LinearGradient colors={['#FFE9D6', '#FFDDBE']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 22, padding: 18, flexDirection: 'row', alignItems: 'center' }}>
               <View style={{ flex: 1 }}>
@@ -274,6 +277,7 @@ export default function ProfileScreen() {
               <Gift size={56} color="#d97706" />
             </LinearGradient>
           </PressableScale>
+          </MotiView>
 
           {/* My Kitchen — approved preppers */}
           {isApprovedPrepper ? (
@@ -313,6 +317,7 @@ export default function ProfileScreen() {
           ) : null}
 
           {/* Quick links */}
+          <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 140 }}>
           <View style={{ marginHorizontal: 20, marginTop: 16, backgroundColor: Palette.surface, borderRadius: 20, padding: 16, flexDirection: 'row', justifyContent: 'space-between' }}>
             {quickLinks.map((q) => (
               <PressableScale key={q.label} onPress={() => onQuick(q.label)} accessibilityRole="button" accessibilityLabel={q.label} style={{ alignItems: 'center', gap: 7, flex: 1 }}>
@@ -334,6 +339,7 @@ export default function ProfileScreen() {
               </PressableScale>
             ))}
           </View>
+          </MotiView>
 
           {/* Meal plans & subscriptions */}
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, marginTop: 28, marginBottom: 12 }}>
@@ -387,8 +393,10 @@ export default function ProfileScreen() {
           )}
 
           {/* Hub */}
+          <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 240, delay: 200 }}>
           <Text style={{ fontFamily: Font.display, fontSize: 22, color: Palette.ink, letterSpacing: -0.5, paddingHorizontal: 20, marginTop: 28, marginBottom: 12 }}>your hub</Text>
           <HubGrid hub={hub} dark={dark} onHub={onHub} />
+          </MotiView>
 
           {/* Become a prepper — only for non-approved, non-pending users */}
           {!isApprovedPrepper && !isPendingPrepper ? (

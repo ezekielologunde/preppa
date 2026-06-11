@@ -17,7 +17,7 @@ import { useAuth } from '@/providers/auth-provider';
 const ORANGE = Palette.brand;
 const CARD = Palette.prepperCard;
 const BG = Palette.prepperBg;
-const MUTED = '#9ca3af';
+const MUTED = Palette.textMuted;
 
 const TAGS = ['Meal prep', 'Quick & easy', 'Healthy', 'Comfort food', 'Vegan', 'High-protein', 'Behind the scenes', 'New dish'];
 

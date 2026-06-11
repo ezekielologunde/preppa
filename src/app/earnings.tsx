@@ -13,7 +13,7 @@ const ORANGE = Palette.brand;
 const GREEN = '#34d399';
 const CARD = Palette.prepperCard;
 const BG = Palette.prepperBg;
-const MUTED = '#9ca3af';
+const MUTED = Palette.textMuted;
 
 const money = (n: number) => `$${(n ?? 0).toFixed(2)}`;
 const shortDate = (iso: string) => {
