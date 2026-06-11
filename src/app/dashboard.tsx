@@ -47,7 +47,7 @@ const PINK = '#f472b6';
 const BLUE = '#60a5fa';
 const CARD = Palette.prepperCard;
 const BG = Palette.prepperBg;
-const MUTED = '#9ca3af';
+const MUTED = Palette.textMuted;
 
 const money = (n: number) => (n >= 1000 ? `$${(n / 1000).toFixed(1)}k` : `$${Math.round(n)}`);
 
@@ -124,7 +124,7 @@ function QuickAction({ Icon, label, color, badge, onPress }: { Icon: LucideIcon;
           </View>
         ) : null}
       </View>
-      <Text style={{ fontFamily: Font.medium, fontSize: 11.5, color: '#d1d5db' }}>{label}</Text>
+      <Text style={{ fontFamily: Font.medium, fontSize: 11.5, color: Palette.divider }}>{label}</Text>
     </PressableScale>
   );
 }
@@ -382,7 +382,7 @@ function ActionItem({ Icon, label, color, onPress }: { Icon: LucideIcon; label: 
 }
 
 function NavTab({ Icon, label, active, badge, onPress }: { Icon: LucideIcon; label: string; active?: boolean; badge?: number; onPress?: () => void }) {
-  const color = active ? ORANGE : '#6b7280';
+  const color = active ? ORANGE : Palette.textSecondary;
   return (
     <PressableScale onPress={onPress} accessibilityRole="button" accessibilityState={{ selected: !!active }} accessibilityLabel={label} style={{ alignItems: 'center', gap: 3 }}>
       <View>

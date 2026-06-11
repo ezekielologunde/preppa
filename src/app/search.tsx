@@ -37,7 +37,7 @@ function Chip({ label, selected, onPress }: { label: string; selected: boolean; 
         paddingHorizontal: 14,
         height: 36,
         borderRadius: 999,
-        backgroundColor: selected ? INK : '#fff',
+        backgroundColor: selected ? INK : Palette.surface,
         alignItems: 'center',
         justifyContent: 'center',
       }}>
@@ -83,7 +83,7 @@ export default function SearchScreen() {
           <PressableScale onPress={() => router.back()} accessibilityLabel="Back" style={{ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' }}>
             <ChevronLeft size={24} color={INK} />
           </PressableScale>
-          <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 16, paddingHorizontal: 14, height: 50, gap: 8 }}>
+          <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: Palette.surface, borderRadius: 16, paddingHorizontal: 14, height: 50, gap: 8 }}>
             <Search size={19} color={Palette.textMuted} />
             <TextInput
               autoFocus
@@ -174,7 +174,7 @@ export default function SearchScreen() {
               {hasFilters ? 'try removing a filter, or search something else' : 'try a meal, cuisine, or kitchen — like "bowl" or "Kelsey"'}
             </Text>
             {hasFilters ? (
-              <PressableScale onPress={() => { setCategoryId(null); setPriceKey(null); }} accessibilityRole="button" accessibilityLabel="Clear all filters" style={{ marginTop: 6, paddingHorizontal: 18, height: 42, borderRadius: 12, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' }}>
+              <PressableScale onPress={() => { setCategoryId(null); setPriceKey(null); }} accessibilityRole="button" accessibilityLabel="Clear all filters" style={{ marginTop: 6, paddingHorizontal: 18, height: 42, borderRadius: 12, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
                 <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: ORANGE }}>clear filters</Text>
               </PressableScale>
             ) : null}

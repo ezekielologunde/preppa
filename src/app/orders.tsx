@@ -48,7 +48,7 @@ function dateLabel(iso: string): string {
 function OrderCard({ order, onCancel, onReview, onPay, onReorder, onReport, cancelling, needsPayment, paying, reordering }: { order: OrderSummary; onCancel: () => void; onReview: () => void; onPay: () => void; onReorder: () => void; onReport: () => void; cancelling: boolean; needsPayment: boolean; paying: boolean; reordering: boolean }) {
   const st = statusStyle(order.status);
   return (
-    <View style={{ backgroundColor: '#fff', borderRadius: Radius.md, padding: 14, gap: 12 }}>
+    <View style={{ backgroundColor: Palette.surface, borderRadius: Radius.md, padding: 14, gap: 12 }}>
       {/* Header: prepper + status pill */}
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
         <View style={{ flex: 1 }}>
@@ -65,7 +65,7 @@ function OrderCard({ order, onCancel, onReview, onPay, onReorder, onReport, canc
         {order.items.map((it) => (
           <View key={it.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
             {it.image ? <Image source={it.image} style={{ width: 40, height: 40, borderRadius: 10 }} contentFit="cover" /> : <View style={{ width: 40, height: 40, borderRadius: 10, backgroundColor: Palette.canvas }} />}
-            <Text style={{ flex: 1, fontFamily: Font.body, fontSize: 13.5, color: '#374151' }} numberOfLines={1}>{it.quantity}× {it.title}</Text>
+            <Text style={{ flex: 1, fontFamily: Font.body, fontSize: 13.5, color: Palette.inkSoft }} numberOfLines={1}>{it.quantity}× {it.title}</Text>
             <Text style={{ fontFamily: Font.medium, fontSize: 13, color: INK, fontVariant: ['tabular-nums'] }}>{money(it.total)}</Text>
           </View>
         ))}
@@ -82,7 +82,7 @@ function OrderCard({ order, onCancel, onReview, onPay, onReorder, onReport, canc
       ) : null}
 
       {/* Footer: total + cancel */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderTopWidth: 1, borderTopColor: '#f3f4f6', paddingTop: 11 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderTopWidth: 1, borderTopColor: Palette.chip, paddingTop: 11 }}>
         <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary }}>Total</Text>
         <Text style={{ fontFamily: Font.display, fontSize: 18, color: INK, fontVariant: ['tabular-nums'] }}>{money(order.total)}</Text>
       </View>
@@ -269,10 +269,10 @@ export default function OrdersScreen() {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#F7F7F8' }}>
+    <View style={{ flex: 1, backgroundColor: Palette.canvas }}>
       <SafeAreaView edges={['top']} style={{ flex: 1 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingTop: 8, paddingBottom: 8 }}>
-          <PressableScale onPress={goBack} accessibilityRole="button" accessibilityLabel="Go back" style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' }}>
+          <PressableScale onPress={goBack} accessibilityRole="button" accessibilityLabel="Go back" style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
             <ChevronLeft size={22} color={INK} />
           </PressableScale>
           <Text style={{ fontFamily: Font.display, fontSize: 24, color: INK, letterSpacing: -0.6 }}>your orders</Text>
@@ -302,7 +302,7 @@ export default function OrdersScreen() {
           <ListSkeleton count={3} rowHeight={120} />
         ) : !orders?.length ? (
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 10 }}>
-            <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' }}>
+            <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
               <Receipt size={28} color={Palette.textMuted} />
             </View>
             <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>No orders yet</Text>
@@ -340,7 +340,7 @@ export default function OrdersScreen() {
       {/* Report an issue modal */}
       <Modal visible={!!reportModal} transparent animationType="fade" onRequestClose={() => setReportModal(null)}>
         <Pressable onPress={() => setReportModal(null)} style={{ flex: 1, backgroundColor: 'rgba(17,24,39,0.55)', alignItems: 'center', justifyContent: 'center', padding: 28 }}>
-          <Pressable onPress={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 360, backgroundColor: '#fff', borderRadius: 24, padding: 22, gap: 14 }}>
+          <Pressable onPress={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 360, backgroundColor: Palette.surface, borderRadius: 24, padding: 22, gap: 14 }}>
             <View style={{ width: 52, height: 52, borderRadius: 16, backgroundColor: Palette.canvas, alignItems: 'center', justifyContent: 'center' }}>
               <AlertTriangle size={26} color={Palette.textSecondary} />
             </View>
@@ -355,7 +355,7 @@ export default function OrdersScreen() {
               placeholderTextColor={Palette.textMuted}
               multiline
               maxLength={1000}
-              style={{ minHeight: 100, backgroundColor: '#F7F7F8', borderRadius: 12, borderWidth: 1, borderColor: Palette.border, padding: 12, fontFamily: Font.body, fontSize: 14, color: INK, textAlignVertical: 'top' }}
+              style={{ minHeight: 100, backgroundColor: Palette.canvas, borderRadius: 12, borderWidth: 1, borderColor: Palette.border, padding: 12, fontFamily: Font.body, fontSize: 14, color: INK, textAlignVertical: 'top' }}
             />
             {reportErr ? <Text style={{ fontFamily: Font.medium, fontSize: 13, color: '#b91c1c' }}>{reportErr}</Text> : null}
             <PressableScale
@@ -376,16 +376,16 @@ export default function OrdersScreen() {
       {/* Cancel confirmation overlay */}
       <Modal visible={!!confirmCancel} transparent animationType="fade" onRequestClose={() => setConfirmCancel(null)}>
         <Pressable onPress={() => setConfirmCancel(null)} style={{ flex: 1, backgroundColor: 'rgba(17,24,39,0.55)', alignItems: 'center', justifyContent: 'center', padding: 28 }}>
-          <Pressable onPress={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 360, backgroundColor: '#fff', borderRadius: 24, padding: 22, gap: 14 }}>
+          <Pressable onPress={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 360, backgroundColor: Palette.surface, borderRadius: 24, padding: 22, gap: 14 }}>
             <View style={{ width: 52, height: 52, borderRadius: 16, backgroundColor: '#FEE2E2', alignItems: 'center', justifyContent: 'center' }}>
-              <X size={26} color="#ef4444" strokeWidth={2.6} />
+              <X size={26} color={Palette.danger} strokeWidth={2.6} />
             </View>
             <Text style={{ fontFamily: Font.display, fontSize: 21, color: INK, letterSpacing: -0.4 }}>Cancel this order?</Text>
             <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, lineHeight: 20 }}>
               {confirmCancel ? `Your order from ${confirmCancel.prepper} (${money(confirmCancel.total)}) will be cancelled.` : ''}
               {confirmCancel?.paymentStatus === 'succeeded' ? ' You’ll be refunded automatically.' : ''}
             </Text>
-            <PressableScale onPress={() => confirmCancel && doCancel(confirmCancel)} accessibilityRole="button" accessibilityLabel="Yes, cancel the order" style={{ height: 50, borderRadius: 14, backgroundColor: '#ef4444', alignItems: 'center', justifyContent: 'center' }}>
+            <PressableScale onPress={() => confirmCancel && doCancel(confirmCancel)} accessibilityRole="button" accessibilityLabel="Yes, cancel the order" style={{ height: 50, borderRadius: 14, backgroundColor: Palette.danger, alignItems: 'center', justifyContent: 'center' }}>
               <Text style={{ fontFamily: Font.heading, fontSize: 15.5, color: '#fff' }}>Yes, cancel order</Text>
             </PressableScale>
             <PressableScale onPress={() => setConfirmCancel(null)} accessibilityRole="button" accessibilityLabel="Keep the order" style={{ height: 48, borderRadius: 14, alignItems: 'center', justifyContent: 'center' }}>

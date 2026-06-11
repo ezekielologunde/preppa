@@ -23,7 +23,7 @@ export default function CategoryScreen() {
   const title = (label || key || 'all meals').toString();
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#F7F7F8' }}>
+    <View style={{ flex: 1, backgroundColor: Palette.canvas }}>
       <SafeAreaView edges={['top']} style={{ flex: 1 }}>
         {/* Header */}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16, paddingTop: 8, paddingBottom: 6 }}>

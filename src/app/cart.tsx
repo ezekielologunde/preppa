@@ -136,7 +136,7 @@ export default function CartScreen() {
   // Order-placed confirmation
   if (placed) {
     return (
-      <View style={{ flex: 1, backgroundColor: '#fff' }}>
+      <View style={{ flex: 1, backgroundColor: Palette.surface }}>
         <SafeAreaView style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 14 }}>
           <MotiView from={{ opacity: 0, scale: 0.75 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'spring', duration: 400, bounce: 0.25 }}>
             <View style={{ width: 76, height: 76, borderRadius: 24, backgroundColor: Palette.success + '1F', alignItems: 'center', justifyContent: 'center' }}>
@@ -167,10 +167,10 @@ export default function CartScreen() {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#F7F7F8' }}>
+    <View style={{ flex: 1, backgroundColor: Palette.canvas }}>
       <SafeAreaView edges={['top']} style={{ flex: 1 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingTop: 8, paddingBottom: 8 }}>
-          <PressableScale onPress={goBack} accessibilityRole="button" accessibilityLabel="Go back" style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' }}>
+          <PressableScale onPress={goBack} accessibilityRole="button" accessibilityLabel="Go back" style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
             <ChevronLeft size={22} color={INK} />
           </PressableScale>
           <Text style={{ fontFamily: Font.display, fontSize: 24, color: INK, letterSpacing: -0.6 }}>your cart</Text>
@@ -188,7 +188,7 @@ export default function CartScreen() {
           <ListSkeleton count={3} />
         ) : !cart?.items.length ? (
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 10 }}>
-            <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' }}>
+            <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
               <ShoppingBag size={28} color={Palette.textMuted} />
             </View>
             {canceled ? (
@@ -221,7 +221,7 @@ export default function CartScreen() {
                   <View style={{ gap: 8, marginTop: 2 }}>
                     {kitchens.map((k) => (
                       <PressableScale key={k.id} onPress={() => keepOnly(k.id)} disabled={removeItems.isPending} accessibilityRole="button" accessibilityLabel={`Keep only ${k.name}`}
-                        style={{ height: 44, borderRadius: Radius.sm, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center', opacity: removeItems.isPending ? 0.6 : 1 }}>
+                        style={{ height: 44, borderRadius: Radius.sm, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center', opacity: removeItems.isPending ? 0.6 : 1 }}>
                         <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: INK }}>Keep {k.name}</Text>
                       </PressableScale>
                     ))}
@@ -230,7 +230,7 @@ export default function CartScreen() {
               ) : null}
               {cart.items.map((it, i) => (
                 <MotiView key={it.id} from={{ opacity: 0, translateX: -8 }} animate={{ opacity: 1, translateX: 0 }} transition={{ type: 'timing', duration: 260, delay: i * 50 }}>
-                <View style={{ backgroundColor: '#fff', borderRadius: Radius.md, padding: 12, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                <View style={{ backgroundColor: Palette.surface, borderRadius: Radius.md, padding: 12, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
                   {it.image ? <Image source={it.image} style={{ width: 64, height: 64, borderRadius: 12 }} contentFit="cover" /> : <View style={{ width: 64, height: 64, borderRadius: 12, backgroundColor: Palette.canvas }} />}
                   <View style={{ flex: 1 }}>
                     <Text style={{ fontFamily: Font.heading, fontSize: 15, color: INK }} numberOfLines={1}>{it.title}</Text>
@@ -240,7 +240,7 @@ export default function CartScreen() {
                   {/* Qty stepper */}
                   <View style={{ alignItems: 'center', gap: 8 }}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: Palette.canvas, borderRadius: Radius.pill, paddingHorizontal: 6, paddingVertical: 4 }}>
-                      <PressableScale onPress={() => updateItem.mutate({ itemId: it.id, quantity: it.quantity - 1 })} accessibilityRole="button" accessibilityLabel="Decrease quantity" hitSlop={8} style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' }}>
+                      <PressableScale onPress={() => updateItem.mutate({ itemId: it.id, quantity: it.quantity - 1 })} accessibilityRole="button" accessibilityLabel="Decrease quantity" hitSlop={8} style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
                         {it.quantity <= 1 ? <Trash2 size={14} color="#ef4444" /> : <Minus size={14} color={INK} />}
                       </PressableScale>
                       <Text style={{ fontFamily: Font.heading, fontSize: 15, color: INK, minWidth: 18, textAlign: 'center', fontVariant: ['tabular-nums'] }}>{it.quantity}</Text>
@@ -265,7 +265,7 @@ export default function CartScreen() {
                       accessibilityRole="button"
                       accessibilityState={{ selected: on }}
                       accessibilityLabel={`${m.label}, ${m.fee}, ${m.eta}`}
-                      style={{ flex: 1, backgroundColor: on ? Palette.brandTint : '#fff', borderWidth: 1.5, borderColor: on ? ORANGE : Palette.border, borderRadius: Radius.md, paddingTop: 16, paddingBottom: 12, alignItems: 'center', gap: 7, overflow: 'hidden' }}>
+                      style={{ flex: 1, backgroundColor: on ? Palette.brandTint : Palette.surface, borderWidth: 1.5, borderColor: on ? ORANGE : Palette.border, borderRadius: Radius.md, paddingTop: 16, paddingBottom: 12, alignItems: 'center', gap: 7, overflow: 'hidden' }}>
                       {on ? (
                         <View style={{ position: 'absolute', top: 7, right: 7, width: 18, height: 18, borderRadius: 9, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
                           <Check size={11} color="#fff" strokeWidth={3.5} />
@@ -288,7 +288,7 @@ export default function CartScreen() {
                 accessibilityRole="button"
                 accessibilityState={{ selected: method === 'in_home' }}
                 accessibilityLabel="Cooked in my kitchen — a prepper visits your home"
-                style={{ backgroundColor: method === 'in_home' ? '#11151C' : '#fff', borderWidth: 1.5, borderColor: method === 'in_home' ? '#11151C' : Palette.border, borderRadius: Radius.md, paddingHorizontal: 16, paddingVertical: 14, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                style={{ backgroundColor: method === 'in_home' ? '#11151C' : Palette.surface, borderWidth: 1.5, borderColor: method === 'in_home' ? '#11151C' : Palette.border, borderRadius: Radius.md, paddingHorizontal: 16, paddingVertical: 14, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
                 {method === 'in_home' ? (
                   <View style={{ position: 'absolute', top: 10, right: 12, width: 18, height: 18, borderRadius: 9, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
                     <Check size={11} color="#fff" strokeWidth={3.5} />
@@ -307,7 +307,7 @@ export default function CartScreen() {
 
               {/* Contextual detail */}
               {method === 'pickup' ? (
-                <View style={{ backgroundColor: '#fff', borderRadius: Radius.md, padding: 12, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <View style={{ backgroundColor: Palette.surface, borderRadius: Radius.md, padding: 12, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                   <Store size={16} color={ORANGE} />
                   <Text style={{ flex: 1, fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary }}>Pick up from {prepper}. They&apos;ll share the spot when they confirm.</Text>
                 </View>
@@ -328,7 +328,7 @@ export default function CartScreen() {
                     onChangeText={(t) => { setNote(t); setErr(null); }}
                     placeholder={noteConfig[method]!.placeholder}
                     placeholderTextColor={Palette.textMuted}
-                    style={{ minHeight: 48, backgroundColor: '#fff', borderRadius: Radius.md, borderWidth: 1, borderColor: Palette.border, paddingHorizontal: 14, paddingVertical: 12, fontFamily: Font.body, fontSize: 15, color: INK }}
+                    style={{ minHeight: 48, backgroundColor: Palette.surface, borderRadius: Radius.md, borderWidth: 1, borderColor: Palette.border, paddingHorizontal: 14, paddingVertical: 12, fontFamily: Font.body, fontSize: 15, color: INK }}
                   />
                 </View>
               ) : null}
@@ -349,7 +349,7 @@ export default function CartScreen() {
                       accessibilityRole="button"
                       accessibilityState={{ selected: on }}
                       accessibilityLabel={t === 0 ? 'No tip' : `Tip ${money(t)}`}
-                      style={{ flex: 1, height: 46, borderRadius: Radius.pill, borderWidth: 1.5, borderColor: on ? ORANGE : Palette.border, backgroundColor: on ? ORANGE : '#fff', alignItems: 'center', justifyContent: 'center' }}>
+                      style={{ flex: 1, height: 46, borderRadius: Radius.pill, borderWidth: 1.5, borderColor: on ? ORANGE : Palette.border, backgroundColor: on ? ORANGE : Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
                       <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: on ? '#fff' : INK }}>{t === 0 ? 'None' : money(t)}</Text>
                     </PressableScale>
                   );
@@ -359,12 +359,12 @@ export default function CartScreen() {
                   accessibilityRole="button"
                   accessibilityState={{ selected: customTip }}
                   accessibilityLabel="Custom tip"
-                  style={{ flex: 1, height: 46, borderRadius: Radius.pill, borderWidth: 1.5, borderColor: customTip ? ORANGE : Palette.border, backgroundColor: customTip ? Palette.brandTint : '#fff', alignItems: 'center', justifyContent: 'center' }}>
+                  style={{ flex: 1, height: 46, borderRadius: Radius.pill, borderWidth: 1.5, borderColor: customTip ? ORANGE : Palette.border, backgroundColor: customTip ? Palette.brandTint : Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
                   <Text style={{ fontFamily: Font.semibold, fontSize: 13.5, color: customTip ? Palette.brandPressed : INK }}>Custom</Text>
                 </PressableScale>
               </View>
               {customTip ? (
-                <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: Radius.md, borderWidth: 1.5, borderColor: ORANGE, paddingHorizontal: 14, height: 50, gap: 6 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: Palette.surface, borderRadius: Radius.md, borderWidth: 1.5, borderColor: ORANGE, paddingHorizontal: 14, height: 50, gap: 6 }}>
                   <Text style={{ fontFamily: Font.display, fontSize: 20, color: INK }}>$</Text>
                   <TextInput
                     value={tip ? String(tip) : ''}
@@ -379,11 +379,11 @@ export default function CartScreen() {
                 </View>
               ) : null}
 
-              {err ? <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: '#ef4444', textAlign: 'center' }}>{err}</Text> : null}
+              {err ? <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: Palette.danger, textAlign: 'center' }}>{err}</Text> : null}
             </ScrollView>
 
             {/* Summary + checkout */}
-            <SafeAreaView edges={['bottom']} style={{ backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: '#f3f4f6', paddingHorizontal: 20, paddingTop: 14 }}>
+            <SafeAreaView edges={['bottom']} style={{ backgroundColor: Palette.surface, borderTopWidth: 1, borderTopColor: Palette.chip, paddingHorizontal: 20, paddingTop: 14 }}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 }}>
                 <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary }}>Subtotal</Text>
                 <Text style={{ fontFamily: Font.medium, fontSize: 13, color: INK, fontVariant: ['tabular-nums'] }}>{money(subtotal)}</Text>
