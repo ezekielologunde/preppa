@@ -30,7 +30,7 @@ import {
 } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useState } from 'react';
-import { Linking, Platform, ScrollView, Text, View } from 'react-native';
+import { Linking, Platform, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { CustomerBadgeShelf } from '@/components/badge-shelf';
@@ -126,18 +126,20 @@ function HubGrid({ hub, dark, onHub }: { hub: HubItem[]; dark: boolean; onHub: (
 export default function ProfileScreen() {
   const router = useRouter();
   const { user, signOut, isAdmin } = useAuth();
-  const { data: subs } = useMySubscriptions(user?.id);
-  const { data: membership } = useCustomerMembership(user?.id);
+  const { data: subs, refetch: refetchSubs } = useMySubscriptions(user?.id);
+  const { data: membership, refetch: refetchMembership } = useCustomerMembership(user?.id);
   const isPlus = membership?.isPlus === true;
-  const { data: earnedBadges } = useCustomerBadges(user?.id);
-  const { data: myPrepper } = useMyPrepperApplication(user?.id);
+  const { data: earnedBadges, refetch: refetchBadges } = useCustomerBadges(user?.id);
+  const { data: myPrepper, refetch: refetchPrepper } = useMyPrepperApplication(user?.id);
   const isApprovedPrepper = myPrepper?.status === 'approved';
   const isPendingPrepper = myPrepper?.status === 'pending';
 
-  const { data: addresses } = useAddresses(user?.id);
-  const { data: pmData } = usePaymentMethods();
+  const { data: addresses, refetch: refetchAddresses } = useAddresses(user?.id);
+  const { data: pmData, refetch: refetchPm } = usePaymentMethods();
   const addrCount = addresses?.length ?? 0;
   const defaultCard = pmData?.methods.find((m) => m.isDefault);
+  const [refreshing, setRefreshing] = useState(false);
+  async function handleRefresh() { setRefreshing(true); await Promise.all([refetchSubs(), refetchMembership(), refetchBadges(), refetchPrepper(), refetchAddresses(), refetchPm()]); setRefreshing(false); }
 
   const hub: HubItem[] = [
     ...STATIC_HUB.map((item) => {
@@ -202,7 +204,7 @@ export default function ProfileScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: Palette.canvas }}>
       <SafeAreaView edges={['top']} style={{ flex: 1 }}>
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: Platform.OS === 'web' ? 16 : 8, paddingBottom: 130 }}>
+        <ScrollView showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={Palette.brand} colors={[Palette.brand]} />} contentContainerStyle={{ paddingTop: Platform.OS === 'web' ? 16 : 8, paddingBottom: 130 }}>
           {/* Top actions */}
           <View style={{ flexDirection: 'row', justifyContent: 'flex-end', paddingHorizontal: 20, gap: 10 }}>
             <PressableScale onPress={() => router.push('/settings')} accessibilityRole="button" accessibilityLabel="Settings" style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>

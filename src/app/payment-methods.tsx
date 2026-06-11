@@ -4,6 +4,7 @@ import { MotiView } from 'moti';
 import { useState } from 'react';
 import {
   ActivityIndicator,
+  RefreshControl,
   ScrollView,
   Text,
   View,
@@ -205,12 +206,14 @@ function PaymentCard({
 
 export default function PaymentMethodsScreen() {
   const router = useRouter();
-  const { data, isLoading } = usePaymentMethods();
+  const { data, isLoading, refetch } = usePaymentMethods();
   const detachPM = useDetachPaymentMethod();
   const setDefaultPM = useSetDefaultPaymentMethod();
   const cards = data?.methods ?? [];
   const [sheetVisible, setSheetVisible] = useState(false);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+  async function handleRefresh() { setRefreshing(true); await refetch(); setRefreshing(false); }
 
   const triggerDelete = (id: string) => {
     setPendingDeleteId(id);
@@ -271,7 +274,8 @@ export default function PaymentMethodsScreen() {
               gap: Spacing.three,
               paddingBottom: 120,
             }}
-            showsVerticalScrollIndicator={false}>
+            showsVerticalScrollIndicator={false}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={Palette.brand} colors={[Palette.brand]} />}>
 
             {/* Card list */}
             {cards.map((card, index) => (

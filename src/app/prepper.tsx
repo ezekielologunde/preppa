@@ -2,7 +2,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Award, BadgeCheck, Bike, CalendarCheck, Check, ChevronLeft, MapPin, RefreshCw, ShieldCheck, ShoppingBag, Star, Store, UserPlus, Users } from 'lucide-react-native';
 import { useState } from 'react';
 import { MotiView } from 'moti';
-import { ScrollView, Text, View } from 'react-native';
+import { RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PrepperBadgeShelf } from '@/components/badge-shelf';
@@ -58,15 +58,17 @@ export default function PrepperScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id?: string }>();
   const { user } = useAuth();
-  const { data: p, isLoading } = usePrepperProfile(id);
-  const { data: reviews } = usePrepperReviews(id, 6);
-  const { data: following } = useIsFollowing(id, user?.id);
+  const { data: p, isLoading, refetch: refetchProfile } = usePrepperProfile(id);
+  const { data: reviews, refetch: refetchReviews } = usePrepperReviews(id, 6);
+  const { data: following, refetch: refetchFollowing } = useIsFollowing(id, user?.id);
   const toggleFollow = useToggleFollow(id ?? '', user?.id);
-  const { data: plans } = useKitchenPlans(id);
-  const { data: badges } = usePrepperBadges(id);
+  const { data: plans, refetch: refetchPlans } = useKitchenPlans(id);
+  const { data: badges, refetch: refetchBadges } = usePrepperBadges(id);
   const { data: mySubs } = useMySubscriptions(user?.id);
   const cardW = gridCardWidth(useContentWidth());
   const [sheetPlan, setSheetPlan] = useState<MealPlan | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+  async function handleRefresh() { setRefreshing(true); await Promise.all([refetchProfile(), refetchReviews(), refetchFollowing(), refetchPlans(), refetchBadges()]); setRefreshing(false); }
   const subscribedNames = new Set((mySubs ?? []).filter((s) => s.status !== 'cancelled').map((s) => s.plan_name));
   const onToggleFollow = () => {
     if (!user?.id) { router.push('/auth'); return; }
@@ -81,7 +83,7 @@ export default function PrepperScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: Palette.canvas }}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 130 }}>
+      <ScrollView showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={ORANGE} colors={[ORANGE]} />} contentContainerStyle={{ paddingBottom: 130 }}>
         {/* Header band */}
         <View style={{ backgroundColor: INK, paddingBottom: 22 }}>
           <SafeAreaView edges={['top']}>
