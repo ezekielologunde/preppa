@@ -7,23 +7,16 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
-import { Palette, Radius } from '@/constants/theme';
+import { Palette } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
+import { useMealRequests, usePlaceBid, usePostMealRequest, type MealRequest } from '@/lib/queries/bid-requests';
 import { useMyPrepperApplication } from '@/lib/queries/preppers';
 import { useAuth } from '@/providers/auth-provider';
 
 const ORANGE = Palette.brand;
 const INK = Palette.ink;
 
-// Placeholder data — replace with useQuery once meal_requests table is migrated
-const MOCK_REQUESTS = [
-  { id: '1', title: 'Jerk chicken meal prep', description: 'Need 10 portions of jerk chicken with rice & peas for a team lunch on Friday.', servings: 10, budget: 15, cuisine: 'Caribbean', deadline: '2026-06-14', bids: 3, poster: 'Marcus T.' },
-  { id: '2', title: 'High-protein batch bowls', description: 'Looking for weekly high-protein grain bowls (chicken or tofu) for 2 people, 5 days/week.', servings: 10, budget: 12, cuisine: 'Healthy', deadline: '2026-06-16', bids: 1, poster: 'Priya K.' },
-  { id: '3', title: 'Nigerian party food', description: 'Party for 25 people — rice, stew, fried plantain, puff puff. Saturday evening.', servings: 25, budget: 22, cuisine: 'Nigerian', deadline: '2026-06-15', bids: 5, poster: 'Adaeze N.' },
-  { id: '4', title: 'Vegan birthday cake', description: 'Need a 3-tier vegan celebration cake, no nuts, pick up Sunday.', servings: 20, budget: 8, cuisine: 'Desserts', deadline: '2026-06-22', bids: 0, poster: 'Sam L.' },
-];
-
-type Request = typeof MOCK_REQUESTS[number];
+type Request = MealRequest;
 
 function RequestCard({ r, isPrepper, onBid }: { r: Request; isPrepper: boolean; onBid: (r: Request) => void }) {
   return (
@@ -37,9 +30,9 @@ function RequestCard({ r, isPrepper, onBid }: { r: Request; isPrepper: boolean; 
           <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>{r.title}</Text>
           <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary, marginTop: 3, lineHeight: 19 }}>{r.description}</Text>
         </View>
-        {r.bids > 0 ? (
+        {r.bid_count > 0 ? (
           <View style={{ backgroundColor: Palette.brandTint, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4 }}>
-            <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: ORANGE }}>{r.bids} bid{r.bids === 1 ? '' : 's'}</Text>
+            <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: ORANGE }}>{r.bid_count} bid{r.bid_count === 1 ? '' : 's'}</Text>
           </View>
         ) : null}
       </View>
@@ -49,18 +42,22 @@ function RequestCard({ r, isPrepper, onBid }: { r: Request; isPrepper: boolean; 
           <Users size={13} color={Palette.textMuted} />
           <Text style={{ fontFamily: Font.medium, fontSize: 12.5, color: Palette.textSecondary }}>{r.servings} servings</Text>
         </View>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-          <DollarSign size={13} color={Palette.textMuted} />
-          <Text style={{ fontFamily: Font.medium, fontSize: 12.5, color: Palette.textSecondary }}>${r.budget}/serving budget</Text>
-        </View>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-          <Clock size={13} color={Palette.textMuted} />
-          <Text style={{ fontFamily: Font.medium, fontSize: 12.5, color: Palette.textSecondary }}>by {new Date(r.deadline).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</Text>
-        </View>
+        {r.budget_per_serving != null ? (
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+            <DollarSign size={13} color={Palette.textMuted} />
+            <Text style={{ fontFamily: Font.medium, fontSize: 12.5, color: Palette.textSecondary }}>${r.budget_per_serving}/serving budget</Text>
+          </View>
+        ) : null}
+        {r.deadline ? (
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+            <Clock size={13} color={Palette.textMuted} />
+            <Text style={{ fontFamily: Font.medium, fontSize: 12.5, color: Palette.textSecondary }}>by {new Date(r.deadline).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</Text>
+          </View>
+        ) : null}
       </View>
 
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 2 }}>
-        <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted }}>from {r.poster} · {r.cuisine}</Text>
+        <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted }}>from {r.poster}{r.cuisine ? ` · ${r.cuisine}` : ''}</Text>
         {isPrepper ? (
           <PressableScale onPress={() => onBid(r)} accessibilityRole="button" accessibilityLabel={`Bid on ${r.title}`}
             style={{ height: 38, paddingHorizontal: 18, borderRadius: 12, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
@@ -78,6 +75,10 @@ export default function BidRequestsScreen() {
   const { data: prepper } = useMyPrepperApplication(user?.id);
   const isPrepper = prepper?.status === 'approved';
 
+  const { data: requests = [], isLoading } = useMealRequests();
+  const postRequest = usePostMealRequest();
+  const placeBid = usePlaceBid();
+
   const [showPost, setShowPost] = useState(false);
   const [bidTarget, setBidTarget] = useState<Request | null>(null);
 
@@ -86,37 +87,36 @@ export default function BidRequestsScreen() {
   const [reqDesc, setReqDesc] = useState('');
   const [reqServings, setReqServings] = useState('');
   const [reqBudget, setReqBudget] = useState('');
-  const [posting, setPosting] = useState(false);
 
   // Bid form state
   const [bidPrice, setBidPrice] = useState('');
   const [bidNote, setBidNote] = useState('');
-  const [bidding, setBidding] = useState(false);
 
   async function submitRequest() {
-    if (!reqTitle.trim()) return;
-    setPosting(true);
-    try {
-      // TODO: insert into meal_requests once table is migrated
-      feedback.success();
-      setShowPost(false);
-      setReqTitle(''); setReqDesc(''); setReqServings(''); setReqBudget('');
-    } finally {
-      setPosting(false);
-    }
+    if (!reqTitle.trim() || !user) return;
+    await postRequest.mutateAsync({
+      customerId: user.id,
+      title: reqTitle,
+      description: reqDesc || undefined,
+      servings: Math.max(1, parseInt(reqServings, 10) || 1),
+      budgetPerServing: reqBudget ? parseFloat(reqBudget) : undefined,
+    });
+    feedback.success();
+    setShowPost(false);
+    setReqTitle(''); setReqDesc(''); setReqServings(''); setReqBudget('');
   }
 
   async function submitBid() {
-    if (!bidPrice || !bidTarget) return;
-    setBidding(true);
-    try {
-      // TODO: insert into meal_request_bids once table is migrated
-      feedback.success();
-      setBidTarget(null);
-      setBidPrice(''); setBidNote('');
-    } finally {
-      setBidding(false);
-    }
+    if (!bidPrice || !bidTarget || !prepper) return;
+    await placeBid.mutateAsync({
+      requestId: bidTarget.id,
+      prepperId: prepper.id,
+      pricePerServing: parseFloat(bidPrice),
+      note: bidNote || undefined,
+    });
+    feedback.success();
+    setBidTarget(null);
+    setBidPrice(''); setBidNote('');
   }
 
   return (
@@ -143,11 +143,23 @@ export default function BidRequestsScreen() {
         </View>
 
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 16, paddingBottom: 60 }}>
-          {MOCK_REQUESTS.map((r, i) => (
-            <MotiView key={r.id} from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 220, delay: i * 50 }}>
-              <RequestCard r={r} isPrepper={isPrepper} onBid={(req) => { feedback.tap(); setBidTarget(req); }} />
+          {isLoading ? (
+            <ActivityIndicator color={ORANGE} style={{ marginTop: 40 }} />
+          ) : requests.length === 0 ? (
+            <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 240 }}
+              style={{ alignItems: 'center', paddingTop: 60, gap: 10 }}>
+              <Text style={{ fontFamily: Font.heading, fontSize: 18, color: INK }}>no open requests</Text>
+              <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center' }}>
+                {isPrepper ? 'Check back later — customers post new requests daily.' : 'Post the first one! Preppers in your area will bid.'}
+              </Text>
             </MotiView>
-          ))}
+          ) : (
+            requests.map((r, i) => (
+              <MotiView key={r.id} from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 220, delay: i * 50 }}>
+                <RequestCard r={r} isPrepper={isPrepper} onBid={(req) => { feedback.tap(); setBidTarget(req); }} />
+              </MotiView>
+            ))
+          )}
         </ScrollView>
 
         {/* Post request modal */}
@@ -165,9 +177,9 @@ export default function BidRequestsScreen() {
                 <TextInput value={reqBudget} onChangeText={setReqBudget} placeholder="$ budget / serving" placeholderTextColor="#9ca3af" keyboardType="decimal-pad"
                   style={{ flex: 1, height: 50, backgroundColor: '#F4F4F6', borderRadius: 14, paddingHorizontal: 14, fontFamily: Font.body, fontSize: 15, color: INK }} />
               </View>
-              <PressableScale onPress={submitRequest} disabled={posting || !reqTitle.trim()} accessibilityRole="button" accessibilityLabel="Submit request"
-                style={{ height: 54, borderRadius: 16, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', opacity: posting || !reqTitle.trim() ? 0.6 : 1 }}>
-                {posting ? <ActivityIndicator color="#fff" /> : <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>post request</Text>}
+              <PressableScale onPress={submitRequest} disabled={postRequest.isPending || !reqTitle.trim()} accessibilityRole="button" accessibilityLabel="Submit request"
+                style={{ height: 54, borderRadius: 16, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', opacity: postRequest.isPending || !reqTitle.trim() ? 0.6 : 1 }}>
+                {postRequest.isPending ? <ActivityIndicator color="#fff" /> : <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>post request</Text>}
               </PressableScale>
             </Pressable>
           </Pressable>
@@ -193,9 +205,9 @@ export default function BidRequestsScreen() {
               </View>
               <TextInput value={bidNote} onChangeText={setBidNote} placeholder="Message to the customer (optional)" placeholderTextColor="#9ca3af" multiline
                 style={{ minHeight: 70, backgroundColor: '#F4F4F6', borderRadius: 14, padding: 14, fontFamily: Font.body, fontSize: 14, color: INK, textAlignVertical: 'top' }} />
-              <PressableScale onPress={submitBid} disabled={bidding || !bidPrice} accessibilityRole="button" accessibilityLabel="Submit bid"
-                style={{ height: 54, borderRadius: 16, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', opacity: bidding || !bidPrice ? 0.6 : 1 }}>
-                {bidding ? <ActivityIndicator color="#fff" /> : <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>submit bid</Text>}
+              <PressableScale onPress={submitBid} disabled={placeBid.isPending || !bidPrice} accessibilityRole="button" accessibilityLabel="Submit bid"
+                style={{ height: 54, borderRadius: 16, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', opacity: placeBid.isPending || !bidPrice ? 0.6 : 1 }}>
+                {placeBid.isPending ? <ActivityIndicator color="#fff" /> : <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>submit bid</Text>}
               </PressableScale>
             </Pressable>
           </Pressable>

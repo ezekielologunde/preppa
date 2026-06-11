@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { ChevronLeft, Hash, ImagePlus, Video, X } from 'lucide-react-native';
+import { ChevronLeft, Hash, ImagePlus, Video } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useState } from 'react';
 import { ActivityIndicator, ScrollView, Text, TextInput, View } from 'react-native';
@@ -9,6 +9,7 @@ import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
 import { Palette, Radius } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
+import { supabase } from '@/lib/supabase';
 import { pickAndUploadImage } from '@/lib/upload';
 import { useMyPrepperApplication } from '@/lib/queries/preppers';
 import { useAuth } from '@/providers/auth-provider';
@@ -66,8 +67,13 @@ export default function PostVideoScreen() {
     if (!caption.trim() && !thumb) return;
     setUploading(true);
     try {
-      // TODO: insert into feed_posts table once migration is applied
-      // await supabase.from('feed_posts').insert({ prepper_id: prepper.id, caption, thumbnail: thumb, tags })
+      const { error } = await supabase.from('feed_posts').insert({
+        prepper_id: prepper!.id,
+        caption: caption.trim() || null,
+        thumbnail_url: thumb,
+        tags,
+      });
+      if (error) throw error;
       feedback.success();
       setPosted(true);
       setTimeout(() => router.replace('/dashboard'), 1200);
