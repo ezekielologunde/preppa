@@ -92,7 +92,7 @@ export function MealCard({ meal, width = 200, variant = 'normal' }: { meal: Meal
       style={width === null ? { width: '100%' } : { width }}
       accessibilityRole="button"
       accessibilityLabel={`${meal.title} by ${meal.prepper}, $${meal.price.toFixed(2)}`}>
-      <View style={{ borderRadius: big ? 24 : 20, overflow: 'hidden', backgroundColor: '#fff', shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 12, shadowOffset: { width: 0, height: 6 }, elevation: 2 }}>
+      <View style={{ borderRadius: big ? 24 : 20, overflow: 'hidden', backgroundColor: Palette.surface, shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 12, shadowOffset: { width: 0, height: 6 }, elevation: 2 }}>
         <View style={{ position: 'relative' }}>
           <CardGallery images={images} hovered={hovered} height={imgHeight} />
           {meal.badge ? (

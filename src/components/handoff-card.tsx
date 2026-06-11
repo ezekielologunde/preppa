@@ -52,7 +52,7 @@ export function HandoffCard({ pin, token, verified, label }: { pin: string; toke
         <Text style={{ fontFamily: Font.heading, fontSize: 13.5, color: Palette.brandPressed }}>{label}</Text>
       </View>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
-        <View style={{ backgroundColor: '#fff', borderRadius: 14, padding: 10, shadowColor: g2, shadowOpacity: 0.25, shadowRadius: 12, shadowOffset: { width: 0, height: 4 } }}>
+        <View style={{ backgroundColor: Palette.surface, borderRadius: 14, padding: 10, shadowColor: g2, shadowOpacity: 0.25, shadowRadius: 12, shadowOffset: { width: 0, height: 4 } }}>
           <QRCode
             value={`${SITE}/verify?t=${token}`}
             size={96}

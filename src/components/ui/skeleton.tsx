@@ -1,6 +1,8 @@
 import { MotiView } from 'moti';
 import { View, type DimensionValue, type StyleProp, type ViewStyle } from 'react-native';
 
+import { Palette } from '@/constants/theme';
+
 /** Pulsing placeholder — opacity-only so it stays at 60fps. */
 export function Skeleton({
   width,
@@ -26,7 +28,7 @@ export function Skeleton({
 /** Meal/prepper card placeholder used while carousels load. */
 export function CardSkeleton({ width = 200 }: { width?: number }) {
   return (
-    <View style={{ width, borderRadius: 20, overflow: 'hidden', backgroundColor: '#fff', padding: 0 }}>
+    <View style={{ width, borderRadius: 20, overflow: 'hidden', backgroundColor: Palette.surface, padding: 0 }}>
       <Skeleton width={width} height={130} radius={0} />
       <View style={{ padding: 12, gap: 8 }}>
         <Skeleton width="80%" height={14} radius={6} />
@@ -53,7 +55,7 @@ export function ListSkeleton({ count = 3, rowHeight = 96 }: { count?: number; ro
   return (
     <View style={{ gap: 12, paddingHorizontal: 20, paddingTop: 8 }}>
       {Array.from({ length: count }).map((_, i) => (
-        <View key={i} style={{ backgroundColor: '#fff', borderRadius: 20, padding: 14, flexDirection: 'row', gap: 12, alignItems: 'center' }}>
+        <View key={i} style={{ backgroundColor: Palette.surface, borderRadius: 20, padding: 14, flexDirection: 'row', gap: 12, alignItems: 'center' }}>
           <Skeleton width={60} height={60} radius={14} />
           <View style={{ flex: 1, gap: 8 }}>
             <Skeleton width="65%" height={14} radius={6} />

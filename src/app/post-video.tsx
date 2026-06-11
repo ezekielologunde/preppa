@@ -126,7 +126,7 @@ export default function PostVideoScreen() {
 
           {/* Caption */}
           <View>
-            <Text style={{ fontFamily: Font.heading, fontSize: 13.5, color: '#d1d5db', marginBottom: 8 }}>caption</Text>
+            <Text style={{ fontFamily: Font.heading, fontSize: 13.5, color: Palette.divider, marginBottom: 8 }}>caption</Text>
             <TextInput
               value={caption}
               onChangeText={setCaption}
@@ -143,7 +143,7 @@ export default function PostVideoScreen() {
           <View>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 10 }}>
               <Hash size={14} color={MUTED} />
-              <Text style={{ fontFamily: Font.heading, fontSize: 13.5, color: '#d1d5db' }}>tags</Text>
+              <Text style={{ fontFamily: Font.heading, fontSize: 13.5, color: Palette.divider }}>tags</Text>
             </View>
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
               {TAGS.map((t) => {
