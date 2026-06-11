@@ -13,6 +13,39 @@ import { useFeed, type FeedItem } from '@/lib/queries/feed';
 const ORANGE = Palette.brand;
 const TAB_BAR = 88; // customer bottom nav overlays the feed
 
+function PostCard({ item, height, bottomInset }: { item: FeedItem; height: number; bottomInset: number }) {
+  const router = useRouter();
+  const source = item.thumbnail ?? item.image;
+  return (
+    <View style={{ height, width: '100%', backgroundColor: '#000' }}>
+      {source ? <Image source={source} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} contentFit="cover" transition={200} /> : null}
+      <LinearGradient colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.15)', 'rgba(0,0,0,0.78)']} locations={[0, 0.5, 1]}
+        style={{ position: 'absolute', left: 0, right: 0, bottom: 0, top: 0 }} />
+      {item.videoUrl ? (
+        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' }} pointerEvents="none">
+          <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: 'rgba(0,0,0,0.4)', alignItems: 'center', justifyContent: 'center' }}>
+            <Play size={28} color="#fff" fill="#fff" />
+          </View>
+        </View>
+      ) : null}
+      <View style={{ position: 'absolute', left: 20, right: 20, bottom: bottomInset + TAB_BAR + 16, gap: 10 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
+          <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: 'rgba(255,255,255,0.92)' }}>{item.prepper}</Text>
+          {item.verified ? <BadgeCheck size={15} color="#fff" fill={ORANGE} stroke="#fff" /> : null}
+          <View style={{ marginLeft: 'auto', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.18)' }}>
+            <Text style={{ fontFamily: Font.medium, fontSize: 12, color: '#fff' }}>post</Text>
+          </View>
+        </View>
+        {item.title ? <Text style={{ fontFamily: Font.body, fontSize: 16, color: 'rgba(255,255,255,0.9)', lineHeight: 23 }} numberOfLines={3}>{item.title}</Text> : null}
+        <PressableScale onPress={() => router.push('/profile')} accessibilityRole="button" accessibilityLabel={`View ${item.prepper}'s profile`}
+          style={{ alignSelf: 'flex-start', height: 44, paddingHorizontal: 20, borderRadius: 14, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.5)', alignItems: 'center', justifyContent: 'center' }}>
+          <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: '#fff' }}>View profile</Text>
+        </PressableScale>
+      </View>
+    </View>
+  );
+}
+
 function FeedCard({ item, height, bottomInset }: { item: FeedItem; height: number; bottomInset: number }) {
   const router = useRouter();
   const source = item.thumbnail ?? item.image;
@@ -98,9 +131,11 @@ export default function FeedsScreen() {
         decelerationRate="fast"
         snapToInterval={pageHeight}
         snapToAlignment="start">
-        {items.map((item) => (
-          <FeedCard key={item.id} item={item} height={pageHeight} bottomInset={insets.bottom} />
-        ))}
+        {items.map((item) =>
+          item.isPost
+            ? <PostCard key={item.id} item={item} height={pageHeight} bottomInset={insets.bottom} />
+            : <FeedCard key={item.id} item={item} height={pageHeight} bottomInset={insets.bottom} />
+        )}
       </ScrollView>
     </View>
   );

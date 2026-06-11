@@ -148,15 +148,7 @@ function Row({ Icon, label, iconBg, iconColor, labelColor, right, onPress, isLas
           </Text>
         )}
       </PressableScale>
-      {!isLast && (
-        <View
-          style={{
-            height: 1,
-            backgroundColor: Palette.border,
-            marginLeft: 64,
-          }}
-        />
-      )}
+      {!isLast && <View style={{ height: 1, backgroundColor: Palette.border, marginLeft: 64 }} />}
     </>
   );
 }
@@ -208,82 +200,25 @@ function Section({
 function DeleteModal({ visible, onCancel, onConfirm }: { visible: boolean; onCancel: () => void; onConfirm: () => void }) {
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onCancel}>
-      <View
-        style={{
-          flex: 1,
-          backgroundColor: 'rgba(0,0,0,0.45)',
-          justifyContent: 'flex-end',
-          paddingHorizontal: 20,
-          paddingBottom: Platform.OS === 'ios' ? 40 : 24,
-        }}>
-        <MotiView
-          from={{ opacity: 0, translateY: 24 }}
-          animate={{ opacity: 1, translateY: 0 }}
+      <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end', paddingHorizontal: 20, paddingBottom: Platform.OS === 'ios' ? 40 : 24 }}>
+        <MotiView from={{ opacity: 0, translateY: 24 }} animate={{ opacity: 1, translateY: 0 }}
           transition={{ type: 'timing', duration: 260 }}
-          style={{
-            backgroundColor: Palette.surface,
-            borderRadius: 24,
-            padding: 24,
-            gap: 8,
-          }}>
-          <View
-            style={{
-              width: 52,
-              height: 52,
-              borderRadius: 16,
-              backgroundColor: '#FEE2E2',
-              alignItems: 'center',
-              justifyContent: 'center',
-              alignSelf: 'center',
-              marginBottom: 4,
-            }}>
+          style={{ backgroundColor: Palette.surface, borderRadius: 24, padding: 24, gap: 8 }}>
+          <View style={{ width: 52, height: 52, borderRadius: 16, backgroundColor: '#FEE2E2', alignItems: 'center', justifyContent: 'center', alignSelf: 'center', marginBottom: 4 }}>
             <AlertTriangle size={24} color={Palette.danger} />
           </View>
-          <Text
-            style={{
-              fontFamily: Font.display,
-              fontSize: 20,
-              color: Palette.ink,
-              textAlign: 'center',
-              marginBottom: 4,
-            }}>
+          <Text style={{ fontFamily: Font.display, fontSize: 20, color: Palette.ink, textAlign: 'center', marginBottom: 4 }}>
             Delete account?
           </Text>
-          <Text
-            style={{
-              fontFamily: Font.body,
-              fontSize: 14,
-              color: Palette.textSecondary,
-              textAlign: 'center',
-              lineHeight: 20,
-            }}>
+          <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center', lineHeight: 20 }}>
             This will permanently delete your Preppa account, orders, and all saved data. This action cannot be undone.
           </Text>
-          <PressableScale
-            onPress={onConfirm}
-            accessibilityRole="button"
-            accessibilityLabel="Confirm delete account"
-            style={{
-              marginTop: 16,
-              paddingVertical: 15,
-              borderRadius: 16,
-              backgroundColor: Palette.danger,
-              alignItems: 'center',
-            }}>
-            <Text style={{ fontFamily: Font.heading, fontSize: 15, color: Palette.surface }}>
-              Yes, delete my account
-            </Text>
+          <PressableScale onPress={onConfirm} accessibilityRole="button" accessibilityLabel="Confirm delete account"
+            style={{ marginTop: 16, paddingVertical: 15, borderRadius: 16, backgroundColor: Palette.danger, alignItems: 'center' }}>
+            <Text style={{ fontFamily: Font.heading, fontSize: 15, color: Palette.surface }}>Yes, delete my account</Text>
           </PressableScale>
-          <PressableScale
-            onPress={onCancel}
-            accessibilityRole="button"
-            accessibilityLabel="Cancel"
-            style={{
-              paddingVertical: 15,
-              borderRadius: 16,
-              backgroundColor: Palette.chip,
-              alignItems: 'center',
-            }}>
+          <PressableScale onPress={onCancel} accessibilityRole="button" accessibilityLabel="Cancel"
+            style={{ paddingVertical: 15, borderRadius: 16, backgroundColor: Palette.chip, alignItems: 'center' }}>
             <Text style={{ fontFamily: Font.heading, fontSize: 15, color: Palette.ink }}>Cancel</Text>
           </PressableScale>
         </MotiView>
