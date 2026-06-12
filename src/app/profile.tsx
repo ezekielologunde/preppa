@@ -299,7 +299,7 @@ export default function ProfileScreen() {
               accessibilityRole="button"
               accessibilityLabel="Open my kitchen"
               style={{ marginHorizontal: 20, marginTop: 16, backgroundColor: Palette.prepperBg, borderRadius: 18, padding: 16, flexDirection: 'row', alignItems: 'center', gap: 14 }}>
-              <View style={{ width: 42, height: 42, borderRadius: 13, backgroundColor: 'rgba(241,95,34,0.18)', alignItems: 'center', justifyContent: 'center' }}>
+              <View style={{ width: 42, height: 42, borderRadius: 13, backgroundColor: Palette.brand + '2E', alignItems: 'center', justifyContent: 'center' }}>
                 <ChefHat size={20} color={Palette.brand} />
               </View>
               <View style={{ flex: 1 }}>
@@ -318,7 +318,7 @@ export default function ProfileScreen() {
               accessibilityLabel="Open admin console"
               {...({ dataSet: { noinvert: 'true' } } as object)}
               style={{ marginHorizontal: 20, marginTop: 16, backgroundColor: Palette.prepperBg, borderRadius: 18, padding: 16, flexDirection: 'row', alignItems: 'center', gap: 14 }}>
-              <View style={{ width: 42, height: 42, borderRadius: 13, backgroundColor: 'rgba(241,95,34,0.18)', alignItems: 'center', justifyContent: 'center' }}>
+              <View style={{ width: 42, height: 42, borderRadius: 13, backgroundColor: Palette.brand + '2E', alignItems: 'center', justifyContent: 'center' }}>
                 <ShieldCheck size={20} color={Palette.brand} />
               </View>
               <View style={{ flex: 1 }}>
@@ -418,7 +418,7 @@ export default function ProfileScreen() {
               accessibilityRole="button"
               accessibilityLabel="Become a prepper, start earning with your cooking"
               style={{ marginHorizontal: 20, marginTop: 10, backgroundColor: Palette.prepperBg, borderRadius: 18, padding: 16, flexDirection: 'row', alignItems: 'center', gap: 14 }}>
-              <View style={{ width: 42, height: 42, borderRadius: 13, backgroundColor: 'rgba(241,95,34,0.18)', alignItems: 'center', justifyContent: 'center' }}>
+              <View style={{ width: 42, height: 42, borderRadius: 13, backgroundColor: Palette.brand + '2E', alignItems: 'center', justifyContent: 'center' }}>
                 <ChefHat size={20} color={Palette.brand} />
               </View>
               <View style={{ flex: 1 }}>
@@ -429,7 +429,7 @@ export default function ProfileScreen() {
             </PressableScale>
           ) : isPendingPrepper ? (
             <View style={{ marginHorizontal: 20, marginTop: 10, backgroundColor: Palette.amber + '1A', borderRadius: 18, padding: 16, flexDirection: 'row', alignItems: 'center', gap: 14 }}>
-              <View style={{ width: 42, height: 42, borderRadius: 13, backgroundColor: 'rgba(245,158,11,0.15)', alignItems: 'center', justifyContent: 'center' }}>
+              <View style={{ width: 42, height: 42, borderRadius: 13, backgroundColor: Palette.amber + '26', alignItems: 'center', justifyContent: 'center' }}>
                 <Clock size={20} color={Palette.amber} />
               </View>
               <View style={{ flex: 1 }}>
