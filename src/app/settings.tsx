@@ -331,8 +331,8 @@ export default function SettingsScreen() {
           {/* ACCOUNT */}
           <Section title="account" delay={0}>
             <Row Icon={User} label="edit profile" right={{ type: 'chevron' }} onPress={() => go('/edit-profile')} />
-            <Row Icon={Mail} label="change email" right={{ type: 'chevron' }} onPress={() => soon('Change email')} />
-            <Row Icon={Lock} label="change password" right={{ type: 'chevron' }} onPress={() => soon('Change password')} />
+            <Row Icon={Mail} label="change email" right={{ type: 'chevron' }} onPress={() => go('/change-email')} />
+            <Row Icon={Lock} label="change password" right={{ type: 'chevron' }} onPress={() => go('/change-password')} />
             <Row Icon={Globe} label="linked accounts" right={{ type: 'chevron' }} onPress={() => soon('Linked accounts')} />
             <Row Icon={Phone} label="verify phone" right={{ type: 'chevron' }} onPress={() => soon('Verify phone')} />
             <Row
