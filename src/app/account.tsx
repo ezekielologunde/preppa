@@ -1,7 +1,7 @@
 import { useRouter } from 'expo-router';
 import {
   Apple,
-  ArrowLeft,
+  ChevronLeft,
   ChevronRight,
   Download,
   Fingerprint,
@@ -85,9 +85,9 @@ export default function AccountScreen() {
           style={{
             flexDirection: 'row',
             alignItems: 'center',
-            paddingHorizontal: 20,
-            paddingVertical: 14,
-            backgroundColor: Palette.surface,
+            paddingHorizontal: 16,
+            paddingTop: 8,
+            paddingBottom: 12,
             gap: 12,
           }}>
           <PressableScale
@@ -95,20 +95,21 @@ export default function AccountScreen() {
             accessibilityRole="button"
             accessibilityLabel="Go back"
             style={{
-              width: 44,
-              height: 44,
-              borderRadius: 22,
+              width: 40,
+              height: 40,
+              borderRadius: 20,
+              backgroundColor: Palette.surface,
               alignItems: 'center',
               justifyContent: 'center',
             }}>
-            <ArrowLeft size={22} color={Palette.ink} />
+            <ChevronLeft size={22} color={Palette.ink} />
           </PressableScale>
           <Text
             style={{
-              fontFamily: Font.heading,
-              fontSize: 18,
+              fontFamily: Font.display,
+              fontSize: 22,
               color: Palette.ink,
-              letterSpacing: -0.3,
+              letterSpacing: -0.5,
             }}>
             account
           </Text>
