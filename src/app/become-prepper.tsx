@@ -8,6 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
 import { Palette, Radius } from '@/constants/theme';
+import { feedback } from '@/lib/feedback';
 import { useApplyAsPrepper, useMyPrepperApplication } from '@/lib/queries/preppers';
 import { useFeatureEnabled } from '@/lib/queries/feature-flags';
 import { useAuth } from '@/providers/auth-provider';
@@ -33,8 +34,8 @@ export default function BecomePrepperScreen() {
   const [err, setErr] = useState<string | null>(null);
 
   function goBack() {
-    if (router.canGoBack()) router.back();
-    else router.replace('/profile');
+    feedback.tap();
+    try { router.back(); } catch { router.replace('/profile'); }
   }
 
   function toggle(s: string) {
@@ -93,7 +94,7 @@ export default function BecomePrepperScreen() {
             </MotiView>
             {map.cta ? (
               <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280, delay: 200 }}>
-                <PressableScale onPress={map.cta.onPress} accessibilityRole="button" accessibilityLabel={map.cta.label} style={{ marginTop: 8, paddingHorizontal: 24, height: 52, borderRadius: Radius.sm, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
+                <PressableScale onPress={() => { feedback.tap(); map.cta!.onPress(); }} accessibilityRole="button" accessibilityLabel={map.cta.label} style={{ marginTop: 8, paddingHorizontal: 24, height: 52, borderRadius: Radius.sm, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
                   <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>{map.cta.label}</Text>
                 </PressableScale>
               </MotiView>
@@ -166,7 +167,7 @@ export default function BecomePrepperScreen() {
               {SPECIALTIES.map((s) => {
                 const on = picked.includes(s);
                 return (
-                  <PressableScale key={s} onPress={() => toggle(s)} accessibilityRole="button" accessibilityState={{ selected: on }} accessibilityLabel={s}
+                  <PressableScale key={s} onPress={() => { feedback.tap(); toggle(s); }} accessibilityRole="button" accessibilityState={{ selected: on }} accessibilityLabel={s}
                     style={{ paddingHorizontal: 14, paddingVertical: 9, borderRadius: Radius.pill, backgroundColor: on ? Palette.brandTint : '#F4F4F6', borderWidth: 1, borderColor: on ? ORANGE : 'transparent' }}>
                     <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: on ? ORANGE : Palette.inkSoft }}>{s}</Text>
                   </PressableScale>
@@ -178,7 +179,7 @@ export default function BecomePrepperScreen() {
           {err ? <Text style={{ fontFamily: Font.medium, fontSize: 14, color: Palette.danger, marginTop: 16 }}>{err}</Text> : null}
 
           <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280, delay: 260 }}>
-            <PressableScale onPress={submit} disabled={apply.isPending} accessibilityRole="button" accessibilityLabel="Submit application"
+            <PressableScale onPress={() => { feedback.tap(); submit(); }} disabled={apply.isPending} accessibilityRole="button" accessibilityLabel="Submit application"
               style={{ height: 54, borderRadius: 16, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', marginTop: 24, opacity: apply.isPending ? 0.7 : 1 }}>
               {apply.isPending ? <ActivityIndicator color="#fff" /> : <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>Submit application</Text>}
             </PressableScale>

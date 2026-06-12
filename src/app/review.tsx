@@ -8,6 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
 import { Palette, Radius } from '@/constants/theme';
+import { feedback } from '@/lib/feedback';
 import { useSubmitReview } from '@/lib/queries/reviews';
 import { useAuth } from '@/providers/auth-provider';
 
@@ -25,8 +26,8 @@ export default function ReviewScreen() {
   const [err, setErr] = useState<string | null>(null);
 
   function goBack() {
-    if (router.canGoBack()) router.back();
-    else router.replace('/orders');
+    feedback.tap();
+    try { router.back(); } catch { router.replace('/orders'); }
   }
 
   function send() {
@@ -56,7 +57,7 @@ export default function ReviewScreen() {
             </Text>
           </MotiView>
           <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280, delay: 200 }}>
-            <PressableScale onPress={() => router.replace('/orders')} accessibilityRole="button" accessibilityLabel="Back to orders" style={{ marginTop: 6, paddingHorizontal: 24, height: 52, borderRadius: Radius.sm, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
+            <PressableScale onPress={() => { feedback.tap(); router.replace('/orders'); }} accessibilityRole="button" accessibilityLabel="Back to orders" style={{ marginTop: 6, paddingHorizontal: 24, height: 52, borderRadius: Radius.sm, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
               <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>Back to orders</Text>
             </PressableScale>
           </MotiView>
@@ -86,7 +87,7 @@ export default function ReviewScreen() {
           <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280, delay: 120 }}>
             <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 8 }}>
               {[1, 2, 3, 4, 5].map((n) => (
-                <PressableScale key={n} onPress={() => setRating(n)} accessibilityRole="button" accessibilityLabel={`${n} star${n > 1 ? 's' : ''}`} style={{ padding: 4 }}>
+                <PressableScale key={n} onPress={() => { feedback.tap(); setRating(n); }} accessibilityRole="button" accessibilityLabel={`${n} star${n > 1 ? 's' : ''}`} style={{ padding: 4 }}>
                   <Star size={40} color={n <= rating ? Palette.amber : Palette.border} fill={n <= rating ? Palette.amber : 'transparent'} />
                 </PressableScale>
               ))}
@@ -108,7 +109,7 @@ export default function ReviewScreen() {
 
           <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280, delay: 240 }}>
             <PressableScale
-              onPress={send}
+              onPress={() => { feedback.tap(); send(); }}
               disabled={rating < 1 || submit.isPending}
               accessibilityRole="button"
               accessibilityLabel="Submit review"
