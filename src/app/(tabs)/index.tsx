@@ -253,8 +253,50 @@ export default function HomeScreen() {
               : <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 14, paddingVertical: 8 }}>{items}</ScrollView>;
           })()}
 
-          {/* Primary products — compact list card so nothing wraps */}
-          <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 180 }}>
+          {/* Recommended — primary content, shown immediately after categories */}
+          <SectionHeader title="recommended for you" onSeeAll={() => { feedback.tap(); router.push('/category?key=all&label=recommended'); }} />
+          {mealsLoading ? (
+            <View style={{ paddingBottom: 20 }}>
+              <CardRowSkeleton count={3} />
+            </View>
+          ) : bp !== 'mobile' ? (
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12, paddingHorizontal: pad, paddingBottom: 20 }}>
+              {ranked.map((s, i) => (
+                <MotiView key={s.meal.id} from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 200, delay: i * 28 }}>
+                  <MealCard meal={s.meal} width={gridCardWidth(contentWidth, pad)} />
+                </MotiView>
+              ))}
+            </View>
+          ) : (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 14, paddingBottom: 20 }}>
+              {ranked.map((s) => (
+                <MealCard key={s.meal.id} meal={s.meal} />
+              ))}
+            </ScrollView>
+          )}
+
+          {/* From kitchens you follow */}
+          {followingFeed && followingFeed.length > 0 ? (
+            <>
+              <SectionHeader title="from kitchens you follow" />
+              {bp !== 'mobile' ? (
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12, paddingHorizontal: pad, paddingBottom: 20 }}>
+                  {followingFeed.map((m, i) => (
+                    <MotiView key={m.id} from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 200, delay: i * 30 }}>
+                      <MealCard meal={m} width={gridCardWidth(contentWidth, pad)} />
+                    </MotiView>
+                  ))}
+                </View>
+              ) : (
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 14, paddingBottom: 20 }}>
+                  {followingFeed.map((m) => (<MealCard key={m.id} meal={m} />))}
+                </ScrollView>
+              )}
+            </>
+          ) : null}
+
+          {/* Browse — secondary navigation after primary content */}
+          <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 60 }}>
           <Text style={{ fontFamily: Font.display, fontSize: 15, color: INK, letterSpacing: -0.3, paddingHorizontal: 20, marginBottom: 10 }}>browse</Text>
           <View style={{ marginHorizontal: 20, marginBottom: 20, backgroundColor: Palette.surface, borderRadius: Radius.lg, overflow: 'hidden' }}>
             {showPlans ? (
@@ -302,48 +344,6 @@ export default function HomeScreen() {
             </PressableScale>
           </View>
           </MotiView>
-
-          {/* From kitchens you follow — the creator-economy retention loop */}
-          {followingFeed && followingFeed.length > 0 ? (
-            <>
-              <SectionHeader title="from kitchens you follow" />
-              {bp !== 'mobile' ? (
-                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12, paddingHorizontal: pad, paddingBottom: 20 }}>
-                  {followingFeed.map((m, i) => (
-                    <MotiView key={m.id} from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 200, delay: i * 30 }}>
-                      <MealCard meal={m} width={gridCardWidth(contentWidth, pad)} />
-                    </MotiView>
-                  ))}
-                </View>
-              ) : (
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 14, paddingBottom: 20 }}>
-                  {followingFeed.map((m) => (<MealCard key={m.id} meal={m} />))}
-                </ScrollView>
-              )}
-            </>
-          ) : null}
-
-          {/* Recommended — personalized, dynamic mix of a big hero + carousel */}
-          <SectionHeader title="recommended for you" onSeeAll={() => { feedback.tap(); router.push('/category?key=all&label=recommended'); }} />
-          {mealsLoading ? (
-            <View style={{ paddingBottom: 20 }}>
-              <CardRowSkeleton count={3} />
-            </View>
-          ) : bp !== 'mobile' ? (
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12, paddingHorizontal: pad, paddingBottom: 20 }}>
-              {ranked.map((s, i) => (
-                <MotiView key={s.meal.id} from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 200, delay: i * 28 }}>
-                  <MealCard meal={s.meal} width={gridCardWidth(contentWidth, pad)} />
-                </MotiView>
-              ))}
-            </View>
-          ) : (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 14, paddingBottom: 20 }}>
-              {ranked.map((s) => (
-                <MealCard key={s.meal.id} meal={s.meal} />
-              ))}
-            </ScrollView>
-          )}
 
           {/* Preppa AI — a personalized pick that learns from your taste */}
           {aiPick ? (
