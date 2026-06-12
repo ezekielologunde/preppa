@@ -337,7 +337,7 @@ export default function DashboardScreen() {
               <Plus size={28} color="#fff" />
             </View>
           </PressableScale>
-          <ActionItem Icon={Gift} label="new drop" color={PURPLE} onPress={() => router.push('/specials')} />
+          <ActionItem Icon={Gift} label="new drop" color={PURPLE} onPress={() => router.push('/meal-editor?drop=1')} />
           <ActionItem Icon={Briefcase} label="opportunity" color={ORANGE} onPress={() => router.push('/opportunities')} />
         </View>
 

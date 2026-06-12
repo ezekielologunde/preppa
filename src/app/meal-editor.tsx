@@ -1,8 +1,8 @@
 import { Image } from 'expo-image';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ChevronLeft, ImageIcon, Plus, Upload, UtensilsCrossed } from 'lucide-react-native';
 import { MotiView } from 'moti';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ActivityIndicator, Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -105,6 +105,7 @@ function MealRow({ meal, busy, onEdit, onSetStatus }: { meal: MyMeal; busy: bool
 
 export default function MealEditorScreen() {
   const router = useRouter();
+  const { drop } = useLocalSearchParams<{ drop?: string }>();
   const { user } = useAuth();
   const { data: prepper } = useMyPrepperApplication(user?.id);
   const prepperId = prepper?.id;
@@ -118,6 +119,15 @@ export default function MealEditorScreen() {
   const [timeText, setTimeText] = useState('');
   const [formErr, setFormErr] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+
+  useEffect(() => {
+    if (drop === '1') {
+      setDraft({ ...EMPTY, is_limited: true });
+      setPriceText('');
+      setTimeText('');
+      setFormErr(null);
+    }
+  }, [drop]);
 
   async function pickPhoto() {
     if (!prepperId || !user?.id) return;
