@@ -34,6 +34,69 @@ const STATUS_LABEL: Record<OrderStatus, string> = {
   cancelled: 'Cancelled',
 };
 
+const TIMELINE_STEPS = [
+  { key: 'pending',   label: 'Received' },
+  { key: 'confirmed', label: 'Confirmed' },
+  { key: 'preparing', label: 'Cooking' },
+  { key: 'ready',     label: 'Ready' },
+  { key: 'completed', label: 'Done' },
+];
+
+function timelineIdx(status: OrderStatus): number {
+  if (status === 'pending') return 0;
+  if (status === 'confirmed') return 1;
+  if (status === 'preparing') return 2;
+  if (status === 'ready' || status === 'out_for_delivery') return 3;
+  if (status === 'completed') return 4;
+  return 0;
+}
+
+function OrderTimeline({ status }: { status: OrderStatus }) {
+  if (status === 'cancelled') return null;
+  const curr = timelineIdx(status);
+  return (
+    <View style={{ marginTop: 4, marginBottom: 2 }}>
+      {/* Progress track */}
+      <View style={{ flexDirection: 'row', alignItems: 'center', height: 18 }}>
+        {TIMELINE_STEPS.map((step, i) => {
+          const done = i <= curr;
+          const active = i === curr;
+          return (
+            <View key={step.key} style={{ flexDirection: 'row', alignItems: 'center', flex: i < TIMELINE_STEPS.length - 1 ? 1 : 0 }}>
+              {/* Node */}
+              <View style={{
+                width: active ? 11 : 8,
+                height: active ? 11 : 8,
+                borderRadius: 6,
+                backgroundColor: done ? Palette.brand : Palette.border,
+                ...(active ? { shadowColor: Palette.brand, shadowRadius: 5, shadowOpacity: 0.55, elevation: 3 } : {}),
+              }} />
+              {/* Connector */}
+              {i < TIMELINE_STEPS.length - 1 ? (
+                <View style={{ flex: 1, height: 2, backgroundColor: i < curr ? Palette.brand : Palette.border, marginHorizontal: 2, borderRadius: 1 }} />
+              ) : null}
+            </View>
+          );
+        })}
+      </View>
+      {/* Step labels */}
+      <View style={{ flexDirection: 'row', marginTop: 4 }}>
+        {TIMELINE_STEPS.map((step, i) => {
+          const active = i === curr;
+          const done = i < curr;
+          return (
+            <View key={step.key} style={{ flex: i < TIMELINE_STEPS.length - 1 ? 1 : 0, minWidth: 32, alignItems: i === 0 ? 'flex-start' : i === TIMELINE_STEPS.length - 1 ? 'flex-end' : 'center' }}>
+              <Text style={{ fontFamily: active ? Font.semibold : Font.body, fontSize: 9.5, color: active ? Palette.brand : done ? Palette.inkSoft : Palette.textMuted }}>
+                {step.label}
+              </Text>
+            </View>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
 function statusStyle(s: OrderStatus): { bg: string; fg: string } {
   if (s === 'completed') return { bg: Palette.success + '1A', fg: Palette.success };
   if (s === 'cancelled') return { bg: Palette.canvas, fg: Palette.textSecondary };
@@ -59,6 +122,13 @@ function OrderCard({ order, onCancel, onReview, onPay, onReorder, onReport, canc
           <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: st.fg }}>{STATUS_LABEL[order.status]}</Text>
         </View>
       </View>
+
+      {/* Order progress timeline */}
+      {order.status !== 'cancelled' ? (
+        <View style={{ backgroundColor: Palette.canvas, borderRadius: Radius.sm, paddingHorizontal: 12, paddingVertical: 10 }}>
+          <OrderTimeline status={order.status} />
+        </View>
+      ) : null}
 
       {/* Line items */}
       <View style={{ gap: 8 }}>
