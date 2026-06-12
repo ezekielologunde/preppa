@@ -14,6 +14,7 @@ import {
   Info,
   Lock,
   Mail,
+  Moon,
   MapPin,
   MessageCircle,
   Phone,
@@ -38,6 +39,7 @@ import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
 import { Palette, Radius, Shadow } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
+import { toggleDarkMode, useDarkMode } from '@/lib/theme-mode';
 
 // ─── Toggle ──────────────────────────────────────────────────────────────────
 
@@ -234,6 +236,7 @@ function DeleteModal({ visible, onCancel, onConfirm }: { visible: boolean; onCan
 export default function SettingsScreen() {
   const router = useRouter();
 
+  const dark = useDarkMode();
   const [toast, setToast] = useState<string | null>(null);
   const [deleteVisible, setDeleteVisible] = useState(false);
 
@@ -348,6 +351,11 @@ export default function SettingsScreen() {
               }}
               isLast
             />
+          </Section>
+
+          {/* DISPLAY */}
+          <Section title="display" delay={35}>
+            <Row Icon={Moon} label="dark mode" right={{ type: 'toggle', value: dark, onToggle: toggleDarkMode }} onPress={toggleDarkMode} isLast />
           </Section>
 
           {/* NOTIFICATIONS */}
