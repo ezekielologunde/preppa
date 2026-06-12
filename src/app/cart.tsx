@@ -316,7 +316,7 @@ export default function CartScreen() {
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={{ fontFamily: Font.heading, fontSize: 14.5, color: method === 'in_home' ? '#fff' : INK }}>Cooked in my kitchen</Text>
-                  <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: method === 'in_home' ? '#adb5bd' : Palette.textSecondary, marginTop: 2 }}>
+                  <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: method === 'in_home' ? Palette.textMuted : Palette.textSecondary, marginTop: 2 }}>
                     A prepper comes to your home and cooks fresh · Request a quote
                   </Text>
                 </View>

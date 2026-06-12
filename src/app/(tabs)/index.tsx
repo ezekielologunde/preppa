@@ -54,7 +54,7 @@ const MUTED = Palette.textMuted;
 
 const ORDER_STATUS_LABEL: Record<string, string> = {
   pending: 'Order placed — awaiting the kitchen',
-  confirmed: 'Order confirmed 🎉',
+  confirmed: 'Order confirmed',
   preparing: 'Your food is being prepared',
   ready: 'Your order is ready',
   out_for_delivery: 'On the way to you',
@@ -122,7 +122,7 @@ export default function HomeScreen() {
   const aiPick = topPicks.length ? topPicks[aiIdx % topPicks.length] : null;
   const hour = new Date().getHours();
   const rushActive = (hour >= 11 && hour < 14) || (hour >= 16 && hour < 20) || (hour >= 7 && hour < 10);
-  const rushLabel = hour >= 11 && hour < 14 ? '🔥 lunch rush' : hour >= 16 && hour < 20 ? '🌆 dinner window' : '🌅 morning prep';
+  const rushLabel = hour >= 11 && hour < 14 ? 'lunch rush' : hour >= 16 && hour < 20 ? 'dinner window' : 'morning prep';
   // Bell badge = orders in motion + unread notifications (real, actionable).
   const activeOrders = (myOrders ?? []).filter(
     (o) => o.status !== 'completed' && o.status !== 'cancelled',
@@ -204,9 +204,9 @@ export default function HomeScreen() {
 
           {/* Error banner — shown when primary data fails */}
           {mealsError && !mealsLoading ? (
-            <PressableScale onPress={handleRefresh} accessibilityRole="button" accessibilityLabel="Data failed to load. Tap to retry." style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginHorizontal: 20, marginTop: 12, backgroundColor: '#FEF2F2', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 11 }}>
-              <AlertCircle size={18} color="#b91c1c" />
-              <Text style={{ flex: 1, fontFamily: Font.medium, fontSize: 13.5, color: '#b91c1c' }}>Couldn't load meals. Tap to retry.</Text>
+            <PressableScale onPress={handleRefresh} accessibilityRole="button" accessibilityLabel="Data failed to load. Tap to retry." style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginHorizontal: 20, marginTop: 12, backgroundColor: Palette.danger + '14', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 11 }}>
+              <AlertCircle size={18} color={Palette.danger} />
+              <Text style={{ flex: 1, fontFamily: Font.medium, fontSize: 13.5, color: Palette.danger }}>Couldn't load meals. Tap to retry.</Text>
             </PressableScale>
           ) : null}
 
@@ -407,7 +407,7 @@ export default function HomeScreen() {
                 {lastDone.items[0]?.image ? (
                   <Image source={lastDone.items[0].image} style={{ width: 60, height: 60, borderRadius: 14 }} contentFit="cover" />
                 ) : (
-                  <View style={{ width: 60, height: 60, borderRadius: 14, backgroundColor: '#FCE9DD' }} />
+                  <View style={{ width: 60, height: 60, borderRadius: 14, backgroundColor: Palette.brandTint }} />
                 )}
                 <View style={{ flex: 1 }}>
                   <Text numberOfLines={1} style={{ fontFamily: Font.heading, fontSize: 15, color: INK }}>{lastDone.items[0]?.title ?? 'Your order'}</Text>

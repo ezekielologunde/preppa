@@ -40,10 +40,10 @@ const ICON_MAP = {
 
 const COLOR_MAP = {
   order: Palette.brand,
-  payment: '#34d399',
+  payment: Palette.success,
   chat: '#60a5fa',
   follow: '#a78bfa',
-  review: '#fbbf24',
+  review: Palette.amber,
   promotion: '#f472b6',
   drop: Palette.amber,
   live: Palette.danger,
