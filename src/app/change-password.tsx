@@ -1,5 +1,6 @@
 import { useRouter } from 'expo-router';
 import { ChevronLeft } from 'lucide-react-native';
+import { MotiView } from 'moti';
 import { View, Text, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -22,9 +23,11 @@ export default function ChangePasswordScreen() {
           </PressableScale>
           <Text style={{ fontFamily: Font.display, fontSize: 24, color: Palette.ink, letterSpacing: -0.6 }}>change password</Text>
         </View>
-        <ScrollView contentContainerStyle={{ paddingTop: 8, paddingBottom: 130 }}>
-          <ChangePasswordPanel onClose={goBack} />
-        </ScrollView>
+        <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280, delay: 60 }}>
+          <ScrollView contentContainerStyle={{ paddingTop: 8, paddingBottom: 130 }}>
+            <ChangePasswordPanel onClose={goBack} />
+          </ScrollView>
+        </MotiView>
       </SafeAreaView>
     </View>
   );

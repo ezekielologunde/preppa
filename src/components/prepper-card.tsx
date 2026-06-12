@@ -6,7 +6,7 @@ import { Text, View } from 'react-native';
 import { FavoriteButton } from '@/components/ui/favorite-button';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
-import { Palette } from '@/constants/theme';
+import { Palette, Shadow } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
 import { imgUrl } from '@/lib/img';
 import type { TopPrepper } from '@/lib/queries/preppers';
@@ -35,7 +35,7 @@ export function PrepperCard({ prepper, showRank = false }: { prepper: TopPrepper
   const ranked = showRank && prepper.rank != null && prepper.rank <= 3;
   return (
     <PressableScale onPress={() => { feedback.tap(); router.push(`/prepper?id=${prepper.id}`); }} style={{ width: 210 }} accessibilityRole="button" accessibilityLabel={`${ranked ? `Ranked number ${prepper.rank}, ` : ''}${prepper.name}, ${prepper.rating.toFixed(1)} stars — view kitchen`}>
-      <View style={{ borderRadius: 20, overflow: 'hidden', backgroundColor: Palette.surface, shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 12, shadowOffset: { width: 0, height: 6 }, elevation: 2 }}>
+      <View style={{ borderRadius: 20, overflow: 'hidden', backgroundColor: Palette.surface, ...Shadow.card }}>
         <View style={{ height: 130, backgroundColor: '#FCE9DD' }}>
           {prepper.image ? <Image source={imgUrl(prepper.image, 420)} style={{ flex: 1 }} contentFit="cover" transition={250} /> : null}
           {ranked ? <RankBadge rank={prepper.rank!} /> : null}

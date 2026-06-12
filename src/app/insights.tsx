@@ -86,17 +86,28 @@ export default function InsightsScreen() {
 
           {/* Hero stats */}
           <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280 }}>
-          <View style={{ backgroundColor: ORANGE, borderRadius: Radius.lg, padding: 20, gap: 4 }}>
-            <Text style={{ fontFamily: Font.medium, fontSize: 13, color: 'rgba(255,255,255,0.85)' }}>lifetime with Preppa</Text>
-            <Text style={{ fontFamily: Font.display, fontSize: 42, color: '#fff', letterSpacing: -1, fontVariant: ['tabular-nums'] }}>{completed.length}</Text>
-            <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: 'rgba(255,255,255,0.92)' }}>home-cooked meals ordered</Text>
-            <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: 'rgba(255,255,255,0.78)', marginTop: 6 }}>
-              That's roughly {timeSaved} of cooking you didn't have to do.
-            </Text>
-          </View>
+          {completed.length === 0 ? (
+            <View style={{ backgroundColor: ORANGE, borderRadius: Radius.lg, padding: 20, gap: 6 }}>
+              <Text style={{ fontFamily: Font.medium, fontSize: 13, color: 'rgba(255,255,255,0.85)' }}>your food journey</Text>
+              <Text style={{ fontFamily: Font.display, fontSize: 36, color: '#fff', letterSpacing: -0.8 }}>starts here</Text>
+              <Text style={{ fontFamily: Font.body, fontSize: 13.5, color: 'rgba(255,255,255,0.85)', lineHeight: 20, marginTop: 2 }}>
+                Order your first home-cooked meal and we'll start tracking your cuisine favourites, time saved, and spending patterns.
+              </Text>
+            </View>
+          ) : (
+            <View style={{ backgroundColor: ORANGE, borderRadius: Radius.lg, padding: 20, gap: 4 }}>
+              <Text style={{ fontFamily: Font.medium, fontSize: 13, color: 'rgba(255,255,255,0.85)' }}>lifetime with Preppa</Text>
+              <Text style={{ fontFamily: Font.display, fontSize: 42, color: '#fff', letterSpacing: -1, fontVariant: ['tabular-nums'] }}>{completed.length}</Text>
+              <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: 'rgba(255,255,255,0.92)' }}>home-cooked meals ordered</Text>
+              <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: 'rgba(255,255,255,0.78)', marginTop: 6 }}>
+                That's roughly {timeSaved} of cooking you didn't have to do.
+              </Text>
+            </View>
+          )}
           </MotiView>
 
-          {/* Stat tiles */}
+          {/* Stat tiles — only shown once there's data */}
+          {completed.length > 0 ? (
           <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 80 }}>
           <View style={{ flexDirection: 'row', gap: 10 }}>
             {[
@@ -112,6 +123,7 @@ export default function InsightsScreen() {
             ))}
           </View>
           </MotiView>
+          ) : null}
 
           {/* Cuisine insight */}
           {topCuisine ? (
