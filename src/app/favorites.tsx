@@ -44,7 +44,7 @@ function PrepperByIdRow({ id }: { id: string }) {
           {p.city ? `${p.city} · ` : ''}{p.specialties.slice(0, 2).join(', ')}
         </Text>
       </View>
-      <ChevronRight size={16} color={Palette.divider} />
+      <ChevronRight size={16} color={Palette.textMuted} />
     </PressableScale>
   );
 }
@@ -93,7 +93,7 @@ export default function FavoritesScreen() {
         {tab === 'meals' && mealIds.length === 0 ? (
           <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }}
             style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
-            <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: '#FEE2E2', alignItems: 'center', justifyContent: 'center' }}>
+            <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: Palette.danger + '1A', alignItems: 'center', justifyContent: 'center' }}>
               <Heart size={28} color={Palette.danger} />
             </View>
             <Text style={{ fontFamily: Font.heading, fontSize: 17, color: INK }}>no favorites yet</Text>
