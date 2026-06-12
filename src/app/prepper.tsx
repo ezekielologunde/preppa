@@ -1,8 +1,8 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Award, BadgeCheck, Bike, CalendarCheck, Check, ChevronLeft, MapPin, MessageSquare, RefreshCw, ShieldCheck, ShoppingBag, Star, Store, UserPlus, Users } from 'lucide-react-native';
+import { Award, BadgeCheck, Bike, CalendarCheck, Check, ChevronLeft, MapPin, MessageSquare, RefreshCw, Share2, ShieldCheck, ShoppingBag, Star, Store, UserPlus, Users } from 'lucide-react-native';
 import { useState } from 'react';
 import { MotiView } from 'moti';
-import { RefreshControl, ScrollView, Text, View } from 'react-native';
+import { RefreshControl, ScrollView, Share, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PrepperBadgeShelf } from '@/components/badge-shelf';
@@ -81,16 +81,31 @@ export default function PrepperScreen() {
     setSheetPlan(plan);
   };
 
+  async function handleShare() {
+    feedback.tap();
+    const name = p?.name ?? 'This kitchen';
+    const specialty = p?.specialties?.[0];
+    const msg = specialty
+      ? `${name} on Preppa cooks ${specialty} — order fresh meals made to order.`
+      : `${name} on Preppa — fresh meals made to order.`;
+    try { await Share.share({ message: msg }); } catch {}
+  }
+
   return (
     <View style={{ flex: 1, backgroundColor: Palette.canvas }}>
       <ScrollView showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={ORANGE} colors={[ORANGE]} />} contentContainerStyle={{ paddingBottom: 180 }}>
         {/* Header band */}
         <View style={{ backgroundColor: INK, paddingBottom: 22 }}>
           <SafeAreaView edges={['top']}>
-            <View style={{ paddingHorizontal: 16, paddingTop: 8 }}>
+            <View style={{ paddingHorizontal: 16, paddingTop: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
               <PressableScale onPress={() => { feedback.tap(); try { router.back(); } catch { router.replace('/'); } }} accessibilityRole="button" accessibilityLabel="Go back" style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.14)', alignItems: 'center', justifyContent: 'center' }}>
                 <ChevronLeft size={22} color="#fff" />
               </PressableScale>
+              {p ? (
+                <PressableScale onPress={handleShare} accessibilityRole="button" accessibilityLabel={`Share ${p.name}'s kitchen`} style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.14)', alignItems: 'center', justifyContent: 'center' }}>
+                  <Share2 size={17} color="#fff" />
+                </PressableScale>
+              ) : <View style={{ width: 40 }} />}
             </View>
             <View style={{ alignItems: 'center', paddingHorizontal: 20, gap: 8, marginTop: 4 }}>
               {isLoading ? (
