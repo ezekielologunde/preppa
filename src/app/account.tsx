@@ -91,7 +91,7 @@ export default function AccountScreen() {
             gap: 12,
           }}>
           <PressableScale
-            onPress={() => router.back()}
+            onPress={() => { feedback.tap(); router.back(); }}
             accessibilityRole="button"
             accessibilityLabel="Go back"
             style={{
@@ -368,7 +368,7 @@ export default function AccountScreen() {
                 preferences will be removed and cannot be recovered.
               </Text>
               <PressableScale
-                onPress={() => setDeleteStep(1)}
+                onPress={() => { feedback.warning(); setDeleteStep(1); }}
                 accessibilityRole="button"
                 accessibilityLabel="Delete account"
                 style={{

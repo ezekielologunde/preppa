@@ -91,7 +91,7 @@ export default function SurpriseScreen() {
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 80 }}>
           {/* Header */}
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingTop: 8, paddingBottom: 20 }}>
-            <PressableScale onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Go back" style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
+            <PressableScale onPress={() => { feedback.tap(); router.back(); }} accessibilityRole="button" accessibilityLabel="Go back" style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
               <ChevronLeft size={22} color={INK} />
             </PressableScale>
             <View style={{ flex: 1 }}>
@@ -113,7 +113,7 @@ export default function SurpriseScreen() {
                   label={b.label}
                   color={ORANGE}
                   active={budget === b.value}
-                  onPress={() => { setBudget(b.value); setRevealed(false); }}
+                  onPress={() => { feedback.tap(); setBudget(b.value); setRevealed(false); }}
                 />
               ))}
             </View>
@@ -131,7 +131,7 @@ export default function SurpriseScreen() {
                   label={v.label}
                   color={v.color}
                   active={vibe?.label === v.label}
-                  onPress={() => { setVibe(vibe?.label === v.label ? null : v); setRevealed(false); }}
+                  onPress={() => { feedback.tap(); setVibe(vibe?.label === v.label ? null : v); setRevealed(false); }}
                 />
               ))}
             </View>

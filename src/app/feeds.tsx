@@ -9,6 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
 import { Palette } from '@/constants/theme';
+import { feedback } from '@/lib/feedback';
 import { useFeed, type FeedItem } from '@/lib/queries/feed';
 
 const ORANGE = Palette.brand;
@@ -38,7 +39,7 @@ function PostCard({ item, height, bottomInset }: { item: FeedItem; height: numbe
           </View>
         </View>
         {item.title ? <Text style={{ fontFamily: Font.body, fontSize: 16, color: 'rgba(255,255,255,0.9)', lineHeight: 23 }} numberOfLines={3}>{item.title}</Text> : null}
-        <PressableScale onPress={() => router.push('/profile')} accessibilityRole="button" accessibilityLabel={`View ${item.prepper}'s profile`}
+        <PressableScale onPress={() => { feedback.tap(); router.push('/profile'); }} accessibilityRole="button" accessibilityLabel={`View ${item.prepper}'s profile`}
           style={{ alignSelf: 'flex-start', height: 44, paddingHorizontal: 20, borderRadius: 14, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.5)', alignItems: 'center', justifyContent: 'center' }}>
           <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: '#fff' }}>View profile</Text>
         </PressableScale>
@@ -84,7 +85,7 @@ function FeedCard({ item, height, bottomInset }: { item: FeedItem; height: numbe
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 2 }}>
           <Text style={{ fontFamily: Font.display, fontSize: 22, color: '#fff', fontVariant: ['tabular-nums'] }}>${item.price.toFixed(2)}</Text>
           <PressableScale
-            onPress={() => router.push(`/meal?id=${item.id}`)}
+            onPress={() => { feedback.tap(); router.push(`/meal?id=${item.id}`); }}
             accessibilityRole="button"
             accessibilityLabel={`Order ${item.title}`}
             style={{ flex: 1, height: 50, borderRadius: 15, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
