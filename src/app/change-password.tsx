@@ -1,34 +1,30 @@
 import { useRouter } from 'expo-router';
-import { ChevronLeft } from 'lucide-react-native';
 import { MotiView } from 'moti';
-import { View, Text, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Pressable, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ChangePasswordPanel } from '@/components/account/change-password';
-import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
 import { feedback } from '@/lib/feedback';
 import { Palette } from '@/constants/theme';
 
 export default function ChangePasswordScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   function goBack() { feedback.tap(); try { router.back(); } catch { router.replace('/settings'); } }
 
   return (
-    <View style={{ flex: 1, backgroundColor: Palette.canvas }}>
-      <SafeAreaView edges={['top']} style={{ flex: 1 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingTop: 8, paddingBottom: 8 }}>
-          <PressableScale onPress={goBack} accessibilityRole="button" accessibilityLabel="Go back" style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
-            <ChevronLeft size={22} color={Palette.ink} />
-          </PressableScale>
-          <Text style={{ fontFamily: Font.display, fontSize: 24, color: Palette.ink, letterSpacing: -0.6 }}>change password</Text>
-        </View>
-        <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280, delay: 60 }}>
-          <ScrollView contentContainerStyle={{ paddingTop: 8, paddingBottom: 130 }}>
-            <ChangePasswordPanel onClose={goBack} />
-          </ScrollView>
-        </MotiView>
-      </SafeAreaView>
+    <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.45)' }}>
+      <Pressable style={{ flex: 1 }} onPress={goBack} accessibilityLabel="Dismiss" />
+      <MotiView
+        from={{ translateY: 400 }}
+        animate={{ translateY: 0 }}
+        transition={{ type: 'spring', damping: 28, stiffness: 280 }}
+        style={{ backgroundColor: Palette.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingTop: 8, paddingBottom: insets.bottom + 8 }}>
+        <View style={{ width: 40, height: 4, borderRadius: 2, backgroundColor: Palette.border, alignSelf: 'center', marginBottom: 16 }} />
+        <Text style={{ fontFamily: Font.display, fontSize: 22, color: Palette.ink, letterSpacing: -0.5, paddingHorizontal: 20, marginBottom: 8 }}>change password</Text>
+        <ChangePasswordPanel onClose={goBack} />
+      </MotiView>
     </View>
   );
 }
