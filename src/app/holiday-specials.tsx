@@ -129,7 +129,7 @@ export default function HolidaySpecialsScreen() {
 
           {/* Rush hour note */}
           <MotiView from={{ opacity: 0, translateY: 6 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 240, delay: 80 }}>
-          <View style={{ backgroundColor: '#11151C', borderRadius: 14, padding: 14, flexDirection: 'row', alignItems: 'flex-start', gap: 12 }}>
+          <View style={{ backgroundColor: INK, borderRadius: 14, padding: 14, flexDirection: 'row', alignItems: 'flex-start', gap: 12 }}>
             <Flame size={17} color={ORANGE} style={{ marginTop: 1 }} />
             <Text style={{ flex: 1, fontFamily: Font.body, fontSize: 13, color: 'rgba(255,255,255,0.8)', lineHeight: 19 }}>
               Holiday meals sell out fast during rush hours. Order by <Text style={{ fontFamily: Font.semibold, color: '#fff' }}>11 am</Text> for same-day delivery or by <Text style={{ fontFamily: Font.semibold, color: '#fff' }}>4 pm</Text> for evening pickup.

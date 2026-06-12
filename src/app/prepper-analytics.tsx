@@ -133,7 +133,7 @@ export default function PrepperAnalyticsScreen() {
                 const isToday = i === todayIdx;
                 return (
                   <View key={day} style={{ flex: 1, alignItems: 'center', gap: 4 }}>
-                    <Bar value={count} max={maxDay} color={isToday ? ORANGE : Palette.divider} />
+                    <Bar value={count} max={maxDay} color={isToday ? ORANGE : Palette.border} />
                     <Text style={{ fontFamily: Font.medium, fontSize: 10, color: isToday ? ORANGE : Palette.textMuted }}>{day}</Text>
                   </View>
                 );
@@ -169,8 +169,8 @@ export default function PrepperAnalyticsScreen() {
           {/* Top dish */}
           <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 140 }}>
           <View style={{ backgroundColor: Palette.surface, borderRadius: Radius.lg, padding: 16, flexDirection: 'row', alignItems: 'center', gap: 14 }}>
-            <View style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: '#f59e0b18', alignItems: 'center', justifyContent: 'center' }}>
-              <Package size={20} color="#f59e0b" />
+            <View style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: Palette.amber + '18', alignItems: 'center', justifyContent: 'center' }}>
+              <Package size={20} color={Palette.amber} />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: Palette.textMuted, textTransform: 'uppercase', letterSpacing: 0.5 }}>best-selling dish</Text>
@@ -185,7 +185,7 @@ export default function PrepperAnalyticsScreen() {
           <View style={{ gap: 10 }}>
             {INSIGHTS.map(({ icon: Icon, color, text }, i) => (
               <MotiView key={i} from={{ opacity: 0, translateX: -6 }} animate={{ opacity: 1, translateX: 0 }} transition={{ type: 'timing', duration: 220, delay: 200 + i * 40 }}>
-              <View style={{ backgroundColor: '#11151C', borderRadius: 14, padding: 14, flexDirection: 'row', alignItems: 'flex-start', gap: 12 }}>
+              <View style={{ backgroundColor: INK, borderRadius: 14, padding: 14, flexDirection: 'row', alignItems: 'flex-start', gap: 12 }}>
                 <View style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: color + '22', alignItems: 'center', justifyContent: 'center', marginTop: 1 }}>
                   <Icon size={15} color={color} />
                 </View>

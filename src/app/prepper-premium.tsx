@@ -139,7 +139,7 @@ export default function PrepperPremiumScreen() {
                 style={{ flex: 1, height: 44, borderRadius: Radius.sm, backgroundColor: yearly ? ORANGE : 'transparent', alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8 }}>
                 <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: yearly ? '#fff' : MUTED }}>Yearly</Text>
                 {!yearly ? (
-                  <View style={{ backgroundColor: '#16a34a', borderRadius: Radius.pill, paddingHorizontal: 6, paddingVertical: 2 }}>
+                  <View style={{ backgroundColor: Palette.success, borderRadius: Radius.pill, paddingHorizontal: 6, paddingVertical: 2 }}>
                     <Text style={{ fontFamily: Font.semibold, fontSize: 10, color: '#fff' }}>save {YEARLY_SAVING}%</Text>
                   </View>
                 ) : null}
