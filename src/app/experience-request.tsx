@@ -42,7 +42,7 @@ export default function ExperienceRequestScreen() {
 
   function goBack() {
     feedback.tap();
-    try { router.back(); } catch { router.replace('/experiences'); }
+    if (router.canGoBack()) { router.back(); } else { router.replace('/experiences'); }
   }
 
   function submit() {

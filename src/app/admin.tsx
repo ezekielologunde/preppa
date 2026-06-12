@@ -48,7 +48,7 @@ export default function AdminScreen() {
 
   function goBack() {
     feedback.tap();
-    try { router.back(); } catch { router.replace('/profile'); }
+    if (router.canGoBack()) { router.back(); } else { router.replace('/profile'); }
   }
 
   // Access guard — only granted admins see the console.

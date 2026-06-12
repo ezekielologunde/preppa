@@ -74,7 +74,7 @@ export default function ChatScreen() {
 
   function goBack() {
     feedback.tap();
-    try { router.back(); } catch { router.replace('/messages'); }
+    if (router.canGoBack()) { router.back(); } else { router.replace('/messages'); }
   }
 
   return (

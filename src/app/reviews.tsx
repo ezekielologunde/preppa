@@ -55,7 +55,7 @@ export default function ReviewsScreen() {
   const [refreshing, setRefreshing] = useState(false);
   async function handleRefresh() { setRefreshing(true); await refetch(); setRefreshing(false); }
 
-  function goBack() { feedback.tap(); try { router.back(); } catch { router.replace('/dashboard'); } }
+  function goBack() { feedback.tap(); if (router.canGoBack()) { router.back(); } else { router.replace('/dashboard'); } }
 
   const avg = reviews?.length
     ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length

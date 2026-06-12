@@ -69,7 +69,7 @@ export default function BoostScreen() {
   const selectedDuration = DURATIONS[duration];
   const estimatedViews = selectedPlan.impressions;
 
-  function goBack() { feedback.tap(); try { router.back(); } catch { router.replace('/prepper-hub'); } }
+  function goBack() { feedback.tap(); if (router.canGoBack()) { router.back(); } else { router.replace('/prepper-hub'); } }
 
   function handleActivate() {
     feedback.success();

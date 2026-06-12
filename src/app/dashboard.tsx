@@ -162,7 +162,7 @@ export default function DashboardScreen() {
           {/* Header */}
           <MotiView from={{ opacity: 0, translateY: -8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 300 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, gap: 12 }}>
-            <PressableScale onPress={() => { feedback.tap(); try { router.back(); } catch { router.replace('/profile'); } }} accessibilityRole="button" accessibilityLabel="Back to customer view" style={{ width: 54, height: 54, borderRadius: 27, borderWidth: 2, borderColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
+            <PressableScale onPress={() => { feedback.tap(); if (router.canGoBack()) { router.back(); } else { router.replace('/profile'); } }} accessibilityRole="button" accessibilityLabel="Back to customer view" style={{ width: 54, height: 54, borderRadius: 27, borderWidth: 2, borderColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
               <Avatar
                 name={prepper?.display_name ?? (user?.user_metadata?.full_name as string | undefined) ?? 'chef'}
                 url={user?.user_metadata?.avatar_url as string | undefined}

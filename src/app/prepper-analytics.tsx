@@ -87,7 +87,7 @@ export default function PrepperAnalyticsScreen() {
   const avgOrder = completed.length ? totalEarnings / completed.length : 0;
   const repeatRate = completed.length > 0 ? 62 : 0;
 
-  function goBack() { feedback.tap(); try { router.back(); } catch { router.replace('/prepper-hub'); } }
+  function goBack() { feedback.tap(); if (router.canGoBack()) { router.back(); } else { router.replace('/prepper-hub'); } }
 
   return (
     <View style={{ flex: 1, backgroundColor: Palette.canvas }}>

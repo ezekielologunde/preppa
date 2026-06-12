@@ -34,7 +34,7 @@ export default function ChangeEmailScreen() {
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  function goBack() { feedback.tap(); try { router.back(); } catch { router.replace('/settings'); } }
+  function goBack() { feedback.tap(); if (router.canGoBack()) { router.back(); } else { router.replace('/settings'); } }
 
   async function handleSubmit() {
     setError(null);

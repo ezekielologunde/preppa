@@ -125,7 +125,7 @@ export default function BecomePrepperScreen() {
   const [certDocs, setCertDocs] = useState<UploadItem[]>([]);
   const [err, setErr] = useState<string | null>(null);
 
-  function goBack() { feedback.tap(); try { router.back(); } catch { router.replace('/profile'); } }
+  function goBack() { feedback.tap(); if (router.canGoBack()) { router.back(); } else { router.replace('/profile'); } }
   function toggle(s: string) { setPicked((p) => (p.includes(s) ? p.filter((x) => x !== s) : [...p, s])); }
   function submit() {
     setErr(null);

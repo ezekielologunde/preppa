@@ -340,7 +340,7 @@ export default function OrdersScreen() {
 
   function goBack() {
     feedback.tap();
-    try { router.back(); } catch { router.replace('/profile'); }
+    if (router.canGoBack()) { router.back(); } else { router.replace('/profile'); }
   }
 
   return (

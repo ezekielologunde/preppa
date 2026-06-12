@@ -110,7 +110,7 @@ const CULTURES: CultureEntry[] = [
 export default function CuisineExplorerScreen() {
   const router = useRouter();
 
-  function goBack() { feedback.tap(); try { router.back(); } catch { router.replace('/explore'); } }
+  function goBack() { feedback.tap(); if (router.canGoBack()) { router.back(); } else { router.replace('/explore'); } }
 
   return (
     <View style={{ flex: 1, backgroundColor: Palette.canvas }}>

@@ -91,7 +91,7 @@ export default function AccountScreen() {
             gap: 12,
           }}>
           <PressableScale
-            onPress={() => { feedback.tap(); try { router.back(); } catch { router.replace('/settings'); } }}
+            onPress={() => { feedback.tap(); if (router.canGoBack()) { router.back(); } else { router.replace('/settings'); } }}
             accessibilityRole="button"
             accessibilityLabel="Go back"
             style={{

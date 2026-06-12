@@ -59,7 +59,7 @@ export default function RewardsScreen() {
 
   function goBack() {
     feedback.tap();
-    try { router.back(); } catch { router.replace('/'); }
+    if (router.canGoBack()) { router.back(); } else { router.replace('/'); }
   }
 
   return (

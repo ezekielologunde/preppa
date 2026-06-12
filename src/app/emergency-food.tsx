@@ -38,7 +38,7 @@ export default function EmergencyFoodScreen() {
   const urgency = URGENCY_OPTIONS[urgencyIdx];
   const availablePreppers = (preppers ?? []).filter((p) => p.isAvailable !== false).slice(0, 5);
 
-  function goBack() { feedback.tap(); try { router.back(); } catch { router.replace('/'); } }
+  function goBack() { feedback.tap(); if (router.canGoBack()) { router.back(); } else { router.replace('/'); } }
 
   function handleSend() {
     feedback.success();

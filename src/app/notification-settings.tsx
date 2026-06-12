@@ -34,7 +34,7 @@ export default function NotificationSettingsScreen() {
     Object.fromEntries(CATEGORIES.map((c) => [c.id, c.defaultOn]))
   );
 
-  function goBack() { feedback.tap(); try { router.back(); } catch { router.replace('/settings'); } }
+  function goBack() { feedback.tap(); if (router.canGoBack()) { router.back(); } else { router.replace('/settings'); } }
   function toggle(id: string) { feedback.tap(); setPrefs((p) => ({ ...p, [id]: !p[id] })); }
 
   const activeCount = Object.values(prefs).filter(Boolean).length;

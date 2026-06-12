@@ -73,7 +73,7 @@ const URGENCY_LABEL: Record<HolidayEvent['urgency'], { label: string; color: str
 export default function HolidaySpecialsScreen() {
   const router = useRouter();
 
-  function goBack() { feedback.tap(); try { router.back(); } catch { router.replace('/explore'); } }
+  function goBack() { feedback.tap(); if (router.canGoBack()) { router.back(); } else { router.replace('/explore'); } }
 
   const todayEvent = EVENTS.find((e) => e.urgency === 'today');
   const rest = EVENTS.filter((e) => e.urgency !== 'today');

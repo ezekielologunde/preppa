@@ -72,7 +72,7 @@ export default function GroceryConciergeScreen() {
   const router = useRouter();
   const [selected, setSelected] = useState<string | null>(null);
 
-  function goBack() { feedback.tap(); try { router.back(); } catch { router.replace('/'); } }
+  function goBack() { feedback.tap(); if (router.canGoBack()) { router.back(); } else { router.replace('/'); } }
 
   function handleOrder(kit: MealKit) {
     feedback.success();

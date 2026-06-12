@@ -70,7 +70,7 @@ export default function ReviewScreen() {
 
   function goBack() {
     feedback.tap();
-    try { router.back(); } catch { router.replace('/orders'); }
+    if (router.canGoBack()) { router.back(); } else { router.replace('/orders'); }
   }
 
   function send() {

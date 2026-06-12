@@ -52,7 +52,7 @@ export default function PrepperHubScreen() {
   const totalEarnings = completedOrders.reduce((s, o) => s + o.total, 0);
   const avgOrder = completedOrders.length ? totalEarnings / completedOrders.length : 0;
 
-  function goBack() { feedback.tap(); try { router.back(); } catch { router.replace('/profile'); } }
+  function goBack() { feedback.tap(); if (router.canGoBack()) { router.back(); } else { router.replace('/profile'); } }
 
   return (
     <View style={{ flex: 1, backgroundColor: Palette.canvas }}>

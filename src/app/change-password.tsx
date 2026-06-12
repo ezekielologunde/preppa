@@ -11,7 +11,7 @@ import { Palette } from '@/constants/theme';
 export default function ChangePasswordScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  function goBack() { feedback.tap(); try { router.back(); } catch { router.replace('/settings'); } }
+  function goBack() { feedback.tap(); if (router.canGoBack()) { router.back(); } else { router.replace('/settings'); } }
 
   return (
     <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.45)' }}>

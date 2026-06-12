@@ -70,7 +70,7 @@ export default function InsightsScreen() {
   completed.forEach((o) => { freqs[o.prepper] = (freqs[o.prepper] ?? 0) + 1; });
   const topKitchen = Object.entries(freqs).sort((a, b) => b[1] - a[1])[0];
 
-  function goBack() { feedback.tap(); try { router.back(); } catch { router.replace('/profile'); } }
+  function goBack() { feedback.tap(); if (router.canGoBack()) { router.back(); } else { router.replace('/profile'); } }
 
   return (
     <View style={{ flex: 1, backgroundColor: Palette.canvas }}>

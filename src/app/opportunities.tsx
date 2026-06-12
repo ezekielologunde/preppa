@@ -111,7 +111,7 @@ export default function OpportunitiesScreen() {
 
   function goBack() {
     feedback.tap();
-    try { router.back(); } catch { router.replace('/dashboard'); }
+    if (router.canGoBack()) { router.back(); } else { router.replace('/dashboard'); }
   }
 
   const Header = (

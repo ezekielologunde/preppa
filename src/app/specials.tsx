@@ -121,7 +121,7 @@ export default function SpecialsScreen() {
         {/* Header */}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingTop: 8, paddingBottom: 14 }}>
           <PressableScale
-            onPress={() => { feedback.tap(); try { router.back(); } catch { router.replace('/'); } }}
+            onPress={() => { feedback.tap(); if (router.canGoBack()) { router.back(); } else { router.replace('/'); } }}
             accessibilityRole="button"
             accessibilityLabel="Go back"
             style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>

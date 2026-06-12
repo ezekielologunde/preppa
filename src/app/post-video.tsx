@@ -93,7 +93,7 @@ export default function PostVideoScreen() {
       <SafeAreaView edges={['top']} style={{ flex: 1 }}>
         {/* Header */}
         <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 8, paddingBottom: 6, gap: 12 }}>
-          <PressableScale onPress={() => { feedback.tap(); try { router.back(); } catch { router.replace('/dashboard'); } }} accessibilityRole="button" accessibilityLabel="Back"
+          <PressableScale onPress={() => { feedback.tap(); if (router.canGoBack()) { router.back(); } else { router.replace('/dashboard'); } }} accessibilityRole="button" accessibilityLabel="Back"
             style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center' }}>
             <ChevronLeft size={22} color="#fff" />
           </PressableScale>

@@ -187,7 +187,7 @@ export default function MessagesScreen() {
 
   function goBack() {
     feedback.tap();
-    try { router.back(); } catch { router.replace('/'); }
+    if (router.canGoBack()) { router.back(); } else { router.replace('/'); }
   }
 
   const unreadNotifCount = (notifications ?? []).filter((n) => !n.read).length;
