@@ -176,8 +176,10 @@ export default function ProfileScreen() {
   const go = (route: string) => router.push(route as never);
 
   const onQuick = (label: string) => {
+    if (label === 'favorites') { feedback.tap(); return go('/favorites'); }
+    if (label === 'saved') { feedback.tap(); return go('/favorites'); }
     if (label === 'recently viewed') { feedback.tap(); return go('/recently-viewed'); }
-    if (label === 'following') { feedback.tap(); return go('/explore'); }
+    if (label === 'following') { feedback.tap(); return go('/following'); }
     if (label === 'referrals') { feedback.tap(); return go('/referral'); }
     return soon(label.replace(/\b\w/, (c) => c.toUpperCase()));
   };

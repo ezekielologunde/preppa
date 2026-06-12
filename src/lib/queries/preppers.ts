@@ -368,3 +368,24 @@ export function useToggleAvailability(prepperId?: string | null) {
     },
   });
 }
+
+/** Preppers the signed-in user follows, ordered by when they were followed. */
+export function useFollowedPreppers(userId?: string | null) {
+  return useQuery({
+    queryKey: ['follows', 'preppers', userId ?? 'anon'],
+    enabled: !!userId,
+    queryFn: async (): Promise<TopPrepper[]> => {
+      const { data, error } = await supabase
+        .from('follows')
+        .select(`prepper:prepper_profiles(${SELECT})`)
+        .eq('follower_id', userId!)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return (data ?? [])
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .map((r: any) => r.prepper)
+        .filter(Boolean)
+        .map((p: Row) => mapPrepper(p));
+    },
+  });
+}
