@@ -45,8 +45,10 @@ import { useRecentlyViewedCount } from '@/lib/recently-viewed';
 import { useRewards } from '@/lib/queries/rewards';
 import { feedback } from '@/lib/feedback';
 import { useAddresses } from '@/lib/queries/addresses';
+import { useConversations } from '@/lib/queries/messages';
 import { useCustomerMembership } from '@/lib/queries/memberships';
 import { useMySubscriptions } from '@/lib/queries/meal-plans';
+import { useNotifications } from '@/lib/queries/notifications';
 import { usePaymentMethods } from '@/lib/queries/payment-methods';
 import { useCustomerBadges, useMyPrepperApplication } from '@/lib/queries/preppers';
 import { toggleDarkMode, useDarkMode } from '@/lib/theme-mode';
@@ -165,6 +167,11 @@ export default function ProfileScreen() {
   const followed = useFavoritesCount('prepper:');
   const recentCount = useRecentlyViewedCount();
   const rewards = useRewards(user?.id);
+  const { data: notifications } = useNotifications(user?.id);
+  const { data: conversations } = useConversations(user?.id);
+  const unreadNotifCount = (notifications ?? []).filter((n) => !n.read).length;
+  const unreadMsgCount = (conversations ?? []).filter((c) => c.unread).length;
+  const totalUnread = unreadNotifCount + unreadMsgCount;
   const displayName =
     (user?.user_metadata?.full_name as string | undefined) ?? user?.email?.split('@')[0] ?? 'guest';
   const bio = (user?.user_metadata?.bio as string | undefined) || 'good food. good mood. always.';
@@ -192,7 +199,7 @@ export default function ProfileScreen() {
   };
   const onHub = (h: HubItem) => {
     if (h.route) { feedback.tap(); return go(h.route); }
-    if (h.label === 'notifications') { feedback.tap(); return go('/notifications'); }
+    if (h.label === 'notifications') { feedback.tap(); return go('/messages'); }
     if (h.label === 'help center') {
       feedback.tap();
       Linking.openURL('mailto:support@preppa.live?subject=Preppa%20support').catch(() => soon('Help center'));
@@ -210,8 +217,13 @@ export default function ProfileScreen() {
           {/* Top actions */}
           <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, gap: 10 }}>
             <Text style={{ flex: 1, fontFamily: Font.display, fontSize: 26, color: Palette.ink, letterSpacing: -0.6 }}>me</Text>
-            <PressableScale onPress={() => { feedback.tap(); go('/notifications'); }} accessibilityRole="button" accessibilityLabel="Notifications" style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
+            <PressableScale onPress={() => { feedback.tap(); go('/messages'); }} accessibilityRole="button" accessibilityLabel={`Inbox${totalUnread > 0 ? `, ${totalUnread} unread` : ''}`} style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
               <Bell size={19} color={Palette.ink} />
+              {totalUnread > 0 ? (
+                <View style={{ position: 'absolute', top: 7, right: 7, minWidth: 15, height: 15, borderRadius: 8, backgroundColor: Palette.danger, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3, borderWidth: 1.5, borderColor: Palette.canvas }}>
+                  <Text style={{ fontFamily: Font.semibold, fontSize: 8, color: '#fff', lineHeight: 11 }}>{totalUnread > 9 ? '9+' : String(totalUnread)}</Text>
+                </View>
+              ) : null}
             </PressableScale>
             <PressableScale onPress={() => { feedback.tap(); router.push('/settings'); }} accessibilityRole="button" accessibilityLabel="Settings" style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
               <Settings size={19} color={Palette.ink} />

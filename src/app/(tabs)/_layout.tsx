@@ -1,7 +1,7 @@
 import { Tabs } from 'expo-router';
 import { Compass, House, Ticket, User, Video } from 'lucide-react-native';
 import { MotiView } from 'moti';
-import { Platform, Text, useWindowDimensions, View } from 'react-native';
+import { Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { PressableScale } from '@/components/ui/pressable-scale';
@@ -27,9 +27,9 @@ function PreppaTabBar({ state, navigation }: TabBarProps) {
   const insets = useSafeAreaInsets();
   const { data: flags } = useFeatureFlags();
   const { width } = useWindowDimensions();
-  const showLabels = Platform.OS === 'web' && width >= 1024;
+  const showLabels = width >= 1024;
 
-  const visibleTabs = TABS.filter((t) => !('flag' in t) || flags?.[t.flag] !== false);
+  const visibleTabs = TABS.filter((t) => !('flag' in t) || (flags !== undefined && flags[t.flag] !== false));
 
   return (
     <View
