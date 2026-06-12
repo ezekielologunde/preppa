@@ -49,7 +49,7 @@ function ExperienceCard({ exp, onPress }: { exp: Experience; onPress: () => void
         <Text style={{ fontFamily: Font.heading, fontSize: 15, color: INK }} numberOfLines={1}>{exp.title}</Text>
         <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary, marginTop: 2 }}>by {exp.host}</Text>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 8 }}>
-          <Star size={13} color="#f59e0b" fill="#f59e0b" />
+          <Star size={13} color={Palette.amber} fill={Palette.amber} />
           <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: INK }}>{exp.rating.toFixed(1)}</Text>
           <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted }}>({exp.reviews})</Text>
           <MapPin size={12} color={Palette.textMuted} style={{ marginLeft: 6 }} />
@@ -91,7 +91,7 @@ export default function ExperiencesScreen() {
             onPress={() => { feedback.tap(); router.push('/experience-request?kind=private_chef'); }}
             accessibilityRole="button"
             accessibilityLabel="Book a private chef to cook at your home"
-            style={{ marginHorizontal: 20, marginTop: 16, borderRadius: Radius.lg, overflow: 'hidden', backgroundColor: '#11151C', ...Shadow.floating }}>
+            style={{ marginHorizontal: 20, marginTop: 16, borderRadius: Radius.lg, overflow: 'hidden', backgroundColor: INK, ...Shadow.floating }}>
             <Image source="https://images.unsplash.com/photo-1556910103-1c02745aae4d?auto=format&fit=crop&w=900&q=70" style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: '52%', opacity: 0.55 }} contentFit="cover" transition={250} />
             <View style={{ position: 'absolute', left: 0, top: 0, bottom: 0, right: 0, backgroundColor: 'rgba(17,21,28,0.45)' }} />
             <View style={{ padding: 20, gap: 10 }}>

@@ -56,7 +56,7 @@ export default function VerifyScreen() {
           </>
         ) : !user ? (
           <>
-            <MotiView from={{ opacity: 0, scale: 0.85 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'spring', duration: 360, bounce: 0.15 }}>
+            <MotiView from={{ opacity: 0, scale: 0.85 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'spring', damping: 20, stiffness: 220 }}>
               <View style={{ width: 72, height: 72, borderRadius: 22, backgroundColor: ORANGE + '26', alignItems: 'center', justifyContent: 'center' }}>
                 <QrCode size={32} color={ORANGE} />
               </View>
@@ -77,7 +77,7 @@ export default function VerifyScreen() {
           </>
         ) : (
           <>
-            <MotiView from={{ opacity: 0, scale: 0.75 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'spring', duration: 380, bounce: 0.2 }}>
+            <MotiView from={{ opacity: 0, scale: 0.75 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'spring', damping: 18, stiffness: 200 }}>
               <View style={{ width: 84, height: 84, borderRadius: 26, backgroundColor: color + '26', alignItems: 'center', justifyContent: 'center' }}>
                 <Icon size={40} color={color} strokeWidth={2.4} />
               </View>
