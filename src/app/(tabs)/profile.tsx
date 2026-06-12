@@ -360,7 +360,7 @@ export default function ProfileScreen() {
 
           {/* Meal plans & subscriptions */}
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, marginTop: 22, marginBottom: 10 }}>
-            <Text style={{ fontFamily: Font.display, fontSize: 18, color: Palette.ink, letterSpacing: -0.4 }}>meal plans &amp; subscriptions</Text>
+            <Text style={{ fontFamily: Font.display, fontSize: 15, color: Palette.ink, letterSpacing: -0.3 }}>meal plans &amp; subscriptions</Text>
             <PressableScale onPress={() => { feedback.tap(); go('/meal-plans'); }} accessibilityRole="button" accessibilityLabel="View all meal plans">
               <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: Palette.brand }}>view all</Text>
             </PressableScale>
@@ -411,7 +411,7 @@ export default function ProfileScreen() {
 
           {/* Hub */}
           <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 240, delay: 200 }}>
-          <Text style={{ fontFamily: Font.display, fontSize: 18, color: Palette.ink, letterSpacing: -0.4, paddingHorizontal: 20, marginTop: 22, marginBottom: 10 }}>your hub</Text>
+          <Text style={{ fontFamily: Font.display, fontSize: 15, color: Palette.ink, letterSpacing: -0.3, paddingHorizontal: 20, marginTop: 22, marginBottom: 10 }}>your hub</Text>
           <HubGrid hub={hub} dark={dark} onHub={onHub} />
           </MotiView>
 

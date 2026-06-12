@@ -178,7 +178,7 @@ export default function InsightsScreen() {
           <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 260 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
             <TrendingUp size={17} color={ORANGE} />
-            <Text style={{ fontFamily: Font.display, fontSize: 18, color: INK, letterSpacing: -0.4 }}>save more on Preppa</Text>
+            <Text style={{ fontFamily: Font.display, fontSize: 15, color: INK, letterSpacing: -0.3 }}>save more on Preppa</Text>
           </View>
           <View style={{ backgroundColor: Palette.surface, borderRadius: Radius.lg, overflow: 'hidden' }}>
             {SAVINGS_TIPS.map(({ tip, Icon }, i) => (

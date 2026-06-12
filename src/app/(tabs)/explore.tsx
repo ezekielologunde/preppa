@@ -70,7 +70,7 @@ const GOALS: { label: string; tag: string; Icon: LucideIcon; color: string }[] =
 function SectionHeader({ title, onSeeAll }: { title: string; onSeeAll?: () => void }) {
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, marginBottom: 10 }}>
-      <Text style={{ fontFamily: Font.display, fontSize: 18, color: INK, letterSpacing: -0.4 }}>{title}</Text>
+      <Text style={{ fontFamily: Font.display, fontSize: 15, color: INK, letterSpacing: -0.3 }}>{title}</Text>
       {onSeeAll ? (
         <PressableScale onPress={() => { feedback.tap(); onSeeAll!(); }} accessibilityRole="button" accessibilityLabel={`See all ${title}`}>
           <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: ORANGE }}>see all</Text>

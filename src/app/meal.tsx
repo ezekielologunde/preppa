@@ -276,7 +276,7 @@ export default function MealScreen() {
 
               {reviews && reviews.length > 0 ? (
                 <View>
-                  <Text style={{ fontFamily: Font.display, fontSize: 18, color: INK, letterSpacing: -0.4, marginBottom: 8 }}>reviews ({reviews.length})</Text>
+                  <Text style={{ fontFamily: Font.display, fontSize: 15, color: INK, letterSpacing: -0.3, marginBottom: 8 }}>reviews ({reviews.length})</Text>
                   {(allReviews ? reviews : reviews.slice(0, 4)).map((rv, i) => (
                     <MotiView key={rv.id} from={{ opacity: 0, translateX: -6 }} animate={{ opacity: 1, translateX: 0 }} transition={{ type: 'timing', duration: 220, delay: i * 40 }}
                       style={{ paddingVertical: 11, borderTopWidth: i > 0 ? 1 : 0, borderTopColor: Palette.divider, gap: 5 }}>

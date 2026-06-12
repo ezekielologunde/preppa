@@ -237,7 +237,7 @@ export default function PrepperScreen() {
         {plans && plans.length > 0 ? (
           <View style={{ marginTop: 20 }}>
             <View style={{ marginHorizontal: 20, marginBottom: 12 }}>
-              <Text style={{ fontFamily: Font.display, fontSize: 18, color: INK, letterSpacing: -0.4 }}>subscribe & save</Text>
+              <Text style={{ fontFamily: Font.display, fontSize: 15, color: INK, letterSpacing: -0.3 }}>subscribe & save</Text>
               <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary, marginTop: 2 }}>
                 Meals from {p?.name.split(' ')[0]} on repeat — pause or skip anytime.
               </Text>
@@ -286,7 +286,7 @@ export default function PrepperScreen() {
         ) : null}
 
         {/* Their menu */}
-        <Text style={{ fontFamily: Font.display, fontSize: 18, color: INK, letterSpacing: -0.4, marginHorizontal: 20, marginTop: 20, marginBottom: 10 }}>
+        <Text style={{ fontFamily: Font.display, fontSize: 15, color: INK, letterSpacing: -0.3, marginHorizontal: 20, marginTop: 20, marginBottom: 10 }}>
           {p ? `${p.name.split(' ')[0]}'s menu` : 'menu'}
         </Text>
         {isLoading ? (
@@ -309,7 +309,7 @@ export default function PrepperScreen() {
         {/* Reviews */}
         {reviews && reviews.length ? (
           <>
-            <Text style={{ fontFamily: Font.display, fontSize: 18, color: INK, letterSpacing: -0.4, marginHorizontal: 20, marginTop: 20, marginBottom: 10 }}>reviews</Text>
+            <Text style={{ fontFamily: Font.display, fontSize: 15, color: INK, letterSpacing: -0.3, marginHorizontal: 20, marginTop: 20, marginBottom: 10 }}>reviews</Text>
             <View style={{ gap: 10, marginHorizontal: 16 }}>
               {reviews.map((r, i) => (
                 <MotiView key={r.id} from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 220, delay: i * 50 }}>

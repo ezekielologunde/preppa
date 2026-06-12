@@ -120,7 +120,7 @@ export default function RewardsScreen() {
 
             </MotiView>
             {/* Tiers */}
-            <Text style={{ fontFamily: Font.display, fontSize: 18, color: INK, letterSpacing: -0.4, marginTop: 2 }}>your tiers</Text>
+            <Text style={{ fontFamily: Font.display, fontSize: 15, color: INK, letterSpacing: -0.3, marginTop: 2 }}>your tiers</Text>
             {TIERS.map((t, i) => (
               <MotiView key={t.key} from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 240, delay: 160 + i * 45 }}>
                 <TierCard tier={t} reached={r.lifetimeSpend >= t.min} current={t.key === r.tier.key} />
@@ -129,7 +129,7 @@ export default function RewardsScreen() {
 
             {/* Redeemable perks */}
             <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 280 }}>
-            <Text style={{ fontFamily: Font.display, fontSize: 18, color: INK, letterSpacing: -0.4, marginTop: 6, marginBottom: 12 }}>redeem points</Text>
+            <Text style={{ fontFamily: Font.display, fontSize: 15, color: INK, letterSpacing: -0.3, marginTop: 6, marginBottom: 12 }}>redeem points</Text>
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
               {([
                 { title: '20% off', desc: 'one order', pts: 2000, Icon: Tag, color: ORANGE },
@@ -157,7 +157,7 @@ export default function RewardsScreen() {
 
             {/* Ways to earn more */}
             <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 340 }}>
-            <Text style={{ fontFamily: Font.display, fontSize: 18, color: INK, letterSpacing: -0.4, marginTop: 8 }}>earn more points</Text>
+            <Text style={{ fontFamily: Font.display, fontSize: 15, color: INK, letterSpacing: -0.3, marginTop: 8 }}>earn more points</Text>
             <View style={{ backgroundColor: Palette.surface, borderRadius: Radius.lg, overflow: 'hidden', marginTop: 12 }}>
               {([
                 { label: 'place an order', pts: '10 pts per $1', Icon: ShoppingBag },

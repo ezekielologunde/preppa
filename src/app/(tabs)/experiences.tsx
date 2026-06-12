@@ -191,7 +191,7 @@ export default function ExperiencesScreen() {
           </View>
 
           {/* How it works */}
-          <Text style={{ fontFamily: Font.display, fontSize: 18, color: INK, letterSpacing: -0.4, paddingHorizontal: 20, marginTop: 22, marginBottom: 10 }}>how it works</Text>
+          <Text style={{ fontFamily: Font.display, fontSize: 15, color: INK, letterSpacing: -0.3, paddingHorizontal: 20, marginTop: 22, marginBottom: 10 }}>how it works</Text>
           <View style={{ marginHorizontal: 20, backgroundColor: Palette.surface, borderRadius: Radius.lg, padding: 16, gap: 4 }}>
             {STEPS.map((s, i) => (
               <MotiView key={s.title} from={{ opacity: 0, translateX: -8 }} animate={{ opacity: 1, translateX: 0 }} transition={{ type: 'timing', duration: 260, delay: 160 + i * 45 }}>
@@ -210,7 +210,7 @@ export default function ExperiencesScreen() {
           </View>
 
           {/* Featured */}
-          <Text style={{ fontFamily: Font.display, fontSize: 18, color: INK, letterSpacing: -0.4, paddingHorizontal: 20, marginTop: 22, marginBottom: 10 }}>featured experiences</Text>
+          <Text style={{ fontFamily: Font.display, fontSize: 15, color: INK, letterSpacing: -0.3, paddingHorizontal: 20, marginTop: 22, marginBottom: 10 }}>featured experiences</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 14 }}>
             {featuredExperiences.map((e) => (
               <ExperienceCard key={e.id} exp={e} onPress={() => { feedback.tap(); router.push(`/experience-request?kind=${e.type}`); }} />

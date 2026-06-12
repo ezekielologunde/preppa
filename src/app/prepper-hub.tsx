@@ -124,7 +124,7 @@ export default function PrepperHubScreen() {
 
           {/* Market insights */}
           <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 140 }}>
-          <Text style={{ fontFamily: Font.display, fontSize: 18, color: INK, letterSpacing: -0.4, marginBottom: 12 }}>market insights</Text>
+          <Text style={{ fontFamily: Font.display, fontSize: 15, color: INK, letterSpacing: -0.3, marginBottom: 12 }}>market insights</Text>
           <View style={{ backgroundColor: Palette.surface, borderRadius: Radius.lg, overflow: 'hidden' }}>
             {WEEKLY_INSIGHTS.map(({ label, trend, note }, i) => (
               <View key={label} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 13, borderTopWidth: i === 0 ? 0 : 1, borderTopColor: Palette.divider }}>
@@ -142,7 +142,7 @@ export default function PrepperHubScreen() {
 
           {/* Action items */}
           <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 200 }}>
-          <Text style={{ fontFamily: Font.display, fontSize: 18, color: INK, letterSpacing: -0.4, marginBottom: 12 }}>action items</Text>
+          <Text style={{ fontFamily: Font.display, fontSize: 15, color: INK, letterSpacing: -0.3, marginBottom: 12 }}>action items</Text>
           <View style={{ gap: 10 }}>
             {ACTIONS.map(({ label, desc, Icon, color, route }, i) => (
               <MotiView key={label} from={{ opacity: 0, translateY: 6 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 220, delay: 220 + i * 40 }}>

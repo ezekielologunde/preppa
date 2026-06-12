@@ -138,7 +138,7 @@ export default function HolidaySpecialsScreen() {
           </MotiView>
 
           {/* Remaining events */}
-          <Text style={{ fontFamily: Font.display, fontSize: 18, color: INK, letterSpacing: -0.4, marginTop: 4 }}>coming up</Text>
+          <Text style={{ fontFamily: Font.display, fontSize: 15, color: INK, letterSpacing: -0.3, marginTop: 4 }}>coming up</Text>
           {rest.map(({ id, name, flag, date, daysAway, description, dishes, color, urgency, culture }, i) => {
             const urge = URGENCY_LABEL[urgency];
             return (
