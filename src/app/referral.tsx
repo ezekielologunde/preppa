@@ -20,7 +20,7 @@ function referralCode(userId: string): string {
 const HOW_IT_WORKS = [
   { Icon: Ticket, color: Palette.brand, title: 'share your code', body: 'Send your unique referral code to friends and family.' },
   { Icon: Users, color: '#a78bfa', title: 'they sign up', body: 'Your friend creates an account and places their first order.' },
-  { Icon: Gift, color: '#34d399', title: 'you both earn', body: 'You get $5 in Preppa credits. They get $5 off their first order.' },
+  { Icon: Gift, color: Palette.success, title: 'you both earn', body: 'You get $5 in Preppa credits. They get $5 off their first order.' },
 ];
 
 export default function ReferralScreen() {
@@ -98,8 +98,8 @@ export default function ReferralScreen() {
                 accessibilityRole="button"
                 accessibilityLabel="Copy referral code"
                 style={{ flex: 1, height: 50, borderRadius: Radius.md, backgroundColor: 'rgba(255,255,255,0.10)', alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8 }}>
-                <Copy size={16} color={copied ? '#34d399' : '#fff'} />
-                <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: copied ? '#34d399' : '#fff' }}>
+                <Copy size={16} color={copied ? Palette.success : '#fff'} />
+                <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: copied ? Palette.success : '#fff' }}>
                   {copied ? 'copied!' : 'copy code'}
                 </Text>
               </PressableScale>
