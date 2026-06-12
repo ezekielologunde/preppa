@@ -64,6 +64,7 @@ export default function MealScreen() {
   const orderingOn = useFeatureEnabled('ordering');
 
   function messagePrepper() {
+    feedback.tap();
     if (!user) return router.push('/auth?mode=signin');
     if (!meal?.prepperUserId) return;
     startConv.mutate(meal.prepperUserId, {
@@ -296,7 +297,7 @@ export default function MealScreen() {
             <Image source={imgUrl(meal.images[0], 1400)} style={{ width: '100%', height: '80%' }} contentFit="contain" />
           ) : null}
           <PressableScale
-            onPress={() => setLightboxOpen(false)}
+            onPress={() => { feedback.tap(); setLightboxOpen(false); }}
             accessibilityRole="button"
             accessibilityLabel="Close photo"
             style={{ position: 'absolute', top: 60, right: 20, width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.18)', alignItems: 'center', justifyContent: 'center' }}>
@@ -326,7 +327,7 @@ export default function MealScreen() {
               <PressableScale onPress={() => { feedback.tap(); setSwitchPrompt(false); }} accessibilityRole="button" accessibilityLabel="Keep current cart" style={{ flex: 1, height: 50, borderRadius: 14, borderWidth: 1, borderColor: Palette.border, alignItems: 'center', justifyContent: 'center' }}>
                 <Text style={{ fontFamily: Font.semibold, fontSize: 15, color: Palette.textSecondary }}>Keep cart</Text>
               </PressableScale>
-              <PressableScale onPress={() => doAdd(true)} disabled={addToCart.isPending} accessibilityRole="button" accessibilityLabel="Start a new cart" style={{ flex: 1, height: 50, borderRadius: 14, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', opacity: addToCart.isPending ? 0.7 : 1 }}>
+              <PressableScale onPress={() => { feedback.tap(); doAdd(true); }} disabled={addToCart.isPending} accessibilityRole="button" accessibilityLabel="Start a new cart" style={{ flex: 1, height: 50, borderRadius: 14, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', opacity: addToCart.isPending ? 0.7 : 1 }}>
                 {addToCart.isPending ? <ActivityIndicator color="#fff" /> : <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#fff' }}>New cart</Text>}
               </PressableScale>
             </View>

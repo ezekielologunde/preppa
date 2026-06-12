@@ -208,10 +208,10 @@ export default function ProfileScreen() {
         <ScrollView showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={Palette.brand} colors={[Palette.brand]} />} contentContainerStyle={{ paddingTop: Platform.OS === 'web' ? 16 : 8, paddingBottom: 130 }}>
           {/* Top actions */}
           <View style={{ flexDirection: 'row', justifyContent: 'flex-end', paddingHorizontal: 20, gap: 10 }}>
-            <PressableScale onPress={() => router.push('/settings')} accessibilityRole="button" accessibilityLabel="Settings" style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
+            <PressableScale onPress={() => { feedback.tap(); router.push('/settings'); }} accessibilityRole="button" accessibilityLabel="Settings" style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
               <Settings size={19} color={Palette.ink} />
             </PressableScale>
-            <PressableScale onPress={() => go('/messages')} accessibilityRole="button" accessibilityLabel="Notifications" style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
+            <PressableScale onPress={() => { feedback.tap(); go('/messages'); }} accessibilityRole="button" accessibilityLabel="Notifications" style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
               <Bell size={19} color={Palette.ink} />
             </PressableScale>
           </View>
@@ -225,7 +225,7 @@ export default function ProfileScreen() {
                 <Camera size={14} color={Palette.surface} />
               </PressableScale>
             </View>
-            <PressableScale onPress={() => router.push('/edit-profile')} accessibilityRole="button" accessibilityLabel="Edit profile" style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12 }}>
+            <PressableScale onPress={() => { feedback.tap(); router.push('/edit-profile'); }} accessibilityRole="button" accessibilityLabel="Edit profile" style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12 }}>
               <Text style={{ fontFamily: Font.display, fontSize: 26, color: Palette.ink, letterSpacing: -0.6 }}>{displayName}</Text>
               <Pencil size={16} color={Palette.brand} />
             </PressableScale>
@@ -262,7 +262,7 @@ export default function ProfileScreen() {
 
           {/* Rewards / tier */}
           <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280, delay: 80 }}>
-          <PressableScale onPress={() => go('/rewards')} accessibilityRole="button" accessibilityLabel="View your rewards" style={{ marginHorizontal: 20, marginTop: 22 }}>
+          <PressableScale onPress={() => { feedback.tap(); go('/rewards'); }} accessibilityRole="button" accessibilityLabel="View your rewards" style={{ marginHorizontal: 20, marginTop: 22 }}>
             <LinearGradient colors={['#FFE9D6', '#FFDDBE']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 22, padding: 18, flexDirection: 'row', alignItems: 'center' }}>
               <View style={{ flex: 1 }}>
                 <Text style={{ fontFamily: Font.body, fontSize: 13, color: '#7c5a42' }}>your balance</Text>
@@ -295,7 +295,7 @@ export default function ProfileScreen() {
           {/* My Kitchen — approved preppers */}
           {isApprovedPrepper ? (
             <PressableScale
-              onPress={() => router.push('/dashboard')}
+              onPress={() => { feedback.tap(); router.push('/dashboard'); }}
               accessibilityRole="button"
               accessibilityLabel="Open my kitchen"
               style={{ marginHorizontal: 20, marginTop: 16, backgroundColor: Palette.prepperBg, borderRadius: 18, padding: 16, flexDirection: 'row', alignItems: 'center', gap: 14 }}>
@@ -313,7 +313,7 @@ export default function ProfileScreen() {
           {/* Admin console */}
           {isAdmin ? (
             <PressableScale
-              onPress={() => router.push('/admin')}
+              onPress={() => { feedback.tap(); router.push('/admin'); }}
               accessibilityRole="button"
               accessibilityLabel="Open admin console"
               {...({ dataSet: { noinvert: 'true' } } as object)}
@@ -357,7 +357,7 @@ export default function ProfileScreen() {
           {/* Meal plans & subscriptions */}
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, marginTop: 28, marginBottom: 12 }}>
             <Text style={{ fontFamily: Font.display, fontSize: 22, color: Palette.ink, letterSpacing: -0.5 }}>meal plans &amp; subscriptions</Text>
-            <PressableScale onPress={() => go('/meal-plans')} accessibilityRole="button" accessibilityLabel="View all meal plans">
+            <PressableScale onPress={() => { feedback.tap(); go('/meal-plans'); }} accessibilityRole="button" accessibilityLabel="View all meal plans">
               <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: Palette.brand }}>view all</Text>
             </PressableScale>
           </View>
@@ -369,7 +369,7 @@ export default function ProfileScreen() {
                 const next = s.next_billing_at ? new Date(s.next_billing_at) : null;
                 const nextLabel = next && !isNaN(next.getTime()) ? next.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : null;
                 return (
-                  <PressableScale key={s.id} onPress={() => go('/meal-plans')} accessibilityRole="button" accessibilityLabel={`${s.plan_name}, ${s.status}`}
+                  <PressableScale key={s.id} onPress={() => { feedback.tap(); go('/meal-plans'); }} accessibilityRole="button" accessibilityLabel={`${s.plan_name}, ${s.status}`}
                     style={{ backgroundColor: Palette.surface, borderRadius: 18, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
                     <View style={{ width: 56, height: 56, borderRadius: 14, backgroundColor: Palette.brandTint, alignItems: 'center', justifyContent: 'center' }}>
                       <CalendarCheck size={24} color={Palette.brand} />
@@ -392,7 +392,7 @@ export default function ProfileScreen() {
               })}
             </View>
           ) : (
-            <PressableScale onPress={() => go('/meal-plans')} accessibilityRole="button" accessibilityLabel="Discover meal plans"
+            <PressableScale onPress={() => { feedback.tap(); go('/meal-plans'); }} accessibilityRole="button" accessibilityLabel="Discover meal plans"
               style={{ marginHorizontal: 20, backgroundColor: Palette.surface, borderRadius: 18, padding: 16, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
               <View style={{ width: 48, height: 48, borderRadius: 14, backgroundColor: Palette.brandTint, alignItems: 'center', justifyContent: 'center' }}>
                 <CalendarCheck size={22} color={Palette.brand} />
@@ -414,7 +414,7 @@ export default function ProfileScreen() {
           {/* Become a prepper — only for non-approved, non-pending users */}
           {!isApprovedPrepper && !isPendingPrepper ? (
             <PressableScale
-              onPress={() => router.push('/become-prepper')}
+              onPress={() => { feedback.tap(); router.push('/become-prepper'); }}
               accessibilityRole="button"
               accessibilityLabel="Become a prepper, start earning with your cooking"
               style={{ marginHorizontal: 20, marginTop: 10, backgroundColor: Palette.prepperBg, borderRadius: 18, padding: 16, flexDirection: 'row', alignItems: 'center', gap: 14 }}>
@@ -440,7 +440,7 @@ export default function ProfileScreen() {
           ) : null}
 
           <PressableScale
-            onPress={() => (user ? signOut() : router.push('/auth?mode=signin'))}
+            onPress={() => { feedback.tap(); user ? signOut() : router.push('/auth?mode=signin'); }}
             accessibilityRole="button"
             accessibilityLabel={user ? 'Sign out' : 'Sign in or create account'}
             style={{ marginHorizontal: 20, marginTop: 16, alignItems: 'center', paddingVertical: 15, borderRadius: 16, backgroundColor: user ? Palette.surface : Palette.brand }}>

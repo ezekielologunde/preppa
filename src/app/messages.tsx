@@ -186,6 +186,7 @@ export default function MessagesScreen() {
   }
 
   function goBack() {
+    feedback.tap();
     try { router.back(); } catch { router.replace('/'); }
   }
 

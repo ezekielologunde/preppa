@@ -173,7 +173,7 @@ export default function DashboardScreen() {
           {/* Header */}
           <MotiView from={{ opacity: 0, translateY: -8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 300 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, gap: 12 }}>
-            <PressableScale onPress={() => { try { router.back(); } catch { router.replace('/profile'); } }} accessibilityRole="button" accessibilityLabel="Back to customer view" style={{ width: 54, height: 54, borderRadius: 27, borderWidth: 2, borderColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
+            <PressableScale onPress={() => { feedback.tap(); try { router.back(); } catch { router.replace('/profile'); } }} accessibilityRole="button" accessibilityLabel="Back to customer view" style={{ width: 54, height: 54, borderRadius: 27, borderWidth: 2, borderColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
               <Avatar
                 name={prepper?.display_name ?? (user?.user_metadata?.full_name as string | undefined) ?? 'chef'}
                 url={user?.user_metadata?.avatar_url as string | undefined}
@@ -379,7 +379,7 @@ export default function DashboardScreen() {
         <View style={[{ position: 'absolute', left: 16, right: 16, bottom: 78, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: CARD, borderRadius: 26, paddingVertical: 12, paddingHorizontal: 18, ...Shadow.floating }, desktop && { left: undefined, right: undefined, alignSelf: 'center', width: 520 }]}>
           <ActionItem Icon={UtensilsCrossed} label="add meal" color="#fff" onPress={() => router.push('/meal-editor')} />
           <ActionItem Icon={Video} label="go live" color={PINK} onPress={() => router.push('/post-video')} />
-          <PressableScale accessibilityRole="button" accessibilityLabel="Add new meal" onPress={() => router.push('/meal-editor')}>
+          <PressableScale accessibilityRole="button" accessibilityLabel="Add new meal" onPress={() => { feedback.tap(); router.push('/meal-editor'); }}>
             <View style={{ width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center', marginTop: -26, backgroundColor: ORANGE, ...Shadow.floating, shadowColor: ORANGE, shadowOpacity: 0.45 }}>
               <Plus size={28} color="#fff" />
             </View>

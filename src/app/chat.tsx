@@ -41,6 +41,7 @@ export default function ChatScreen() {
       feedback.warning();
       return;
     }
+    feedback.tap();
     Linking.openURL(`tel:${ctx.otherPhone}`).catch(() => feedback.error());
   }
 
@@ -63,6 +64,7 @@ export default function ChatScreen() {
   }
 
   function goBack() {
+    feedback.tap();
     try { router.back(); } catch { router.replace('/messages'); }
   }
 

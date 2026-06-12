@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
+import { feedback } from '@/lib/feedback';
 import { Palette } from '@/constants/theme';
 import { useMyEarnings, type EarningsRecent } from '@/lib/queries/earnings';
 
@@ -69,7 +70,7 @@ export default function EarningsScreen() {
     <View style={{ flex: 1, backgroundColor: BG }}>
       <SafeAreaView edges={['top']} style={{ flex: 1 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingTop: 8, paddingBottom: 8 }}>
-          <PressableScale onPress={() => { try { router.back(); } catch { router.replace('/dashboard'); } }} accessibilityRole="button" accessibilityLabel="Go back" style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center' }}>
+          <PressableScale onPress={() => { feedback.tap(); try { router.back(); } catch { router.replace('/dashboard'); } }} accessibilityRole="button" accessibilityLabel="Go back" style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center' }}>
             <ChevronLeft size={22} color="#fff" />
           </PressableScale>
           <Text style={{ fontFamily: Font.display, fontSize: 24, color: '#fff', letterSpacing: -0.6 }}>earnings</Text>
@@ -84,7 +85,7 @@ export default function EarningsScreen() {
             </View>
             <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>No earnings yet</Text>
             <Text style={{ fontFamily: Font.body, fontSize: 14, color: MUTED, textAlign: 'center' }}>Become a prepper and your sales will show up here.</Text>
-            <PressableScale onPress={() => router.push('/become-prepper')} accessibilityRole="button" accessibilityLabel="Become a prepper" style={{ marginTop: 6, backgroundColor: ORANGE, borderRadius: 14, paddingHorizontal: 22, paddingVertical: 12 }}>
+            <PressableScale onPress={() => { feedback.tap(); router.push('/become-prepper'); }} accessibilityRole="button" accessibilityLabel="Become a prepper" style={{ marginTop: 6, backgroundColor: ORANGE, borderRadius: 14, paddingHorizontal: 22, paddingVertical: 12 }}>
               <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: '#fff' }}>Become a prepper</Text>
             </PressableScale>
           </View>
