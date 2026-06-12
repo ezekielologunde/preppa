@@ -1,7 +1,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ArrowUpDown, Check, ChevronLeft, Search, X } from 'lucide-react-native';
 import { MotiView } from 'moti';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -18,6 +18,11 @@ import { gridCardWidth, useContentWidth } from '@/lib/layout';
 import { useMealSearch } from '@/lib/queries/meals';
 import { usePrepperSearch } from '@/lib/queries/preppers';
 import { useMealCategories } from '@/lib/queries/my-meals';
+import { useMyOrders } from '@/lib/queries/orders';
+import { useFavoriteKeys } from '@/lib/favorites';
+import { buildMatchSignals } from '@/lib/match';
+import { rankSearchResults, boostBySignals, MEAL_FIELDS, getSuggestions } from '@/lib/search-rank';
+import { useAuth } from '@/providers/auth-provider';
 
 const ORANGE = Palette.brand;
 const INK = Palette.ink;
@@ -59,11 +64,11 @@ function Chip({ label, selected, onPress }: { label: string; selected: boolean; 
 
 export default function SearchScreen() {
   const router = useRouter();
-  // Frame-aware grid: 2 columns on phones, 3 on tablet, 4 on desktop.
   const CARD_W = gridCardWidth(useContentWidth());
   const { q } = useLocalSearchParams<{ q?: string }>();
   const initial = (q || '').toString();
   const bp = useBreakpoint();
+  const { user } = useAuth();
   const [text, setText] = useState(initial);
   const [debounced, setDebounced] = useState(initial);
   const [categoryId, setCategoryId] = useState<number | null>(null);
@@ -79,6 +84,8 @@ export default function SearchScreen() {
     priceMin: price?.min ?? null,
     priceMax: price?.max ?? null,
   });
+  const { data: orders } = useMyOrders(user?.id);
+  const favKeys = useFavoriteKeys();
 
   useEffect(() => {
     const t = setTimeout(() => setDebounced(text), 250);
@@ -88,12 +95,21 @@ export default function SearchScreen() {
   const hasFilters = categoryId !== null || priceKey !== null || sortKey !== 'default';
   const active = debounced.trim().length >= 2 || hasFilters;
 
-  const sortedResults = results ? [...results].sort((a, b) => {
-    if (sortKey === 'price-asc') return a.price - b.price;
-    if (sortKey === 'price-desc') return b.price - a.price;
-    if (sortKey === 'top-rated') return b.rating - a.rating;
-    return 0;
-  }) : results;
+  const sortedResults = useMemo(() => {
+    if (!results) return results;
+    if (sortKey === 'price-asc') return [...results].sort((a, b) => a.price - b.price);
+    if (sortKey === 'price-desc') return [...results].sort((a, b) => b.price - a.price);
+    if (sortKey === 'top-rated') return [...results].sort((a, b) => b.rating - a.rating);
+    if (debounced.trim()) {
+      const signals = buildMatchSignals(orders ?? [], favKeys);
+      const items = results as unknown as Record<string, unknown>[];
+      const ranked = rankSearchResults(debounced, items, MEAL_FIELDS<Record<string, unknown>>());
+      return boostBySignals(ranked, signals) as unknown as typeof results;
+    }
+    return results;
+  }, [results, sortKey, debounced, orders, favKeys]);
+
+  const suggestions = useMemo(() => getSuggestions(text), [text]);
   const loading = active && (isLoading || isFetching);
 
   return (
@@ -153,6 +169,15 @@ export default function SearchScreen() {
             <Search size={40} color={Palette.divider} />
             <Text style={{ fontFamily: Font.heading, fontSize: 16, color: Palette.textSecondary }}>find your next meal</Text>
             <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textMuted, textAlign: 'center' }}>type to search — or tap a filter to browse</Text>
+            {suggestions.length > 0 ? (
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 8, marginTop: 4 }}>
+                {suggestions.map((s) => (
+                  <PressableScale key={s} onPress={() => { feedback.tap(); setText(s); }} accessibilityRole="button" accessibilityLabel={`Search for ${s}`} style={{ paddingHorizontal: 14, height: 34, borderRadius: 999, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
+                    <Text style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.inkSoft }}>{s}</Text>
+                  </PressableScale>
+                ))}
+              </View>
+            ) : null}
           </MotiView>
         ) : loading ? (
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12, padding: 20 }}>

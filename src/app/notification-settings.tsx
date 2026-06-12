@@ -26,7 +26,7 @@ const CATEGORIES: Category[] = [
   { id: 'boost', label: 'listing performance', desc: 'Prepper-only: impressions and orders from your active boosts', Icon: Zap, color: '#d97706', defaultOn: false },
 ];
 
-const MARKETING_NOTE = 'Rush hour and holiday alerts fire at most once per window, so you never get spammed. We'll always respect your quiet hours (10 pm – 7 am).';
+const MARKETING_NOTE = "Rush hour and holiday alerts fire at most once per window, so you never get spammed. We'll always respect your quiet hours (10 pm – 7 am).";
 
 export default function NotificationSettingsScreen() {
   const router = useRouter();

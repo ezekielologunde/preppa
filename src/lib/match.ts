@@ -183,7 +183,7 @@ export function scorePrepperForUser(prepper: PrepperLike, signals: MatchSignals)
   return { score, reason };
 }
 
-export function rankPreppers(preppers: PrepperLike[], signals: MatchSignals): RankedPrepper[] {
+export function rankPreppers<T extends PrepperLike>(preppers: T[], signals: MatchSignals): (T & { matchScore: number; matchReason: string })[] {
   return preppers
     .map((p) => {
       const { score, reason } = scorePrepperForUser(p, signals);
@@ -195,7 +195,7 @@ export function rankPreppers(preppers: PrepperLike[], signals: MatchSignals): Ra
 // ─── React Hook ───────────────────────────────────────────────────────────────
 
 /** Live ranked preppers for the signed-in user, derived from real signals. */
-export function useRankedPreppers<T extends PrepperLike>(preppers: T[], userId?: string | null): RankedPrepper[] {
+export function useRankedPreppers<T extends PrepperLike>(preppers: T[], userId?: string | null): (T & { matchScore: number; matchReason: string })[] {
   const favKeys = useFavoriteKeys();
   const { data: orders } = useMyOrders(userId);
   return useMemo(() => {

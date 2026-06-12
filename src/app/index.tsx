@@ -30,6 +30,7 @@ import { Modal, Platform, Pressable, RefreshControl, ScrollView, Text, View } fr
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { MealCard } from '@/components/meal-card';
+import { MarketingBanner } from '@/components/marketing-banner';
 import { PreppaLogo } from '@/components/preppa-logo';
 import { Font } from '@/constants/fonts';
 import { categories, recommendedMeals } from '@/constants/mock';
@@ -234,6 +235,9 @@ export default function HomeScreen() {
             </PressableScale>
             </MotiView>
           ) : null}
+
+          {/* Marketing banner — rush hour, holidays, weekly digest */}
+          <MarketingBanner />
 
           {/* Categories — horizontal scroll on phone, wrapping chip grid on tablet+ */}
           {(() => {

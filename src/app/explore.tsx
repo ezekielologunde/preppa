@@ -44,6 +44,7 @@ import { useFeaturedMeals, useLimitedDrops } from '@/lib/queries/meals';
 import { useKitchenTags, useTopPreppers } from '@/lib/queries/preppers';
 import { usePersonalizedMeals } from '@/lib/queries/recommend';
 import { useBreakpoint, usePagePadding } from '@/lib/layout';
+import { useRankedPreppers } from '@/lib/match';
 import { useAuth } from '@/providers/auth-provider';
 
 const ORANGE = Palette.brand;
@@ -88,6 +89,7 @@ export default function ExploreScreen() {
   const { data: meals, isLoading: mealsLoading, isError: mealsError, refetch: refetchMeals } = useFeaturedMeals();
   const { data: drops, refetch: refetchDrops } = useLimitedDrops(6);
   const forYou = usePersonalizedMeals(meals ?? [], user?.id).slice(0, 6);
+  const rankedPreppers = useRankedPreppers(preppers ?? [], user?.id);
   const [refreshing, setRefreshing] = useState(false);
   const [location, setLocation] = useState('New York, NY');
   const [locationOpen, setLocationOpen] = useState(false);
@@ -219,13 +221,13 @@ export default function ExploreScreen() {
             )}
           </View>
 
-          {/* Top kitchens — reputation-ranked (live) */}
-          <SectionHeader title="top kitchens this week" />
+          {/* Top kitchens — personalised ranking via match engine */}
+          <SectionHeader title="top kitchens · for you" />
           {preppersLoading ? (
             <View style={{ paddingBottom: 26 }}><CardRowSkeleton count={3} width={210} /></View>
           ) : (
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 14, paddingBottom: 26 }}>
-              {(preppers ?? []).map((p, i) => (
+              {rankedPreppers.map((p, i) => (
                 <MotiView key={p.id} from={{ opacity: 0, translateX: 14 }} animate={{ opacity: 1, translateX: 0 }} transition={{ type: 'timing', duration: 220, delay: i * 40 }}>
                   <PrepperCard prepper={p} showRank />
                 </MotiView>
