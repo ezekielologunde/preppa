@@ -69,3 +69,11 @@ function idsSnap(): string[] {
 export function useRecentlyViewedIds(): string[] {
   return useSyncExternalStore(subscribe, idsSnap);
 }
+
+export function clearRecentlyViewed() {
+  ids = [];
+  idsSnapshot = null;
+  snapSource = null;
+  persist();
+  listeners.forEach((l) => l());
+}

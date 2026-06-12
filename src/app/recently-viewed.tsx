@@ -11,7 +11,7 @@ import { Font } from '@/constants/fonts';
 import { Palette } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
 import { gridCardWidth, useContentWidth } from '@/lib/layout';
-import { useRecentlyViewedIds } from '@/lib/recently-viewed';
+import { clearRecentlyViewed, useRecentlyViewedIds } from '@/lib/recently-viewed';
 import { useMeal } from '@/lib/queries/meals';
 
 const ORANGE = Palette.brand;
@@ -47,6 +47,11 @@ export default function RecentlyViewedScreen() {
               {visible.length > 0 ? `${visible.length} meal${visible.length !== 1 ? 's' : ''}` : 'nothing here yet'}
             </Text>
           </View>
+          {visible.length > 0 ? (
+            <PressableScale onPress={() => { feedback.tap(); clearRecentlyViewed(); }} accessibilityRole="button" accessibilityLabel="Clear history" style={{ paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, backgroundColor: Palette.surface }}>
+              <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: Palette.textSecondary }}>clear</Text>
+            </PressableScale>
+          ) : null}
         </View>
 
         {visible.length === 0 ? (
