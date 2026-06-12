@@ -54,6 +54,8 @@ function Chip({ label, selected, onPress }: { label: string; selected: boolean; 
         height: 36,
         borderRadius: 999,
         backgroundColor: selected ? INK : Palette.surface,
+        borderWidth: 1.5,
+        borderColor: selected ? 'transparent' : Palette.border,
         alignItems: 'center',
         justifyContent: 'center',
       }}>
@@ -129,12 +131,14 @@ export default function SearchScreen() {
               placeholder="search meals, cuisines, preppers"
               placeholderTextColor={Palette.textMuted}
               returnKeyType="search"
+              autoCapitalize="none"
+              autoCorrect={false}
               style={{ flex: 1, fontFamily: Font.body, fontSize: 15, color: INK }}
             />
             {text.length > 0 ? (
-              <Pressable onPress={() => setText('')} accessibilityLabel="Clear" hitSlop={8}>
+              <PressableScale onPress={() => { feedback.tap(); setText(''); }} accessibilityRole="button" accessibilityLabel="Clear search" hitSlop={8}>
                 <X size={18} color={Palette.textMuted} />
-              </Pressable>
+              </PressableScale>
             ) : null}
           </View>
         </View>
