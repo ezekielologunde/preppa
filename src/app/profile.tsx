@@ -193,6 +193,7 @@ export default function ProfileScreen() {
       return;
     }
     if (h.label === 'invite friends') { feedback.tap(); return go('/referral'); }
+    if (h.label === 'dietary preferences') { feedback.tap(); return go('/dietary-preferences'); }
     return soon(h.label.replace(/\b\w/g, (c) => c.toUpperCase()));
   };
 

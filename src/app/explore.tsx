@@ -40,7 +40,9 @@ import { cuisines, exploreCategories } from '@/constants/mock';
 import { Palette, Radius, Shadow } from '@/constants/theme';
 import { useFeaturedMeals, useLimitedDrops } from '@/lib/queries/meals';
 import { useKitchenTags, useTopPreppers } from '@/lib/queries/preppers';
+import { usePersonalizedMeals } from '@/lib/queries/recommend';
 import { useBreakpoint, usePagePadding } from '@/lib/layout';
+import { useAuth } from '@/providers/auth-provider';
 
 const ORANGE = Palette.brand;
 const INK = Palette.ink;
@@ -78,10 +80,12 @@ const CITIES = [
 
 export default function ExploreScreen() {
   const router = useRouter();
+  const { user } = useAuth();
   const { data: preppers, isLoading: preppersLoading, isError: preppersError, refetch: refetchPreppers } = useTopPreppers();
   const { data: kitchenTags, refetch: refetchTags } = useKitchenTags();
   const { data: meals, isLoading: mealsLoading, isError: mealsError, refetch: refetchMeals } = useFeaturedMeals();
   const { data: drops, refetch: refetchDrops } = useLimitedDrops(6);
+  const forYou = usePersonalizedMeals(meals ?? [], user?.id).slice(0, 6);
   const [refreshing, setRefreshing] = useState(false);
   const [location, setLocation] = useState('New York, NY');
   const [locationOpen, setLocationOpen] = useState(false);
@@ -254,6 +258,26 @@ export default function ExploreScreen() {
               ))}
             </ScrollView>
           )}
+
+          {/* For you — personalized ranking */}
+          {forYou.length > 0 ? (
+            <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 80 }}>
+              <SectionHeader title="for you" onSeeAll={() => router.push('/category?key=all&label=for+you')} />
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 14, paddingBottom: 26 }}>
+                {forYou.map((s, i) => (
+                  <MotiView key={s.meal.id} from={{ opacity: 0, translateX: 14 }} animate={{ opacity: 1, translateX: 0 }} transition={{ type: 'timing', duration: 220, delay: i * 35 }}>
+                    <View>
+                      <MealCard meal={s.meal} />
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6, paddingHorizontal: 2 }}>
+                        <Sparkles size={11} color={ORANGE} />
+                        <Text numberOfLines={1} style={{ fontFamily: Font.medium, fontSize: 11, color: Palette.textSecondary, flex: 1 }}>{s.reason}</Text>
+                      </View>
+                    </View>
+                  </MotiView>
+                ))}
+              </ScrollView>
+            </MotiView>
+          ) : null}
 
           {/* Can't decide — flat brand-tint accent */}
           <PressableScale
