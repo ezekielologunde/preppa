@@ -45,8 +45,8 @@ const COLOR_MAP = {
   follow: '#a78bfa',
   review: '#fbbf24',
   promotion: '#f472b6',
-  drop: '#f59e0b',
-  live: '#ef4444',
+  drop: Palette.amber,
+  live: Palette.danger,
 } as const;
 
 function relativeTime(iso: string): string {

@@ -15,7 +15,7 @@ import type { TopPrepper } from '@/lib/queries/preppers';
 function RankBadge({ rank }: { rank: number }) {
   if (rank === 1) {
     return (
-      <View style={{ position: 'absolute', top: 10, left: 10, flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: '#11151C', borderRadius: 999, paddingLeft: 8, paddingRight: 11, height: 28 }}>
+      <View style={{ position: 'absolute', top: 10, left: 10, flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: Palette.ink, borderRadius: 999, paddingLeft: 8, paddingRight: 11, height: 28 }}>
         <Trophy size={13} color="#FFD24A" fill="#FFD24A" />
         <Text style={{ fontFamily: Font.semibold, fontSize: 11.5, color: '#fff', letterSpacing: 0.2 }}>Top rated</Text>
       </View>
