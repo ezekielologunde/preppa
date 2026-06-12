@@ -141,7 +141,7 @@ function Row({ Icon, label, iconBg, iconColor, labelColor, right, onPress, isLas
           }}>
           {label}
         </Text>
-        {right.type === 'chevron' && <ChevronRight size={17} color={Palette.divider} />}
+        {right.type === 'chevron' && <ChevronRight size={17} color={Palette.textSecondary} />}
         {right.type === 'toggle' && <Toggle value={right.value} onToggle={right.onToggle} />}
         {right.type === 'chip' && <ValueChip label={right.label} />}
         {right.type === 'value' && (
@@ -206,7 +206,7 @@ function DeleteModal({ visible, onCancel, onConfirm }: { visible: boolean; onCan
         <MotiView from={{ opacity: 0, translateY: 24 }} animate={{ opacity: 1, translateY: 0 }}
           transition={{ type: 'timing', duration: 260 }}
           style={{ backgroundColor: Palette.surface, borderRadius: 24, padding: 24, gap: 8 }}>
-          <View style={{ width: 52, height: 52, borderRadius: 16, backgroundColor: '#FEE2E2', alignItems: 'center', justifyContent: 'center', alignSelf: 'center', marginBottom: 4 }}>
+          <View style={{ width: 52, height: 52, borderRadius: 16, backgroundColor: Palette.danger + '1A', alignItems: 'center', justifyContent: 'center', alignSelf: 'center', marginBottom: 4 }}>
             <AlertTriangle size={24} color={Palette.danger} />
           </View>
           <Text style={{ fontFamily: Font.display, fontSize: 20, color: Palette.ink, textAlign: 'center', marginBottom: 4 }}>
@@ -338,7 +338,7 @@ export default function SettingsScreen() {
             <Row
               Icon={Trash2}
               label="delete account"
-              iconBg="#FEE2E2"
+              iconBg={Palette.danger + '1A'}
               iconColor={Palette.danger}
               labelColor={Palette.danger}
               right={{ type: 'chevron' }}

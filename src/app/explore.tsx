@@ -60,8 +60,8 @@ const TRENDING = [
 ];
 
 const GOALS: { label: string; tag: string; Icon: LucideIcon; color: string }[] = [
-  { label: 'Bulk Up',     tag: 'High-Protein',      Icon: Zap,    color: '#F59E0B' },
-  { label: 'Cut & Lean',  tag: 'Low-Calorie',        Icon: Flame,  color: '#EF4444' },
+  { label: 'Bulk Up',     tag: 'High-Protein',      Icon: Zap,    color: Palette.amber },
+  { label: 'Cut & Lean',  tag: 'Low-Calorie',        Icon: Flame,  color: Palette.danger },
   { label: 'Keto',        tag: 'Keto',               Icon: Leaf,   color: '#8B5CF6' },
   { label: 'Plant-Based', tag: 'Vegan-Friendly',     Icon: Sprout, color: '#22C55E' },
   { label: 'Diabetic',    tag: 'Diabetic-Friendly',  Icon: Heart,  color: '#3B82F6' },
@@ -258,7 +258,7 @@ export default function ExploreScreen() {
           {/* Grocery concierge — ingredient kits banner */}
           <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260 }}>
           <PressableScale onPress={() => { feedback.tap(); router.push('/grocery-concierge'); }} accessibilityRole="button" accessibilityLabel="Grocery concierge — ingredient kits"
-            style={{ marginHorizontal: 20, backgroundColor: '#11151C', borderRadius: 18, padding: 18, flexDirection: 'row', alignItems: 'center', gap: 14, marginBottom: 26 }}>
+            style={{ marginHorizontal: 20, backgroundColor: INK, borderRadius: 18, padding: 18, flexDirection: 'row', alignItems: 'center', gap: 14, marginBottom: 26 }}>
             <View style={{ width: 46, height: 46, borderRadius: 14, backgroundColor: Palette.brand + '22', alignItems: 'center', justifyContent: 'center' }}>
               <ShoppingBag size={21} color={Palette.brand} />
             </View>
