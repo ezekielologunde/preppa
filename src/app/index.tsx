@@ -119,6 +119,9 @@ export default function HomeScreen() {
   async function handleRefresh() { setRefreshing(true); await Promise.all([refetchMeals(), refetchFeed(), refetchOrders(), refetchNotifs()]); setRefreshing(false); }
   const topPicks = ranked.slice(0, Math.min(5, ranked.length));
   const aiPick = topPicks.length ? topPicks[aiIdx % topPicks.length] : null;
+  const hour = new Date().getHours();
+  const rushActive = (hour >= 11 && hour < 14) || (hour >= 16 && hour < 20) || (hour >= 7 && hour < 10);
+  const rushLabel = hour >= 11 && hour < 14 ? '🔥 lunch rush' : hour >= 16 && hour < 20 ? '🌆 dinner window' : '🌅 morning prep';
   // Bell badge = orders in motion + unread notifications (real, actionable).
   const activeOrders = (myOrders ?? []).filter(
     (o) => o.status !== 'completed' && o.status !== 'cancelled',
@@ -155,7 +158,7 @@ export default function HomeScreen() {
                 <Text style={{ color: ORANGE }}>craving today?</Text>
               </Text>
             </View>
-            <PressableScale onPress={() => { feedback.tap(); router.push('/messages'); }} accessibilityRole="button" accessibilityLabel={badgeCount ? `Inbox, ${badgeCount} updates` : 'Inbox'} style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
+            <PressableScale onPress={() => { feedback.tap(); router.push('/notifications'); }} accessibilityRole="button" accessibilityLabel={badgeCount ? `Notifications, ${badgeCount} updates` : 'Notifications'} style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
               <Bell size={20} color={INK} />
               {badgeCount > 0 ? (
                 <View style={{ position: 'absolute', top: 8, right: 9, minWidth: 16, height: 16, borderRadius: 8, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3 }}>
@@ -187,6 +190,18 @@ export default function HomeScreen() {
             <SlidersHorizontal size={20} color={ORANGE} />
           </PressableScale>
           </MotiView>
+
+          {/* Rush hour / specials entry */}
+          {rushActive ? (
+            <MotiView from={{ opacity: 0, translateY: 6 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 80 }}>
+            <PressableScale onPress={() => { feedback.tap(); router.push('/specials'); }} accessibilityRole="button" accessibilityLabel="Deals and specials"
+              style={{ marginHorizontal: 20, marginTop: 10, backgroundColor: ORANGE, borderRadius: 14, paddingHorizontal: 16, paddingVertical: 12, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+              <Sparkles size={17} color="#fff" />
+              <Text style={{ flex: 1, fontFamily: Font.semibold, fontSize: 14, color: '#fff' }}>{rushLabel} — deals & specials live now</Text>
+              <ChevronRight size={16} color="rgba(255,255,255,0.7)" />
+            </PressableScale>
+            </MotiView>
+          ) : null}
 
           {/* Error banner — shown when primary data fails */}
           {mealsError && !mealsLoading ? (
