@@ -65,7 +65,7 @@ function Bar({ value, max, color }: { value: number; max: number; color: string 
 }
 
 const INSIGHTS = [
-  { icon: Flame, color: '#dc2626', text: 'Your lunch slot (11am–2pm) drives the most orders. Batch-prepping by 10:30 am can cut your fulfilment time by 25%.' },
+  { icon: Flame, color: Palette.danger, text: 'Your lunch slot (11am–2pm) drives the most orders. Batch-prepping by 10:30 am can cut your fulfilment time by 25%.' },
   { icon: TrendingUp, color: ORANGE, text: 'Your average order value ($18.40) is 12% above the platform average. Upsell dessert add-ons to push it further.' },
   { icon: Award, color: '#8b5cf6', text: 'Thursday is your highest-earning day this month. Consider adding a "Thursday special" to capitalise on demand.' },
   { icon: Clock, color: '#0891b2', text: 'Orders placed after 9 pm arrive late — consider setting a daily cut-off time to protect your on-time rate.' },
@@ -114,7 +114,7 @@ export default function PrepperAnalyticsScreen() {
             {[
               { label: 'total orders', value: completed.length.toString(), color: '#06b6d4' },
               { label: 'avg order', value: `$${avgOrder.toFixed(0)}`, color: ORANGE },
-              { label: 'repeat rate', value: `${repeatRate}%`, color: '#22c55e' },
+              { label: 'repeat rate', value: `${repeatRate}%`, color: Palette.success },
             ].map(({ label, value, color }) => (
               <View key={label} style={{ flex: 1, backgroundColor: Palette.surface, borderRadius: 14, padding: 12, alignItems: 'center', gap: 4 }}>
                 <Text style={{ fontFamily: Font.display, fontSize: 22, color, letterSpacing: -0.5, fontVariant: ['tabular-nums'] }}>{value}</Text>
@@ -181,7 +181,7 @@ export default function PrepperAnalyticsScreen() {
 
           {/* AI Insights */}
           <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 180 }}>
-          <Text style={{ fontFamily: Font.display, fontSize: 18, color: INK, letterSpacing: -0.4, marginBottom: 10 }}>smart insights</Text>
+          <Text style={{ fontFamily: Font.display, fontSize: 15, color: INK, letterSpacing: -0.3, marginBottom: 10 }}>smart insights</Text>
           <View style={{ gap: 10 }}>
             {INSIGHTS.map(({ icon: Icon, color, text }, i) => (
               <MotiView key={i} from={{ opacity: 0, translateX: -6 }} animate={{ opacity: 1, translateX: 0 }} transition={{ type: 'timing', duration: 220, delay: 200 + i * 40 }}>
