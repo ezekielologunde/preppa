@@ -91,6 +91,7 @@ export default function TabLayout() {
   return (
     <Tabs
       tabBar={(props) => <PreppaTabBar {...(props as unknown as TabBarProps)} />}
+      backBehavior="history"
       screenOptions={{ headerShown: false }}>
       <Tabs.Screen name="index" />
       <Tabs.Screen name="explore" />
