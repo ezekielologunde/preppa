@@ -20,7 +20,7 @@ function Stars({ rating, size = 14 }: { rating: number; size?: number }) {
   return (
     <View style={{ flexDirection: 'row', gap: 2 }}>
       {[1, 2, 3, 4, 5].map((n) => (
-        <Star key={n} size={size} color={n <= Math.round(rating) ? '#f59e0b' : Palette.border} fill={n <= Math.round(rating) ? '#f59e0b' : 'none'} />
+        <Star key={n} size={size} color={n <= Math.round(rating) ? Palette.amber : Palette.border} fill={n <= Math.round(rating) ? Palette.amber : 'none'} />
       ))}
     </View>
   );
@@ -96,7 +96,7 @@ export default function ReviewsScreen() {
                     <View key={n} style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                       <Text style={{ fontFamily: Font.medium, fontSize: 11, color: Palette.textMuted, width: 8 }}>{n}</Text>
                       <View style={{ flex: 1, height: 6, backgroundColor: Palette.border, borderRadius: 3, overflow: 'hidden' }}>
-                        <View style={{ width: `${(count / maxCount) * 100}%`, height: 6, borderRadius: 3, backgroundColor: '#f59e0b' }} />
+                        <View style={{ width: `${(count / maxCount) * 100}%`, height: 6, borderRadius: 3, backgroundColor: Palette.amber }} />
                       </View>
                       <Text style={{ fontFamily: Font.medium, fontSize: 11, color: Palette.textMuted, width: 16, textAlign: 'right', fontVariant: ['tabular-nums'] }}>{count}</Text>
                     </View>
@@ -115,7 +115,7 @@ export default function ReviewsScreen() {
             {/* Response tip */}
             {reviews && reviews.length > 0 ? (
               <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 80 }}>
-              <View style={{ backgroundColor: '#11151C', borderRadius: Radius.lg, padding: 16, flexDirection: 'row', alignItems: 'flex-start', gap: 12 }}>
+              <View style={{ backgroundColor: INK, borderRadius: Radius.lg, padding: 16, flexDirection: 'row', alignItems: 'flex-start', gap: 12 }}>
                 <View style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: ORANGE + '22', alignItems: 'center', justifyContent: 'center', marginTop: 1 }}>
                   <MessageSquare size={15} color={ORANGE} />
                 </View>

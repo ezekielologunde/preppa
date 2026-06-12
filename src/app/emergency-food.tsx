@@ -83,9 +83,9 @@ export default function EmergencyFoodScreen() {
             <Text style={{ fontFamily: Font.display, fontSize: 24, color: INK, letterSpacing: -0.6 }}>emergency food</Text>
             <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: Palette.textSecondary, marginTop: 1 }}>notify nearby preppers instantly</Text>
           </View>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#FEE2E2', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 5 }}>
-            <AlertCircle size={12} color="#dc2626" />
-            <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: '#dc2626' }}>urgent</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: Palette.danger + '1A', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 5 }}>
+            <AlertCircle size={12} color={Palette.danger} />
+            <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: Palette.danger }}>urgent</Text>
           </View>
         </View>
 
@@ -165,7 +165,7 @@ export default function EmergencyFoodScreen() {
             <View style={{ backgroundColor: Palette.surface, borderRadius: Radius.lg, overflow: 'hidden' }}>
               {availablePreppers.slice(0, 3).map((p, i) => (
                 <View key={p.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 14, paddingVertical: 11, borderTopWidth: i === 0 ? 0 : 1, borderTopColor: Palette.divider }}>
-                  <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#22c55e' }} />
+                  <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: Palette.success }} />
                   <Text style={{ flex: 1, fontFamily: Font.medium, fontSize: 13.5, color: INK }}>{p.name}</Text>
                   <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted }}>★ {p.rating.toFixed(1)}</Text>
                 </View>
