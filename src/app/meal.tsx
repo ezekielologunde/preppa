@@ -1,9 +1,9 @@
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { BadgeCheck, Check, ChevronLeft, Clock, Maximize2, MessageCircle, ShoppingBag, Star, X, Zap } from 'lucide-react-native';
+import { BadgeCheck, Check, ChevronLeft, Clock, Maximize2, MessageCircle, Share2, ShoppingBag, Star, X, Zap } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { MotiView } from 'moti';
-import { ActivityIndicator, Modal, Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Modal, Pressable, ScrollView, Share, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { FavoriteButton } from '@/components/ui/favorite-button';
@@ -63,6 +63,16 @@ export default function MealScreen() {
   const { data: reviews } = usePrepperReviews(meal?.prepperId);
   const orderingOn = useFeatureEnabled('ordering');
 
+  async function handleShare() {
+    feedback.tap();
+    try {
+      await Share.share({
+        title: meal?.title ?? 'Check this out on Preppa',
+        message: `${meal?.title ?? 'A great meal'} by ${meal?.prepper ?? 'a prepper'} — order on Preppa: https://app.preppa.live/meal?id=${id}`,
+      });
+    } catch { /* share sheet closed */ }
+  }
+
   function messagePrepper() {
     feedback.tap();
     if (!user) return router.push('/auth?mode=signin');
@@ -120,10 +130,13 @@ export default function MealScreen() {
             </Pressable>
           ) : null}
           <SafeAreaView edges={['top']} style={{ position: 'absolute', top: 0, left: 0, right: 0, flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 8 }}>
-            <PressableScale onPress={() => { feedback.tap(); router.back(); }} accessibilityRole="button" accessibilityLabel="Go back" style={{ width: 42, height: 42, borderRadius: 21, backgroundColor: 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center' }}>
+            <PressableScale onPress={() => { feedback.tap(); try { router.back(); } catch { router.replace('/'); } }} accessibilityRole="button" accessibilityLabel="Go back" style={{ width: 42, height: 42, borderRadius: 21, backgroundColor: 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center' }}>
               <ChevronLeft size={22} color={INK} />
             </PressableScale>
             <View style={{ flexDirection: 'row', gap: 10 }}>
+              <PressableScale onPress={handleShare} accessibilityRole="button" accessibilityLabel="Share this meal" style={{ width: 42, height: 42, borderRadius: 21, backgroundColor: 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center' }}>
+                <Share2 size={17} color={INK} />
+              </PressableScale>
               {meal?.images[0] ? (
                 <PressableScale onPress={() => { feedback.tap(); setLightboxOpen(true); }} accessibilityRole="button" accessibilityLabel="View full-screen photo" style={{ width: 42, height: 42, borderRadius: 21, backgroundColor: 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center' }}>
                   <Maximize2 size={17} color={INK} />
@@ -220,6 +233,17 @@ export default function MealScreen() {
                   <Text style={{ fontFamily: Font.body, fontSize: 13, lineHeight: 20, color: Palette.textSecondary }}>{meal.prepperBio}</Text>
                 </View>
               ) : null}
+
+              <View style={{ gap: 8, marginTop: 4 }}>
+                <Text style={{ fontFamily: Font.heading, fontSize: 13, color: Palette.textMuted, textTransform: 'uppercase', letterSpacing: 0.6 }}>pairs well with</Text>
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                  {['Fresh lemonade', 'Ginger beer', 'Hibiscus punch', 'Sparkling water'].map((d) => (
+                    <View key={d} style={{ paddingHorizontal: 13, paddingVertical: 8, borderRadius: 999, backgroundColor: Palette.canvas, borderWidth: 1, borderColor: Palette.border }}>
+                      <Text style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.inkSoft }}>🥤 {d}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
 
               {reviews && reviews.length > 0 ? (
                 <View style={{ gap: 12, marginTop: 6 }}>
