@@ -74,7 +74,7 @@ function OrderCard({
       <View style={{ gap: 6 }}>
         {order.items.map((it) => (
           <View key={it.id} style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-            <Text style={{ flex: 1, fontFamily: Font.body, fontSize: 13.5, color: Palette.divider }} numberOfLines={1}>{it.quantity}× {it.title}</Text>
+            <Text style={{ flex: 1, fontFamily: Font.body, fontSize: 13.5, color: Palette.textSecondary }} numberOfLines={1}>{it.quantity}× {it.title}</Text>
             <Text style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.textMuted, fontVariant: ['tabular-nums'] }}>{money(it.total)}</Text>
           </View>
         ))}
@@ -83,7 +83,7 @@ function OrderCard({
       {/* Fulfillment */}
       <View style={{ backgroundColor: '#1d2129', borderRadius: 12, padding: 10, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
         <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: ORANGE, textTransform: 'capitalize' }}>{order.fulfillment === 'meetup' ? 'Meet up' : order.fulfillment}</Text>
-        {order.fulfillmentNote ? <Text style={{ flex: 1, fontFamily: Font.body, fontSize: 12.5, color: Palette.divider }} numberOfLines={2}>· {order.fulfillmentNote}</Text> : null}
+        {order.fulfillmentNote ? <Text style={{ flex: 1, fontFamily: Font.body, fontSize: 12.5, color: Palette.textMuted }} numberOfLines={2}>· {order.fulfillmentNote}</Text> : null}
       </View>
 
       {step ? (
