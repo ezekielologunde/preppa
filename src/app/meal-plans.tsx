@@ -180,7 +180,7 @@ export default function MealPlansScreen() {
               <Text style={{ fontFamily: Font.display, fontSize: 20, color: INK, letterSpacing: -0.5, paddingHorizontal: 20, marginBottom: 12 }}>your custom plans</Text>
               <View style={{ paddingHorizontal: 20, gap: 10 }}>
                 {customPlans.filter((p) => p.status !== 'cancelled').map((p, i) => (
-                  <MotiView key={p.id} from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 240, delay: i * 60 }}>
+                  <MotiView key={p.id} from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 240, delay: i * 45 }}>
                     <CustomPlanCard plan={p} busy={updateCustomPlan.isPending}
                       onUpdate={(status) => updateCustomPlan.mutate({ id: p.id, status })} />
                   </MotiView>
@@ -195,7 +195,7 @@ export default function MealPlansScreen() {
               <Text style={{ fontFamily: Font.display, fontSize: 20, color: INK, letterSpacing: -0.5, paddingHorizontal: 20, marginBottom: 12 }}>your plans</Text>
               <View style={{ paddingHorizontal: 20, gap: 10 }}>
                 {subs.filter((s) => s.status !== 'cancelled').map((s, i) => (
-                  <MotiView key={s.id} from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 240, delay: i * 60 }}>
+                  <MotiView key={s.id} from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 240, delay: i * 45 }}>
                   <View style={{ backgroundColor: Palette.surface, borderRadius: Radius.md, padding: 14, gap: 10 }}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
                       <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: Palette.brandTint, alignItems: 'center', justifyContent: 'center' }}>
@@ -255,7 +255,7 @@ export default function MealPlansScreen() {
           ) : livePlans && livePlans.length > 0 ? (
             <View style={{ paddingHorizontal: 20, gap: 14 }}>
               {livePlans.map((p, i) => (
-                <MotiView key={p.id} from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280, delay: i * 70 }}>
+                <MotiView key={p.id} from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280, delay: i * 45 }}>
                   <LivePlanCard plan={p} busy={false} subscribed={subscribedPlanNames.has(p.name)} onSubscribe={() => onSubscribe(p)} />
                 </MotiView>
               ))}

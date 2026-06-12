@@ -146,7 +146,7 @@ export default function OpportunitiesScreen() {
         ) : (
           <ScrollView showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={ORANGE} colors={[ORANGE]} />} contentContainerStyle={{ padding: 20, paddingTop: Platform.OS === 'web' ? 12 : 8, gap: 12, paddingBottom: 60 }}>
             {requests.map((r, i) => (
-              <MotiView key={r.id} from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: i * 60 }}>
+              <MotiView key={r.id} from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: i * 45 }}>
                 <RequestCard req={r} prepperId={application!.id} />
               </MotiView>
             ))}

@@ -131,7 +131,7 @@ export default function EditProfileScreen() {
           </PressableScale>
           <Text style={{ flex: 1, fontFamily: Font.heading, fontSize: 18, color: '#fff', letterSpacing: -0.3 }}>edit profile</Text>
           {saved ? (
-            <MotiView from={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', stiffness: 260, damping: 18 }}
+            <MotiView from={{ scale: 0.82, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', stiffness: 260, damping: 18 }}
               style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: Palette.success, alignItems: 'center', justifyContent: 'center' }}>
               <Check size={18} color="#fff" />
             </MotiView>
