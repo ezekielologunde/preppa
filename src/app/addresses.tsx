@@ -53,7 +53,7 @@ function AddressCard({
       {pendingDelete ? (
         <View
           style={{
-            backgroundColor: '#FEF2F2',
+            backgroundColor: Palette.danger + '14',
             borderRadius: Radius.md,
             padding: Spacing.three,
             flexDirection: 'row',
@@ -195,7 +195,7 @@ function AddressCard({
                 width: 44,
                 height: 44,
                 borderRadius: 14,
-                backgroundColor: '#FEF2F2',
+                backgroundColor: Palette.danger + '14',
                 alignItems: 'center',
                 justifyContent: 'center',
               }}>
