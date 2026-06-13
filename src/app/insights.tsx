@@ -50,7 +50,7 @@ function computeTimeSaved(ordersCount: number): string {
 }
 
 const SAVINGS_TIPS = [
-  { tip: 'Order during off-peak hours (2–4 pm) to get faster delivery and sometimes specials.', Icon: Clock },
+  { tip: 'Preorder during off-peak hours (2–4 pm) to get faster fulfillment and sometimes specials.', Icon: Clock },
   { tip: 'Subscribe to a weekly meal plan — it costs 10–20% less than ordering individually.', Icon: Leaf },
   { tip: 'Follow preppers to get notified when they drop new specials before they sell out.', Icon: Heart },
   { tip: 'Batch your orders — some preppers offer bundle deals for 2–3 meals at a time.', Icon: UtensilsCrossed },

@@ -160,7 +160,7 @@ export default function CreateMealPlanScreen() {
           {/* Delivery day */}
           <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280, delay: 120 }}>
             <View style={{ gap: 8 }}>
-              <Text style={{ fontFamily: Font.heading, fontSize: 13, color: Palette.textSecondary }}>delivery day</Text>
+              <Text style={{ fontFamily: Font.heading, fontSize: 13, color: Palette.textSecondary }}>fulfillment day</Text>
               <View style={{ flexDirection: 'row', gap: 6 }}>
                 {DAYS.map((d) => (
                   <PressableScale key={d} onPress={() => { feedback.tap(); setDay(d); }}

@@ -46,7 +46,7 @@ function notify(o: OrderSummary): { Icon: LucideIcon; color: string; bg: string;
     preparing: { Icon: ChefHat, color: ORANGE, bg: Palette.brandTint, title: 'Your food is being prepared' },
     ready: { Icon: UtensilsCrossed, color: ORANGE, bg: Palette.brandTint, title: 'Your order is ready' },
     out_for_delivery: { Icon: Bike, color: '#8b5cf6', bg: '#EDE9FE', title: 'Your order is on the way' },
-    completed: { Icon: Star, color: Palette.amber, bg: Palette.amber + '1A', title: 'Delivered — leave a review' },
+    completed: { Icon: Star, color: Palette.amber, bg: Palette.amber + '1A', title: 'Complete — leave a review' },
     cancelled: { Icon: CircleX, color: Palette.danger, bg: Palette.danger + '1A', title: 'Order cancelled & refunded' },
   };
   const m = map[o.status] ?? map.pending!;

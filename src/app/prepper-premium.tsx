@@ -33,7 +33,7 @@ const PRO_FEATURES: ProFeature[] = [
   { Icon: Star, label: 'Priority listing', sub: 'Homepage & featured feed placement' },
   { Icon: Zap, label: 'AI captions', sub: 'Auto-generate meal descriptions' },
   { Icon: Users, label: 'Customer insights', sub: 'Order patterns & repeat buyers' },
-  { Icon: Lock, label: 'Advanced scheduling', sub: 'Calendar & delivery-day management' },
+  { Icon: Lock, label: 'Advanced scheduling', sub: 'Calendar & fulfillment-day management' },
   { Icon: Sparkles, label: 'Custom storefront', sub: 'Your own branded kitchen page' },
   { Icon: Search, label: 'Promoted meals', sub: 'Boost meals to the top of search' },
 ];

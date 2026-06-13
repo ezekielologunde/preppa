@@ -29,7 +29,7 @@ export default function ReferralScreen() {
   const [copied, setCopied] = useState(false);
 
   const code = user ? referralCode(user.id) : 'PREP-XXXXXX';
-  const shareMessage = `Join Preppa — local meal prep, delivered! Use my code ${code} for $5 off your first order: ${APP_URL}`;
+  const shareMessage = `Join Preppa — home-cooked meals from local kitchens! Use my code ${code} for $5 off your first order: ${APP_URL}`;
 
   async function handleShare() {
     feedback.tap();
@@ -140,7 +140,7 @@ export default function ReferralScreen() {
         {/* Fine print */}
         <View style={{ paddingHorizontal: 20, marginTop: 20 }}>
           <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted, lineHeight: 17 }}>
-            Credits are applied automatically after your referee's first order ships. One credit per referral. Credits do not expire.
+            Credits are applied automatically after your referee's first order is confirmed. One credit per referral. Credits do not expire.
           </Text>
         </View>
       </SafeAreaView>
