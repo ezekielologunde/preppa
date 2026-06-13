@@ -33,8 +33,7 @@ function PreppaTabBar({ state, navigation }: TabBarProps) {
       backgroundColor: Palette.surface,
       borderTopWidth: 1,
       borderTopColor: Palette.border,
-      paddingTop: 14,
-      paddingBottom: Math.max(insets.bottom + 6, 18),
+      paddingBottom: Math.max(insets.bottom + 4, 16),
     }}>
       <View style={{ flexDirection: 'row' }}>
         {TABS.map((tab) => {
@@ -49,13 +48,20 @@ function PreppaTabBar({ state, navigation }: TabBarProps) {
               accessibilityRole="button"
               accessibilityState={{ selected: focused }}
               accessibilityLabel={tab.label}
-              style={{ flex: 1, alignItems: 'center', gap: 6 }}>
+              style={{ flex: 1, alignItems: 'center', paddingTop: 12, gap: 5 }}>
+
+              {/* Top pill indicator — flush with the tab bar's border */}
+              <MotiView
+                animate={{ width: focused ? 28 : 0, opacity: focused ? 1 : 0 }}
+                transition={{ type: 'spring', stiffness: 320, damping: 26 }}
+                style={{ position: 'absolute', top: 0, height: 3, borderBottomLeftRadius: 2, borderBottomRightRadius: 2, backgroundColor: Palette.brand }}
+              />
 
               <MotiView
                 animate={{ scale: focused ? 1.08 : 1 }}
                 transition={{ type: 'spring', stiffness: 300, damping: 20 }}>
                 <tab.Icon
-                  size={28}
+                  size={24}
                   color={color}
                   strokeWidth={focused ? 2.2 : 1.6}
                 />
@@ -67,21 +73,12 @@ function PreppaTabBar({ state, navigation }: TabBarProps) {
                 minimumFontScale={0.75}
                 style={{
                   fontFamily: focused ? Font.semibold : Font.medium,
-                  fontSize: 11,
+                  fontSize: 10.5,
                   color,
-                  letterSpacing: 0.3,
+                  letterSpacing: 0.2,
                 }}>
                 {tab.label}
               </Text>
-
-              <MotiView
-                animate={{
-                  backgroundColor: focused ? Palette.brand : Palette.surface,
-                  scaleX: focused ? 3.5 : 1,
-                }}
-                transition={{ type: 'spring', stiffness: 320, damping: 24 }}
-                style={{ width: 5, height: 5, borderRadius: 3 }}
-              />
             </PressableScale>
           );
         })}
