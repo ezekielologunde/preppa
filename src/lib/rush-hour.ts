@@ -37,7 +37,7 @@ export const RUSH_WINDOWS: RushWindow[] = [
     buyerTip: 'Morning drop — grab breakfast from your local prep kitchen before 10 am.',
     prepperAlert: 'Morning rush is active (7–10 am)',
     prepperPrepTip: 'Batch high-protein bowls, egg dishes, and oats now for fast fulfilment.',
-    pushBody: 'Fresh breakfast drops are available from kitchens near you. Order before 10 am.',
+    pushBody: 'Fresh breakfast drops are available from kitchens near you. Preorder before 10 am.',
     emoji: '☀️',
   },
   {
@@ -49,7 +49,7 @@ export const RUSH_WINDOWS: RushWindow[] = [
     buyerTip: 'Lunch rush is on — preorder for 12–2 pm pickup or delivery.',
     prepperAlert: 'Lunch rush is active (11 am–2 pm)',
     prepperPrepTip: 'Stock extra rice, soups, and wraps. Batch-cook proteins — this is your highest-volume window.',
-    pushBody: 'Lunch is ready. Top kitchens near you are live right now — order for 12–2 pm.',
+    pushBody: 'Lunch is ready. Top kitchens near you are live right now — preorder for 12–2 pm.',
     emoji: '🍱',
   },
   {

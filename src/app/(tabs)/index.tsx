@@ -101,7 +101,7 @@ export default function HomeScreen() {
   const { data: flags } = useFeatureFlags();
   const showPlans = flags?.meal_plans !== false;
   const showExperiences = flags?.experiences !== false;
-  // "Order again" = the user's most recent delivered order (hidden until one exists).
+  // "Have it again" — user's most recent completed order (hidden until one exists).
   const { data: myOrders, refetch: refetchOrders } = useMyOrders(user?.id);
   const lastDone = myOrders?.find((o) => o.status === 'completed');
   // Most recent in-progress order → a live tracker banner so orders are always findable.
