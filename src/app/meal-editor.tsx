@@ -248,9 +248,20 @@ export default function MealEditorScreen() {
                   {(categories ?? []).map((c) => {
                     const sel = draft?.category_id === c.id;
                     return (
-                      <PressableScale key={c.id} onPress={() => { feedback.tap(); setDraft((d) => d && { ...d, category_id: sel ? null : c.id }); }} accessibilityRole="button" accessibilityLabel={`Category ${c.name}`} accessibilityState={{ selected: sel }} style={{ paddingHorizontal: 13, height: 34, borderRadius: Radius.pill, backgroundColor: sel ? ORANGE : '#1d2129', alignItems: 'center', justifyContent: 'center' }}>
-                        <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: sel ? '#fff' : Palette.textMuted }}>{c.name}</Text>
-                      </PressableScale>
+                      <MotiView
+                        key={c.id}
+                        animate={{ backgroundColor: sel ? ORANGE : '#1d2129' }}
+                        transition={{ type: 'timing', duration: 180 }}
+                        style={{ borderRadius: Radius.pill, overflow: 'hidden' }}>
+                        <PressableScale
+                          onPress={() => { feedback.tap(); setDraft((d) => d && { ...d, category_id: sel ? null : c.id }); }}
+                          accessibilityRole="button"
+                          accessibilityLabel={`Category ${c.name}`}
+                          accessibilityState={{ selected: sel }}
+                          style={{ paddingHorizontal: 13, height: 34, alignItems: 'center', justifyContent: 'center' }}>
+                          <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: sel ? '#fff' : Palette.textMuted }}>{c.name}</Text>
+                        </PressableScale>
+                      </MotiView>
                     );
                   })}
                 </View>
@@ -315,21 +326,29 @@ export default function MealEditorScreen() {
                     {DROP_DURATIONS.map((d) => {
                       const on = dropChipFor(draft?.expires_at) === d.key;
                       return (
-                        <PressableScale
+                        <MotiView
                           key={d.key}
-                          onPress={() => {
-                            feedback.tap();
-                            setDraft((dr) => dr && {
-                              ...dr,
-                              expires_at: d.hours ? new Date(Date.now() + d.hours * 3_600_000).toISOString() : null,
-                            });
+                          animate={{
+                            backgroundColor: on ? ORANGE + '26' : '#1d2129',
+                            borderColor: on ? ORANGE : '#1d2129',
                           }}
-                          accessibilityRole="button"
-                          accessibilityState={{ selected: on }}
-                          accessibilityLabel={`Drop ends: ${d.label}`}
-                          style={{ flex: 1, height: 38, borderRadius: 10, alignItems: 'center', justifyContent: 'center', backgroundColor: on ? ORANGE + '26' : '#1d2129', borderWidth: 1.5, borderColor: on ? ORANGE : 'transparent' }}>
-                          <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: on ? ORANGE : Palette.textMuted }}>{d.label}</Text>
-                        </PressableScale>
+                          transition={{ type: 'timing', duration: 180 }}
+                          style={{ flex: 1, height: 38, borderRadius: 10, borderWidth: 1.5, overflow: 'hidden' }}>
+                          <PressableScale
+                            onPress={() => {
+                              feedback.tap();
+                              setDraft((dr) => dr && {
+                                ...dr,
+                                expires_at: d.hours ? new Date(Date.now() + d.hours * 3_600_000).toISOString() : null,
+                              });
+                            }}
+                            accessibilityRole="button"
+                            accessibilityState={{ selected: on }}
+                            accessibilityLabel={`Drop ends: ${d.label}`}
+                            style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+                            <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: on ? ORANGE : Palette.textMuted }}>{d.label}</Text>
+                          </PressableScale>
+                        </MotiView>
                       );
                     })}
                   </View>
