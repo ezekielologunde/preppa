@@ -144,7 +144,7 @@ export default function MealScreen() {
                   <Pressable onPress={() => setHeroIdx(i => Math.min(meal.images.length - 1, i + 1))} style={{ position: 'absolute', right: 0, top: 60, bottom: 60, width: '33%' }} accessibilityLabel="Next photo" />
                   <View style={{ position: 'absolute', bottom: 12, alignSelf: 'center', flexDirection: 'row', gap: 5 }} pointerEvents="none">
                     {meal.images.map((_, i) => (
-                      <View key={i} style={{ width: i === heroIdx ? 14 : 5, height: 5, borderRadius: 3, backgroundColor: i === heroIdx ? '#fff' : 'rgba(255,255,255,0.6)' }} />
+                      <MotiView key={i} animate={{ width: i === heroIdx ? 14 : 5, backgroundColor: i === heroIdx ? '#fff' : 'rgba(255,255,255,0.55)' }} transition={{ type: 'timing', duration: 200 }} style={{ height: 5, borderRadius: 3 }} />
                     ))}
                   </View>
                 </>
@@ -182,9 +182,9 @@ export default function MealScreen() {
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, gap: 8, paddingVertical: 8, backgroundColor: Palette.surface }}>
             {meal.images.map((img, i) => (
               <PressableScale key={i} onPress={() => { feedback.tap(); setHeroIdx(i); }} accessibilityRole="button" accessibilityLabel={`Photo ${i + 1}`}>
-                <View style={{ width: 64, height: 64, borderRadius: 12, overflow: 'hidden', borderWidth: 2.5, borderColor: i === heroIdx ? ORANGE : 'transparent' }}>
+                <MotiView animate={{ borderColor: i === heroIdx ? ORANGE : Palette.border }} transition={{ type: 'timing', duration: 200 }} style={{ width: 64, height: 64, borderRadius: 12, overflow: 'hidden', borderWidth: 2.5 }}>
                   <Image source={img} style={{ flex: 1 }} contentFit="cover" transition={150} />
-                </View>
+                </MotiView>
               </PressableScale>
             ))}
           </ScrollView>
@@ -340,17 +340,22 @@ export default function MealScreen() {
               <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted }}>price</Text>
               <Text style={{ fontFamily: Font.display, fontSize: 24, color: INK, fontVariant: ['tabular-nums'] }}>${meal.price.toFixed(2)}</Text>
             </View>
-            <PressableScale
-              onPress={handleAddToCart}
-              disabled={addToCart.isPending || !orderingOn}
-              accessibilityRole="button"
-              accessibilityLabel={!orderingOn ? 'Ordering paused' : user ? 'Add to cart' : 'Sign in to preorder'}
-              style={{ flex: 1, height: 54, borderRadius: 16, backgroundColor: !orderingOn ? Palette.textMuted : added ? Palette.success : ORANGE, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 7, opacity: addToCart.isPending ? 0.7 : 1 }}>
-              {added && orderingOn ? <Check size={18} color="#fff" strokeWidth={3} /> : null}
-              <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>
-                {!orderingOn ? 'Ordering paused' : added ? 'Added to cart' : user ? 'Add to cart' : 'Sign in to preorder'}
-              </Text>
-            </PressableScale>
+            <MotiView
+              animate={{ backgroundColor: !orderingOn ? Palette.textMuted : added ? Palette.success : ORANGE }}
+              transition={{ type: 'timing', duration: 300 }}
+              style={{ flex: 1, height: 54, borderRadius: 16, overflow: 'hidden' }}>
+              <PressableScale
+                onPress={handleAddToCart}
+                disabled={addToCart.isPending || !orderingOn}
+                accessibilityRole="button"
+                accessibilityLabel={!orderingOn ? 'Ordering paused' : user ? 'Add to cart' : 'Sign in to preorder'}
+                style={{ flex: 1, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 7, opacity: addToCart.isPending ? 0.7 : 1 }}>
+                {added && orderingOn ? <Check size={18} color="#fff" strokeWidth={3} /> : null}
+                <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>
+                  {!orderingOn ? 'Ordering paused' : added ? 'Added to cart' : user ? 'Add to cart' : 'Sign in to preorder'}
+                </Text>
+              </PressableScale>
+            </MotiView>
           </View>
         </SafeAreaView>
       ) : null}
@@ -394,7 +399,7 @@ export default function MealScreen() {
           {(meal?.images.length ?? 0) > 1 ? (
             <View style={{ position: 'absolute', bottom: 100, alignSelf: 'center', flexDirection: 'row', gap: 6 }}>
               {meal?.images.map((_, i) => (
-                <View key={i} style={{ width: i === lightboxIdx ? 16 : 6, height: 6, borderRadius: 3, backgroundColor: i === lightboxIdx ? '#fff' : 'rgba(255,255,255,0.4)' }} />
+                <MotiView key={i} animate={{ width: i === lightboxIdx ? 16 : 6, backgroundColor: i === lightboxIdx ? '#fff' : 'rgba(255,255,255,0.4)' }} transition={{ type: 'timing', duration: 200 }} style={{ height: 6, borderRadius: 3 }} />
               ))}
             </View>
           ) : null}
@@ -419,7 +424,7 @@ export default function MealScreen() {
             style={{ backgroundColor: Palette.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingTop: 8, paddingHorizontal: 20, paddingBottom: insets.bottom + 24, gap: 14 }}>
             <View style={{ width: 40, height: 4, borderRadius: 2, backgroundColor: Palette.border, alignSelf: 'center', marginBottom: 4 }} />
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <MotiView from={{ scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', stiffness: 280, damping: 16 }}>
+              <MotiView from={{ scale: 0.88, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', stiffness: 280, damping: 16 }}>
                 <View style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: Palette.success, alignItems: 'center', justifyContent: 'center' }}>
                   <Check size={17} color="#fff" strokeWidth={3} />
                 </View>
