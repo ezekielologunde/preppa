@@ -177,7 +177,7 @@ export default function HomeScreen() {
           <PressableScale
             onPress={() => { feedback.tap(); router.push('/search'); }}
             accessibilityRole="search"
-            accessibilityLabel="Search meals, cuisines, or preppers"
+            accessibilityLabel="Search meals, kitchens, or preppers"
             style={{ flexDirection: 'row', alignItems: 'center', marginHorizontal: 20, marginTop: 10, backgroundColor: Palette.surface, borderRadius: 18, paddingHorizontal: 16, height: 46, gap: 10 }}>
             <Search size={19} color={MUTED} />
             <Text style={{ flex: 1, fontFamily: Font.body, fontSize: 14.5, color: MUTED }}>Search meals, kitchens, preppers…</Text>
@@ -402,14 +402,14 @@ export default function HomeScreen() {
           </PressableScale>
           </MotiView>
 
-          {/* Order again — the user's real last delivered order */}
+          {/* Have it again — the user's real last delivered order */}
           {lastDone ? (
             <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260 }}>
-              <SectionHeader title="order again" />
+              <SectionHeader title="have it again" />
               <PressableScale
                 onPress={() => { feedback.tap(); lastDone.firstMealId && router.push(`/meal?id=${lastDone.firstMealId}`); }}
                 accessibilityRole="button"
-                accessibilityLabel="Order again"
+                accessibilityLabel="Have it again"
                 style={{ marginHorizontal: 20, backgroundColor: Palette.surface, borderRadius: 20, padding: 12, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
                 {lastDone.items[0]?.image ? (
                   <Image source={lastDone.items[0].image} style={{ width: 60, height: 60, borderRadius: 14 }} contentFit="cover" />
@@ -424,7 +424,7 @@ export default function HomeScreen() {
                   </Text>
                 </View>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: ORANGE, borderRadius: Radius.pill, paddingHorizontal: 14, paddingVertical: 9 }}>
-                  <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: '#fff' }}>order again</Text>
+                  <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: '#fff' }}>have it again</Text>
                   <ChevronRight size={13} color="rgba(255,255,255,0.8)" />
                 </View>
               </PressableScale>

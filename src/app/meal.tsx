@@ -73,7 +73,7 @@ export default function MealScreen() {
     try {
       await Share.share({
         title: meal?.title ?? 'Check this out on Preppa',
-        message: `${meal?.title ?? 'A great meal'} by ${meal?.prepper ?? 'a prepper'} — order on Preppa: https://app.preppa.live/meal?id=${id}`,
+        message: `${meal?.title ?? 'A great meal'} by ${meal?.prepper ?? 'a prepper'} — preorder on Preppa: https://app.preppa.live/meal?id=${id}`,
       });
     } catch { /* share sheet closed */ }
   }

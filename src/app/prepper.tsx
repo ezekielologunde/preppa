@@ -87,8 +87,8 @@ export default function PrepperScreen() {
     const name = p?.name ?? 'This kitchen';
     const specialty = p?.specialties?.[0];
     const msg = specialty
-      ? `${name} on Preppa cooks ${specialty} — order fresh meals made to order.`
-      : `${name} on Preppa — fresh meals made to order.`;
+      ? `${name} on Preppa — fresh ${specialty} prepped from their local kitchen.`
+      : `${name} on Preppa — fresh home-cooked meals from a local kitchen.`;
     try { await Share.share({ message: msg }); } catch {}
   }
 
