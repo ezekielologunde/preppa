@@ -208,14 +208,11 @@ function PositionDots({ total, current }: { total: number; current: number }) {
       {Array.from({ length: shown }, (_, i) => {
         const active = i === Math.min(current, MAX - 1);
         return (
-          <View
+          <MotiView
             key={i}
-            style={{
-              width: active ? 4 : 3,
-              height: active ? 18 : 8,
-              borderRadius: 2,
-              backgroundColor: active ? '#fff' : 'rgba(255,255,255,0.28)',
-            }}
+            animate={{ width: active ? 4 : 3, height: active ? 18 : 8, opacity: active ? 1 : 0.28 }}
+            transition={{ type: 'timing', duration: 200 }}
+            style={{ borderRadius: 2, backgroundColor: '#fff' }}
           />
         );
       })}
@@ -249,7 +246,7 @@ export default function FeedsScreen() {
   if (!items?.length) {
     return (
       <View style={{ flex: 1, backgroundColor: '#0B0B0D', alignItems: 'center', justifyContent: 'center', gap: 16, padding: 32 }}>
-        <MotiView from={{ opacity: 0, scale: 0.75 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'spring', damping: 14, stiffness: 180 }}>
+        <MotiView from={{ opacity: 0, scale: 0.88 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'spring', damping: 14, stiffness: 180 }}>
           <View style={{ width: 88, height: 88, borderRadius: 28, backgroundColor: 'rgba(241,95,34,0.16)', alignItems: 'center', justifyContent: 'center' }}>
             <MonitorPlay size={40} color={ORANGE} />
           </View>
