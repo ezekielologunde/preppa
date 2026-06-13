@@ -78,14 +78,23 @@ export default function FavoritesScreen() {
             const on = tab === t;
             const count = t === 'meals' ? mealIds.length : prepperIds.length;
             return (
-              <PressableScale key={t} onPress={() => { feedback.tap(); setTab(t); }} accessibilityRole="tab" accessibilityState={{ selected: on }}
-                accessibilityLabel={`${t} tab, ${count} items`}
-                style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 36, borderRadius: Radius.pill, backgroundColor: on ? Palette.brand : 'transparent' }}>
-                {t === 'meals' ? <Heart size={14} color={on ? '#fff' : Palette.textSecondary} fill={on ? '#fff' : 'transparent'} /> : <Users size={14} color={on ? '#fff' : Palette.textSecondary} />}
-                <Text style={{ fontFamily: Font.semibold, fontSize: 13.5, color: on ? '#fff' : Palette.inkSoft }}>
-                  {t} {count > 0 ? `(${count})` : ''}
-                </Text>
-              </PressableScale>
+              <MotiView
+                key={t}
+                animate={{ backgroundColor: on ? Palette.brand : 'transparent' }}
+                transition={{ type: 'timing', duration: 200 }}
+                style={{ flex: 1, borderRadius: Radius.pill, overflow: 'hidden' }}>
+                <PressableScale
+                  onPress={() => { feedback.tap(); setTab(t); }}
+                  accessibilityRole="tab"
+                  accessibilityState={{ selected: on }}
+                  accessibilityLabel={`${t} tab, ${count} items`}
+                  style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 36 }}>
+                  {t === 'meals' ? <Heart size={14} color={on ? '#fff' : Palette.textSecondary} fill={on ? '#fff' : 'transparent'} /> : <Users size={14} color={on ? '#fff' : Palette.textSecondary} />}
+                  <Text style={{ fontFamily: Font.semibold, fontSize: 13.5, color: on ? '#fff' : Palette.inkSoft }}>
+                    {t} {count > 0 ? `(${count})` : ''}
+                  </Text>
+                </PressableScale>
+              </MotiView>
             );
           })}
         </View>
