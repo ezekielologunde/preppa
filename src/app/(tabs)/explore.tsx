@@ -255,7 +255,7 @@ export default function ExploreScreen() {
           {/* ── Section 2: Meals Grid ── */}
           <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 60 }}>
             <SectionHeader
-              title="meals to order"
+              title="meals to preorder"
               onSeeAll={() => router.push('/category?key=all&label=all+meals')}
             />
             {mealsLoading ? (

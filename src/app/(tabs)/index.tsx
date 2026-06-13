@@ -36,10 +36,10 @@ const INK = Palette.ink;
 const MUTED = Palette.textMuted;
 
 const ORDER_STATUS_LABEL: Record<string, string> = {
-  pending: 'Order placed — awaiting kitchen',
-  confirmed: 'Order confirmed',
+  pending: 'Preorder placed — awaiting kitchen',
+  confirmed: 'Preorder confirmed',
   preparing: 'Being prepped now',
-  ready: 'Your order is ready',
+  ready: 'Your order is ready for pickup',
   out_for_delivery: 'On the way to you',
 };
 
