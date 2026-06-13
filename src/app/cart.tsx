@@ -276,51 +276,67 @@ export default function CartScreen() {
                 {METHODS.map((m) => {
                   const on = method === m.key;
                   return (
-                    <PressableScale
+                    <MotiView
                       key={m.key}
-                      onPress={() => { feedback.tap(); setMethod(m.key); setErr(null); }}
-                      accessibilityRole="button"
-                      accessibilityState={{ selected: on }}
-                      accessibilityLabel={`${m.label}, ${m.fee}, ${m.eta}`}
-                      style={{ flex: 1, backgroundColor: on ? Palette.brandTint : Palette.surface, borderWidth: 1.5, borderColor: on ? ORANGE : Palette.border, borderRadius: Radius.md, paddingTop: 16, paddingBottom: 12, alignItems: 'center', gap: 7, overflow: 'hidden' }}>
-                      {on ? (
-                        <View style={{ position: 'absolute', top: 7, right: 7, width: 18, height: 18, borderRadius: 9, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
-                          <Check size={11} color="#fff" strokeWidth={3.5} />
+                      animate={{
+                        backgroundColor: on ? Palette.brandTint : Palette.surface,
+                        borderColor: on ? ORANGE : Palette.border,
+                      }}
+                      transition={{ type: 'timing', duration: 180 }}
+                      style={{ flex: 1, borderWidth: 1.5, borderRadius: Radius.md, overflow: 'hidden' }}>
+                      <PressableScale
+                        onPress={() => { feedback.tap(); setMethod(m.key); setErr(null); }}
+                        accessibilityRole="button"
+                        accessibilityState={{ selected: on }}
+                        accessibilityLabel={`${m.label}, ${m.fee}, ${m.eta}`}
+                        style={{ flex: 1, paddingTop: 16, paddingBottom: 12, alignItems: 'center', gap: 7 }}>
+                        {on ? (
+                          <View style={{ position: 'absolute', top: 7, right: 7, width: 18, height: 18, borderRadius: 9, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
+                            <Check size={11} color="#fff" strokeWidth={3.5} />
+                          </View>
+                        ) : null}
+                        <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: on ? ORANGE : Palette.chip, alignItems: 'center', justifyContent: 'center' }}>
+                          <m.Icon size={20} color={on ? '#fff' : Palette.textSecondary} />
                         </View>
-                      ) : null}
-                      <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: on ? ORANGE : Palette.chip, alignItems: 'center', justifyContent: 'center' }}>
-                        <m.Icon size={20} color={on ? '#fff' : Palette.textSecondary} />
-                      </View>
-                      <Text style={{ fontFamily: Font.heading, fontSize: 13.5, color: on ? Palette.brandPressed : INK }}>{m.label}</Text>
-                      <Text style={{ fontFamily: Font.semibold, fontSize: 11.5, color: m.fee === 'Free' ? Palette.success : on ? Palette.brandPressed : Palette.textSecondary }}>{m.fee}</Text>
-                      <Text style={{ fontFamily: Font.body, fontSize: 10.5, color: Palette.textMuted, textAlign: 'center' }} numberOfLines={1}>{m.eta}</Text>
-                    </PressableScale>
+                        <Text style={{ fontFamily: Font.heading, fontSize: 13.5, color: on ? Palette.brandPressed : INK }}>{m.label}</Text>
+                        <Text style={{ fontFamily: Font.semibold, fontSize: 11.5, color: m.fee === 'Free' ? Palette.success : on ? Palette.brandPressed : Palette.textSecondary }}>{m.fee}</Text>
+                        <Text style={{ fontFamily: Font.body, fontSize: 10.5, color: Palette.textMuted, textAlign: 'center' }} numberOfLines={1}>{m.eta}</Text>
+                      </PressableScale>
+                    </MotiView>
                   );
                 })}
               </View>
 
               {/* In-home prep option */}
-              <PressableScale
-                onPress={() => { feedback.tap(); setMethod('in_home'); setErr(null); }}
-                accessibilityRole="button"
-                accessibilityState={{ selected: method === 'in_home' }}
-                accessibilityLabel="Cooked in my kitchen — a prepper visits your home"
-                style={{ backgroundColor: method === 'in_home' ? INK : Palette.surface, borderWidth: 1.5, borderColor: method === 'in_home' ? INK : Palette.border, borderRadius: Radius.md, paddingHorizontal: 16, paddingVertical: 14, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                {method === 'in_home' ? (
-                  <View style={{ position: 'absolute', top: 10, right: 12, width: 18, height: 18, borderRadius: 9, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
-                    <Check size={11} color="#fff" strokeWidth={3.5} />
+              <MotiView
+                animate={{
+                  backgroundColor: method === 'in_home' ? INK : Palette.surface,
+                  borderColor: method === 'in_home' ? INK : Palette.border,
+                }}
+                transition={{ type: 'timing', duration: 200 }}
+                style={{ borderWidth: 1.5, borderRadius: Radius.md, overflow: 'hidden' }}>
+                <PressableScale
+                  onPress={() => { feedback.tap(); setMethod('in_home'); setErr(null); }}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: method === 'in_home' }}
+                  accessibilityLabel="Cooked in my kitchen — a prepper visits your home"
+                  style={{ paddingHorizontal: 16, paddingVertical: 14, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                  {method === 'in_home' ? (
+                    <View style={{ position: 'absolute', top: 10, right: 12, width: 18, height: 18, borderRadius: 9, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
+                      <Check size={11} color="#fff" strokeWidth={3.5} />
+                    </View>
+                  ) : null}
+                  <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: method === 'in_home' ? ORANGE : Palette.chip, alignItems: 'center', justifyContent: 'center' }}>
+                    <ChefHat size={22} color={method === 'in_home' ? '#fff' : Palette.textSecondary} />
                   </View>
-                ) : null}
-                <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: method === 'in_home' ? ORANGE : Palette.chip, alignItems: 'center', justifyContent: 'center' }}>
-                  <ChefHat size={22} color={method === 'in_home' ? '#fff' : Palette.textSecondary} />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={{ fontFamily: Font.heading, fontSize: 14.5, color: method === 'in_home' ? '#fff' : INK }}>Cooked in my kitchen</Text>
-                  <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: method === 'in_home' ? Palette.textMuted : Palette.textSecondary, marginTop: 2 }}>
-                    A prepper comes to your home and cooks fresh · Request a quote
-                  </Text>
-                </View>
-              </PressableScale>
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ fontFamily: Font.heading, fontSize: 14.5, color: method === 'in_home' ? '#fff' : INK }}>Cooked in my kitchen</Text>
+                    <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: method === 'in_home' ? Palette.textMuted : Palette.textSecondary, marginTop: 2 }}>
+                      A prepper comes to your home and cooks fresh · Request a quote
+                    </Text>
+                  </View>
+                </PressableScale>
+              </MotiView>
 
               {/* Contextual detail */}
               {method === 'pickup' ? (
@@ -360,25 +376,41 @@ export default function CartScreen() {
                 {TIPS.map((t) => {
                   const on = !customTip && tip === t;
                   return (
-                    <PressableScale
+                    <MotiView
                       key={t}
-                      onPress={() => { feedback.tap(); setCustomTip(false); setTip(t); }}
-                      accessibilityRole="button"
-                      accessibilityState={{ selected: on }}
-                      accessibilityLabel={t === 0 ? 'No tip' : `Tip ${money(t)}`}
-                      style={{ flex: 1, height: 46, borderRadius: Radius.pill, borderWidth: 1.5, borderColor: on ? ORANGE : Palette.border, backgroundColor: on ? ORANGE : Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
-                      <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: on ? '#fff' : INK }}>{t === 0 ? 'None' : money(t)}</Text>
-                    </PressableScale>
+                      animate={{
+                        backgroundColor: on ? ORANGE : Palette.surface,
+                        borderColor: on ? ORANGE : Palette.border,
+                      }}
+                      transition={{ type: 'timing', duration: 180 }}
+                      style={{ flex: 1, borderRadius: Radius.pill, borderWidth: 1.5, overflow: 'hidden' }}>
+                      <PressableScale
+                        onPress={() => { feedback.tap(); setCustomTip(false); setTip(t); }}
+                        accessibilityRole="button"
+                        accessibilityState={{ selected: on }}
+                        accessibilityLabel={t === 0 ? 'No tip' : `Tip ${money(t)}`}
+                        style={{ height: 46, alignItems: 'center', justifyContent: 'center' }}>
+                        <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: on ? '#fff' : INK }}>{t === 0 ? 'None' : money(t)}</Text>
+                      </PressableScale>
+                    </MotiView>
                   );
                 })}
-                <PressableScale
-                  onPress={() => { feedback.tap(); setCustomTip(true); setTip(0); }}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: customTip }}
-                  accessibilityLabel="Custom tip"
-                  style={{ flex: 1, height: 46, borderRadius: Radius.pill, borderWidth: 1.5, borderColor: customTip ? ORANGE : Palette.border, backgroundColor: customTip ? Palette.brandTint : Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
-                  <Text style={{ fontFamily: Font.semibold, fontSize: 13.5, color: customTip ? Palette.brandPressed : INK }}>Custom</Text>
-                </PressableScale>
+                <MotiView
+                  animate={{
+                    backgroundColor: customTip ? Palette.brandTint : Palette.surface,
+                    borderColor: customTip ? ORANGE : Palette.border,
+                  }}
+                  transition={{ type: 'timing', duration: 180 }}
+                  style={{ flex: 1, borderRadius: Radius.pill, borderWidth: 1.5, overflow: 'hidden' }}>
+                  <PressableScale
+                    onPress={() => { feedback.tap(); setCustomTip(true); setTip(0); }}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: customTip }}
+                    accessibilityLabel="Custom tip"
+                    style={{ height: 46, alignItems: 'center', justifyContent: 'center' }}>
+                    <Text style={{ fontFamily: Font.semibold, fontSize: 13.5, color: customTip ? Palette.brandPressed : INK }}>Custom</Text>
+                  </PressableScale>
+                </MotiView>
               </View>
               {customTip ? (
                 <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: Palette.surface, borderRadius: Radius.md, borderWidth: 1.5, borderColor: ORANGE, paddingHorizontal: 14, height: 50, gap: 6 }}>
@@ -396,7 +428,11 @@ export default function CartScreen() {
                 </View>
               ) : null}
 
-              {err ? <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: Palette.danger, textAlign: 'center' }}>{err}</Text> : null}
+              {err ? (
+                <MotiView from={{ opacity: 0, translateY: -4 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 220 }}>
+                  <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: Palette.danger, textAlign: 'center' }}>{err}</Text>
+                </MotiView>
+              ) : null}
             </ScrollView>
 
             {/* Summary + checkout */}
