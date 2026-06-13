@@ -37,7 +37,7 @@ import { useMealPlans, useMySubscriptions } from '@/lib/queries/meal-plans';
 import { useMyOrders } from '@/lib/queries/orders';
 import { useNotifications } from '@/lib/queries/notifications';
 import { useTopPreppers } from '@/lib/queries/preppers';
-import { useCarouselCardWidth, useContentWidth, usePagePadding, gridCardWidth, useHomeColumns } from '@/lib/layout';
+import { BP, useCarouselCardWidth, useContentWidth, usePagePadding, gridCardWidth, useHomeColumns } from '@/lib/layout';
 import { useAuth } from '@/providers/auth-provider';
 import { feedback } from '@/lib/feedback';
 import { getCurrentRush, getNextRush, getRushUrgency } from '@/lib/rush-hour';
@@ -400,7 +400,7 @@ export default function HomeScreen() {
   const router = useRouter();
   const { user } = useAuth();
   const { width } = useWindowDimensions();
-  const isTablet = width >= 768;
+  const isTablet = width >= BP.tablet;
   const cols = useHomeColumns();
 
   const rawFirst = (user?.user_metadata?.full_name as string | undefined)?.trim().split(/\s+/)[0];

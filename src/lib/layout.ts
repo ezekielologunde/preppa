@@ -1,20 +1,24 @@
 import { usePathname } from 'expo-router';
-import { Platform, useWindowDimensions } from 'react-native';
-
-/** Sidebar widths used by the web ResponsiveFrame (kept in sync with _layout). */
-export const SIDEBAR = { tablet: 72, desktop: 220 } as const;
+import { useWindowDimensions } from 'react-native';
 
 /**
- * Responsive layout system. Mobile ≠ tablet ≠ desktop: every route gets a
- * width CLASS, and each class has intentional tablet/desktop maximums —
- * browse surfaces become real grids, business surfaces become dashboards,
- * focused flows (forms, checkout, chat) stay a comfortable column instead of
- * stretching across a monitor.
+ * Adaptive layout system — one model for iOS, Android, iPad and web.
  *
- * NOTE: All hooks use raw window width, no Platform guard — the responsive
- * system applies equally to iOS, Android, and web. An iPad is a tablet.
+ *   < 600px  (compact)  bottom tab bar · single full-bleed column
+ *   600–1024 (tablet)   left icon RAIL (72px) · content FILLS the rest
+ *   > 1024   (desktop)  left labelled SIDEBAR (240px) · content fills,
+ *                        feed surfaces add a right context panel
+ *
+ * Every route gets a width CLASS. "Fill" classes (browse / business / feed)
+ * stretch to use the whole content area beside the rail — no dead whitespace.
+ * "Focused" classes (form / content) stay a centred, comfortable column so a
+ * settings form never smears across a monitor. All hooks key off raw window
+ * width — no Platform guard — so a native iPad gets the same shell as web.
  */
-export const BP = { sm: 390, md: 480, tablet: 768, desktop: 1120 } as const;
+export const BP = { sm: 390, md: 480, tablet: 600, desktop: 1024 } as const;
+
+/** Rail / sidebar widths — kept in sync with AppSidebar in app/_layout.tsx. */
+export const SIDEBAR = { tablet: 72, desktop: 240 } as const;
 
 export type WidthClass = 'form' | 'content' | 'browse' | 'business' | 'feed';
 
@@ -44,20 +48,23 @@ const ROUTE_CLASS: [string, WidthClass][] = [
   ['/payment-methods', 'form'],
   ['/post-video', 'form'],
   ['/become-prepper', 'form'],
-  // Bare meal detail page widens for the desktop gallery + details two-pane.
-  // (Listed AFTER /meal-editor and /meal-plans so those still match first.)
+  // Bare meal detail widens for the desktop gallery + details two-pane.
+  // (After /meal-editor and /meal-plans so those still match first.)
   ['/meal', 'browse'],
 ];
 
+// Focused flows cap at a comfortable column; fill flows use the whole area
+// (huge tablet cap = "fill"; desktop cap only stops absurd ultrawide stretch).
 const MAX: Record<WidthClass, { tablet: number; desktop: number }> = {
-  form: { tablet: 520, desktop: 520 },
-  content: { tablet: 620, desktop: 700 },
-  browse: { tablet: 760, desktop: 1120 },
-  business: { tablet: 760, desktop: 1120 },
-  // 'feed' is the home surface: on desktop it widens enough to fit a primary
-  // column + a right rail (see useHomeColumns), instead of a lonely column.
-  feed: { tablet: 720, desktop: 1240 },
+  form: { tablet: 560, desktop: 600 },
+  content: { tablet: 720, desktop: 860 },
+  browse: { tablet: 100_000, desktop: 1440 },
+  business: { tablet: 100_000, desktop: 1440 },
+  feed: { tablet: 100_000, desktop: 1440 },
 };
+
+const FILL_CLASSES: WidthClass[] = ['browse', 'business', 'feed'];
+export const isFillClass = (c: WidthClass): boolean => FILL_CLASSES.includes(c);
 
 export function widthClassFor(pathname: string): WidthClass {
   if (pathname === '/' || pathname === '') return 'feed';
@@ -65,17 +72,39 @@ export function widthClassFor(pathname: string): WidthClass {
   return 'form';
 }
 
-export function maxWidthFor(pathname: string, windowWidth: number): number {
-  if (windowWidth <= 560) return windowWidth;
-  const tier = windowWidth >= BP.desktop ? 'desktop' : 'tablet';
-  return Math.min(windowWidth, MAX[widthClassFor(pathname)][tier]);
+/** Width of the rail/sidebar at a given window width (0 on compact phones). */
+export function sidebarWidthFor(width: number): number {
+  if (width >= BP.desktop) return SIDEBAR.desktop;
+  if (width >= BP.tablet) return SIDEBAR.tablet;
+  return 0;
 }
 
-/** The actual rendered content width for the current route (frame-aware). */
+/**
+ * The REAL rendered content width: the viewport minus the rail/sidebar, then
+ * capped for focused flows. Fill flows return the whole available area, so grids
+ * and panels size to what's actually on screen (no sidebar-math surprises).
+ */
+export function contentWidthFor(pathname: string, width: number): number {
+  if (width < BP.tablet) return width; // compact: full-bleed
+  const avail = width - sidebarWidthFor(width);
+  const tier = width >= BP.desktop ? 'desktop' : 'tablet';
+  return Math.min(avail, MAX[widthClassFor(pathname)][tier]);
+}
+
+/** Should the frame CENTER this route (focused flow) vs let it fill the area? */
+export function shouldCenter(pathname: string, width: number): boolean {
+  if (width < BP.tablet) return false;
+  return !isFillClass(widthClassFor(pathname));
+}
+
+/** @deprecated name — now returns the true content width (minus sidebar). */
+export const maxWidthFor = contentWidthFor;
+
+/** The actual rendered content width for the current route. */
 export function useContentWidth(): number {
   const { width } = useWindowDimensions();
   const pathname = usePathname();
-  return maxWidthFor(pathname ?? '/', width);
+  return contentWidthFor(pathname ?? '/', width);
 }
 
 /** Breakpoint tier for the current window — works on all platforms. */
@@ -84,10 +113,10 @@ export function useBreakpoint(): 'mobile' | 'tablet' | 'desktop' {
   return width >= BP.desktop ? 'desktop' : width >= BP.tablet ? 'tablet' : 'mobile';
 }
 
-/** Responsive horizontal page padding: 20 → 28 → 36 as screen grows. */
+/** Fluid horizontal page padding — the RN analogue of clamp(16px, 3.2vw, 40px). */
 export function usePagePadding(): number {
   const { width } = useWindowDimensions();
-  return width >= BP.desktop ? 36 : width >= BP.tablet ? 28 : 20;
+  return Math.round(Math.min(40, Math.max(16, width * 0.032)));
 }
 
 /**
@@ -102,9 +131,9 @@ export function useCarouselCardWidth(): number {
   return Math.floor(width / 2.15);
 }
 
-/** Meal-grid columns for a content width (2 phone / 3 tablet / 4 desktop). */
+/** Auto-fitting column count for a content width (≈ minmax(280px, 1fr)). */
 export const gridColumns = (contentWidth: number): number =>
-  contentWidth >= 1000 ? 4 : contentWidth >= 700 ? 3 : 2;
+  contentWidth >= 1180 ? 4 : contentWidth >= 860 ? 3 : contentWidth >= 560 ? 2 : 2;
 
 /** Card width that fills `contentWidth` with `pad` page padding and 12px gaps. */
 export function gridCardWidth(contentWidth: number, pad = 20): number {
@@ -113,13 +142,10 @@ export function gridCardWidth(contentWidth: number, pad = 20): number {
 }
 
 /**
- * Two-column geometry for wide (desktop) surfaces. On web ≥ desktop a screen can
- * render a primary column + a fixed-width companion rail; everywhere else it
- * stays a single column (`twoCol: false`). Widths are derived from a centred
- * frame minus the sidebar, so the screen never has to know about frame chrome.
- *
- * Used by Home (feed + rail) and any content screen that wants a summary/detail
- * split on desktop while collapsing to one column on phone/tablet.
+ * Two-column geometry for wide (desktop) surfaces: a primary column + a fixed
+ * companion rail. Triggers at desktop width on ANY platform (an iPad in
+ * landscape gets it too). Widths derive from the real content area, so the
+ * screen never has to know about the sidebar.
  */
 export function useTwoPane(opts?: { rail?: number; minMain?: number }): {
   twoCol: boolean;
@@ -129,18 +155,14 @@ export function useTwoPane(opts?: { rail?: number; minMain?: number }): {
 } {
   const { width } = useWindowDimensions();
   const pathname = usePathname();
-  const twoCol = Platform.OS === 'web' && width >= BP.desktop;
+  const twoCol = width >= BP.desktop;
   const gap = 28;
   if (!twoCol) return { twoCol: false, main: 0, rail: 0, gap };
 
-  // Derive columns from the ACTUAL route frame (route class → max width) so the
-  // screen always fits inside whatever the ResponsiveFrame gives it. A screen
-  // that wants two panes must have a wide-enough width class (feed/browse/business).
-  const frame = maxWidthFor(pathname ?? '/', width);
+  const content = contentWidthFor(pathname ?? '/', width); // already minus sidebar
   const rail = opts?.rail ?? 320;
-  const outerPad = 24; // horizontal breathing room inside the content area
-  const contentArea = frame - SIDEBAR.desktop;
-  const main = Math.max(opts?.minMain ?? 520, contentArea - rail - gap - outerPad);
+  const pad = 24;
+  const main = Math.max(opts?.minMain ?? 480, content - rail - gap - pad);
   return { twoCol: true, main, rail, gap };
 }
 

@@ -1,12 +1,13 @@
 import { Tabs } from 'expo-router';
 import { CircleUser, Compass, House, MonitorPlay, Ticket } from 'lucide-react-native';
 import { MotiView } from 'moti';
-import { Platform, Text, useWindowDimensions, View } from 'react-native';
+import { Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
 import { feedback } from '@/lib/feedback';
+import { BP } from '@/lib/layout';
 import { Palette } from '@/constants/theme';
 
 const TABS = [
@@ -59,8 +60,8 @@ function PreppaTabBar({ state, navigation }: TabBarProps) {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
 
-  // Desktop/tablet web uses the WebSidebar; hide the bottom bar there.
-  if (Platform.OS === 'web' && width >= 768) return null;
+  // Tablet+ (any platform) uses the AppSidebar rail; hide the bottom bar there.
+  if (width >= BP.tablet) return null;
 
   // One clean bar: 5 equal-width tabs that fit any phone from 320px up.
   // (No hamburger / horizontal-scroll — those pushed tabs off-screen.)

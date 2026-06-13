@@ -4,15 +4,16 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFonts } from 'expo-font';
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider, usePathname, useRouter } from 'expo-router';
 import { CircleUser, Compass, House, MonitorPlay, Ticket } from 'lucide-react-native';
+import { MotiView, MotiText } from 'moti';
 import { useEffect, useState, type ReactNode } from 'react';
 import { Platform, Text, useColorScheme, useWindowDimensions, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { fontAssets, Font } from '@/constants/fonts';
 import { Palette } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
-import { maxWidthFor } from '@/lib/layout';
+import { BP, contentWidthFor, shouldCenter } from '@/lib/layout';
 import { useDarkMode } from '@/lib/theme-mode';
 
 import { LoadingSplash } from '@/components/loading-splash';
@@ -34,157 +35,125 @@ const SIDEBAR_ITEMS = [
   { href: '/profile',      label: 'Profile',     Icon: CircleUser },
 ] as const;
 
-function WebSidebar() {
+/**
+ * Polymorphic navigation: an icon RAIL on tablets that morphs into a labelled
+ * SIDEBAR on desktop. Mounts at ≥ 600px on every platform (a native iPad gets
+ * it too). The container width and the labels animate, so widening the window
+ * glides the rail open instead of snapping.
+ */
+function AppSidebar() {
   const { width } = useWindowDimensions();
   const pathname = usePathname();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
-  const isTablet  = width >= 768 && width < 1120;
-  const isDesktop = width >= 1120;
-  const show = Platform.OS === 'web' || width >= 768;
+  if (width < BP.tablet) return null;
 
-  if (!show) return null;
+  const isDesktop = width >= BP.desktop;
+  const railWidth = isDesktop ? 240 : 72;
 
-  const sidebarWidth = isDesktop ? 220 : 72;
-
-  // Normalise pathname to match the href format used above.
-  // Expo router may give "/feeds" for the tab route named "feeds".
+  // Expo router may report "/feeds" for the tab route named "feeds".
   function isActive(href: string): boolean {
     if (href === '/') return pathname === '/' || pathname === '/index';
     return pathname.startsWith(href);
   }
 
   return (
-    <SafeAreaView
-      edges={['top', 'bottom']}
+    <MotiView
+      animate={{ width: railWidth }}
+      transition={{ type: 'timing', duration: 240 }}
       style={{
-        width: sidebarWidth,
         backgroundColor: Palette.surface,
         borderRightWidth: 1,
         borderRightColor: Palette.border,
+        paddingTop: insets.top + 16,
+        paddingBottom: insets.bottom + 12,
       }}>
-      <View style={{ flex: 1, paddingTop: 16 }}>
-        {SIDEBAR_ITEMS.map(({ href, label, Icon }) => {
-          const active = isActive(href);
-          const color = active ? Palette.brand : Palette.textSecondary;
+      {SIDEBAR_ITEMS.map(({ href, label, Icon }) => {
+        const active = isActive(href);
+        const color = active ? Palette.brand : Palette.textSecondary;
 
-          return (
-            <PressableScale
-              key={href}
-              onPress={() => { feedback.tap(); router.push(href as never); }}
-              accessibilityRole="button"
-              accessibilityState={{ selected: active }}
-              accessibilityLabel={label}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: isTablet ? 'center' : 'flex-start',
-                gap: 12,
-                marginHorizontal: 8,
-                marginBottom: 4,
-                paddingVertical: 10,
-                paddingHorizontal: isDesktop ? 12 : 0,
-                borderRadius: 12,
-                backgroundColor: active ? Palette.brandTint : 'transparent',
-              }}>
-              <Icon size={22} color={color} strokeWidth={active ? 2.4 : 1.8} />
-              {isDesktop && (
-                <Text
-                  style={{
-                    fontFamily: active ? Font.semibold : Font.medium,
-                    fontSize: 14,
-                    color,
-                    letterSpacing: 0.1,
-                  }}>
-                  {label}
-                </Text>
-              )}
-            </PressableScale>
-          );
-        })}
-      </View>
-    </SafeAreaView>
+        return (
+          <PressableScale
+            key={href}
+            onPress={() => { feedback.tap(); router.push(href as never); }}
+            accessibilityRole="button"
+            accessibilityState={{ selected: active }}
+            accessibilityLabel={label}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: isDesktop ? 'flex-start' : 'center',
+              gap: 12,
+              marginHorizontal: 8,
+              marginBottom: 4,
+              paddingVertical: 11,
+              paddingHorizontal: isDesktop ? 12 : 0,
+              borderRadius: 12,
+              backgroundColor: active ? Palette.brandTint : 'transparent',
+            }}>
+            <Icon size={22} color={color} strokeWidth={active ? 2.4 : 1.8} />
+            {isDesktop ? (
+              <MotiText
+                from={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ type: 'timing', duration: 200, delay: 80 }}
+                style={{ fontFamily: active ? Font.semibold : Font.medium, fontSize: 14.5, color, letterSpacing: 0.1 }}>
+                {label}
+              </MotiText>
+            ) : null}
+          </PressableScale>
+        );
+      })}
+    </MotiView>
   );
 }
 
 // ─── Responsive frame ─────────────────────────────────────────────────────────
 
 /**
- * Responsive frame for web. Each route class gets an intentional width
- * (lib/layout.ts): focused flows stay a phone-class column, content lists get
- * a comfortable reading width, and browse/business surfaces widen into real
- * tablet/desktop layouts (the screens add grid columns to match).
- * The frame also carries dark mode on web: a smart-invert flips every light
- * surface dark in one move; photos are counter-inverted (see theme-mode.ts).
- *
- * On tablet/desktop (≥768px) the WebSidebar is mounted here, to the left of
- * the Stack. The tab bar returns null at that width to avoid double navigation.
+ * Adaptive app shell — one model for every platform (see lib/layout.ts):
+ *   < 600px : pass-through single column (bottom tab bar handles nav)
+ *   ≥ 600px : AppSidebar (rail → labelled sidebar) + a content area that FILLS
+ *             the rest. Browse/feed/business surfaces stretch edge-to-edge;
+ *             focused forms centre at a comfortable max-width. No grey "device
+ *             frame" margins — the shell looks native, not like blocks on a canvas.
+ * On web it also carries dark mode via a smart CSS invert (web-only).
  */
 function ResponsiveFrame({ children }: { children: ReactNode }) {
   const { width } = useWindowDimensions();
   const dark = useDarkMode();
   const pathname = usePathname();
+  const path = pathname ?? '/';
 
-  const isTabletOrDesktop = width >= 768;
-  const invert = Platform.OS === 'web' && dark && !DARK_BY_DESIGN.some((r) => pathname.startsWith(r));
-
+  const invert = Platform.OS === 'web' && dark && !DARK_BY_DESIGN.some((r) => path.startsWith(r));
   const darkProps = invert
     ? { dataSet: { preppadark: 'true' }, style: { flex: 1, filter: 'invert(0.93) hue-rotate(180deg)' } as never }
     : { style: { flex: 1 } };
 
-  // Mobile: pass-through with optional dark invert.
-  if (Platform.OS !== 'web' || width <= 560) {
+  // Compact phones: pass-through (the bottom tab bar is the nav here).
+  if (width < BP.tablet) {
     return <View {...darkProps}>{children}</View>;
   }
 
-  const frameWidth = maxWidthFor(pathname ?? '/', width);
-  const darkSurface =
-    DARK_BY_DESIGN.some((r) => (pathname ?? '').startsWith(r)) ||
-    (pathname ?? '').startsWith('/customers');
+  const darkSurface = DARK_BY_DESIGN.some((r) => path.startsWith(r)) || path.startsWith('/customers');
+  const shellBg = darkSurface ? '#0C0E13' : Palette.canvas;
+  const center = shouldCenter(path, width);
+  const maxW = contentWidthFor(path, width);
 
-  // On tablet/desktop: sidebar + content, constrained inside the centred frame.
-  if (isTabletOrDesktop) {
-    return (
-      <View {...darkProps}>
-        <View style={{ flex: 1, backgroundColor: darkSurface ? '#08090C' : '#E9E7E4', alignItems: 'center' }}>
-          <View
-            style={{
-              flex: 1,
-              width: '100%',
-              maxWidth: frameWidth,
-              backgroundColor: darkSurface ? '#0C0E13' : '#F7F7F8',
-              overflow: 'hidden',
-              shadowColor: '#000',
-              shadowOpacity: 0.12,
-              shadowRadius: 32,
-              shadowOffset: { width: 0, height: 0 },
-              flexDirection: 'row',
-            }}>
-            <WebSidebar />
-            <View style={{ flex: 1 }}>{children}</View>
-          </View>
-        </View>
-      </View>
-    );
-  }
-
-  // Narrow web (560–767px): centred frame, no sidebar.
   return (
     <View {...darkProps}>
-      <View style={{ flex: 1, backgroundColor: darkSurface ? '#08090C' : '#E9E7E4', alignItems: 'center' }}>
-        <View
-          style={{
-            flex: 1,
-            width: '100%',
-            maxWidth: frameWidth,
-            backgroundColor: darkSurface ? '#0C0E13' : '#F7F7F8',
-            overflow: 'hidden',
-            shadowColor: '#000',
-            shadowOpacity: 0.12,
-            shadowRadius: 32,
-            shadowOffset: { width: 0, height: 0 },
-          }}>
-          {children}
+      <View style={{ flex: 1, flexDirection: 'row', backgroundColor: shellBg }}>
+        <AppSidebar />
+        {/* Content area fills the rest; focused flows centre within it. */}
+        <View style={{ flex: 1 }}>
+          {center ? (
+            <View style={{ flex: 1, alignItems: 'center' }}>
+              <View style={{ flex: 1, width: '100%', maxWidth: maxW }}>{children}</View>
+            </View>
+          ) : (
+            children
+          )}
         </View>
       </View>
     </View>
