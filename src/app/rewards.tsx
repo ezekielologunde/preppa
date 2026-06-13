@@ -190,7 +190,7 @@ export default function RewardsScreen() {
             </PressableScale>
 
             <PressableScale onPress={() => { feedback.tap(); router.push('/'); }} accessibilityRole="button" accessibilityLabel="Browse meals to earn points" style={{ height: 52, borderRadius: Radius.sm, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', marginTop: 4 }}>
-              <Text style={{ fontFamily: Font.heading, fontSize: 15.5, color: '#fff' }}>Order to earn points</Text>
+              <Text style={{ fontFamily: Font.heading, fontSize: 15.5, color: '#fff' }}>Preorder to earn points</Text>
             </PressableScale>
           </ScrollView>
         )}

@@ -91,7 +91,7 @@ export default function InsightsScreen() {
               <Text style={{ fontFamily: Font.medium, fontSize: 13, color: 'rgba(255,255,255,0.85)' }}>your food journey</Text>
               <Text style={{ fontFamily: Font.display, fontSize: 36, color: '#fff', letterSpacing: -0.8 }}>starts here</Text>
               <Text style={{ fontFamily: Font.body, fontSize: 13.5, color: 'rgba(255,255,255,0.85)', lineHeight: 20, marginTop: 2 }}>
-                Order your first home-cooked meal and we'll start tracking your cuisine favourites, time saved, and spending patterns.
+                Preorder your first home-cooked meal and we'll start tracking your cuisine favourites, time saved, and spending patterns.
               </Text>
             </View>
           ) : (
