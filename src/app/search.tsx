@@ -66,10 +66,12 @@ function Chip({ label, selected, onPress }: { label: string; selected: boolean; 
 
 export default function SearchScreen() {
   const router = useRouter();
-  const CARD_W = gridCardWidth(useContentWidth());
+  const contentWidth = useContentWidth();
+  const CARD_W = gridCardWidth(contentWidth);
   const { q } = useLocalSearchParams<{ q?: string }>();
   const initial = (q || '').toString();
   const bp = useBreakpoint();
+  const isDesktop = bp === 'desktop';
   const { user } = useAuth();
   const [text, setText] = useState(initial);
   const [debounced, setDebounced] = useState(initial);
@@ -120,6 +122,7 @@ export default function SearchScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: Palette.canvas }}>
       <SafeAreaView edges={['top']} style={{ flex: 1 }}>
+        <View style={isDesktop ? { flex: 1, maxWidth: 900, alignSelf: 'center', width: '100%' } : { flex: 1 }}>
         {/* Search bar */}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16, paddingTop: 8 }}>
           <PressableScale onPress={() => { feedback.tap(); if (router.canGoBack()) { router.back(); } else { router.replace('/'); } }} accessibilityRole="button" accessibilityLabel="Go back" style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
@@ -230,13 +233,23 @@ export default function SearchScreen() {
                 transition={{ type: 'timing', duration: 240 }}
                 style={{ paddingTop: 14 }}>
                 <Text style={{ fontFamily: Font.heading, fontSize: 15, color: INK, paddingHorizontal: 20, marginBottom: 10 }}>kitchens</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 14 }}>
-                  {preppers.map((p, i) => (
-                    <MotiView key={p.id} from={{ opacity: 0, translateX: 12 }} animate={{ opacity: 1, translateX: 0 }} transition={{ type: 'timing', duration: 220, delay: i * 40 }}>
-                      <PrepperCard prepper={p} />
-                    </MotiView>
-                  ))}
-                </ScrollView>
+                {isDesktop ? (
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 14, paddingHorizontal: 20, paddingBottom: 4 }}>
+                    {preppers.map((p, i) => (
+                      <MotiView key={p.id} from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 220, delay: i * 35 }}>
+                        <PrepperCard prepper={p} />
+                      </MotiView>
+                    ))}
+                  </View>
+                ) : (
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 14 }}>
+                    {preppers.map((p, i) => (
+                      <MotiView key={p.id} from={{ opacity: 0, translateX: 12 }} animate={{ opacity: 1, translateX: 0 }} transition={{ type: 'timing', duration: 220, delay: i * 40 }}>
+                        <PrepperCard prepper={p} />
+                      </MotiView>
+                    ))}
+                  </ScrollView>
+                )}
               </MotiView>
             ) : null}
             {sortedResults && sortedResults.length > 0 ? (
@@ -273,6 +286,7 @@ export default function SearchScreen() {
             ) : null}
           </MotiView>
         )}
+        </View>
       </SafeAreaView>
 
       {/* Sort overlay */}

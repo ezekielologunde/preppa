@@ -13,6 +13,7 @@ import { Palette, Radius } from '@/constants/theme';
 import { useRefundOrder } from '@/lib/queries/cart';
 import { useAdvanceOrder, useCancelOrder, useOrdersRealtime, usePrepperOrders, useVerifyHandoff, type OrderSummary } from '@/lib/queries/orders';
 import { useMyPrepperApplication } from '@/lib/queries/preppers';
+import { useBreakpoint } from '@/lib/layout';
 import { useAuth } from '@/providers/auth-provider';
 import type { OrderStatus } from '@/types/database.types';
 
@@ -110,6 +111,7 @@ function OrderCard({
 export default function PrepperOrdersScreen() {
   const router = useRouter();
   const { user } = useAuth();
+  const isDesktop = useBreakpoint() === 'desktop';
   const { data: prepper } = useMyPrepperApplication(user?.id);
   const prepperId = prepper?.id;
   const { data: orders, isLoading, refetch } = usePrepperOrders(prepperId);
@@ -181,18 +183,21 @@ export default function PrepperOrdersScreen() {
             <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textMuted, textAlign: 'center' }}>New preorders from customers will appear here in real time.</Text>
           </MotiView>
         ) : (
-          <ScrollView showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={ORANGE} colors={[ORANGE]} />} contentContainerStyle={{ padding: 20, gap: 12, paddingBottom: 40 }}>
-            {orders.map((o, i) => (
-              <MotiView key={o.id} from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: i * 45 }}>
-                <OrderCard
-                  order={o}
-                  busy={busyId === o.id}
-                  onAdvance={(next) => { setActionErr(null); advance.mutate({ orderId: o.id, next }, { onError: onErr }); }}
-                  onCancel={() => { feedback.warning(); setDeclineOrder(o); }}
-                  onVerify={() => openVerify(o)}
-                />
-              </MotiView>
-            ))}
+          <ScrollView showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={ORANGE} colors={[ORANGE]} />} contentContainerStyle={{ padding: 20, paddingBottom: 40 }}>
+            <View style={isDesktop ? { flexDirection: 'row', flexWrap: 'wrap', gap: 14 } : { gap: 12 }}>
+              {orders.map((o, i) => (
+                <MotiView key={o.id} from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: i * 45 }}
+                  style={isDesktop ? { flex: 1, minWidth: 320, maxWidth: '48%' } : undefined}>
+                  <OrderCard
+                    order={o}
+                    busy={busyId === o.id}
+                    onAdvance={(next) => { setActionErr(null); advance.mutate({ orderId: o.id, next }, { onError: onErr }); }}
+                    onCancel={() => { feedback.warning(); setDeclineOrder(o); }}
+                    onVerify={() => openVerify(o)}
+                  />
+                </MotiView>
+              ))}
+            </View>
           </ScrollView>
         )}
       </SafeAreaView>

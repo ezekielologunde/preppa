@@ -2,12 +2,13 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ChevronLeft, ChevronRight, MessageCircle, Phone, Receipt, Send } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, KeyboardAvoidingView, Linking, Platform, ScrollView, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, KeyboardAvoidingView, Linking, Platform, ScrollView, Text, TextInput, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
 import { feedback } from '@/lib/feedback';
+import { BP } from '@/lib/layout';
 import { Palette, Radius } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
 import { useChatContext, useMessages, useSendMessage } from '@/lib/queries/messages';
@@ -38,6 +39,8 @@ const QUICK_REPLIES: Record<string, string[]> = {
 export default function ChatScreen() {
   const router = useRouter();
   const { user } = useAuth();
+  const { width } = useWindowDimensions();
+  const isDesktop = width >= BP.desktop;
   const { id, name } = useLocalSearchParams<{ id?: string; name?: string }>();
   const { data: messages, isLoading } = useMessages(id, user?.id);
   const { data: ctx } = useChatContext(id, user?.id);
@@ -80,6 +83,7 @@ export default function ChatScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: Palette.surface }}>
       <SafeAreaView edges={['top']} style={{ flex: 1 }}>
+        <View style={isDesktop ? { flex: 1, maxWidth: 720, alignSelf: 'center', width: '100%' } : { flex: 1 }}>
         {/* Header */}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingTop: 8, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: Palette.chip }}>
           <PressableScale onPress={goBack} accessibilityRole="button" accessibilityLabel="Go back" style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: Palette.canvas, alignItems: 'center', justifyContent: 'center' }}>
@@ -185,6 +189,7 @@ export default function ChatScreen() {
             </PressableScale>
           </View>
         </KeyboardAvoidingView>
+        </View>
       </SafeAreaView>
     </View>
   );

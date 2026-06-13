@@ -26,6 +26,7 @@ import {
   useNotifications,
   type AppNotification,
 } from '@/lib/queries/notifications';
+import { useBreakpoint } from '@/lib/layout';
 import { useAuth } from '@/providers/auth-provider';
 
 const ICON_MAP = {
@@ -146,6 +147,7 @@ function NotifRow({ n, onPress }: { n: AppNotification; onPress: () => void }) {
 export default function NotificationsScreen() {
   const router = useRouter();
   const { user } = useAuth();
+  const isDesktop = useBreakpoint() === 'desktop';
   const { data: notifs, isLoading, refetch } = useNotifications(user?.id);
   const markRead = useMarkNotificationsRead(user?.id);
   const [refreshing, setRefreshing] = useState(false);
@@ -178,6 +180,7 @@ export default function NotificationsScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: Palette.canvas }}>
       <SafeAreaView edges={['top']} style={{ flex: 1 }}>
+        <View style={isDesktop ? { flex: 1, maxWidth: 680, alignSelf: 'center', width: '100%' } : { flex: 1 }}>
         {/* Header */}
         <View
           style={{
@@ -337,6 +340,7 @@ export default function NotificationsScreen() {
             <View style={{ height: 48 }} />
           </ScrollView>
         )}
+        </View>
       </SafeAreaView>
     </View>
   );
