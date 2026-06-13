@@ -45,7 +45,7 @@ import { useMyOrders } from '@/lib/queries/orders';
 import { useNotifications } from '@/lib/queries/notifications';
 import { useRewards } from '@/lib/queries/rewards';
 import { usePersonalizedMeals } from '@/lib/queries/recommend';
-import { gridCardWidth, useBreakpoint, useContentWidth, usePagePadding } from '@/lib/layout';
+import { gridCardWidth, useBreakpoint, useCarouselCardWidth, useContentWidth, usePagePadding } from '@/lib/layout';
 import { useAuth } from '@/providers/auth-provider';
 
 const ORANGE = Palette.brand;
@@ -112,6 +112,7 @@ export default function HomeScreen() {
   const contentWidth = useContentWidth();
   const bp = useBreakpoint();
   const pad = usePagePadding();
+  const carouselCardWidth = useCarouselCardWidth();
   const ranked = usePersonalizedMeals(meals, user?.id);
   const [aiIdx, setAiIdx] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
@@ -275,9 +276,9 @@ export default function HomeScreen() {
               ))}
             </View>
           ) : (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 14, paddingBottom: 20 }}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: pad, gap: 12, paddingBottom: 20 }}>
               {ranked.slice(1).map((s) => (
-                <MealCard key={s.meal.id} meal={s.meal} />
+                <MealCard key={s.meal.id} meal={s.meal} width={carouselCardWidth} />
               ))}
             </ScrollView>
           )}
@@ -295,8 +296,8 @@ export default function HomeScreen() {
                   ))}
                 </View>
               ) : (
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 14, paddingBottom: 20 }}>
-                  {followingFeed.map((m) => (<MealCard key={m.id} meal={m} />))}
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: pad, gap: 12, paddingBottom: 20 }}>
+                  {followingFeed.map((m) => (<MealCard key={m.id} meal={m} width={carouselCardWidth} />))}
                 </ScrollView>
               )}
             </>

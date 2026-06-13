@@ -1,5 +1,5 @@
 import { usePathname } from 'expo-router';
-import { Platform, useWindowDimensions } from 'react-native';
+import { useWindowDimensions } from 'react-native';
 
 /**
  * Responsive layout system. Mobile ≠ tablet ≠ desktop: every route gets a
@@ -7,8 +7,11 @@ import { Platform, useWindowDimensions } from 'react-native';
  * browse surfaces become real grids, business surfaces become dashboards,
  * focused flows (forms, checkout, chat) stay a comfortable column instead of
  * stretching across a monitor.
+ *
+ * NOTE: All hooks use raw window width, no Platform guard — the responsive
+ * system applies equally to iOS, Android, and web. An iPad is a tablet.
  */
-export const BP = { tablet: 768, desktop: 1120 } as const;
+export const BP = { sm: 390, md: 480, tablet: 768, desktop: 1120 } as const;
 
 export type WidthClass = 'form' | 'content' | 'browse' | 'business';
 
@@ -53,7 +56,7 @@ export function widthClassFor(pathname: string): WidthClass {
 }
 
 export function maxWidthFor(pathname: string, windowWidth: number): number {
-  if (Platform.OS !== 'web' || windowWidth <= 560) return windowWidth;
+  if (windowWidth <= 560) return windowWidth;
   const tier = windowWidth >= BP.desktop ? 'desktop' : 'tablet';
   return Math.min(windowWidth, MAX[widthClassFor(pathname)][tier]);
 }
@@ -65,18 +68,28 @@ export function useContentWidth(): number {
   return maxWidthFor(pathname ?? '/', width);
 }
 
-/** Breakpoint tier for the WINDOW (not the frame) — for layout switches. */
+/** Breakpoint tier for the current window — works on all platforms. */
 export function useBreakpoint(): 'mobile' | 'tablet' | 'desktop' {
   const { width } = useWindowDimensions();
-  if (Platform.OS !== 'web') return 'mobile';
   return width >= BP.desktop ? 'desktop' : width >= BP.tablet ? 'tablet' : 'mobile';
 }
 
-/** Responsive horizontal page padding: 20 (phone) / 28 (tablet) / 36 (desktop). */
+/** Responsive horizontal page padding: 20 → 28 → 36 as screen grows. */
 export function usePagePadding(): number {
   const { width } = useWindowDimensions();
-  if (Platform.OS !== 'web') return 20;
   return width >= BP.desktop ? 36 : width >= BP.tablet ? 28 : 20;
+}
+
+/**
+ * Dynamic card width for horizontal-scroll carousels — always shows a partial
+ * card as a scroll affordance. ~2.2 cards on a phone, 3+ on a tablet.
+ */
+export function useCarouselCardWidth(): number {
+  const { width } = useWindowDimensions();
+  if (width >= BP.desktop) return Math.floor(width / 4.2);
+  if (width >= BP.tablet) return Math.floor(width / 3.4);
+  if (width >= BP.md) return Math.floor(width / 2.5);
+  return Math.floor(width / 2.15);
 }
 
 /** Meal-grid columns for a content width (2 phone / 3 tablet / 4 desktop). */

@@ -26,20 +26,26 @@ function PreppaTabBar({ state, navigation }: TabBarProps) {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const isTablet = width >= 768;
+  // Tab sizing scales with screen width — larger targets on wider devices.
+  const iconSize = width >= 768 ? 22 : width >= 480 ? 21 : 20;
+  const labelSize = width >= 768 ? 12 : width >= 480 ? 11 : 10.5;
+  const pillW = width >= 768 ? 60 : 46;
+  const pillH = width >= 768 ? 36 : 30;
+  const tabPadV = width >= 768 ? 10 : 8;
 
   return (
     <View
       style={{
         backgroundColor: Palette.surface,
-        paddingTop: 8,
-        paddingBottom: Math.max(insets.bottom, 10),
-        borderTopLeftRadius: isTablet ? 0 : 22,
-        borderTopRightRadius: isTablet ? 0 : 22,
-        borderTopWidth: isTablet ? 1 : 0,
+        paddingTop: tabPadV,
+        paddingBottom: Math.max(insets.bottom, tabPadV),
+        borderTopLeftRadius: isTablet ? 0 : 20,
+        borderTopRightRadius: isTablet ? 0 : 20,
+        borderTopWidth: 1,
         borderTopColor: Palette.border,
         ...Shadow.navBar,
       }}>
-      <View style={{ flexDirection: 'row', maxWidth: isTablet ? 560 : undefined, alignSelf: isTablet ? 'center' : undefined }}>
+      <View style={{ flexDirection: 'row', maxWidth: isTablet ? 600 : undefined, alignSelf: isTablet ? 'center' : undefined, width: isTablet ? '100%' : undefined }}>
         {TABS.map((tab) => {
           const routeIndex = state.routes.findIndex((r) => r.name === tab.name);
           const focused = routeIndex >= 0 && state.index === routeIndex;
@@ -54,22 +60,22 @@ function PreppaTabBar({ state, navigation }: TabBarProps) {
               accessibilityLabel={tab.label}
               style={{ flex: 1, alignItems: 'center', justifyContent: 'center', minHeight: TouchTarget, gap: 3, paddingTop: 2 }}>
 
-              <View style={{ alignItems: 'center', justifyContent: 'center', width: isTablet ? 56 : 44, height: isTablet ? 34 : 30 }}>
+              <View style={{ alignItems: 'center', justifyContent: 'center', width: pillW, height: pillH }}>
                 <MotiView
-                  animate={{ opacity: focused ? 1 : 0, scale: focused ? 1 : 0.5 }}
-                  transition={{ type: 'spring', damping: 20, stiffness: 300 }}
+                  animate={{ opacity: focused ? 1 : 0, scale: focused ? 1 : 0.4 }}
+                  transition={{ type: 'spring', damping: 18, stiffness: 320 }}
                   style={{
                     position: 'absolute',
                     width: '100%',
                     height: '100%',
-                    borderRadius: isTablet ? 12 : 18,
+                    borderRadius: pillH / 2,
                     backgroundColor: Palette.brandTint,
                   }}
                 />
-                <tab.Icon size={20} color={color} strokeWidth={focused ? 2.4 : 1.8} />
+                <tab.Icon size={iconSize} color={color} strokeWidth={focused ? 2.4 : 1.8} />
               </View>
 
-              <Text style={{ fontFamily: focused ? Font.semibold : Font.medium, fontSize: isTablet ? 12 : 10.5, color, letterSpacing: focused ? 0 : 0.1 }}>
+              <Text style={{ fontFamily: focused ? Font.semibold : Font.medium, fontSize: labelSize, color, letterSpacing: 0.1 }}>
                 {tab.label}
               </Text>
             </PressableScale>

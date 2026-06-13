@@ -3,7 +3,7 @@ import { useRouter } from 'expo-router';
 import { Star } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useEffect, useState } from 'react';
-import { Platform, Text, View } from 'react-native';
+import { Platform, Text, useWindowDimensions, View } from 'react-native';
 
 import { FavoriteButton } from '@/components/ui/favorite-button';
 import { PressableScale } from '@/components/ui/pressable-scale';
@@ -81,10 +81,14 @@ const StyleSheetAbsolute = { position: 'absolute' as const, top: 0, left: 0, rig
 /** `width: null` makes the card fluid — it fills its container. */
 export function MealCard({ meal, width = 200, variant = 'normal' }: { meal: Meal; width?: number | null; variant?: 'normal' | 'big' }) {
   const router = useRouter();
+  const { width: screenWidth } = useWindowDimensions();
   const [hovered, setHovered] = useState(false);
   const images = meal.images && meal.images.length ? meal.images : meal.image ? [meal.image] : [];
   const big = variant === 'big';
-  const imgHeight = big ? 188 : 130;
+  // Hero card scales with screen — taller on larger devices.
+  const imgHeight = big
+    ? Math.min(280, Math.max(176, Math.floor(screenWidth * 0.5)))
+    : Math.min(160, Math.max(110, Math.floor((typeof width === 'number' ? width : screenWidth * 0.44) * 0.68)));
 
   return (
     <PressableScale

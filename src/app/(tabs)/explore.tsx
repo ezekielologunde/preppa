@@ -43,7 +43,7 @@ import { Palette, Radius } from '@/constants/theme';
 import { useFeaturedMeals, useLimitedDrops } from '@/lib/queries/meals';
 import { useTopPreppers } from '@/lib/queries/preppers';
 import { usePersonalizedMeals } from '@/lib/queries/recommend';
-import { useBreakpoint, usePagePadding } from '@/lib/layout';
+import { useBreakpoint, useCarouselCardWidth, usePagePadding } from '@/lib/layout';
 import { useRankedPreppers } from '@/lib/match';
 import { useAuth } from '@/providers/auth-provider';
 
@@ -98,6 +98,7 @@ export default function ExploreScreen() {
   const [locationOpen, setLocationOpen] = useState(false);
   const bp = useBreakpoint();
   const pad = usePagePadding();
+  const carouselCardWidth = useCarouselCardWidth();
   async function handleRefresh() { setRefreshing(true); await Promise.all([refetchPreppers(), refetchMeals(), refetchDrops()]); setRefreshing(false); }
 
   return (
@@ -201,7 +202,7 @@ export default function ExploreScreen() {
                 ))}
               </View>
             ) : (
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 14, paddingBottom: 20 }}>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: pad, gap: 12, paddingBottom: 20 }}>
                 {GOALS.map((g) => (
                   <PressableScale key={g.tag} onPress={() => { feedback.tap(); router.push(`/kitchens?tag=${encodeURIComponent(g.tag)}`); }} accessibilityRole="button" accessibilityLabel={`${g.label} meal prep kitchens`} style={{ alignItems: 'center', gap: 6, width: 60 }}>
                     <View style={{ width: 52, height: 52, borderRadius: 17, backgroundColor: g.color + '18', alignItems: 'center', justifyContent: 'center' }}>
@@ -219,7 +220,7 @@ export default function ExploreScreen() {
           {preppersLoading ? (
             <View style={{ paddingBottom: 20 }}><CardRowSkeleton count={3} width={210} /></View>
           ) : (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 14, paddingBottom: 20 }}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: pad, gap: 12, paddingBottom: 20 }}>
               {rankedPreppers.map((p, i) => (
                 <MotiView key={p.id} from={{ opacity: 0, translateX: 14 }} animate={{ opacity: 1, translateX: 0 }} transition={{ type: 'timing', duration: 220, delay: i * 40 }}>
                   <PrepperCard prepper={p} showRank />
@@ -247,10 +248,10 @@ export default function ExploreScreen() {
           {drops && drops.length > 0 ? (
             <>
               <SectionHeader title="limited drops" />
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 14, paddingBottom: 20 }}>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: pad, gap: 12, paddingBottom: 20 }}>
                 {drops.map((m, i) => (
                   <MotiView key={m.id} from={{ opacity: 0, translateX: 14 }} animate={{ opacity: 1, translateX: 0 }} transition={{ type: 'timing', duration: 220, delay: i * 35 }}>
-                    <MealCard meal={m} />
+                    <MealCard meal={m} width={carouselCardWidth} />
                   </MotiView>
                 ))}
               </ScrollView>
@@ -262,7 +263,7 @@ export default function ExploreScreen() {
           {mealsLoading ? (
             <View style={{ paddingBottom: 20 }}><CardRowSkeleton count={3} /></View>
           ) : (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 14, paddingBottom: 20 }}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: pad, gap: 12, paddingBottom: 20 }}>
               {(meals ?? []).map((m, i) => (
                 <MotiView key={m.id} from={{ opacity: 0, translateX: 14 }} animate={{ opacity: 1, translateX: 0 }} transition={{ type: 'timing', duration: 220, delay: i * 35 }}>
                   <MealCard meal={m} />
@@ -275,11 +276,11 @@ export default function ExploreScreen() {
           {forYou.length > 0 ? (
             <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 80 }}>
               <SectionHeader title="for you" onSeeAll={() => router.push('/category?key=all&label=for+you')} />
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 14, paddingBottom: 20 }}>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: pad, gap: 12, paddingBottom: 20 }}>
                 {forYou.map((s, i) => (
                   <MotiView key={s.meal.id} from={{ opacity: 0, translateX: 14 }} animate={{ opacity: 1, translateX: 0 }} transition={{ type: 'timing', duration: 220, delay: i * 35 }}>
                     <View>
-                      <MealCard meal={s.meal} />
+                      <MealCard meal={s.meal} width={carouselCardWidth} />
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6, paddingHorizontal: 2 }}>
                         <Sparkles size={11} color={ORANGE} />
                         <Text numberOfLines={1} style={{ fontFamily: Font.medium, fontSize: 11, color: Palette.textSecondary, flex: 1 }}>{s.reason}</Text>
