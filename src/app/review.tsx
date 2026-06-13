@@ -39,7 +39,7 @@ const QUICK_PHRASES: Record<number, string[]> = {
   2: ['Below expectations', 'Portion was small', 'Needs improvement'],
   3: ['Pretty good', 'As expected', 'Would try again'],
   4: ['Really enjoyed it', 'Fresh and tasty', 'Good portions'],
-  5: ['Absolutely delicious!', 'Perfect portions', 'Will order again!', 'Exceeded expectations'],
+  5: ['Absolutely delicious!', 'Perfect portions', 'Will have it again!', 'Exceeded expectations'],
 };
 
 export default function ReviewScreen() {

@@ -46,7 +46,7 @@ export const RUSH_WINDOWS: RushWindow[] = [
     start: 11,
     end: 14,
     color: '#F15F22',
-    buyerTip: 'Lunch rush is on — order now for 12–2 pm pickup or delivery.',
+    buyerTip: 'Lunch rush is on — preorder for 12–2 pm pickup or delivery.',
     prepperAlert: 'Lunch rush is active (11 am–2 pm)',
     prepperPrepTip: 'Stock extra rice, soups, and wraps. Batch-cook proteins — this is your highest-volume window.',
     pushBody: 'Lunch is ready. Top kitchens near you are live right now — order for 12–2 pm.',
@@ -58,10 +58,10 @@ export const RUSH_WINDOWS: RushWindow[] = [
     start: 16,
     end: 20,
     color: '#7c3aed',
-    buyerTip: 'Dinner window — order now for 6–7 pm delivery. Top kitchens are live.',
+    buyerTip: 'Dinner window — preorder for 6–7 pm. Top kitchens are live.',
     prepperAlert: 'Dinner window is active (4–8 pm)',
     prepperPrepTip: 'Pre-portion family packs and one-pot meals. Being ready by 4:30 pm puts you first in the queue.',
-    pushBody: "What's for dinner? Your neighbourhood kitchens are live — order now for 6–7 pm.",
+    pushBody: "What's for dinner? Your neighbourhood kitchens are live — preorder for 6–7 pm.",
     emoji: '🌆',
   },
 ];
@@ -98,7 +98,7 @@ export function minsUntilRushEnds(
 /** Returns the best CTA label for a buyer given the current time. */
 export function getBuyerCta(hour = new Date().getHours()): string {
   const rush = getCurrentRush(hour);
-  if (rush) return `order during ${rush.label}`;
+  if (rush) return `preorder during ${rush.label}`;
   const next = getNextRush(hour);
   if (next) return `next rush in ~${Math.round(next.inMins / 60 * 10) / 10}h`;
   return 'browse local kitchens';

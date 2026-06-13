@@ -329,11 +329,11 @@ export default function MealScreen() {
               onPress={handleAddToCart}
               disabled={addToCart.isPending || !orderingOn}
               accessibilityRole="button"
-              accessibilityLabel={!orderingOn ? 'Ordering paused' : user ? 'Add to cart' : 'Sign in to order'}
+              accessibilityLabel={!orderingOn ? 'Ordering paused' : user ? 'Add to cart' : 'Sign in to preorder'}
               style={{ flex: 1, height: 54, borderRadius: 16, backgroundColor: !orderingOn ? Palette.textMuted : added ? Palette.success : ORANGE, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 7, opacity: addToCart.isPending ? 0.7 : 1 }}>
               {added && orderingOn ? <Check size={18} color="#fff" strokeWidth={3} /> : null}
               <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>
-                {!orderingOn ? 'Ordering paused' : added ? 'Added to cart' : user ? 'Add to cart' : 'Sign in to order'}
+                {!orderingOn ? 'Ordering paused' : added ? 'Added to cart' : user ? 'Add to cart' : 'Sign in to preorder'}
               </Text>
             </PressableScale>
           </View>

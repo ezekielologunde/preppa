@@ -65,7 +65,7 @@ const EVENTS: HolidayEvent[] = [
 ];
 
 const URGENCY_LABEL: Record<HolidayEvent['urgency'], { label: string; color: string }> = {
-  today: { label: 'order now', color: '#dc2626' },
+  today: { label: 'preorder now', color: '#dc2626' },
   soon: { label: 'order ahead', color: ORANGE },
   upcoming: { label: 'pre-save', color: '#8b5cf6' },
 };
@@ -120,7 +120,7 @@ export default function HolidaySpecialsScreen() {
               </View>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(255,255,255,0.25)', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10, alignSelf: 'flex-start' }}>
                 <Sparkles size={14} color="#fff" />
-                <Text style={{ fontFamily: Font.heading, fontSize: 14, color: '#fff' }}>order now</Text>
+                <Text style={{ fontFamily: Font.heading, fontSize: 14, color: '#fff' }}>preorder now</Text>
                 <ChevronRight size={14} color="#fff" />
               </View>
             </PressableScale>
