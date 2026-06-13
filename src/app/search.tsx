@@ -15,11 +15,12 @@ import { CardSkeleton } from '@/components/ui/skeleton';
 import { Font } from '@/constants/fonts';
 import { Palette, Radius } from '@/constants/theme';
 import { gridCardWidth, useContentWidth } from '@/lib/layout';
-import { useMealSearch } from '@/lib/queries/meals';
+import { useMealSearch, useMealsByIds } from '@/lib/queries/meals';
 import { usePrepperSearch } from '@/lib/queries/preppers';
 import { useMealCategories } from '@/lib/queries/my-meals';
 import { useMyOrders } from '@/lib/queries/orders';
 import { useFavoriteKeys } from '@/lib/favorites';
+import { useRecentlyViewedIds } from '@/lib/recently-viewed';
 import { buildMatchSignals } from '@/lib/match';
 import { rankSearchResults, boostBySignals, MEAL_FIELDS, getSuggestions } from '@/lib/search-rank';
 import { useAuth } from '@/providers/auth-provider';
@@ -77,6 +78,9 @@ export default function SearchScreen() {
   const [priceKey, setPriceKey] = useState<PriceKey>(null);
   const [sortKey, setSortKey] = useState<SortKey>('default');
   const [sortOpen, setSortOpen] = useState(false);
+
+  const recentIds = useRecentlyViewedIds().slice(0, 8);
+  const { data: recentMeals } = useMealsByIds(recentIds);
 
   const { data: categories } = useMealCategories();
   const price = PRICES.find((p) => p.key === priceKey);
@@ -177,24 +181,38 @@ export default function SearchScreen() {
 
         {/* Results */}
         {!active ? (
-          <MotiView
-            from={{ opacity: 0, scale: 0.97 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ type: 'timing', duration: 280 }}
-            style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 10 }}>
-            <Search size={40} color={Palette.textMuted} />
-            <Text style={{ fontFamily: Font.heading, fontSize: 16, color: Palette.textSecondary }}>find your next meal</Text>
-            <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textMuted, textAlign: 'center' }}>type to search — or tap a filter to browse</Text>
-            {suggestions.length > 0 ? (
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 8, marginTop: 4 }}>
-                {suggestions.map((s) => (
-                  <PressableScale key={s} onPress={() => { feedback.tap(); setText(s); }} accessibilityRole="button" accessibilityLabel={`Search for ${s}`} style={{ paddingHorizontal: 14, height: 34, borderRadius: Radius.pill, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
-                    <Text style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.inkSoft }}>{s}</Text>
-                  </PressableScale>
-                ))}
-              </View>
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
+            {recentMeals && recentMeals.length > 0 ? (
+              <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260 }}>
+                <Text style={{ fontFamily: Font.display, fontSize: 15, color: INK, letterSpacing: -0.3, paddingHorizontal: 20, marginTop: 18, marginBottom: 10 }}>recently viewed</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 12, paddingBottom: 4 }}>
+                  {recentMeals.map((m, i) => (
+                    <MotiView key={m.id} from={{ opacity: 0, translateX: 12 }} animate={{ opacity: 1, translateX: 0 }} transition={{ type: 'timing', duration: 200, delay: i * 35 }}>
+                      <MealCard meal={m} width={160} />
+                    </MotiView>
+                  ))}
+                </ScrollView>
+              </MotiView>
             ) : null}
-          </MotiView>
+            <MotiView
+              from={{ opacity: 0, translateY: 8 }}
+              animate={{ opacity: 1, translateY: 0 }}
+              transition={{ type: 'timing', duration: 260, delay: recentMeals?.length ? 60 : 0 }}
+              style={{ alignItems: 'center', padding: 32, gap: 10 }}>
+              <Search size={36} color={Palette.textMuted} />
+              <Text style={{ fontFamily: Font.heading, fontSize: 16, color: Palette.textSecondary }}>find your next meal</Text>
+              <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textMuted, textAlign: 'center' }}>type to search — or tap a filter to browse</Text>
+              {suggestions.length > 0 ? (
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 8, marginTop: 4 }}>
+                  {suggestions.map((s) => (
+                    <PressableScale key={s} onPress={() => { feedback.tap(); setText(s); }} accessibilityRole="button" accessibilityLabel={`Search for ${s}`} style={{ paddingHorizontal: 14, height: 34, borderRadius: Radius.pill, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
+                      <Text style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.inkSoft }}>{s}</Text>
+                    </PressableScale>
+                  ))}
+                </View>
+              ) : null}
+            </MotiView>
+          </ScrollView>
         ) : loading ? (
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12, padding: 20 }}>
             {Array.from({ length: 4 }).map((_, i) => <CardSkeleton key={i} width={CARD_W} />)}

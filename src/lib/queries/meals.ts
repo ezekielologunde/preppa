@@ -277,3 +277,22 @@ export function useSurpriseMeals(filters: SurpriseFilters, enabled = true) {
     },
   });
 }
+
+/** Fetch a specific set of published meals by their IDs, preserving input order (recently-viewed, etc). */
+export function useMealsByIds(ids: string[]) {
+  return useQuery({
+    queryKey: ['meals', 'by-ids', ids.join(',')],
+    enabled: ids.length > 0,
+    queryFn: async (): Promise<Meal[]> => {
+      const { data, error } = await supabase
+        .from('meals')
+        .select(SELECT)
+        .in('id', ids)
+        .eq('status', 'published');
+      if (error) throw error;
+      const mapped = ((data ?? []) as unknown as MealRow[]).map(mapMeal);
+      const byId = new Map(mapped.map((m) => [m.id, m]));
+      return ids.map((id) => byId.get(id)).filter(Boolean) as Meal[];
+    },
+  });
+}
