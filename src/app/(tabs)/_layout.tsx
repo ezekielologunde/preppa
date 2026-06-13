@@ -1,5 +1,6 @@
 import { Tabs } from 'expo-router';
 import { CircleUser, Compass, House, MonitorPlay, Ticket } from 'lucide-react-native';
+import { MotiView } from 'moti';
 import { Platform, Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -69,12 +70,11 @@ function PreppaTabBar({ state, navigation }: TabBarProps) {
                 {tab.label}
               </Text>
 
-              <View style={{
-                width: 5,
-                height: 5,
-                borderRadius: 3,
-                backgroundColor: focused ? Palette.brand : 'transparent',
-              }} />
+              <MotiView
+                animate={{ backgroundColor: focused ? Palette.brand : Palette.surface }}
+                transition={{ type: 'timing', duration: 200 }}
+                style={{ width: 5, height: 5, borderRadius: 3 }}
+              />
             </PressableScale>
           );
         })}
