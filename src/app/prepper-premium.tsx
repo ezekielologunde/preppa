@@ -32,7 +32,7 @@ const PRO_FEATURES: ProFeature[] = [
   { Icon: Flame, label: 'Livestream tools', sub: 'Cook live, sell in real time' },
   { Icon: Star, label: 'Priority listing', sub: 'Homepage & featured feed placement' },
   { Icon: Zap, label: 'AI captions', sub: 'Auto-generate meal descriptions' },
-  { Icon: Users, label: 'Customer insights', sub: 'Order patterns & repeat buyers' },
+  { Icon: Users, label: 'Customer insights', sub: 'Preorder patterns & repeat buyers' },
   { Icon: Lock, label: 'Advanced scheduling', sub: 'Calendar & fulfillment-day management' },
   { Icon: Sparkles, label: 'Custom storefront', sub: 'Your own branded kitchen page' },
   { Icon: Search, label: 'Promoted meals', sub: 'Boost meals to the top of search' },
@@ -41,7 +41,7 @@ const PRO_FEATURES: ProFeature[] = [
 const FREE_FEATURES = [
   'Up to 5 meal listings',
   'Standard search ranking',
-  'Order management',
+  'Preorder management',
   'Basic sales summary',
 ];
 

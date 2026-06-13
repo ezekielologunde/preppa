@@ -75,7 +75,7 @@ export default function RewardsScreen() {
         {!user ? (
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
             <Gift size={28} color={Palette.textMuted} />
-            <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center' }}>Sign in to start earning points on every order.</Text>
+            <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center' }}>Sign in to start earning points on every preorder.</Text>
             <PressableScale onPress={() => { feedback.tap(); router.push('/auth?mode=signin'); }} accessibilityRole="button" accessibilityLabel="Sign in" style={{ marginTop: 4, paddingHorizontal: 22, height: 48, borderRadius: Radius.sm, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
               <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#fff' }}>Sign in</Text>
             </PressableScale>
@@ -90,7 +90,7 @@ export default function RewardsScreen() {
                 <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: 'rgba(255,255,255,0.92)' }}>{r.tier.name} member</Text>
               </View>
               <Text style={{ fontFamily: Font.display, fontSize: 44, color: '#fff', letterSpacing: -1, fontVariant: ['tabular-nums'] }}>{r.points.toLocaleString()}</Text>
-              <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: 'rgba(255,255,255,0.92)' }}>points · {money(r.lifetimeSpend)} spent over {r.orders} order{r.orders === 1 ? '' : 's'}</Text>
+              <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: 'rgba(255,255,255,0.92)' }}>points · {money(r.lifetimeSpend)} spent over {r.orders} preorder{r.orders === 1 ? '' : 's'}</Text>
 
               {r.nextTier ? (
                 <View style={{ marginTop: 12, gap: 6 }}>
@@ -114,7 +114,7 @@ export default function RewardsScreen() {
                 <Gift size={19} color={ORANGE} />
               </View>
               <Text style={{ flex: 1, fontFamily: Font.body, fontSize: 13.5, color: Palette.textSecondary, lineHeight: 19 }}>
-                Earn <Text style={{ fontFamily: Font.semibold, color: INK }}>10 points</Text> for every $1 on completed orders. Spend more to unlock better perks.
+                Earn <Text style={{ fontFamily: Font.semibold, color: INK }}>10 points</Text> for every $1 on completed preorders. Spend more to unlock better perks.
               </Text>
             </View>
 
@@ -132,8 +132,8 @@ export default function RewardsScreen() {
             <Text style={{ fontFamily: Font.display, fontSize: 15, color: INK, letterSpacing: -0.3, marginTop: 6, marginBottom: 12 }}>redeem points</Text>
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
               {([
-                { title: '20% off', desc: 'one order', pts: 2000, Icon: Tag, color: ORANGE },
-                { title: 'free delivery', desc: 'next order', pts: 1500, Icon: Bike, color: '#06b6d4' },
+                { title: '20% off', desc: 'one preorder', pts: 2000, Icon: Tag, color: ORANGE },
+                { title: 'free delivery', desc: 'next preorder', pts: 1500, Icon: Bike, color: '#06b6d4' },
                 { title: 'mystery meal', desc: 'chef surprise', pts: 3000, Icon: Gift, color: '#8b5cf6' },
                 { title: 'month of Prep+', desc: 'premium access', pts: 8000, Icon: Crown, color: '#d97706' },
               ] as const).map(({ title, desc, pts, Icon, color }) => {
@@ -160,10 +160,10 @@ export default function RewardsScreen() {
             <Text style={{ fontFamily: Font.display, fontSize: 15, color: INK, letterSpacing: -0.3, marginTop: 8 }}>earn more points</Text>
             <View style={{ backgroundColor: Palette.surface, borderRadius: Radius.lg, overflow: 'hidden', marginTop: 12 }}>
               {([
-                { label: 'place an order', pts: '10 pts per $1', Icon: ShoppingBag },
+                { label: 'place a preorder', pts: '10 pts per $1', Icon: ShoppingBag },
                 { label: 'write a review', pts: '25 pts', Icon: MessageSquare },
                 { label: 'refer a friend', pts: '500 pts', Icon: UserPlus },
-                { label: 'first order bonus', pts: '100 pts', Icon: Sparkles },
+                { label: 'first preorder bonus', pts: '100 pts', Icon: Sparkles },
               ] as const).map(({ label, pts, Icon }, i) => (
                 <View key={label} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 13, borderTopWidth: i === 0 ? 0 : 1, borderTopColor: Palette.divider }}>
                   <View style={{ width: 34, height: 34, borderRadius: 10, backgroundColor: Palette.brandTint, alignItems: 'center', justifyContent: 'center' }}>
@@ -184,7 +184,7 @@ export default function RewardsScreen() {
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#fff' }}>refer a friend</Text>
-                <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: 'rgba(255,255,255,0.7)', marginTop: 2 }}>Earn 500 points for every friend who orders</Text>
+                <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: 'rgba(255,255,255,0.7)', marginTop: 2 }}>Earn 500 points for every friend who preorders</Text>
               </View>
               <Sparkles size={18} color={ORANGE} />
             </PressableScale>

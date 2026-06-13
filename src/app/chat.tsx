@@ -105,7 +105,7 @@ export default function ChatScreen() {
             </View>
             <View style={{ flex: 1 }}>
               <Text numberOfLines={1} style={{ fontFamily: Font.heading, fontSize: 13.5, color: INK }}>
-                {ctx.order.firstItem ?? 'Order'}{ctx.order.items > 1 ? ` +${ctx.order.items - 1} more` : ''}
+                {ctx.order.firstItem ?? 'Preorder'}{ctx.order.items > 1 ? ` +${ctx.order.items - 1} more` : ''}
               </Text>
               <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.brandPressed, textTransform: 'capitalize' }}>
                 {ctx.order.status.replace(/_/g, ' ')} · ${ctx.order.total.toFixed(2)}

@@ -34,7 +34,7 @@ const EVENTS: HolidayEvent[] = [
   },
   {
     id: 'juneteenth', name: 'Juneteenth', flag: '✊', date: 'Jun 19', daysAway: 7, color: '#dc2626',
-    description: 'Soul food specials celebrating freedom and heritage. Order ahead to support Black-owned kitchens in your city.',
+    description: 'Soul food specials celebrating freedom and heritage. Preorder ahead to support Black-owned kitchens in your city.',
     dishes: ['BBQ rib packs', 'Mac & cheese family size', 'Collard greens', 'Sweet potato pie', 'Red velvet slices'],
     urgency: 'soon', culture: 'African American',
   },

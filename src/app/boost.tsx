@@ -45,10 +45,10 @@ const BOOST_PLANS: BoostPlan[] = [
   {
     id: 'spotlight',
     name: 'new customer spotlight',
-    desc: 'Shown to users who have never ordered from you before',
+    desc: 'Shown to users who have never preordered from you before',
     Icon: Star,
     color: '#8b5cf6',
-    perks: ['New-buyer discovery feed', '"Try them" editorial placement', '10% first-order promo badge'],
+    perks: ['New-buyer discovery feed', '"Try them" editorial placement', '10% first-preorder promo badge'],
     impressions: '500–900 views',
   },
 ];

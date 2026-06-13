@@ -363,7 +363,7 @@ export default function SettingsScreen() {
             <Row Icon={Bell} label="notification preferences" right={{ type: 'chevron' }} onPress={() => go('/notification-settings')} />
             <Row Icon={Bell} label="push notifications" right={{ type: 'toggle', value: pushEnabled, onToggle: () => setPushEnabled((v) => !v) }} onPress={() => setPushEnabled((v) => !v)} />
             <Row Icon={Mail} label="email digest" right={{ type: 'toggle', value: emailDigest, onToggle: () => setEmailDigest((v) => !v) }} onPress={() => setEmailDigest((v) => !v)} />
-            <Row Icon={Zap} label="order updates" right={{ type: 'toggle', value: orderUpdates, onToggle: () => setOrderUpdates((v) => !v) }} onPress={() => setOrderUpdates((v) => !v)} />
+            <Row Icon={Zap} label="preorder updates" right={{ type: 'toggle', value: orderUpdates, onToggle: () => setOrderUpdates((v) => !v) }} onPress={() => setOrderUpdates((v) => !v)} />
             <Row Icon={MapPin} label="new preppers nearby" right={{ type: 'toggle', value: nearbyPreppers, onToggle: () => setNearbyPreppers((v) => !v) }} onPress={() => setNearbyPreppers((v) => !v)} />
             <Row Icon={Flame} label="rush hour alerts" right={{ type: 'toggle', value: rushAlerts, onToggle: () => setRushAlerts((v) => !v) }} onPress={() => setRushAlerts((v) => !v)} />
             <Row Icon={TrendingUp} label="weekly picks" right={{ type: 'toggle', value: weeklyPicks, onToggle: () => setWeeklyPicks((v) => !v) }} onPress={() => setWeeklyPicks((v) => !v)} />

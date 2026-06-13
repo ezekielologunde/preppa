@@ -112,8 +112,8 @@ export default function InsightsScreen() {
           <View style={{ flexDirection: 'row', gap: 10 }}>
             {[
               { label: 'total spent', value: `$${total.toFixed(0)}`, sub: 'lifetime' },
-              { label: 'avg order', value: `$${avg.toFixed(0)}`, sub: 'per meal' },
-              ...(topKitchen ? [{ label: 'top kitchen', value: topKitchen[0].split(' ')[0], sub: `${topKitchen[1]}× orders` }] : []),
+              { label: 'avg preorder', value: `$${avg.toFixed(0)}`, sub: 'per meal' },
+              ...(topKitchen ? [{ label: 'top kitchen', value: topKitchen[0].split(' ')[0], sub: `${topKitchen[1]}× preorders` }] : []),
             ].map(({ label, value, sub }) => (
               <View key={label} style={{ flex: 1, backgroundColor: Palette.surface, borderRadius: 14, padding: 12, alignItems: 'center', gap: 4 }}>
                 <Text style={{ fontFamily: Font.display, fontSize: 20, color: INK, fontVariant: ['tabular-nums'] }}>{value}</Text>

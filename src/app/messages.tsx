@@ -38,14 +38,14 @@ function initials(name: string) {
 
 // Map an order's current status to a customer-facing notification.
 function notify(o: OrderSummary): { Icon: LucideIcon; color: string; bg: string; title: string; sub: string } {
-  const item = o.items[0]?.title ?? 'your order';
+  const item = o.items[0]?.title ?? 'your preorder';
   const by = o.prepper;
   const map: Partial<Record<OrderStatus, { Icon: LucideIcon; color: string; bg: string; title: string }>> = {
     pending: { Icon: Package, color: Palette.amber, bg: Palette.amber + '1A', title: 'Preorder placed' },
     confirmed: { Icon: CircleCheck, color: Palette.success, bg: Palette.success + '1A', title: `${by} accepted your preorder` },
     preparing: { Icon: ChefHat, color: ORANGE, bg: Palette.brandTint, title: 'Your food is being prepped' },
-    ready: { Icon: UtensilsCrossed, color: ORANGE, bg: Palette.brandTint, title: 'Your order is ready for pickup' },
-    out_for_delivery: { Icon: Bike, color: '#8b5cf6', bg: '#EDE9FE', title: 'Your order is on the way' },
+    ready: { Icon: UtensilsCrossed, color: ORANGE, bg: Palette.brandTint, title: 'Your preorder is ready for pickup' },
+    out_for_delivery: { Icon: Bike, color: '#8b5cf6', bg: '#EDE9FE', title: 'Your preorder is on the way' },
     completed: { Icon: Star, color: Palette.amber, bg: Palette.amber + '1A', title: 'Complete — leave a review' },
     cancelled: { Icon: CircleX, color: Palette.danger, bg: Palette.danger + '1A', title: 'Preorder cancelled & refunded' },
   };

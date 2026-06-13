@@ -35,7 +35,7 @@ const INK = Palette.ink;
 
 const RATING_LABELS = ['', 'Poor', 'Fair', 'Good', 'Great', 'Excellent'];
 const QUICK_PHRASES: Record<number, string[]> = {
-  1: ['Arrived late', 'Wrong order', 'Not as described'],
+  1: ['Arrived late', 'Wrong preorder', 'Not as described'],
   2: ['Below expectations', 'Portion was small', 'Needs improvement'],
   3: ['Pretty good', 'As expected', 'Would try again'],
   4: ['Really enjoyed it', 'Fresh and tasty', 'Good portions'],

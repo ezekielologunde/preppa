@@ -92,7 +92,7 @@ export default function CartScreen() {
     } catch (e) {
       // Order exists but payment didn't start — let them retry from Orders.
       feedback.error();
-      setErr((e instanceof Error ? e.message : 'Could not start payment.') + ' Your order is saved — pay it from Orders.');
+      setErr((e instanceof Error ? e.message : 'Could not start payment.') + ' Your preorder is saved — pay it from Preorders.');
     }
   }
 
@@ -112,7 +112,7 @@ export default function CartScreen() {
           if (paymentsOn) startPayment(orderId);
           else setPlaced(true);
         },
-        onError: (e) => { feedback.error(); setErr(e instanceof Error ? e.message : 'Could not place order.'); },
+        onError: (e) => { feedback.error(); setErr(e instanceof Error ? e.message : 'Could not place preorder.'); },
       },
     );
   }

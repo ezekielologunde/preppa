@@ -89,7 +89,7 @@ export default function VerifyScreen() {
             </MotiView>
             <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280, delay: 140 }}>
               <Text style={{ fontFamily: Font.body, fontSize: 14.5, color: Palette.textMuted, textAlign: 'center', maxWidth: 300, lineHeight: 21 }}>
-                {state === 'ok' ? 'The order is now marked complete and counts toward your earnings.' : reason}
+                {state === 'ok' ? 'The preorder is now marked complete and counts toward your earnings.' : reason}
               </Text>
             </MotiView>
             <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280, delay: 200 }}>
