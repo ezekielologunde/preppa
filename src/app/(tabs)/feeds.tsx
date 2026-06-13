@@ -20,6 +20,7 @@ import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
 import { Palette, Radius } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
+import { BP } from '@/lib/layout';
 import { toggleFavorite, useFavorite } from '@/lib/favorites';
 import { useFeed, type FeedItem } from '@/lib/queries/feed';
 import { useIsFollowing, useToggleFollow } from '@/lib/queries/preppers';
@@ -188,7 +189,7 @@ function FeedCard({ item, height, bottomInset }: { item: FeedItem; height: numbe
               onPress={() => { feedback.tap(); router.push(`/meal?id=${item.id}`); }}
               accessibilityRole="button"
               accessibilityLabel={`Preorder ${item.title}`}
-              style={{ flex: 1, height: 50, borderRadius: 15, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
+              style={{ flex: 1, height: 50, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
               <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>Preorder</Text>
             </PressableScale>
           </View>
@@ -225,7 +226,8 @@ function PositionDots({ total, current }: { total: number; current: number }) {
 export default function FeedsScreen() {
   const router = useRouter();
   const { data: items, isLoading } = useFeed();
-  const { height: windowHeight } = useWindowDimensions();
+  const { height: windowHeight, width: windowWidth } = useWindowDimensions();
+  const isDesktop = windowWidth >= BP.desktop;
   const insets = useSafeAreaInsets();
   const [page, setPage] = useState(0);
   const [cardHeight, setCardHeight] = useState(windowHeight);
@@ -264,10 +266,90 @@ export default function FeedsScreen() {
             onPress={() => { feedback.tap(); router.push('/explore'); }}
             accessibilityRole="button"
             accessibilityLabel="Discover kitchens to follow"
-            style={{ marginTop: 8, paddingHorizontal: 24, height: 50, borderRadius: 16, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
+            style={{ marginTop: 8, paddingHorizontal: 24, height: 50, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
             <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#fff' }}>discover kitchens</Text>
           </PressableScale>
         </MotiView>
+      </View>
+    );
+  }
+
+  const currentItem = items[Math.min(page, items.length - 1)];
+
+  if (isDesktop) {
+    return (
+      <View style={{ flex: 1, flexDirection: 'row', backgroundColor: '#0B0B0D' }}>
+        {/* Constrained feed column — TikTok-style vertical scroll */}
+        <View style={{ width: 480, alignSelf: 'stretch' }} onLayout={e => setCardHeight(e.nativeEvent.layout.height)}>
+          <ScrollView
+            pagingEnabled
+            showsVerticalScrollIndicator={false}
+            decelerationRate="fast"
+            snapToInterval={cardHeight}
+            snapToAlignment="start"
+            onScroll={onScroll}
+            scrollEventThrottle={cardHeight / 2}>
+            {items.map((item) => (
+              <FeedCard key={item.id} item={item} height={cardHeight} bottomInset={insets.bottom} />
+            ))}
+          </ScrollView>
+          <PositionDots total={items.length} current={page} />
+        </View>
+
+        {/* Sidebar: info about the current card */}
+        <View style={{ flex: 1, padding: 40, justifyContent: 'center', gap: 20 }}>
+          {currentItem ? (
+            <>
+              <View style={{ gap: 6 }}>
+                <Text style={{ fontFamily: Font.medium, fontSize: 11.5, color: 'rgba(255,255,255,0.38)', textTransform: 'uppercase', letterSpacing: 1 }}>
+                  now playing
+                </Text>
+                <Text style={{ fontFamily: Font.heading, fontSize: 20, color: '#fff' }} numberOfLines={1}>
+                  {currentItem.prepper}
+                </Text>
+                {currentItem.title ? (
+                  <Text style={{ fontFamily: Font.body, fontSize: 15, color: 'rgba(255,255,255,0.65)', lineHeight: 21 }} numberOfLines={3}>
+                    {currentItem.title}
+                  </Text>
+                ) : null}
+                {!currentItem.isPost ? (
+                  <Text style={{ fontFamily: Font.display, fontSize: 26, color: Palette.brand, marginTop: 4 }}>
+                    ${currentItem.price.toFixed(2)}
+                  </Text>
+                ) : null}
+              </View>
+              {!currentItem.isPost ? (
+                <PressableScale
+                  onPress={() => { feedback.tap(); router.push(`/meal?id=${currentItem.id}`); }}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Preorder ${currentItem.title}`}
+                  style={{ height: 52, borderRadius: Radius.pill, backgroundColor: Palette.brand, alignItems: 'center', justifyContent: 'center' }}>
+                  <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>
+                    Preorder · ${currentItem.price.toFixed(2)}
+                  </Text>
+                </PressableScale>
+              ) : (
+                <PressableScale
+                  onPress={() => { feedback.tap(); if (currentItem.prepper_id) router.push(`/prepper?id=${currentItem.prepper_id}`); }}
+                  accessibilityRole="button"
+                  accessibilityLabel="View kitchen"
+                  style={{ height: 52, borderRadius: Radius.pill, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.3)', alignItems: 'center', justifyContent: 'center' }}>
+                  <Text style={{ fontFamily: Font.semibold, fontSize: 15, color: '#fff' }}>View kitchen</Text>
+                </PressableScale>
+              )}
+              <View style={{ height: 1, backgroundColor: 'rgba(255,255,255,0.07)' }} />
+            </>
+          ) : null}
+          <PressableScale
+            onPress={() => { feedback.tap(); router.push('/explore'); }}
+            accessibilityRole="button"
+            accessibilityLabel="Discover kitchens"
+            style={{ height: 46, borderRadius: Radius.pill, borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)', alignItems: 'center', justifyContent: 'center' }}>
+            <Text style={{ fontFamily: Font.medium, fontSize: 14, color: 'rgba(255,255,255,0.45)' }}>
+              Discover kitchens
+            </Text>
+          </PressableScale>
+        </View>
       </View>
     );
   }

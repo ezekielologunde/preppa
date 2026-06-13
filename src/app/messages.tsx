@@ -3,12 +3,13 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Bell, Bike, CalendarCheck, ChefHat, ChevronLeft, CircleCheck, CircleX, Heart, MessageCircle, MessageSquareQuote, Package, Star, UtensilsCrossed } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useEffect, useState } from 'react';
-import { Platform, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { Platform, RefreshControl, ScrollView, Text, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ListSkeleton } from '@/components/ui/skeleton';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { feedback } from '@/lib/feedback';
+import { BP } from '@/lib/layout';
 import { Font } from '@/constants/fonts';
 import { Palette, Radius } from '@/constants/theme';
 import { useConversations, type Conversation } from '@/lib/queries/messages';
@@ -36,7 +37,6 @@ function initials(name: string) {
   return name.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase() || '?';
 }
 
-// Map an order's current status to a customer-facing notification.
 function notify(o: OrderSummary): { Icon: LucideIcon; color: string; bg: string; title: string; sub: string } {
   const item = o.items[0]?.title ?? 'your preorder';
   const by = o.prepper;
@@ -159,6 +159,15 @@ function TabButton({ active, label, count, onPress }: { active: boolean; label: 
   );
 }
 
+function ColBadge({ count }: { count: number }) {
+  if (!count) return null;
+  return (
+    <View style={{ minWidth: 18, height: 18, borderRadius: 9, paddingHorizontal: 5, backgroundColor: Palette.brandTint, alignItems: 'center', justifyContent: 'center' }}>
+      <Text style={{ fontFamily: Font.semibold, fontSize: 10.5, color: ORANGE }}>{count}</Text>
+    </View>
+  );
+}
+
 export default function MessagesScreen() {
   const router = useRouter();
   const { user } = useAuth();
@@ -169,18 +178,20 @@ export default function MessagesScreen() {
   const { data: notifications, refetch: refetchNotifs } = useNotifications(user?.id);
   const markRead = useMarkNotificationsRead(user?.id);
   const [refreshing, setRefreshing] = useState(false);
+  const { width } = useWindowDimensions();
+  const isDesktop = width >= BP.desktop;
+
   async function handleRefresh() {
     setRefreshing(true);
     await Promise.all([refetchConv(), refetchOrders(), refetchNotifs()]);
     setRefreshing(false);
   }
 
-  // Opening the inbox clears the unread notification badge.
   const hasUnread = (notifications ?? []).some((n) => !n.read);
   useEffect(() => {
-    if (tab === 'updates' && hasUnread) markRead.mutate(undefined);
+    if ((isDesktop || tab === 'updates') && hasUnread) markRead.mutate(undefined);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tab, hasUnread]);
+  }, [tab, hasUnread, isDesktop]);
 
   function routeNotification(n: AppNotification) {
     feedback.tap();
@@ -198,6 +209,59 @@ export default function MessagesScreen() {
   const unreadNotifCount = (notifications ?? []).filter((n) => !n.read).length;
   const unreadMsgCount = (conversations ?? []).filter((c) => c.unread).length;
 
+  const refreshCtrl = <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={ORANGE} colors={[ORANGE]} />;
+
+  const updatesEl = ordersLoading ? (
+    <ListSkeleton count={5} />
+  ) : !orders?.length && !notifications?.length ? (
+    <Empty Icon={Bell} title="No updates yet" sub="Preorder updates, new bids, reviews and renewals will show up here." />
+  ) : (
+    <ScrollView showsVerticalScrollIndicator={false} refreshControl={refreshCtrl} contentContainerStyle={{ paddingTop: Platform.OS === 'web' ? 8 : 4, paddingBottom: 32 }}>
+      {(notifications?.length ?? 0) > 0 ? (
+        <>
+          {(orders?.length ?? 0) > 0 ? (
+            <Text style={{ paddingHorizontal: 20, paddingTop: 4, paddingBottom: 6, fontFamily: Font.semibold, fontSize: 11, color: Palette.textMuted, textTransform: 'uppercase', letterSpacing: 0.8 }}>
+              activity
+            </Text>
+          ) : null}
+          {notifications!.map((n, i) => (
+            <MotiView key={n.id} from={{ opacity: 0, translateX: -8 }} animate={{ opacity: 1, translateX: 0 }} transition={{ type: 'timing', duration: 200, delay: i * 35 }}>
+              <NotificationItemRow n={n} onPress={() => routeNotification(n)} />
+            </MotiView>
+          ))}
+        </>
+      ) : null}
+      {(orders?.length ?? 0) > 0 ? (
+        <>
+          {(notifications?.length ?? 0) > 0 ? (
+            <Text style={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 6, fontFamily: Font.semibold, fontSize: 11, color: Palette.textMuted, textTransform: 'uppercase', letterSpacing: 0.8 }}>
+              recent orders
+            </Text>
+          ) : null}
+          {orders!.map((o, i) => (
+            <MotiView key={o.id} from={{ opacity: 0, translateX: -8 }} animate={{ opacity: 1, translateX: 0 }} transition={{ type: 'timing', duration: 200, delay: ((notifications?.length ?? 0) + i) * 35 }}>
+              <NotificationRow o={o} onPress={() => router.push('/orders')} />
+            </MotiView>
+          ))}
+        </>
+      ) : null}
+    </ScrollView>
+  );
+
+  const messagesEl = convLoading ? (
+    <ListSkeleton count={5} />
+  ) : !conversations?.length ? (
+    <Empty Icon={MessageCircle} title="No messages yet" sub="Message a prepper from a meal or experience to start a conversation." />
+  ) : (
+    <ScrollView showsVerticalScrollIndicator={false} refreshControl={refreshCtrl} contentContainerStyle={{ paddingTop: Platform.OS === 'web' ? 8 : 4, paddingBottom: 32 }}>
+      {conversations.map((c, i) => (
+        <MotiView key={c.id} from={{ opacity: 0, translateX: -8 }} animate={{ opacity: 1, translateX: 0 }} transition={{ type: 'timing', duration: 200, delay: i * 40 }}>
+          <ConversationRow c={c} onPress={() => router.push(`/chat?id=${c.id}&name=${encodeURIComponent(c.otherName)}`)} />
+        </MotiView>
+      ))}
+    </ScrollView>
+  );
+
   return (
     <View style={{ flex: 1, backgroundColor: Palette.surface }}>
       <SafeAreaView edges={['top']} style={{ flex: 1 }}>
@@ -212,68 +276,35 @@ export default function MessagesScreen() {
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
             <Bell size={28} color={Palette.textMuted} />
             <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center' }}>Sign in to see your updates and messages.</Text>
-            <PressableScale onPress={() => { feedback.tap(); router.push('/auth?mode=signin'); }} accessibilityRole="button" accessibilityLabel="Sign in" style={{ marginTop: 4, paddingHorizontal: 22, height: 48, borderRadius: Radius.sm, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
+            <PressableScale onPress={() => { feedback.tap(); router.push('/auth?mode=signin'); }} accessibilityRole="button" accessibilityLabel="Sign in" style={{ marginTop: 4, paddingHorizontal: 22, height: 48, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
               <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#fff' }}>Sign in</Text>
             </PressableScale>
           </View>
+        ) : isDesktop ? (
+          // Desktop: both columns visible simultaneously — no tab switcher needed.
+          <View style={{ flex: 1, flexDirection: 'row' }}>
+            <View style={{ flex: 1, borderRightWidth: 1, borderRightColor: Palette.border }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 20, paddingTop: 12, paddingBottom: 8 }}>
+                <Text style={{ fontFamily: Font.heading, fontSize: 15, color: INK }}>Updates</Text>
+                <ColBadge count={unreadNotifCount} />
+              </View>
+              {updatesEl}
+            </View>
+            <View style={{ flex: 1 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 20, paddingTop: 12, paddingBottom: 8 }}>
+                <Text style={{ fontFamily: Font.heading, fontSize: 15, color: INK }}>Messages</Text>
+                <ColBadge count={unreadMsgCount} />
+              </View>
+              {messagesEl}
+            </View>
+          </View>
         ) : (
           <>
-            {/* Tabs */}
             <View style={{ flexDirection: 'row', marginHorizontal: 16, marginBottom: 6, backgroundColor: Palette.canvas, borderRadius: Radius.pill, padding: 4 }}>
               <TabButton active={tab === 'updates'} label="Updates" count={unreadNotifCount || undefined} onPress={() => { feedback.tap(); setTab('updates'); }} />
               <TabButton active={tab === 'messages'} label="Messages" count={unreadMsgCount || undefined} onPress={() => { feedback.tap(); setTab('messages'); }} />
             </View>
-
-            {tab === 'updates' ? (
-              ordersLoading ? (
-                <ListSkeleton count={5} />
-              ) : !orders?.length && !notifications?.length ? (
-                <Empty Icon={Bell} title="No updates yet" sub="Preorder updates, new bids, reviews and renewals will show up here." />
-              ) : (
-                <ScrollView showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={ORANGE} colors={[ORANGE]} />} contentContainerStyle={{ paddingTop: Platform.OS === 'web' ? 8 : 4, paddingBottom: 32 }}>
-                  {(notifications?.length ?? 0) > 0 ? (
-                    <>
-                      {(orders?.length ?? 0) > 0 ? (
-                        <Text style={{ paddingHorizontal: 20, paddingTop: 4, paddingBottom: 6, fontFamily: Font.semibold, fontSize: 11, color: Palette.textMuted, textTransform: 'uppercase', letterSpacing: 0.8 }}>
-                          activity
-                        </Text>
-                      ) : null}
-                      {notifications!.map((n, i) => (
-                        <MotiView key={n.id} from={{ opacity: 0, translateX: -8 }} animate={{ opacity: 1, translateX: 0 }} transition={{ type: 'timing', duration: 200, delay: i * 35 }}>
-                          <NotificationItemRow n={n} onPress={() => routeNotification(n)} />
-                        </MotiView>
-                      ))}
-                    </>
-                  ) : null}
-                  {(orders?.length ?? 0) > 0 ? (
-                    <>
-                      {(notifications?.length ?? 0) > 0 ? (
-                        <Text style={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 6, fontFamily: Font.semibold, fontSize: 11, color: Palette.textMuted, textTransform: 'uppercase', letterSpacing: 0.8 }}>
-                          recent orders
-                        </Text>
-                      ) : null}
-                      {orders!.map((o, i) => (
-                        <MotiView key={o.id} from={{ opacity: 0, translateX: -8 }} animate={{ opacity: 1, translateX: 0 }} transition={{ type: 'timing', duration: 200, delay: ((notifications?.length ?? 0) + i) * 35 }}>
-                          <NotificationRow o={o} onPress={() => router.push('/orders')} />
-                        </MotiView>
-                      ))}
-                    </>
-                  ) : null}
-                </ScrollView>
-              )
-            ) : convLoading ? (
-              <ListSkeleton count={5} />
-            ) : !conversations?.length ? (
-              <Empty Icon={MessageCircle} title="No messages yet" sub="Message a prepper from a meal or experience to start a conversation." />
-            ) : (
-              <ScrollView showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={ORANGE} colors={[ORANGE]} />} contentContainerStyle={{ paddingTop: Platform.OS === 'web' ? 8 : 4, paddingBottom: 32 }}>
-                {conversations.map((c, i) => (
-                  <MotiView key={c.id} from={{ opacity: 0, translateX: -8 }} animate={{ opacity: 1, translateX: 0 }} transition={{ type: 'timing', duration: 200, delay: i * 40 }}>
-                    <ConversationRow c={c} onPress={() => router.push(`/chat?id=${c.id}&name=${encodeURIComponent(c.otherName)}`)} />
-                  </MotiView>
-                ))}
-              </ScrollView>
-            )}
+            {tab === 'updates' ? updatesEl : messagesEl}
           </>
         )}
       </SafeAreaView>
