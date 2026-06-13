@@ -58,8 +58,8 @@ const MUTED = Palette.textMuted;
 const money = (n: number) => (n >= 1000 ? `$${(n / 1000).toFixed(1)}k` : `$${Math.round(n)}`);
 
 const NEXT: Partial<Record<OrderStatus, { next: OrderStatus; cta: string }>> = {
-  pending: { next: 'confirmed', cta: 'confirm order' },
-  confirmed: { next: 'preparing', cta: 'start preparing' },
+  pending: { next: 'confirmed', cta: 'confirm preorder' },
+  confirmed: { next: 'preparing', cta: 'start prepping' },
   preparing: { next: 'ready', cta: 'mark ready' },
   ready: { next: 'completed', cta: 'mark complete' },
   out_for_delivery: { next: 'completed', cta: 'mark complete' },
@@ -208,7 +208,7 @@ export default function DashboardScreen() {
           {/* Next order — most urgent operational info, shown first */}
           <MotiView from={{ opacity: 0, translateY: 12 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 320, delay: 80 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 20, marginTop: 16, marginBottom: 10 }}>
-            <Text style={{ fontFamily: Font.display, fontSize: 15, color: INK, letterSpacing: -0.3 }}>next order</Text>
+            <Text style={{ fontFamily: Font.display, fontSize: 15, color: INK, letterSpacing: -0.3 }}>next preorder</Text>
             {next ? (
               <View style={{ backgroundColor: ORANGE + '26', borderRadius: Radius.pill, paddingHorizontal: 10, paddingVertical: 3 }}>
                 <Text style={{ fontFamily: Font.semibold, fontSize: 11.5, color: ORANGE }}>{next.status === 'pending' ? 'new' : next.status}</Text>
@@ -228,7 +228,7 @@ export default function DashboardScreen() {
                 <View style={{ flex: 1, gap: 3 }}>
                   <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }} numberOfLines={1}>{next.customer}</Text>
                   <Text style={{ fontFamily: Font.body, fontSize: 13, color: MUTED }} numberOfLines={1}>
-                    {next.items[0]?.title ?? 'order'}{next.items.length > 1 ? ` +${next.items.length - 1}` : ''}
+                    {next.items[0]?.title ?? 'preorder'}{next.items.length > 1 ? ` +${next.items.length - 1}` : ''}
                   </Text>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 2 }}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: next.paymentStatus === 'paid' ? GREEN + '24' : Palette.chip, borderRadius: Radius.pill, paddingHorizontal: 9, paddingVertical: 3 }}>
@@ -253,7 +253,7 @@ export default function DashboardScreen() {
           ) : (
             <View style={{ marginHorizontal: 20, backgroundColor: CARD, borderRadius: 22, padding: 24, alignItems: 'center', gap: 8 }}>
               <ShoppingBag size={26} color={Palette.textSecondary} />
-              <Text style={{ fontFamily: Font.body, fontSize: 14, color: MUTED, textAlign: 'center' }}>No active orders right now. New orders land here instantly.</Text>
+              <Text style={{ fontFamily: Font.body, fontSize: 14, color: MUTED, textAlign: 'center' }}>No active preorders right now. New preorders land here instantly.</Text>
             </View>
           )}
           </MotiView>

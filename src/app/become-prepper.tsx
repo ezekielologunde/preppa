@@ -159,7 +159,7 @@ export default function BecomePrepperScreen() {
   if (application) {
     const map = {
       pending: { Icon: Clock, tint: Palette.amber, title: 'Application under review', body: "Thanks for applying! Our team is reviewing your kitchen. We'll notify you once you're approved — usually within 1–2 days.", cta: null },
-      approved: { Icon: Sparkles, tint: Palette.success, title: "You're approved!", body: 'Welcome to Preppa. Your kitchen is live — start adding meals and taking orders.', cta: { label: 'Open my kitchen', onPress: () => router.replace('/dashboard') } },
+      approved: { Icon: Sparkles, tint: Palette.success, title: "You're approved!", body: 'Welcome to Preppa. Your kitchen is live — start adding meals and taking preorders.', cta: { label: 'Open my kitchen', onPress: () => router.replace('/dashboard') } },
       rejected: { Icon: ShieldX, tint: Palette.danger, title: 'Application not approved', body: application.rejection_note || 'Your application was not approved at this time. Reach out to support for details.', cta: null },
       suspended: { Icon: ShieldX, tint: Palette.textSecondary, title: 'Kitchen paused', body: 'Your prepper account is currently paused. Contact support to reactivate.', cta: null },
     }[application.status];

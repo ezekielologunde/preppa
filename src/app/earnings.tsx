@@ -39,7 +39,7 @@ function EarningRow({ item }: { item: EarningsRecent }) {
   const refunded = Number(item.refunded) > 0;
   const net = Number(item.net);
   const extra = item.item_count > 1 ? ` +${item.item_count - 1} more` : '';
-  const title = (item.first_item ?? 'Order') + extra;
+  const title = (item.first_item ?? 'Preorder') + extra;
   const who = item.customer_first ? `${item.customer_first} · ` : '';
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: CARD, borderRadius: 16, padding: 14 }}>
@@ -102,7 +102,7 @@ export default function EarningsScreen() {
               </View>
               <Text style={{ fontFamily: Font.display, fontSize: 40, color: '#fff', letterSpacing: -1 }}>{money(data.net_total)}</Text>
               <Text style={{ fontFamily: Font.body, fontSize: 13, color: MUTED }}>
-                from {data.orders_paid} paid {data.orders_paid === 1 ? 'order' : 'orders'}
+                from {data.orders_paid} paid {data.orders_paid === 1 ? 'preorder' : 'preorders'}
                 {Number(data.refunded_total) > 0 ? ` · ${money(data.refunded_total)} refunded` : ''}
               </Text>
               {Number(data.gross_total) > 0 ? (
@@ -128,7 +128,7 @@ export default function EarningsScreen() {
             <View style={{ backgroundColor: '#1f2937', borderRadius: 16, padding: 14, flexDirection: 'row', gap: 10, alignItems: 'flex-start' }}>
               <Wallet size={18} color={ORANGE} style={{ marginTop: 1 }} />
               <Text style={{ flex: 1, fontFamily: Font.body, fontSize: 12.5, color: '#cbd5e1', lineHeight: 18 }}>
-                Preppa pays you directly — no Stripe account or setup needed. Card processing and the Preppa platform fee are calculated automatically on each order and already deducted from the amounts shown here.
+                Preppa pays you directly — no Stripe account or setup needed. Card processing and the Preppa platform fee are calculated automatically on each preorder and already deducted from the amounts shown here.
               </Text>
             </View>
             </MotiView>
@@ -145,10 +145,10 @@ export default function EarningsScreen() {
                   ? { tip: 'List meals available Fri–Sun 11am–7pm — weekend lunch & dinner are peak demand windows.' }
                   : { tip: 'Great week! Try a weekend-only drop to capture higher-intent customers.' },
                 { tip: 'Listings with 3+ photos earn ~40% more than text-only listings — add shots of your plating.' },
-                { tip: 'Reply to order questions within 2 hours. Fast responses lift repeat order rates significantly.' },
+                { tip: 'Reply to preorder questions within 2 hours. Fast responses lift repeat preorder rates significantly.' },
                 data.orders_paid < 10
-                  ? { tip: 'Your first 10 orders build your review score. Offer a small first-order discount to accelerate them.' }
-                  : { tip: 'At 10+ orders your average rating becomes a search ranking signal — keep response time under 2 hrs.' },
+                  ? { tip: 'Your first 10 preorders build your review score. Offer a small first-preorder discount to accelerate them.' }
+                  : { tip: 'At 10+ preorders your average rating becomes a search ranking signal — keep response time under 2 hrs.' },
               ].map(({ tip }, i) => (
                 <View key={i} style={{ flexDirection: 'row', gap: 10, alignItems: 'flex-start' }}>
                   <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: ORANGE, marginTop: 6 }} />
