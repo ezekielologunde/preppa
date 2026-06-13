@@ -184,7 +184,18 @@ export default function HomeScreen() {
           </PressableScale>
           </MotiView>
 
-          {/* Rush hour / specials entry — only when rush is active, replaces MarketingBanner for that moment */}
+          {/* Hero meal — first ranked card, full-width, anchors the "real local food" identity */}
+          {!mealsLoading && ranked.length > 0 ? (
+            <MotiView from={{ opacity: 0, translateY: 12 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 300, delay: 80 }}>
+              <View style={{ marginHorizontal: 20, marginTop: 14 }}>
+                <MealCard meal={ranked[0].meal} width={null} variant="big" />
+              </View>
+            </MotiView>
+          ) : mealsLoading ? (
+            <View style={{ marginHorizontal: 20, marginTop: 14, height: 218, backgroundColor: Palette.surface, borderRadius: 24 }} />
+          ) : null}
+
+          {/* Rush hour / specials entry — only when rush is active */}
           {rushActive ? (
             <MotiView from={{ opacity: 0, translateY: 6 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 80 }}>
             <PressableScale onPress={() => { feedback.tap(); router.push('/specials'); }} accessibilityRole="button" accessibilityLabel="Deals and specials"
@@ -249,15 +260,15 @@ export default function HomeScreen() {
               : <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 14, paddingVertical: 8 }}>{items}</ScrollView>;
           })()}
 
-          {/* Recommended — primary content, shown immediately after categories */}
-          <SectionHeader title="recommended for you" onSeeAll={() => { feedback.tap(); router.push('/category?key=all&label=recommended'); }} />
+          {/* More meals — skip [0] which is already the hero above */}
+          <SectionHeader title="more near you" onSeeAll={() => { feedback.tap(); router.push('/category?key=all&label=recommended'); }} />
           {mealsLoading ? (
             <View style={{ paddingBottom: 20 }}>
               <CardRowSkeleton count={3} />
             </View>
           ) : bp !== 'mobile' ? (
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12, paddingHorizontal: pad, paddingBottom: 20 }}>
-              {ranked.map((s, i) => (
+              {ranked.slice(1).map((s, i) => (
                 <MotiView key={s.meal.id} from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 200, delay: i * 28 }}>
                   <MealCard meal={s.meal} width={gridCardWidth(contentWidth, pad)} />
                 </MotiView>
@@ -265,7 +276,7 @@ export default function HomeScreen() {
             </View>
           ) : (
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 14, paddingBottom: 20 }}>
-              {ranked.map((s) => (
+              {ranked.slice(1).map((s) => (
                 <MealCard key={s.meal.id} meal={s.meal} />
               ))}
             </ScrollView>

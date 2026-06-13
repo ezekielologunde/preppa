@@ -7,7 +7,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
 import { feedback } from '@/lib/feedback';
-import { useFeatureFlags } from '@/lib/queries/feature-flags';
 import { Palette, Shadow, TouchTarget } from '@/constants/theme';
 
 const TABS = [
@@ -25,11 +24,8 @@ type TabBarProps = {
 
 function PreppaTabBar({ state, navigation }: TabBarProps) {
   const insets = useSafeAreaInsets();
-  const { data: flags } = useFeatureFlags();
   const { width } = useWindowDimensions();
-  const showLabels = width >= 768;
-
-  const visibleTabs = TABS.filter((t) => !('flag' in t) || (flags !== undefined && flags[t.flag] !== false));
+  const isTablet = width >= 768;
 
   return (
     <View
@@ -39,16 +35,16 @@ function PreppaTabBar({ state, navigation }: TabBarProps) {
         right: 0,
         bottom: 0,
         backgroundColor: Palette.surface,
-        paddingTop: showLabels ? 8 : 6,
-        paddingBottom: Math.max(insets.bottom, showLabels ? 12 : 10),
-        borderTopLeftRadius: showLabels ? 0 : 26,
-        borderTopRightRadius: showLabels ? 0 : 26,
-        borderTopWidth: showLabels ? 1 : 0,
+        paddingTop: 8,
+        paddingBottom: Math.max(insets.bottom, 10),
+        borderTopLeftRadius: isTablet ? 0 : 22,
+        borderTopRightRadius: isTablet ? 0 : 22,
+        borderTopWidth: isTablet ? 1 : 0,
         borderTopColor: Palette.border,
         ...Shadow.navBar,
       }}>
-      <View style={{ flexDirection: 'row', maxWidth: showLabels ? 560 : undefined, alignSelf: showLabels ? 'center' : undefined, width: '100%' }}>
-        {visibleTabs.map((tab) => {
+      <View style={{ flexDirection: 'row', maxWidth: isTablet ? 560 : undefined, alignSelf: isTablet ? 'center' : undefined, width: '100%' }}>
+        {TABS.map((tab) => {
           const routeIndex = state.routes.findIndex((r) => r.name === tab.name);
           const focused = routeIndex >= 0 && state.index === routeIndex;
           const color = focused ? Palette.brand : Palette.textSecondary;
@@ -60,9 +56,9 @@ function PreppaTabBar({ state, navigation }: TabBarProps) {
               accessibilityRole="button"
               accessibilityState={{ selected: focused }}
               accessibilityLabel={tab.label}
-              style={{ flex: 1, alignItems: 'center', justifyContent: 'center', minHeight: TouchTarget, gap: showLabels ? 4 : 0, paddingTop: showLabels ? 2 : 0 }}>
+              style={{ flex: 1, alignItems: 'center', justifyContent: 'center', minHeight: TouchTarget, gap: 3, paddingTop: 2 }}>
 
-              <View style={{ alignItems: 'center', justifyContent: 'center', width: showLabels ? 56 : 44, height: showLabels ? 34 : 44 }}>
+              <View style={{ alignItems: 'center', justifyContent: 'center', width: isTablet ? 56 : 44, height: isTablet ? 34 : 30 }}>
                 <MotiView
                   animate={{ opacity: focused ? 1 : 0, scale: focused ? 1 : 0.5 }}
                   transition={{ type: 'spring', damping: 20, stiffness: 300 }}
@@ -70,18 +66,16 @@ function PreppaTabBar({ state, navigation }: TabBarProps) {
                     position: 'absolute',
                     width: '100%',
                     height: '100%',
-                    borderRadius: showLabels ? 12 : 22,
+                    borderRadius: isTablet ? 12 : 18,
                     backgroundColor: Palette.brandTint,
                   }}
                 />
-                <tab.Icon size={showLabels ? 20 : 22} color={color} strokeWidth={focused ? 2.4 : 1.8} />
+                <tab.Icon size={20} color={color} strokeWidth={focused ? 2.4 : 1.8} />
               </View>
 
-              {showLabels && (
-                <Text style={{ fontFamily: focused ? Font.semibold : Font.medium, fontSize: 12, color, letterSpacing: focused ? 0 : 0.1 }}>
-                  {tab.label}
-                </Text>
-              )}
+              <Text style={{ fontFamily: focused ? Font.semibold : Font.medium, fontSize: isTablet ? 12 : 10.5, color, letterSpacing: focused ? 0 : 0.1 }}>
+                {tab.label}
+              </Text>
             </PressableScale>
           );
         })}
