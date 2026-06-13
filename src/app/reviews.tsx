@@ -2,10 +2,11 @@ import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { ChevronLeft, MessageSquare, Sparkles, Star } from 'lucide-react-native';
 import { MotiView } from 'moti';
-import { ActivityIndicator, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PressableScale } from '@/components/ui/pressable-scale';
+import { ListSkeleton } from '@/components/ui/skeleton';
 import { Font } from '@/constants/fonts';
 import { feedback } from '@/lib/feedback';
 import { useMyPrepperApplication, usePrepperProfile } from '@/lib/queries/preppers';
@@ -77,9 +78,7 @@ export default function ReviewsScreen() {
         </View>
 
         {isLoading ? (
-          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-            <ActivityIndicator color={ORANGE} size="large" />
-          </View>
+          <ListSkeleton count={4} rowHeight={80} />
         ) : (
           <ScrollView showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={ORANGE} colors={[ORANGE]} />} contentContainerStyle={{ padding: 20, gap: 16, paddingBottom: 32 }}>
 
@@ -93,11 +92,16 @@ export default function ReviewsScreen() {
                   <Text style={{ fontFamily: Font.medium, fontSize: 12, color: Palette.textMuted }}>{reviews?.length ?? 0} review{reviews?.length !== 1 ? 's' : ''}</Text>
                 </View>
                 <View style={{ flex: 1, gap: 5 }}>
-                  {ratingCounts.map(({ n, count }) => (
+                  {ratingCounts.map(({ n, count }, i) => (
                     <View key={n} style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                       <Text style={{ fontFamily: Font.medium, fontSize: 11, color: Palette.textMuted, width: 8 }}>{n}</Text>
                       <View style={{ flex: 1, height: 6, backgroundColor: Palette.border, borderRadius: 3, overflow: 'hidden' }}>
-                        <View style={{ width: `${(count / maxCount) * 100}%`, height: 6, borderRadius: 3, backgroundColor: Palette.amber }} />
+                        <MotiView
+                          from={{ width: '0%' }}
+                          animate={{ width: `${(count / maxCount) * 100}%` }}
+                          transition={{ type: 'timing', duration: 600, delay: 100 + i * 60 }}
+                          style={{ height: 6, borderRadius: 3, backgroundColor: Palette.amber }}
+                        />
                       </View>
                       <Text style={{ fontFamily: Font.medium, fontSize: 11, color: Palette.textMuted, width: 16, textAlign: 'right', fontVariant: ['tabular-nums'] }}>{count}</Text>
                     </View>

@@ -8,6 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import type { Meal } from '@/components/meal-card';
 import { PressableScale } from '@/components/ui/pressable-scale';
+import { ListSkeleton } from '@/components/ui/skeleton';
 import { Font } from '@/constants/fonts';
 import { Palette, Radius } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
@@ -217,7 +218,7 @@ export default function CreateMealPlanScreen() {
                 {searching ? <ActivityIndicator size="small" color={Palette.textMuted} /> : null}
               </View>
               {loadingFeatured && search.length < 2 ? (
-                <ActivityIndicator color={ORANGE} style={{ marginVertical: 12 }} />
+                <ListSkeleton count={3} rowHeight={60} />
               ) : displayMeals.length === 0 ? (
                 <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textMuted, textAlign: 'center', paddingVertical: 12 }}>
                   {search.length >= 2 ? 'No meals found.' : 'No meals available right now.'}

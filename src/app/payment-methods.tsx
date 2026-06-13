@@ -4,7 +4,6 @@ import { feedback } from '@/lib/feedback';
 import { MotiView } from 'moti';
 import { useState } from 'react';
 import {
-  ActivityIndicator,
   RefreshControl,
   ScrollView,
   Text,
@@ -17,6 +16,7 @@ import {
   BRAND_CONFIG,
 } from '@/components/add-card-sheet';
 import { PressableScale } from '@/components/ui/pressable-scale';
+import { ListSkeleton } from '@/components/ui/skeleton';
 import { Font } from '@/constants/fonts';
 import { Palette, Radius, Shadow, Spacing, Type } from '@/constants/theme';
 import {
@@ -265,9 +265,7 @@ export default function PaymentMethodsScreen() {
         </View>
 
         {isLoading ? (
-          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-            <ActivityIndicator color={Palette.brand} />
-          </View>
+          <ListSkeleton count={2} rowHeight={80} />
         ) : (
           <ScrollView
             contentContainerStyle={{

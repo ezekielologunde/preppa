@@ -3,11 +3,12 @@ import { useRouter } from 'expo-router';
 import { CalendarCheck, Check, ChefHat, ChevronLeft, ChevronRight, Plus, RefreshCw, Users } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useState } from 'react';
-import { ActivityIndicator, Platform, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { Platform, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { SubscribePlanSheet } from '@/components/subscribe-sheet';
 import { PressableScale } from '@/components/ui/pressable-scale';
+import { ListSkeleton } from '@/components/ui/skeleton';
 import { Font } from '@/constants/fonts';
 import { featuredMealPlans, type MealPlanCard } from '@/constants/mock';
 import { Palette, Radius, Shadow } from '@/constants/theme';
@@ -251,7 +252,7 @@ export default function MealPlansScreen() {
           {/* Available (live) plans */}
           <Text style={{ fontFamily: Font.display, fontSize: 20, color: INK, letterSpacing: -0.5, paddingHorizontal: 20, marginTop: 16, marginBottom: 12 }}>available plans</Text>
           {isLoading ? (
-            <ActivityIndicator color={ORANGE} style={{ marginVertical: 16 }} />
+            <View style={{ paddingHorizontal: 20 }}><ListSkeleton count={3} rowHeight={80} /></View>
           ) : livePlans && livePlans.length > 0 ? (
             <View style={{ paddingHorizontal: 20, gap: 14 }}>
               {livePlans.map((p, i) => (
