@@ -350,9 +350,9 @@ export default function PrepperScreen() {
             <MessageSquare size={17} color={INK} />
             <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: INK }}>Message</Text>
           </PressableScale>
-          <PressableScale onPress={() => { feedback.tap(); router.push(`/search?q=${encodeURIComponent(p.name)}`); }} accessibilityRole="button" accessibilityLabel={`Order from ${p.name}`} style={{ flex: 1, height: 50, borderRadius: 14, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 7 }}>
+          <PressableScale onPress={() => { feedback.tap(); router.push(`/search?q=${encodeURIComponent(p.name)}`); }} accessibilityRole="button" accessibilityLabel={`Preorder from ${p.name}`} style={{ flex: 1, height: 50, borderRadius: 14, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 7 }}>
             <ShoppingBag size={17} color="#fff" />
-            <Text style={{ fontFamily: Font.semibold, fontSize: 15, color: '#fff' }}>Order from {p.name.split(' ')[0]}</Text>
+            <Text style={{ fontFamily: Font.semibold, fontSize: 15, color: '#fff' }}>Preorder from {p.name.split(' ')[0]}</Text>
           </PressableScale>
         </View>
       ) : null}

@@ -99,7 +99,7 @@ export default function CartScreen() {
   function checkout() {
     if (busy) return; // guard against a double-tap creating two orders
     if (!user) return router.push('/auth?mode=signin');
-    if (mixed) { feedback.warning(); return setErr('Pick one kitchen to order from above.'); }
+    if (mixed) { feedback.warning(); return setErr('Pick one kitchen to preorder from above.'); }
     if (method === 'in_home') { feedback.tap(); router.push('/experience-request?kind=private_chef'); return; }
     if (method === 'delivery' && note.trim().length < 5) { feedback.warning(); return setErr('Add a delivery address.'); }
     if (method === 'meetup' && note.trim().length < 3) { feedback.warning(); return setErr('Where should you meet?'); }
@@ -148,7 +148,7 @@ export default function CartScreen() {
             </View>
           </MotiView>
           <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280, delay: 80 }}>
-            <Text style={{ fontFamily: Font.display, fontSize: 24, color: INK, textAlign: 'center' }}>Order placed!</Text>
+            <Text style={{ fontFamily: Font.display, fontSize: 24, color: INK, textAlign: 'center' }}>Preorder placed!</Text>
           </MotiView>
           <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280, delay: 140 }}>
             <Text style={{ fontFamily: Font.body, fontSize: 15, color: Palette.textSecondary, textAlign: 'center', lineHeight: 22, maxWidth: 300 }}>
@@ -156,8 +156,8 @@ export default function CartScreen() {
             </Text>
           </MotiView>
           <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280, delay: 200 }}>
-            <PressableScale onPress={() => { feedback.tap(); router.replace('/orders'); }} accessibilityRole="button" accessibilityLabel="Track your order" style={{ marginTop: 6, paddingHorizontal: 24, height: 52, borderRadius: Radius.sm, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
-              <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>Track your order</Text>
+            <PressableScale onPress={() => { feedback.tap(); router.replace('/orders'); }} accessibilityRole="button" accessibilityLabel="Track your preorder" style={{ marginTop: 6, paddingHorizontal: 24, height: 52, borderRadius: Radius.sm, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
+              <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>Track your preorder</Text>
             </PressableScale>
           </MotiView>
           <MotiView from={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ type: 'timing', duration: 240, delay: 280 }}>
@@ -221,7 +221,7 @@ export default function CartScreen() {
               {mixed ? (
                 <View style={{ backgroundColor: Palette.brandTint, borderRadius: Radius.md, padding: 14, gap: 10 }}>
                   <Text style={{ fontFamily: Font.heading, fontSize: 14.5, color: Palette.brandPressed }}>Items from {kitchens.length} kitchens</Text>
-                  <Text style={{ fontFamily: Font.body, fontSize: 13, lineHeight: 19, color: Palette.brandPressed }}>You can order from one kitchen at a time. Keep one to check out — the other items will be removed.</Text>
+                  <Text style={{ fontFamily: Font.body, fontSize: 13, lineHeight: 19, color: Palette.brandPressed }}>You can preorder from one kitchen at a time. Keep one to check out — the other items will be removed.</Text>
                   <View style={{ gap: 8, marginTop: 2 }}>
                     {kitchens.map((k) => (
                       <PressableScale key={k.id} onPress={() => keepOnly(k.id)} disabled={removeItems.isPending} accessibilityRole="button" accessibilityLabel={`Keep only ${k.name}`}
@@ -419,19 +419,19 @@ export default function CartScreen() {
                 <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>Total</Text>
                 <Text style={{ fontFamily: Font.display, fontSize: 20, color: INK, fontVariant: ['tabular-nums'] }}>{money(total)}</Text>
               </View>
-              <PressableScale onPress={checkout} disabled={busy || mixed} accessibilityRole="button" accessibilityLabel={paymentsOn ? 'Pay and place order' : 'Place order'}
+              <PressableScale onPress={checkout} disabled={busy || mixed} accessibilityRole="button" accessibilityLabel={paymentsOn ? 'Pay and place preorder' : 'Place preorder'}
                 style={{ height: 54, borderRadius: 16, backgroundColor: mixed ? Palette.textMuted : ORANGE, flexDirection: 'row', gap: 8, alignItems: 'center', justifyContent: 'center', opacity: busy ? 0.7 : 1 }}>
                 {busy ? <ActivityIndicator color="#fff" /> : (
                   <>
                     {paymentsOn && !mixed ? <Lock size={16} color="#fff" /> : null}
                     <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>
-                      {mixed ? 'Pick one kitchen above' : method === 'in_home' ? 'Request in-home prep →' : paymentsOn ? `Pay · ${money(total)}` : `Place order · ${money(total)}`}
+                      {mixed ? 'Pick one kitchen above' : method === 'in_home' ? 'Request in-home prep →' : paymentsOn ? `Pay · ${money(total)}` : `Preorder · ${money(total)}`}
                     </Text>
                   </>
                 )}
               </PressableScale>
               <Text style={{ fontFamily: Font.body, fontSize: 11, color: Palette.textMuted, textAlign: 'center', marginTop: 8 }}>
-                {paymentsOn ? 'Secure card payment via Stripe. Auto-refunded if your order is declined.' : 'Payment is collected when the prepper confirms.'}
+                {paymentsOn ? 'Secure card payment via Stripe. Auto-refunded if your preorder is declined.' : 'Payment is collected when the prepper confirms.'}
               </Text>
             </SafeAreaView>
           </>

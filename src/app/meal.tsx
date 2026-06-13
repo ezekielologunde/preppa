@@ -455,7 +455,7 @@ export default function MealScreen() {
             </View>
             <Text style={{ fontFamily: Font.display, fontSize: 21, color: INK, letterSpacing: -0.4 }}>Start a new cart?</Text>
             <Text style={{ fontFamily: Font.body, fontSize: 14.5, lineHeight: 21, color: Palette.textSecondary }}>
-              Your cart has items from {cartPrepperName}. Each order is from one kitchen, so adding {meal?.prepper} will clear your current cart.
+              Your cart has items from {cartPrepperName}. Each preorder is from one kitchen, so adding {meal?.prepper} will clear your current cart.
             </Text>
             <View style={{ flexDirection: 'row', gap: 10, marginTop: 8 }}>
               <PressableScale onPress={() => { feedback.tap(); setSwitchPrompt(false); }} accessibilityRole="button" accessibilityLabel="Keep current cart" style={{ flex: 1, height: 50, borderRadius: 14, borderWidth: 1, borderColor: Palette.border, alignItems: 'center', justifyContent: 'center' }}>

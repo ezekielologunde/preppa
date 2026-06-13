@@ -208,7 +208,7 @@ function OrderCard({ order, onCancel, onReview, onPay, onReorder, onReport, canc
             accessibilityLabel="Reorder these meals"
             style={{ flex: 1, height: 44, borderRadius: Radius.sm, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 6, opacity: reordering ? 0.7 : 1 }}>
             {reordering ? <ActivityIndicator color="#fff" /> : <RotateCcw size={15} color="#fff" />}
-            <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: '#fff' }}>Reorder</Text>
+            <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: '#fff' }}>Order again</Text>
           </PressableScale>
         </View>
       ) : null}
@@ -356,7 +356,7 @@ export default function OrdersScreen() {
         {showPaid ? (
           <PressableScale onPress={() => { feedback.tap(); setShowPaid(false); }} accessibilityRole="button" accessibilityLabel="Dismiss" style={{ marginHorizontal: 16, marginBottom: 8, backgroundColor: Palette.success + '14', borderWidth: 1, borderColor: Palette.success + '55', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 11, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <Check size={16} color={Palette.success} strokeWidth={3} />
-            <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: Palette.ink, flex: 1 }}>Payment received — your order is in. The prepper will confirm shortly.</Text>
+            <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: Palette.ink, flex: 1 }}>Payment received — your preorder is in. The prepper will confirm shortly.</Text>
           </PressableScale>
         ) : null}
         {actionErr ? (
@@ -381,7 +381,7 @@ export default function OrdersScreen() {
               <Receipt size={28} color={Palette.textMuted} />
             </View>
             <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>No orders yet</Text>
-            <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center' }}>When you place an order it&apos;ll show up here.</Text>
+            <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center' }}>When you preorder a meal it&apos;ll show up here.</Text>
             <PressableScale onPress={() => { feedback.tap(); router.replace('/explore'); }} accessibilityRole="button" accessibilityLabel="Browse meals" style={{ marginTop: 4, paddingHorizontal: 22, height: 48, borderRadius: Radius.sm, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
               <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#fff' }}>Browse meals</Text>
             </PressableScale>
@@ -446,7 +446,7 @@ export default function OrdersScreen() {
             </View>
             <Text style={{ fontFamily: Font.display, fontSize: 21, color: INK, letterSpacing: -0.4 }}>Report an issue</Text>
             <Text style={{ fontFamily: Font.body, fontSize: 13.5, color: Palette.textSecondary, lineHeight: 20 }}>
-              Tell us what went wrong with your order from {reportModal?.prepper ?? ''}. Our team will review it.
+              Tell us what went wrong with your preorder from {reportModal?.prepper ?? ''}. Our team will review it.
             </Text>
             <TextInput
               value={reportReason}
@@ -480,9 +480,9 @@ export default function OrdersScreen() {
             <View style={{ width: 52, height: 52, borderRadius: 16, backgroundColor: Palette.danger + '1A', alignItems: 'center', justifyContent: 'center' }}>
               <X size={26} color={Palette.danger} strokeWidth={2.6} />
             </View>
-            <Text style={{ fontFamily: Font.display, fontSize: 21, color: INK, letterSpacing: -0.4 }}>Cancel this order?</Text>
+            <Text style={{ fontFamily: Font.display, fontSize: 21, color: INK, letterSpacing: -0.4 }}>Cancel this preorder?</Text>
             <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, lineHeight: 20 }}>
-              {confirmCancel ? `Your order from ${confirmCancel.prepper} (${money(confirmCancel.total)}) will be cancelled.` : ''}
+              {confirmCancel ? `Your preorder from ${confirmCancel.prepper} (${money(confirmCancel.total)}) will be cancelled.` : ''}
               {confirmCancel?.paymentStatus === 'succeeded' ? ' You’ll be refunded automatically.' : ''}
             </Text>
             <PressableScale onPress={() => { feedback.tap(); if (confirmCancel) doCancel(confirmCancel); }} accessibilityRole="button" accessibilityLabel="Yes, cancel the order" style={{ height: 50, borderRadius: 14, backgroundColor: Palette.danger, alignItems: 'center', justifyContent: 'center' }}>
