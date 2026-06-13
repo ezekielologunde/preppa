@@ -44,6 +44,9 @@ const ROUTE_CLASS: [string, WidthClass][] = [
   ['/payment-methods', 'form'],
   ['/post-video', 'form'],
   ['/become-prepper', 'form'],
+  // Bare meal detail page widens for the desktop gallery + details two-pane.
+  // (Listed AFTER /meal-editor and /meal-plans so those still match first.)
+  ['/meal', 'browse'],
 ];
 
 const MAX: Record<WidthClass, { tablet: number; desktop: number }> = {

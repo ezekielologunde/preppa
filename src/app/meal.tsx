@@ -3,7 +3,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { BadgeCheck, Check, ChevronLeft, ChevronRight, Clock, Maximize2, MessageCircle, Share2, ShoppingBag, Star, X, Zap } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { MotiView } from 'moti';
-import { ActivityIndicator, Modal, Pressable, ScrollView, Share, Text, View } from 'react-native';
+import { ActivityIndicator, Modal, Platform, Pressable, ScrollView, Share, Text, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { FavoriteButton } from '@/components/ui/favorite-button';
@@ -17,6 +17,7 @@ import { recordMealView } from '@/lib/recently-viewed';
 import { useAddToCart, useCart } from '@/lib/queries/cart';
 import { useFeatureEnabled } from '@/lib/queries/feature-flags';
 import { useMeal } from '@/lib/queries/meals';
+import { BP } from '@/lib/layout';
 import { useStartConversation } from '@/lib/queries/messages';
 import { getCurrentRush, getRushUrgency } from '@/lib/rush-hour';
 import { usePrepperReviews } from '@/lib/queries/reviews';
@@ -59,6 +60,9 @@ export default function MealScreen() {
   const [allReviews, setAllReviews] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
+  // Desktop web: gallery on the left, scrollable details + pinned CTA on the right.
+  const twoCol = Platform.OS === 'web' && width >= BP.desktop;
 
   useEffect(() => {
     if (meal?.id) recordMealView(meal.id);
@@ -126,11 +130,11 @@ export default function MealScreen() {
     doAdd(false);
   }
 
-  return (
-    <View style={{ flex: 1, backgroundColor: Palette.surface }}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
+  // ─── Gallery (hero + thumbnail strip) ───────────────────────────────────────
+  const galleryEl = (
+    <>
         {/* Hero */}
-        <View style={{ height: 320, backgroundColor: Palette.brandTint }}>
+        <View style={{ height: twoCol ? 440 : 320, backgroundColor: Palette.brandTint, borderRadius: twoCol ? 24 : 0, overflow: twoCol ? 'hidden' : 'visible' }}>
           {isLoading ? (
             <Skeleton width="100%" height={320} radius={0} />
           ) : meal?.images.length ? (
@@ -189,9 +193,12 @@ export default function MealScreen() {
             ))}
           </ScrollView>
         ) : null}
+    </>
+  );
 
-        {/* Body */}
-        <View style={{ padding: 20, gap: 12 }}>
+  // ─── Body (details, macros, reviews) ────────────────────────────────────────
+  const bodyEl = (
+        <View style={{ padding: 20, gap: 12, backgroundColor: Palette.surface, ...(twoCol ? {} : { borderTopLeftRadius: 24, borderTopRightRadius: 24, marginTop: -24 }) }}>
           {isLoading ? (
             <>
               <Skeleton width="70%" height={26} radius={8} />
@@ -318,11 +325,11 @@ export default function MealScreen() {
             </MotiView>
           )}
         </View>
-      </ScrollView>
+  );
 
-      {/* Sticky CTA */}
-      {meal ? (
-        <SafeAreaView edges={['bottom']} style={{ position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: Palette.surface, borderTopWidth: 1, borderTopColor: Palette.border }}>
+  // ─── Price + add-to-cart CTA (pinned bottom on mobile, in right column on desktop) ──
+  const ctaContent = !meal ? null : (
+    <>
           {liveRush ? (
             <MotiView
               from={{ opacity: 0, translateY: 6 }}
@@ -343,7 +350,7 @@ export default function MealScreen() {
             <MotiView
               animate={{ backgroundColor: !orderingOn ? Palette.textMuted : added ? Palette.success : ORANGE }}
               transition={{ type: 'timing', duration: 300 }}
-              style={{ flex: 1, height: 54, borderRadius: 16, overflow: 'hidden' }}>
+              style={{ flex: 1, height: 54, borderRadius: Radius.pill, overflow: 'hidden' }}>
               <PressableScale
                 onPress={handleAddToCart}
                 disabled={addToCart.isPending || !orderingOn}
@@ -357,8 +364,40 @@ export default function MealScreen() {
               </PressableScale>
             </MotiView>
           </View>
+    </>
+  );
+
+  return (
+    <View style={{ flex: 1, backgroundColor: twoCol ? Palette.canvas : Palette.surface }}>
+      {twoCol ? (
+        <SafeAreaView edges={['top']} style={{ flex: 1 }}>
+          <View style={{ flex: 1, flexDirection: 'row', gap: 24, paddingHorizontal: 24, paddingVertical: 20, width: '100%', maxWidth: 1080, alignSelf: 'center' }}>
+            {/* Left: gallery */}
+            <View style={{ width: '44%', maxWidth: 480 }}>{galleryEl}</View>
+            {/* Right: details + pinned CTA */}
+            <View style={{ flex: 1, maxWidth: 600, backgroundColor: Palette.surface, borderRadius: 24, overflow: 'hidden' }}>
+              <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 16 }}>
+                {bodyEl}
+              </ScrollView>
+              {ctaContent ? (
+                <View style={{ borderTopWidth: 1, borderTopColor: Palette.border, paddingBottom: 8 }}>{ctaContent}</View>
+              ) : null}
+            </View>
+          </View>
         </SafeAreaView>
-      ) : null}
+      ) : (
+        <>
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
+            {galleryEl}
+            {bodyEl}
+          </ScrollView>
+          {ctaContent ? (
+            <SafeAreaView edges={['bottom']} style={{ position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: Palette.surface, borderTopWidth: 1, borderTopColor: Palette.border }}>
+              {ctaContent}
+            </SafeAreaView>
+          ) : null}
+        </>
+      )}
 
       {/* Fullscreen image lightbox — shows all gallery images with prev/next navigation */}
       <Modal visible={lightboxOpen} transparent animationType="fade" onRequestClose={() => setLightboxOpen(false)}>
@@ -446,7 +485,7 @@ export default function MealScreen() {
               onPress={() => { feedback.tap(); setShowConfirm(false); router.push('/cart'); }}
               accessibilityRole="button"
               accessibilityLabel="View cart"
-              style={{ height: 52, borderRadius: 16, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
+              style={{ height: 52, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
               <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>View Cart</Text>
             </PressableScale>
             <PressableScale
@@ -475,7 +514,7 @@ export default function MealScreen() {
               <PressableScale onPress={() => { feedback.tap(); setSwitchPrompt(false); }} accessibilityRole="button" accessibilityLabel="Keep current cart" style={{ flex: 1, height: 50, borderRadius: 14, borderWidth: 1, borderColor: Palette.border, alignItems: 'center', justifyContent: 'center' }}>
                 <Text style={{ fontFamily: Font.semibold, fontSize: 15, color: Palette.textSecondary }}>Keep cart</Text>
               </PressableScale>
-              <PressableScale onPress={() => { feedback.tap(); doAdd(true); }} disabled={addToCart.isPending} accessibilityRole="button" accessibilityLabel="Start a new cart" style={{ flex: 1, height: 50, borderRadius: 14, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', opacity: addToCart.isPending ? 0.7 : 1 }}>
+              <PressableScale onPress={() => { feedback.tap(); doAdd(true); }} disabled={addToCart.isPending} accessibilityRole="button" accessibilityLabel="Start a new cart" style={{ flex: 1, height: 50, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', opacity: addToCart.isPending ? 0.7 : 1 }}>
                 {addToCart.isPending ? <ActivityIndicator color="#fff" /> : <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#fff' }}>New cart</Text>}
               </PressableScale>
             </View>
