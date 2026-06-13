@@ -127,14 +127,14 @@ function MyPlansSection({ userId }: { userId: string }) {
     <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 120 }}>
       <SectionHeader title="your plans" linkLabel="manage →" onLink={() => { feedback.tap(); router.push('/meal-plans'); }} />
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 12, paddingBottom: 4 }}>
-        {subs.map((sub) => {
+        {subs.map((sub, i) => {
           const nextDate = sub.next_billing_at
             ? new Date(sub.next_billing_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
             : null;
           const isActive = sub.status === 'active';
           return (
+            <MotiView key={sub.id} from={{ opacity: 0, translateY: 6 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 220, delay: i * 35 }}>
             <PressableScale
-              key={sub.id}
               onPress={() => { feedback.tap(); router.push('/meal-plans'); }}
               accessibilityRole="button"
               accessibilityLabel={`${sub.plan_name} plan, ${sub.status}`}
@@ -150,6 +150,7 @@ function MyPlansSection({ userId }: { userId: string }) {
                 <Text style={{ fontFamily: Font.medium, fontSize: 12, color: Palette.textSecondary }}>next: {nextDate}</Text>
               ) : null}
             </PressableScale>
+            </MotiView>
           );
         })}
       </ScrollView>

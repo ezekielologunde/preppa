@@ -122,7 +122,7 @@ export function MealPlansSection({ subs, onViewAll, onPress }: {
       {subs && subs.length > 0 ? (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -20, paddingHorizontal: 20 }}>
           <View style={{ flexDirection: 'row', gap: 12 }}>
-            {subs.map((s) => {
+            {subs.map((s, i) => {
               const badge = s.status === 'active'
                 ? { bg: Palette.success + '1A', fg: Palette.success }
                 : s.status === 'paused'
@@ -133,7 +133,8 @@ export function MealPlansSection({ subs, onViewAll, onPress }: {
                 ? next.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
                 : null;
               return (
-                <PressableScale key={s.id} onPress={onPress} accessibilityRole="button"
+                <MotiView key={s.id} from={{ opacity: 0, translateY: 6 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 220, delay: i * 35 }}>
+                <PressableScale onPress={onPress} accessibilityRole="button"
                   accessibilityLabel={`${s.plan_name}, ${s.status}`}
                   style={{ width: 220, backgroundColor: Palette.surface, borderRadius: 18, padding: 14, gap: 8 }}>
                   <View style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: Palette.brandTint, alignItems: 'center', justifyContent: 'center' }}>
@@ -150,6 +151,7 @@ export function MealPlansSection({ subs, onViewAll, onPress }: {
                     {nextLabel ? <Text style={{ fontFamily: Font.body, fontSize: 11, color: Palette.textSecondary }}>next {nextLabel}</Text> : null}
                   </View>
                 </PressableScale>
+                </MotiView>
               );
             })}
           </View>

@@ -130,6 +130,7 @@ export default function ProfileScreen() {
           contentContainerStyle={{ paddingTop: Platform.OS === 'web' ? 16 : 8, paddingBottom: 32, gap: 16 }}>
 
           {/* Header */}
+          <MotiView from={{ opacity: 0, translateY: -6 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, gap: 10 }}>
             <Text style={{ flex: 1, fontFamily: Font.display, fontSize: 26, color: Palette.ink, letterSpacing: -0.6 }}>profile</Text>
             <PressableScale onPress={() => { feedback.tap(); go('/messages'); }} accessibilityRole="button"
@@ -147,6 +148,7 @@ export default function ProfileScreen() {
               <Settings size={19} color={Palette.ink} />
             </PressableScale>
           </View>
+          </MotiView>
 
           {/* Identity */}
           <MotiView from={{ opacity: 0, translateY: 14 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 320 }}>
@@ -206,8 +208,10 @@ export default function ProfileScreen() {
 
           {/* My Kitchen */}
           {isApprovedPrepper ? (
-            <DarkCard Icon={ChefHat} title="my kitchen" sub="meals, preorders, earnings & go live"
-              onPress={() => { feedback.tap(); router.push('/dashboard'); }} accessibilityLabel="Open my kitchen" />
+            <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 240 }}>
+              <DarkCard Icon={ChefHat} title="my kitchen" sub="meals, preorders, earnings & go live"
+                onPress={() => { feedback.tap(); router.push('/dashboard'); }} accessibilityLabel="Open my kitchen" />
+            </MotiView>
           ) : null}
 
           {/* Account sections */}
@@ -237,27 +241,34 @@ export default function ProfileScreen() {
 
           {/* Admin console */}
           {isAdmin ? (
-            <DarkCard Icon={ShieldCheck} title="admin console" sub="approvals, orders, earnings & features"
-              onPress={() => { feedback.tap(); router.push('/admin'); }} accessibilityLabel="Open admin console" />
+            <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260 }}>
+              <DarkCard Icon={ShieldCheck} title="admin console" sub="approvals, orders, earnings & features"
+                onPress={() => { feedback.tap(); router.push('/admin'); }} accessibilityLabel="Open admin console" />
+            </MotiView>
           ) : null}
 
           {/* Become a prepper / pending */}
           {!isApprovedPrepper && !isPendingPrepper ? (
-            <DarkCard Icon={ChefHat} title="become a prepper" sub="start earning with your cooking"
-              onPress={() => { feedback.tap(); router.push('/become-prepper'); }} accessibilityLabel="Become a prepper, start earning with your cooking" />
+            <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260 }}>
+              <DarkCard Icon={ChefHat} title="become a prepper" sub="start earning with your cooking"
+                onPress={() => { feedback.tap(); router.push('/become-prepper'); }} accessibilityLabel="Become a prepper, start earning with your cooking" />
+            </MotiView>
           ) : isPendingPrepper ? (
-            <View style={{ marginHorizontal: 20, marginTop: 16, backgroundColor: Palette.amber + '1A', borderRadius: 18, padding: 16, flexDirection: 'row', alignItems: 'center', gap: 14 }}>
-              <View style={{ width: 42, height: 42, borderRadius: 13, backgroundColor: Palette.amber + '26', alignItems: 'center', justifyContent: 'center' }}>
-                <Clock size={20} color={Palette.amber} />
+            <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260 }}>
+              <View style={{ marginHorizontal: 20, marginTop: 16, backgroundColor: Palette.amber + '1A', borderRadius: 18, padding: 16, flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+                <View style={{ width: 42, height: 42, borderRadius: 13, backgroundColor: Palette.amber + '26', alignItems: 'center', justifyContent: 'center' }}>
+                  <Clock size={20} color={Palette.amber} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontFamily: Font.heading, fontSize: 15, color: Palette.ink }}>application pending</Text>
+                  <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.amber, marginTop: 1 }}>we'll notify you within 48h</Text>
+                </View>
               </View>
-              <View style={{ flex: 1 }}>
-                <Text style={{ fontFamily: Font.heading, fontSize: 15, color: Palette.ink }}>application pending</Text>
-                <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.amber, marginTop: 1 }}>we'll notify you within 48h</Text>
-              </View>
-            </View>
+            </MotiView>
           ) : null}
 
           {/* Sign out / Sign in */}
+          <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 240, delay: 300 }}>
           <PressableScale onPress={() => { feedback.tap(); user ? signOut() : router.push('/auth?mode=signin'); }}
             accessibilityRole="button" accessibilityLabel={user ? 'Sign out' : 'Sign in or create account'}
             style={{ marginHorizontal: 20, alignItems: 'center', paddingVertical: 15, borderRadius: 16, backgroundColor: user ? Palette.surface : Palette.brand }}>
@@ -265,6 +276,7 @@ export default function ProfileScreen() {
               {user ? 'sign out' : 'sign in / create account'}
             </Text>
           </PressableScale>
+          </MotiView>
 
         </ScrollView>
 
