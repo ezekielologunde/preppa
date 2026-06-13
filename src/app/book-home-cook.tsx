@@ -179,9 +179,9 @@ export default function BookHomeCookScreen() {
         onError: (e) => {
           feedback.error();
           const msg = e instanceof Error ? e.message : '';
-          if (msg.includes('rate_limited')) setErr('You've sent 3 requests in the last 24 hours. Please wait before sending another.');
+          if (msg.includes('rate_limited')) setErr("You've sent 3 requests in the last 24 hours. Please wait before sending another.");
           else if (msg.includes('membership_required')) setErr('Home cook bookings require a Prep+ membership.');
-          else if (msg.includes('prepper_unavailable')) setErr('This prepper isn't currently accepting home cook bookings.');
+          else if (msg.includes('prepper_unavailable')) setErr("This prepper isn't currently accepting home cook bookings.");
           else if (msg.includes('invalid_date')) setErr('The booking date must be at least 24 hours in the future.');
           else if (msg.includes('duplicate_request')) setErr('You already have an active request with this prepper. Check your messages.');
           else setErr('Could not send request. Please try again.');
