@@ -3,7 +3,7 @@ import '@/global.css';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFonts } from 'expo-font';
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider, usePathname, useRouter } from 'expo-router';
-import { CircleUser, Compass, House, LayoutGrid, Sparkles } from 'lucide-react-native';
+import { CircleUser, Compass, House, Play, Ticket } from 'lucide-react-native';
 import { useEffect, useState, type ReactNode } from 'react';
 import { Platform, Text, useColorScheme, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -29,8 +29,8 @@ const DARK_BY_DESIGN = ['/prepper-orders', '/earnings', '/admin', '/prepper', '/
 const SIDEBAR_ITEMS = [
   { href: '/',             label: 'Home',        Icon: House },
   { href: '/explore',      label: 'Explore',     Icon: Compass },
-  { href: '/feeds',        label: 'Feed',        Icon: LayoutGrid },
-  { href: '/experiences',  label: 'Experiences', Icon: Sparkles },
+  { href: '/feeds',        label: 'Feed',        Icon: Play },
+  { href: '/experiences',  label: 'Events',      Icon: Ticket },
   { href: '/profile',      label: 'Profile',     Icon: CircleUser },
 ] as const;
 

@@ -1,7 +1,7 @@
 import { Tabs } from 'expo-router';
-import { CircleUser, Compass, House, LayoutGrid, Sparkles } from 'lucide-react-native';
+import { CircleUser, Compass, House, Play, Ticket } from 'lucide-react-native';
 import { MotiView } from 'moti';
-import { Text, useWindowDimensions, View } from 'react-native';
+import { Platform, Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { PressableScale } from '@/components/ui/pressable-scale';
@@ -10,11 +10,11 @@ import { feedback } from '@/lib/feedback';
 import { Palette, Shadow, TouchTarget } from '@/constants/theme';
 
 const TABS = [
-  { name: 'index',       label: 'home',        Icon: House },
-  { name: 'explore',     label: 'explore',     Icon: Compass },
-  { name: 'feeds',       label: 'feed',        Icon: LayoutGrid },
-  { name: 'experiences', label: 'experiences', Icon: Sparkles },
-  { name: 'profile',     label: 'profile',     Icon: CircleUser },
+  { name: 'index',       label: 'home',    Icon: House },
+  { name: 'explore',     label: 'explore', Icon: Compass },
+  { name: 'feeds',       label: 'feed',    Icon: Play },
+  { name: 'experiences', label: 'events',  Icon: Ticket },
+  { name: 'profile',     label: 'profile', Icon: CircleUser },
 ] as const;
 
 type TabBarProps = {
@@ -25,10 +25,10 @@ type TabBarProps = {
 function PreppaTabBar({ state, navigation }: TabBarProps) {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
-  const isTablet = width >= 768;
-
-  // Sidebar handles navigation on tablet/desktop — no double nav.
-  if (isTablet) return null;
+  // Only hide on web ≥768px, where the WebSidebar renders inside ResponsiveFrame.
+  // Native tablet (iPad) still uses the bottom tab bar — no sidebar exists there.
+  const hiddenForWebSidebar = Platform.OS === 'web' && width >= 768;
+  if (hiddenForWebSidebar) return null;
 
   const iconSize = width >= 480 ? 21 : 20;
   const labelSize = width >= 480 ? 11 : 10.5;
@@ -78,7 +78,7 @@ function PreppaTabBar({ state, navigation }: TabBarProps) {
                 <tab.Icon size={iconSize} color={color} strokeWidth={focused ? 2.4 : 1.8} />
               </View>
 
-              <Text style={{ fontFamily: focused ? Font.semibold : Font.medium, fontSize: labelSize, color, letterSpacing: 0.1 }}>
+              <Text numberOfLines={1} style={{ fontFamily: focused ? Font.semibold : Font.medium, fontSize: labelSize, color, letterSpacing: 0.1 }}>
                 {tab.label}
               </Text>
             </PressableScale>
