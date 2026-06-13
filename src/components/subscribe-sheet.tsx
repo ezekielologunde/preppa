@@ -104,10 +104,16 @@ export function SubscribePlanSheet({ plan, userId, onClose }: { plan: MealPlan |
               {DAYS.map((d) => {
                 const on = day === d.key;
                 return (
-                  <PressableScale key={d.key} onPress={() => setDay(d.key)} accessibilityRole="button" accessibilityState={{ selected: on }} accessibilityLabel={d.label}
-                    style={{ flex: 1, height: 40, borderRadius: 12, backgroundColor: on ? ORANGE : Palette.canvas, alignItems: 'center', justifyContent: 'center' }}>
-                    <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: on ? '#fff' : INK }}>{d.label}</Text>
-                  </PressableScale>
+                  <MotiView
+                    key={d.key}
+                    animate={{ backgroundColor: on ? ORANGE : Palette.canvas }}
+                    transition={{ type: 'timing', duration: 180 }}
+                    style={{ flex: 1, borderRadius: 12, overflow: 'hidden' }}>
+                    <PressableScale onPress={() => setDay(d.key)} accessibilityRole="button" accessibilityState={{ selected: on }} accessibilityLabel={d.label}
+                      style={{ height: 40, alignItems: 'center', justifyContent: 'center' }}>
+                      <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: on ? '#fff' : INK }}>{d.label}</Text>
+                    </PressableScale>
+                  </MotiView>
                 );
               })}
             </View>

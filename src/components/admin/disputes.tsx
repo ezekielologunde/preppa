@@ -144,15 +144,20 @@ export function AdminDisputes() {
         {FILTERS.map((f) => {
           const active = filter === f.key;
           return (
-            <PressableScale
+            <MotiView
               key={f.key}
-              onPress={() => setFilter(f.key)}
-              accessibilityRole="button"
-              accessibilityState={{ selected: active }}
-              accessibilityLabel={f.label}
-              style={{ paddingHorizontal: 14, paddingVertical: 8, borderRadius: Radius.pill, backgroundColor: active ? Admin.brand : Admin.card, borderWidth: 1, borderColor: active ? Admin.brand : Admin.border }}>
-              <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: active ? '#fff' : Admin.textDim }}>{f.label}</Text>
-            </PressableScale>
+              animate={{ backgroundColor: active ? Admin.brand : Admin.card, borderColor: active ? Admin.brand : Admin.border }}
+              transition={{ type: 'timing', duration: 180 }}
+              style={{ borderRadius: Radius.pill, borderWidth: 1, overflow: 'hidden' }}>
+              <PressableScale
+                onPress={() => setFilter(f.key)}
+                accessibilityRole="button"
+                accessibilityState={{ selected: active }}
+                accessibilityLabel={f.label}
+                style={{ paddingHorizontal: 14, paddingVertical: 8 }}>
+                <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: active ? '#fff' : Admin.textDim }}>{f.label}</Text>
+              </PressableScale>
+            </MotiView>
           );
         })}
         {openCount ? (

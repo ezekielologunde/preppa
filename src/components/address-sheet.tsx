@@ -269,28 +269,31 @@ export function AddressSheet({
             </Text>
             <View style={{ flexDirection: 'row', gap: 8, marginBottom: Spacing.three }}>
               {PRESET_LABELS.map((lbl) => (
-                <PressableScale
+                <MotiView
                   key={lbl}
-                  onPress={() => set('label')(lbl)}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Label: ${lbl}`}
-                  style={{
-                    paddingHorizontal: 16,
-                    paddingVertical: 10,
-                    borderRadius: Radius.pill,
-                    minHeight: 44,
-                    justifyContent: 'center',
-                    backgroundColor: form.label === lbl ? Palette.brand : Palette.chip,
-                  }}>
-                  <Text
+                  animate={{ backgroundColor: form.label === lbl ? Palette.brand : Palette.chip }}
+                  transition={{ type: 'timing', duration: 180 }}
+                  style={{ borderRadius: Radius.pill, overflow: 'hidden' }}>
+                  <PressableScale
+                    onPress={() => set('label')(lbl)}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Label: ${lbl}`}
                     style={{
-                      fontFamily: Font.medium,
-                      fontSize: Type.label,
-                      color: form.label === lbl ? Palette.surface : Palette.inkSoft,
+                      paddingHorizontal: 16,
+                      paddingVertical: 10,
+                      minHeight: 44,
+                      justifyContent: 'center',
                     }}>
-                    {lbl}
-                  </Text>
-                </PressableScale>
+                    <Text
+                      style={{
+                        fontFamily: Font.medium,
+                        fontSize: Type.label,
+                        color: form.label === lbl ? Palette.surface : Palette.inkSoft,
+                      }}>
+                      {lbl}
+                    </Text>
+                  </PressableScale>
+                </MotiView>
               ))}
             </View>
 
