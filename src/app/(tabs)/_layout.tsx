@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { Compass, House, Ticket, User, Video } from 'lucide-react-native';
+import { CircleUser, Compass, House, LayoutGrid, Sparkles } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -12,9 +12,9 @@ import { Palette, Shadow, TouchTarget } from '@/constants/theme';
 const TABS = [
   { name: 'index',       label: 'home',        Icon: House },
   { name: 'explore',     label: 'explore',     Icon: Compass },
-  { name: 'feeds',       label: 'live',        Icon: Video, flag: 'live_feeds' },
-  { name: 'experiences', label: 'events',  Icon: Ticket, flag: 'experiences' },
-  { name: 'profile',     label: 'me',      Icon: User },
+  { name: 'feeds',       label: 'feed',        Icon: LayoutGrid },
+  { name: 'experiences', label: 'experiences', Icon: Sparkles },
+  { name: 'profile',     label: 'profile',     Icon: CircleUser },
 ] as const;
 
 type TabBarProps = {
@@ -26,12 +26,15 @@ function PreppaTabBar({ state, navigation }: TabBarProps) {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const isTablet = width >= 768;
-  // Tab sizing scales with screen width — larger targets on wider devices.
-  const iconSize = width >= 768 ? 22 : width >= 480 ? 21 : 20;
-  const labelSize = width >= 768 ? 12 : width >= 480 ? 11 : 10.5;
-  const pillW = width >= 768 ? 60 : 46;
-  const pillH = width >= 768 ? 36 : 30;
-  const tabPadV = width >= 768 ? 10 : 8;
+
+  // Sidebar handles navigation on tablet/desktop — no double nav.
+  if (isTablet) return null;
+
+  const iconSize = width >= 480 ? 21 : 20;
+  const labelSize = width >= 480 ? 11 : 10.5;
+  const pillW = 46;
+  const pillH = 30;
+  const tabPadV = 8;
 
   return (
     <View
@@ -39,13 +42,13 @@ function PreppaTabBar({ state, navigation }: TabBarProps) {
         backgroundColor: Palette.surface,
         paddingTop: tabPadV,
         paddingBottom: Math.max(insets.bottom, tabPadV),
-        borderTopLeftRadius: isTablet ? 0 : 20,
-        borderTopRightRadius: isTablet ? 0 : 20,
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
         borderTopWidth: 1,
         borderTopColor: Palette.border,
         ...Shadow.navBar,
       }}>
-      <View style={{ flexDirection: 'row', maxWidth: isTablet ? 600 : undefined, alignSelf: isTablet ? 'center' : undefined, width: isTablet ? '100%' : undefined }}>
+      <View style={{ flexDirection: 'row' }}>
         {TABS.map((tab) => {
           const routeIndex = state.routes.findIndex((r) => r.name === tab.name);
           const focused = routeIndex >= 0 && state.index === routeIndex;

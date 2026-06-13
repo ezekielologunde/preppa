@@ -1,36 +1,22 @@
 import { useRouter } from 'expo-router';
 import {
   AlertCircle,
-  CakeSlice,
   Check,
   ChevronDown,
   ChevronRight,
-  Coffee,
-  Compass,
-  Cookie,
-  Flame,
-  Heart,
   LayoutGrid,
-  Leaf,
+  List,
   MapPin,
-  MoreHorizontal,
-  Salad,
   Search,
-  SlidersHorizontal,
   ShoppingBag,
+  SlidersHorizontal,
   Sparkles,
-  Sprout,
-  UtensilsCrossed,
   X,
-  Zap,
-  type LucideIcon,
 } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useState } from 'react';
 import { Modal, Platform, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
-import { feedback } from '@/lib/feedback';
 
 import { CuisineCard } from '@/components/cuisine-card';
 import { MealCard } from '@/components/meal-card';
@@ -38,215 +24,271 @@ import { PrepperCard } from '@/components/prepper-card';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { CardRowSkeleton } from '@/components/ui/skeleton';
 import { Font } from '@/constants/fonts';
-import { cuisines, exploreCategories } from '@/constants/mock';
-import { Palette, Radius } from '@/constants/theme';
+import { cuisines } from '@/constants/mock';
+import { Palette, Radius, Shadow } from '@/constants/theme';
+import { feedback } from '@/lib/feedback';
+import {
+  gridCardWidth,
+  gridColumns,
+  useBreakpoint,
+  useCarouselCardWidth,
+  useContentWidth,
+  usePagePadding,
+} from '@/lib/layout';
+import { useRankedPreppers } from '@/lib/match';
 import { useFeaturedMeals, useLimitedDrops } from '@/lib/queries/meals';
 import { useTopPreppers } from '@/lib/queries/preppers';
 import { usePersonalizedMeals } from '@/lib/queries/recommend';
-import { useBreakpoint, useCarouselCardWidth, usePagePadding } from '@/lib/layout';
-import { useRankedPreppers } from '@/lib/match';
 import { useAuth } from '@/providers/auth-provider';
 
-const ORANGE = Palette.brand;
-const INK = Palette.ink;
-const MUTED = Palette.textMuted;
-
-const ICONS: Record<string, LucideIcon> = {
-  LayoutGrid, Coffee, Salad, UtensilsCrossed, Cookie, CakeSlice, Leaf, Sprout, MoreHorizontal,
-};
-
-const TRENDING = [
-  'Nigerian Stew', 'Jerk Chicken', 'High-Protein', 'Vegan', 'Meal Prep', 'Keto',
-];
-
-const GOALS: { label: string; tag: string; Icon: LucideIcon; color: string }[] = [
-  { label: 'Bulk Up',     tag: 'High-Protein',      Icon: Zap,    color: Palette.amber },
-  { label: 'Cut & Lean',  tag: 'Low-Calorie',        Icon: Flame,  color: Palette.danger },
-  { label: 'Keto',        tag: 'Keto',               Icon: Leaf,   color: '#8B5CF6' },
-  { label: 'Plant-Based', tag: 'Vegan-Friendly',     Icon: Sprout, color: '#22C55E' },
-  { label: 'Diabetic',    tag: 'Diabetic-Friendly',  Icon: Heart,  color: '#3B82F6' },
-];
-
-function SectionHeader({ title, onSeeAll }: { title: string; onSeeAll?: () => void }) {
-  return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, marginTop: 8, marginBottom: 10 }}>
-      <Text style={{ fontFamily: Font.display, fontSize: 15, color: INK, letterSpacing: -0.3 }}>{title}</Text>
-      {onSeeAll ? (
-        <PressableScale onPress={() => { feedback.tap(); onSeeAll!(); }} accessibilityRole="button" accessibilityLabel={`See all ${title}`}>
-          <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: ORANGE }}>see all</Text>
-        </PressableScale>
-      ) : null}
-    </View>
-  );
-}
+// ─── Constants ────────────────────────────────────────────────────────────────
 
 const CITIES = [
   'New York, NY', 'Los Angeles, CA', 'Chicago, IL', 'Houston, TX',
   'Atlanta, GA', 'Washington, DC', 'Miami, FL', 'London, UK', 'Lagos, NG',
 ];
 
+const CATEGORY_CHIPS = [
+  { key: 'all', label: 'All' },
+  { key: 'trending', label: 'Trending' },
+  { key: 'nigerian', label: 'Nigerian' },
+  { key: 'mexican', label: 'Mexican' },
+  { key: 'italian', label: 'Italian' },
+  { key: 'asian', label: 'Asian' },
+  { key: 'american', label: 'American' },
+  { key: 'caribbean', label: 'Caribbean' },
+  { key: 'vegan', label: 'Vegan' },
+  { key: 'comfort', label: 'Comfort' },
+  { key: 'meal-plans', label: 'Meal Plans' },
+];
+
+// ─── Sub-components ────────────────────────────────────────────────────────────
+
+function SectionHeader({ title, onSeeAll }: { title: string; onSeeAll?: () => void }) {
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, marginTop: 8, marginBottom: 10 }}>
+      <Text style={{ fontFamily: Font.display, fontSize: 15, color: Palette.ink, letterSpacing: -0.3 }}>{title}</Text>
+      {onSeeAll ? (
+        <PressableScale onPress={() => { feedback.tap(); onSeeAll(); }} accessibilityRole="button" accessibilityLabel={`See all ${title}`}>
+          <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: Palette.brand }}>see all →</Text>
+        </PressableScale>
+      ) : null}
+    </View>
+  );
+}
+
+function CategoryChips({ active, onSelect }: { active: string; onSelect: (key: string) => void }) {
+  return (
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, gap: 8, paddingVertical: 8 }}>
+      {CATEGORY_CHIPS.map((chip) => {
+        const isActive = chip.key === active;
+        return (
+          <PressableScale
+            key={chip.key}
+            onPress={() => { feedback.tap(); onSelect(chip.key); }}
+            accessibilityRole="button"
+            accessibilityLabel={`Filter by ${chip.label}`}
+            style={{
+              height: 36,
+              borderRadius: 18,
+              paddingHorizontal: 14,
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: isActive ? Palette.brand : Palette.surface,
+              borderWidth: 1,
+              borderColor: isActive ? Palette.brand : Palette.border,
+            }}>
+            <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: isActive ? '#fff' : Palette.textSecondary }}>
+              {chip.label}
+            </Text>
+          </PressableScale>
+        );
+      })}
+    </ScrollView>
+  );
+}
+
+// ─── Main Screen ───────────────────────────────────────────────────────────────
+
 export default function ExploreScreen() {
   const router = useRouter();
   const { user } = useAuth();
+  const bp = useBreakpoint();
+  const pad = usePagePadding();
+  const contentWidth = useContentWidth();
+  const carouselCardWidth = useCarouselCardWidth();
+
   const { data: preppers, isLoading: preppersLoading, isError: preppersError, refetch: refetchPreppers } = useTopPreppers();
   const { data: meals, isLoading: mealsLoading, isError: mealsError, refetch: refetchMeals } = useFeaturedMeals();
   const { data: drops, refetch: refetchDrops } = useLimitedDrops(6);
   const forYou = usePersonalizedMeals(meals ?? [], user?.id).slice(0, 6);
   const rankedPreppers = useRankedPreppers(preppers ?? [], user?.id);
+
   const [refreshing, setRefreshing] = useState(false);
   const [location, setLocation] = useState('New York, NY');
   const [locationOpen, setLocationOpen] = useState(false);
-  const bp = useBreakpoint();
-  const pad = usePagePadding();
-  const carouselCardWidth = useCarouselCardWidth();
-  async function handleRefresh() { setRefreshing(true); await Promise.all([refetchPreppers(), refetchMeals(), refetchDrops()]); setRefreshing(false); }
+  const [activeCategory, setActiveCategory] = useState('all');
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid');
+
+  const isTabletUp = bp !== 'mobile';
+
+  // Derive filtered meals — map category keys to tags/cuisine labels
+  const categoryFilter = activeCategory === 'all' ? null : activeCategory;
+  const filteredMeals = categoryFilter
+    ? (meals ?? []).filter((m) => {
+        const haystack = [m.title, m.cuisine, ...(m.tags ?? [])].join(' ').toLowerCase();
+        return haystack.includes(categoryFilter.replace('-', ' '));
+      })
+    : (meals ?? []);
+
+  // Prepper grid columns: 2 tablet / 3 desktop
+  const prepperCols = bp === 'desktop' ? 3 : bp === 'tablet' ? 2 : 0; // 0 = horizontal scroll
+  const mealCols = gridColumns(contentWidth);
+  const mealCardW = gridCardWidth(contentWidth, pad);
+
+  async function handleRefresh() {
+    setRefreshing(true);
+    await Promise.all([refetchPreppers(), refetchMeals(), refetchDrops()]);
+    setRefreshing(false);
+  }
+
+  // Sticky bar — web gets position:sticky via inline web style
+  const stickyStyle = Platform.OS === 'web'
+    ? ({ position: 'sticky', top: 0, zIndex: 10, backgroundColor: Palette.canvas } as object)
+    : { zIndex: 10, backgroundColor: Palette.canvas };
 
   return (
     <View style={{ flex: 1, backgroundColor: Palette.canvas }}>
       <SafeAreaView edges={['top']} style={{ flex: 1 }}>
-        <ScrollView showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={Palette.brand} colors={[Palette.brand]} />} contentContainerStyle={{ paddingTop: Platform.OS === 'web' ? 16 : 8, paddingBottom: 24 }}>
-          {/* Header */}
-          <View style={{ flexDirection: 'row', alignItems: 'flex-start', paddingHorizontal: 20, gap: 12 }}>
-            <View style={{ flex: 1 }}>
-              <Text style={{ fontFamily: Font.display, fontSize: 26, color: INK, letterSpacing: -0.6 }}>explore</Text>
-              <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary }}>
-                amazing meals from <Text style={{ fontFamily: Font.semibold, color: ORANGE }}>local preppers</Text>
+
+        {/* ── Sticky header: search + category chips ── */}
+        <View style={stickyStyle}>
+          {/* Top row: search + location + (tablet) view toggle */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 10, paddingBottom: 6, gap: 8 }}>
+            {/* Search bar */}
+            <PressableScale
+              onPress={() => { feedback.tap(); router.push('/search'); }}
+              accessibilityRole="search"
+              accessibilityLabel="Search meals, cuisines, or preppers"
+              style={{ flex: 1, flexDirection: 'row', alignItems: 'center', height: 50, borderRadius: 25, backgroundColor: Palette.surface, paddingHorizontal: 16, gap: 10, ...Shadow.card }}>
+              <Search size={19} color={Palette.textMuted} />
+              <Text style={{ flex: 1, fontFamily: Font.body, fontSize: 14.5, color: Palette.textMuted }}>
+                search meals or kitchens
               </Text>
-            </View>
+              <SlidersHorizontal size={18} color={Palette.brand} />
+            </PressableScale>
+
+            {/* Location pill */}
             <PressableScale
               onPress={() => { feedback.tap(); setLocationOpen(true); }}
               accessibilityRole="button"
               accessibilityLabel={`Delivery location: ${location}. Tap to change.`}
-              style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: Palette.surface, borderRadius: Radius.pill, paddingHorizontal: 12, paddingVertical: 9 }}>
-              <MapPin size={14} color={ORANGE} />
-              <Text style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.inkSoft }} numberOfLines={1}>{location.split(',')[0]}</Text>
-              <ChevronDown size={14} color={Palette.textSecondary} />
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: Palette.surface, borderRadius: Radius.pill, paddingHorizontal: 11, height: 50, ...Shadow.card }}>
+              <MapPin size={14} color={Palette.brand} />
+              <Text style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.inkSoft }}>{location.split(',')[0]}</Text>
+              <ChevronDown size={13} color={Palette.textSecondary} />
             </PressableScale>
+
+            {/* View-mode toggle — tablet and up only */}
+            {isTabletUp ? (
+              <PressableScale
+                onPress={() => { feedback.tap(); setViewMode((m) => m === 'grid' ? 'list' : 'grid'); }}
+                accessibilityRole="button"
+                accessibilityLabel={`Switch to ${viewMode === 'grid' ? 'list' : 'grid'} view`}
+                style={{ width: 50, height: 50, borderRadius: 25, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center', ...Shadow.card }}>
+                {viewMode === 'grid' ? <List size={18} color={Palette.inkSoft} /> : <LayoutGrid size={18} color={Palette.inkSoft} />}
+              </PressableScale>
+            ) : null}
           </View>
 
-          {/* Search */}
-          <PressableScale
-            onPress={() => { feedback.tap(); router.push('/search'); }}
-            accessibilityRole="search"
-            accessibilityLabel="Search meals, cuisines, or preppers"
-            style={{ flexDirection: 'row', alignItems: 'center', marginHorizontal: 20, marginTop: 8, backgroundColor: Palette.surface, borderRadius: 18, paddingHorizontal: 16, height: 46, gap: 10 }}>
-            <Search size={20} color={MUTED} />
-            <Text style={{ flex: 1, fontFamily: Font.body, fontSize: 15, color: MUTED }}>search meals, cuisines, or preppers</Text>
-            <SlidersHorizontal size={19} color={ORANGE} />
-          </PressableScale>
+          {/* Category chips */}
+          <CategoryChips active={activeCategory} onSelect={setActiveCategory} />
+        </View>
 
-          {/* Trending chips — quick-tap discovery below the search bar */}
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 8, paddingTop: 10, paddingBottom: 2 }}>
-            {TRENDING.map((term, i) => (
-              <MotiView key={term} from={{ opacity: 0, scale: 0.88 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'spring', damping: 14, stiffness: 200, delay: i * 40 }}>
-                <PressableScale
-                  onPress={() => { feedback.tap(); router.push(`/search?q=${encodeURIComponent(term)}`); }}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Search for ${term}`}
-                  style={{ flexDirection: 'row', alignItems: 'center', gap: 5, height: 34, paddingHorizontal: 13, borderRadius: Radius.pill, backgroundColor: Palette.surface, borderWidth: 1, borderColor: Palette.border }}>
-                  <Search size={11} color={Palette.textMuted} />
-                  <Text style={{ fontFamily: Font.medium, fontSize: 12.5, color: Palette.inkSoft }}>{term}</Text>
-                </PressableScale>
-              </MotiView>
-            ))}
-          </ScrollView>
+        {/* ── Scrollable content ── */}
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={Palette.brand} colors={[Palette.brand]} />}
+          contentContainerStyle={{ paddingBottom: 32 }}>
 
-          {/* Error banner — shown when primary data queries fail */}
+          {/* Error banner */}
           {(preppersError || mealsError) && !preppersLoading && !mealsLoading ? (
-            <PressableScale onPress={handleRefresh} accessibilityRole="button" accessibilityLabel="Data failed to load. Tap to retry." style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginHorizontal: 20, marginTop: 12, backgroundColor: Palette.danger + '14', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 11 }}>
+            <PressableScale
+              onPress={handleRefresh}
+              accessibilityRole="button"
+              accessibilityLabel="Data failed to load. Tap to retry."
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginHorizontal: 20, marginTop: 12, backgroundColor: Palette.danger + '14', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 11 }}>
               <AlertCircle size={18} color={Palette.danger} />
               <Text style={{ flex: 1, fontFamily: Font.medium, fontSize: 13.5, color: Palette.danger }}>Couldn't load meals. Tap to retry.</Text>
             </PressableScale>
           ) : null}
 
-          {/* Categories — horizontal scroll on phone, wrapping grid on tablet+ */}
-          {(() => {
-            const items = exploreCategories.map((c, i) => {
-              const Icon = ICONS[c.icon] ?? MoreHorizontal;
-              const active = i === 0;
-              const onPress = () => { feedback.tap(); if (c.key === 'more') router.push('/category?key=all&label=all meals'); else router.push(`/category?key=${c.key}&label=${encodeURIComponent(c.label)}`); };
-              return (
-                <PressableScale key={c.key} onPress={onPress} accessibilityRole="button" accessibilityLabel={`${c.label} meals`} style={{ alignItems: 'center', gap: 5, width: 52 }}>
-                  <View style={{ width: 46, height: 46, borderRadius: 15, backgroundColor: active ? Palette.brandTint : Palette.surface, alignItems: 'center', justifyContent: 'center', borderWidth: active ? 1 : 0, borderColor: '#F8C9B0' }}>
-                    <Icon size={20} color={c.color} />
-                  </View>
-                  <Text style={{ fontFamily: active ? Font.semibold : Font.medium, fontSize: 11.5, color: active ? ORANGE : Palette.inkSoft }}>{c.label}</Text>
-                </PressableScale>
-              );
-            });
-            return bp !== 'mobile'
-              ? <View style={{ flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: pad, gap: 12, paddingVertical: 12 }}>{items}</View>
-              : <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 14, paddingVertical: 8 }}>{items}</ScrollView>;
-          })()}
-
-          {/* Cuisines */}
-          <SectionHeader title="cuisines" onSeeAll={() => { feedback.tap(); router.push('/cuisine-explorer'); }} />
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 12, paddingBottom: 20 }}>
-            {cuisines.map((c) => (
-              <CuisineCard key={c.id} cuisine={c} onPress={() => router.push(`/search?q=${encodeURIComponent(c.name)}`)} />
-            ))}
-          </ScrollView>
-
-          {/* Fitness goals — nutrition-focused kitchen discovery */}
-          <View style={{ marginBottom: 10 }}>
-            <SectionHeader title="shop by goal" onSeeAll={() => router.push('/kitchens')} />
-            {bp !== 'mobile' ? (
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: pad, gap: 14, paddingBottom: 20 }}>
-                {GOALS.map((g) => (
-                  <PressableScale key={g.tag} onPress={() => { feedback.tap(); router.push(`/kitchens?tag=${encodeURIComponent(g.tag)}`); }} accessibilityRole="button" accessibilityLabel={`${g.label} meal prep kitchens`} style={{ alignItems: 'center', gap: 6, width: 60 }}>
-                    <View style={{ width: 52, height: 52, borderRadius: 17, backgroundColor: g.color + '18', alignItems: 'center', justifyContent: 'center' }}>
-                      <g.Icon size={22} color={g.color} />
-                    </View>
-                    <Text style={{ fontFamily: Font.semibold, fontSize: 11.5, color: INK, textAlign: 'center' }}>{g.label}</Text>
-                  </PressableScale>
+          {/* ── Section 1: Local Kitchens (Preppers) ── */}
+          <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260 }}>
+            <SectionHeader
+              title={`local kitchens${rankedPreppers.length ? ` · ${rankedPreppers.length}` : ''}`}
+              onSeeAll={() => router.push('/kitchens')}
+            />
+            {preppersLoading ? (
+              <View style={{ paddingBottom: 20 }}><CardRowSkeleton count={3} width={210} /></View>
+            ) : isTabletUp ? (
+              // Tablet/desktop: multi-column grid
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: pad, gap: 12, paddingBottom: 20 }}>
+                {rankedPreppers.map((p, i) => (
+                  <MotiView key={p.id} from={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 200, delay: i * 40 }}
+                    style={{ width: `${100 / prepperCols}%` as any, flexShrink: 1 }}>
+                    <PrepperCard prepper={p} showRank />
+                  </MotiView>
                 ))}
               </View>
             ) : (
+              // Mobile: horizontal scroll
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: pad, gap: 12, paddingBottom: 20 }}>
-                {GOALS.map((g) => (
-                  <PressableScale key={g.tag} onPress={() => { feedback.tap(); router.push(`/kitchens?tag=${encodeURIComponent(g.tag)}`); }} accessibilityRole="button" accessibilityLabel={`${g.label} meal prep kitchens`} style={{ alignItems: 'center', gap: 6, width: 60 }}>
-                    <View style={{ width: 52, height: 52, borderRadius: 17, backgroundColor: g.color + '18', alignItems: 'center', justifyContent: 'center' }}>
-                      <g.Icon size={22} color={g.color} />
-                    </View>
-                    <Text style={{ fontFamily: Font.semibold, fontSize: 11.5, color: INK, textAlign: 'center' }}>{g.label}</Text>
-                  </PressableScale>
+                {rankedPreppers.map((p, i) => (
+                  <MotiView key={p.id} from={{ opacity: 0, translateX: 14 }} animate={{ opacity: 1, translateX: 0 }} transition={{ type: 'timing', duration: 220, delay: i * 40 }}>
+                    <PrepperCard prepper={p} showRank />
+                  </MotiView>
                 ))}
               </ScrollView>
             )}
-          </View>
-
-          {/* Top kitchens — personalised ranking via match engine */}
-          <SectionHeader title="top kitchens · for you" />
-          {preppersLoading ? (
-            <View style={{ paddingBottom: 20 }}><CardRowSkeleton count={3} width={210} /></View>
-          ) : (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: pad, gap: 12, paddingBottom: 20 }}>
-              {rankedPreppers.map((p, i) => (
-                <MotiView key={p.id} from={{ opacity: 0, translateX: 14 }} animate={{ opacity: 1, translateX: 0 }} transition={{ type: 'timing', duration: 220, delay: i * 40 }}>
-                  <PrepperCard prepper={p} showRank />
-                </MotiView>
-              ))}
-            </ScrollView>
-          )}
-
-          {/* Grocery concierge — ingredient kits banner */}
-          <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260 }}>
-          <PressableScale onPress={() => { feedback.tap(); router.push('/grocery-concierge'); }} accessibilityRole="button" accessibilityLabel="Grocery concierge — ingredient kits"
-            style={{ marginHorizontal: 20, backgroundColor: INK, borderRadius: 16, padding: 16, flexDirection: 'row', alignItems: 'center', gap: 14, marginBottom: 20 }}>
-            <View style={{ width: 46, height: 46, borderRadius: 14, backgroundColor: Palette.brand + '22', alignItems: 'center', justifyContent: 'center' }}>
-              <ShoppingBag size={21} color={Palette.brand} />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#fff' }}>grocery concierge</Text>
-              <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: 'rgba(255,255,255,0.65)', marginTop: 2 }}>Pre-portioned ingredient kits from local preppers</Text>
-            </View>
-            <ChevronRight size={16} color="rgba(255,255,255,0.4)" />
-          </PressableScale>
           </MotiView>
 
-          {/* Limited drops — only shown when active drops exist */}
+          {/* ── Section 2: Meals Grid ── */}
+          <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 60 }}>
+            <SectionHeader
+              title="meals to order"
+              onSeeAll={() => router.push('/category?key=all&label=all+meals')}
+            />
+            {mealsLoading ? (
+              <View style={{ paddingBottom: 20 }}><CardRowSkeleton count={4} /></View>
+            ) : filteredMeals.length === 0 ? (
+              <View style={{ paddingHorizontal: pad, paddingBottom: 20 }}>
+                <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textMuted }}>No meals match this filter.</Text>
+              </View>
+            ) : isTabletUp && viewMode === 'grid' ? (
+              // Tablet/desktop grid
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: pad, gap: 12, paddingBottom: 20 }}>
+                {filteredMeals.map((m, i) => (
+                  <MotiView key={m.id} from={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 200, delay: i * 35 }}>
+                    <MealCard meal={m} width={mealCardW} />
+                  </MotiView>
+                ))}
+              </View>
+            ) : (
+              // Mobile 2-col grid (or tablet list mode)
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: pad, gap: 12, paddingBottom: 20 }}>
+                {filteredMeals.map((m, i) => (
+                  <MotiView key={m.id} from={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 200, delay: i * 35 }}>
+                    <MealCard meal={m} width={mealCardW} />
+                  </MotiView>
+                ))}
+              </View>
+            )}
+          </MotiView>
+
+          {/* ── Section 3: Limited Drops ── */}
           {drops && drops.length > 0 ? (
-            <>
+            <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 80 }}>
               <SectionHeader title="limited drops" />
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: pad, gap: 12, paddingBottom: 20 }}>
                 {drops.map((m, i) => (
@@ -255,26 +297,12 @@ export default function ExploreScreen() {
                   </MotiView>
                 ))}
               </ScrollView>
-            </>
+            </MotiView>
           ) : null}
 
-          {/* Popular (live) */}
-          <SectionHeader title="trending this week" onSeeAll={() => router.push('/category?key=all&label=popular')} />
-          {mealsLoading ? (
-            <View style={{ paddingBottom: 20 }}><CardRowSkeleton count={3} /></View>
-          ) : (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: pad, gap: 12, paddingBottom: 20 }}>
-              {(meals ?? []).map((m, i) => (
-                <MotiView key={m.id} from={{ opacity: 0, translateX: 14 }} animate={{ opacity: 1, translateX: 0 }} transition={{ type: 'timing', duration: 220, delay: i * 35 }}>
-                  <MealCard meal={m} width={carouselCardWidth} />
-                </MotiView>
-              ))}
-            </ScrollView>
-          )}
-
-          {/* For you — personalized ranking */}
+          {/* ── Section 4: For You ── */}
           {forYou.length > 0 ? (
-            <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 80 }}>
+            <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 100 }}>
               <SectionHeader title="for you" onSeeAll={() => router.push('/category?key=all&label=for+you')} />
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: pad, gap: 12, paddingBottom: 20 }}>
                 {forYou.map((s, i) => (
@@ -282,7 +310,7 @@ export default function ExploreScreen() {
                     <View>
                       <MealCard meal={s.meal} width={carouselCardWidth} />
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6, paddingHorizontal: 2 }}>
-                        <Sparkles size={11} color={ORANGE} />
+                        <Sparkles size={11} color={Palette.brand} />
                         <Text numberOfLines={1} style={{ fontFamily: Font.medium, fontSize: 11, color: Palette.textSecondary, flex: 1 }}>{s.reason}</Text>
                       </View>
                     </View>
@@ -292,36 +320,46 @@ export default function ExploreScreen() {
             </MotiView>
           ) : null}
 
-          {/* Can't decide — flat brand-tint accent */}
-          <PressableScale
-            onPress={() => { feedback.tap(); router.push('/surprise'); }}
-            accessibilityRole="button"
-            accessibilityLabel="Surprise me with a meal"
-            style={{ marginHorizontal: 20 }}>
-            <View style={{ backgroundColor: Palette.brandTint, borderRadius: Radius.lg, padding: 18, flexDirection: 'row', alignItems: 'center', gap: 14 }}>
-              <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
-                <Compass size={24} color="#fff" />
+          {/* ── Section 5: Explore by Cuisine ── */}
+          <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 120 }}>
+            <SectionHeader title="explore by cuisine" onSeeAll={() => router.push('/cuisine-explorer')} />
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: pad, gap: 12, paddingBottom: 20 }}>
+              {cuisines.map((c) => (
+                <CuisineCard key={c.id} cuisine={c} onPress={() => { feedback.tap(); router.push(`/category?cuisine=${encodeURIComponent(c.name)}`); }} />
+              ))}
+            </ScrollView>
+          </MotiView>
+
+          {/* ── Grocery Concierge Banner ── */}
+          <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 140 }}>
+            <PressableScale
+              onPress={() => { feedback.tap(); router.push('/grocery-concierge'); }}
+              accessibilityRole="button"
+              accessibilityLabel="Grocery concierge — ingredient kits"
+              style={{ marginHorizontal: 20, marginBottom: 20 }}>
+              <View style={{ backgroundColor: Palette.ink, borderRadius: 16, padding: 16, flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+                <View style={{ width: 46, height: 46, borderRadius: 14, backgroundColor: Palette.brand + '22', alignItems: 'center', justifyContent: 'center' }}>
+                  <ShoppingBag size={21} color={Palette.brand} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#fff' }}>grocery concierge</Text>
+                  <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: 'rgba(255,255,255,0.65)', marginTop: 2 }}>Pre-portioned ingredient kits from local preppers</Text>
+                </View>
+                <ChevronRight size={16} color="rgba(255,255,255,0.4)" />
               </View>
-              <View style={{ flex: 1 }}>
-                <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>can&apos;t decide?</Text>
-                <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary, marginTop: 2 }}>let our chef assistant find the perfect meal</Text>
-              </View>
-              <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: INK, borderRadius: Radius.pill, paddingHorizontal: 14, paddingVertical: 9, gap: 5 }}>
-                <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: '#fff' }}>surprise me</Text>
-                <Sparkles size={13} color={ORANGE} />
-              </View>
-            </View>
-          </PressableScale>
+            </PressableScale>
+          </MotiView>
+
         </ScrollView>
       </SafeAreaView>
 
-      {/* Location picker overlay */}
+      {/* ── Location Picker Modal ── */}
       <Modal visible={locationOpen} transparent animationType="slide" onRequestClose={() => setLocationOpen(false)}>
         <Pressable onPress={() => setLocationOpen(false)} style={{ flex: 1, backgroundColor: Palette.overlay, justifyContent: 'flex-end' }}>
-          <Pressable onPress={(e) => e.stopPropagation()} style={{ backgroundColor: Palette.surface, borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingBottom: 40, ...(bp !== 'mobile' ? { maxWidth: 540, alignSelf: 'center', width: '100%' } : {}) }}>
+          <Pressable onPress={(e) => e.stopPropagation()} style={{ backgroundColor: Palette.surface, borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingBottom: 40, ...(isTabletUp ? { maxWidth: 540, alignSelf: 'center', width: '100%' } : {}) }}>
             <View style={{ width: 40, height: 4, borderRadius: 2, backgroundColor: Palette.border, alignSelf: 'center', marginTop: 12, marginBottom: 6 }} />
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 22, paddingVertical: 14 }}>
-              <Text style={{ fontFamily: Font.display, fontSize: 22, color: INK, letterSpacing: -0.4 }}>your location</Text>
+              <Text style={{ fontFamily: Font.display, fontSize: 22, color: Palette.ink, letterSpacing: -0.4 }}>your location</Text>
               <PressableScale onPress={() => { feedback.tap(); setLocationOpen(false); }} accessibilityRole="button" accessibilityLabel="Close" style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: Palette.chip, alignItems: 'center', justifyContent: 'center' }}>
                 <X size={18} color={Palette.textSecondary} />
               </PressableScale>
@@ -334,10 +372,10 @@ export default function ExploreScreen() {
                 accessibilityLabel={`Set location to ${city}`}
                 style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 22, paddingVertical: 15, borderTopWidth: i === 0 ? 0 : 1, borderTopColor: Palette.divider }}>
                 <View style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: location === city ? Palette.brandTint : Palette.chip, alignItems: 'center', justifyContent: 'center' }}>
-                  <MapPin size={16} color={location === city ? ORANGE : Palette.textMuted} />
+                  <MapPin size={16} color={location === city ? Palette.brand : Palette.textMuted} />
                 </View>
-                <Text style={{ flex: 1, fontFamily: location === city ? Font.semibold : Font.medium, fontSize: 15, color: location === city ? ORANGE : INK }}>{city}</Text>
-                {location === city ? <Check size={18} color={ORANGE} /> : null}
+                <Text style={{ flex: 1, fontFamily: location === city ? Font.semibold : Font.medium, fontSize: 15, color: location === city ? Palette.brand : Palette.ink }}>{city}</Text>
+                {location === city ? <Check size={18} color={Palette.brand} /> : null}
               </PressableScale>
             ))}
           </Pressable>
