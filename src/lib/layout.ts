@@ -1,5 +1,8 @@
 import { usePathname } from 'expo-router';
-import { useWindowDimensions } from 'react-native';
+import { Platform, useWindowDimensions } from 'react-native';
+
+/** Sidebar widths used by the web ResponsiveFrame (kept in sync with _layout). */
+export const SIDEBAR = { tablet: 72, desktop: 220 } as const;
 
 /**
  * Responsive layout system. Mobile ≠ tablet ≠ desktop: every route gets a
@@ -13,7 +16,7 @@ import { useWindowDimensions } from 'react-native';
  */
 export const BP = { sm: 390, md: 480, tablet: 768, desktop: 1120 } as const;
 
-export type WidthClass = 'form' | 'content' | 'browse' | 'business';
+export type WidthClass = 'form' | 'content' | 'browse' | 'business' | 'feed';
 
 // Longest-prefix wins; anything unlisted is a focused 'form' flow.
 const ROUTE_CLASS: [string, WidthClass][] = [
@@ -47,10 +50,13 @@ const MAX: Record<WidthClass, { tablet: number; desktop: number }> = {
   content: { tablet: 620, desktop: 700 },
   browse: { tablet: 760, desktop: 1120 },
   business: { tablet: 760, desktop: 1120 },
+  // 'feed' is the home surface: on desktop it widens enough to fit a primary
+  // column + a right rail (see useHomeColumns), instead of a lonely column.
+  feed: { tablet: 720, desktop: 1240 },
 };
 
 export function widthClassFor(pathname: string): WidthClass {
-  if (pathname === '/' || pathname === '') return 'content';
+  if (pathname === '/' || pathname === '') return 'feed';
   for (const [prefix, cls] of ROUTE_CLASS) if (pathname.startsWith(prefix)) return cls;
   return 'form';
 }
@@ -100,4 +106,24 @@ export const gridColumns = (contentWidth: number): number =>
 export function gridCardWidth(contentWidth: number, pad = 20): number {
   const cols = gridColumns(contentWidth);
   return Math.floor((contentWidth - pad * 2 - (cols - 1) * 12) / cols);
+}
+
+/**
+ * Two-column geometry for the desktop Home ("feed" surface). On web ≥ desktop
+ * the home renders a primary feed column + a fixed right rail; everywhere else
+ * it stays a single column. Widths are derived from the centred frame minus the
+ * sidebar so the screen never has to know about the frame chrome.
+ */
+export function useHomeColumns(): { twoCol: boolean; main: number; rail: number; gap: number } {
+  const { width } = useWindowDimensions();
+  const twoCol = Platform.OS === 'web' && width >= BP.desktop;
+  if (!twoCol) return { twoCol: false, main: 0, rail: 0, gap: 0 };
+
+  const frame = Math.min(width, MAX.feed.desktop);
+  const gap = 28;
+  const rail = 320;
+  const outerPad = 24; // horizontal breathing room inside the content area
+  const contentArea = frame - SIDEBAR.desktop;
+  const main = Math.max(560, contentArea - rail - gap - outerPad);
+  return { twoCol: true, main, rail, gap };
 }

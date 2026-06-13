@@ -4,16 +4,26 @@ import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import {
   Bell,
+  Check,
   ChevronRight,
+  Coffee,
   Flame,
+  Gift,
+  LayoutGrid,
+  Leaf,
+  MapPin,
+  Moon,
   Search,
+  SlidersHorizontal,
   Sparkles,
+  Sprout,
   UtensilsCrossed,
 } from 'lucide-react-native';
 import { Platform, RefreshControl, ScrollView, Text, View, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 
+import { Avatar } from '@/components/ui/avatar';
 import { MealCard } from '@/components/meal-card';
 import { PrepperCard } from '@/components/prepper-card';
 import { Font } from '@/constants/fonts';
@@ -27,7 +37,7 @@ import { useMealPlans, useMySubscriptions } from '@/lib/queries/meal-plans';
 import { useMyOrders } from '@/lib/queries/orders';
 import { useNotifications } from '@/lib/queries/notifications';
 import { useTopPreppers } from '@/lib/queries/preppers';
-import { useCarouselCardWidth, useBreakpoint, useContentWidth, usePagePadding, gridCardWidth } from '@/lib/layout';
+import { useCarouselCardWidth, useContentWidth, usePagePadding, gridCardWidth, useHomeColumns } from '@/lib/layout';
 import { useAuth } from '@/providers/auth-provider';
 import { feedback } from '@/lib/feedback';
 import { getCurrentRush, getNextRush, getRushUrgency } from '@/lib/rush-hour';
@@ -44,17 +54,18 @@ const ORDER_STATUS_LABEL: Record<string, string> = {
   out_for_delivery: 'On the way to you',
 };
 
+const HOME_CATS = [
+  { key: 'breakfast', label: 'breakfast', Icon: Coffee, color: Palette.amber },
+  { key: 'lunch', label: 'lunch', Icon: UtensilsCrossed, color: Palette.success },
+  { key: 'dinner', label: 'dinner', Icon: Moon, color: ORANGE },
+  { key: 'healthy', label: 'healthy', Icon: Leaf, color: '#22C55E' },
+  { key: 'vegan', label: 'vegan', Icon: Sprout, color: '#8B5CF6' },
+  { key: 'more', label: 'more', Icon: LayoutGrid, color: MUTED },
+];
+
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function SectionHeader({
-  title,
-  linkLabel,
-  onLink,
-}: {
-  title: string;
-  linkLabel?: string;
-  onLink?: () => void;
-}) {
+function SectionHeader({ title, linkLabel, onLink }: { title: string; linkLabel?: string; onLink?: () => void }) {
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, marginTop: 8, marginBottom: 10 }}>
       <Text style={{ fontFamily: Font.display, fontSize: 18, color: INK, letterSpacing: -0.4 }}>{title}</Text>
@@ -64,6 +75,50 @@ function SectionHeader({
         </PressableScale>
       ) : null}
     </View>
+  );
+}
+
+function CategoryIconsRow() {
+  const router = useRouter();
+  return (
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 12, paddingVertical: 10 }}>
+      {HOME_CATS.map((c, i) => (
+        <MotiView key={c.key} from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 200, delay: 80 + i * 28 }}>
+          <PressableScale
+            onPress={() => { feedback.tap(); router.push(`/category?key=${c.key}&label=${c.label}`); }}
+            accessibilityRole="button"
+            accessibilityLabel={`Browse ${c.label}`}
+            style={{ alignItems: 'center', gap: 6 }}>
+            <View style={{ width: 60, height: 60, borderRadius: 22, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center', ...Shadow.card }}>
+              <c.Icon size={26} color={c.color} />
+            </View>
+            <Text style={{ fontFamily: Font.medium, fontSize: 11, color: Palette.textSecondary }}>{c.label}</Text>
+          </PressableScale>
+        </MotiView>
+      ))}
+    </ScrollView>
+  );
+}
+
+function RewardsBanner() {
+  const router = useRouter();
+  return (
+    <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 200 }}>
+      <PressableScale
+        onPress={() => { feedback.tap(); router.push('/rewards'); }}
+        accessibilityRole="button"
+        accessibilityLabel="View your rewards"
+        style={{ marginHorizontal: 20, backgroundColor: '#EDFBF1', borderRadius: Radius.md, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12, borderWidth: 1, borderColor: '#C6F0D4' }}>
+        <View style={{ width: 42, height: 42, borderRadius: 21, backgroundColor: Palette.success, alignItems: 'center', justifyContent: 'center' }}>
+          <Gift size={19} color="#fff" />
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={{ fontFamily: Font.heading, fontSize: 14, color: INK }}>earn rewards on every preorder</Text>
+          <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary, marginTop: 2 }}>unlock discounts & free meals</Text>
+        </View>
+        <ChevronRight size={16} color={Palette.success} />
+      </PressableScale>
+    </MotiView>
   );
 }
 
@@ -188,7 +243,7 @@ function FeaturedMealsSection({ meals, isLoading, isTablet }: { meals: ReturnTyp
 
   return (
     <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 180 }}>
-      <SectionHeader title="today's picks" linkLabel="see all →" onLink={() => { feedback.tap(); router.push('/search'); }} />
+      <SectionHeader title="recommended for you" linkLabel="see all →" onLink={() => { feedback.tap(); router.push('/search'); }} />
       {isLoading ? (
         <CardRowSkeleton count={3} />
       ) : isTablet ? (
@@ -259,28 +314,35 @@ function MealPlansDiscoverySection() {
   );
 }
 
-function ExperiencesBanner() {
+function SurpriseMeBanner() {
   const router = useRouter();
   return (
     <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 240 }}>
-      <View style={{ marginHorizontal: 20, marginTop: 8, borderRadius: Radius.lg, overflow: 'hidden' }}>
+      <PressableScale
+        onPress={() => { feedback.tap(); router.push('/surprise'); }}
+        accessibilityRole="button"
+        accessibilityLabel="Chef surprise me — let us pick the perfect meal"
+        style={{ marginHorizontal: 20 }}>
         <LinearGradient
-          colors={[ORANGE, '#C94A0F']}
+          colors={['#FEF0E8', '#FDDFC8']}
           start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={{ padding: 20, gap: 10 }}>
-          <Text style={{ fontFamily: Font.display, fontSize: 20, color: '#fff', letterSpacing: -0.5 }}>book a private chef</Text>
-          <Text style={{ fontFamily: Font.body, fontSize: 14, color: 'rgba(255,255,255,0.82)' }}>cooking classes, catering &amp; pop-up dinners near you</Text>
-          <PressableScale
-            onPress={() => { feedback.tap(); router.push('/experiences'); }}
-            accessibilityRole="button"
-            accessibilityLabel="Explore experiences"
-            style={{ alignSelf: 'flex-start', backgroundColor: '#fff', borderRadius: Radius.pill, paddingHorizontal: 18, paddingVertical: 10, marginTop: 4, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: ORANGE }}>explore experiences</Text>
-            <ChevronRight size={14} color={ORANGE} />
-          </PressableScale>
+          end={{ x: 1, y: 0 }}
+          style={{ borderRadius: Radius.lg, padding: 18, flexDirection: 'row', alignItems: 'center', minHeight: 116 }}>
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontFamily: Font.display, fontSize: 19, color: INK, letterSpacing: -0.5 }}>chef surprise me</Text>
+            <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: '#7A5A45', marginTop: 5, lineHeight: 18 }}>
+              tell us your mood,{'\n'}we'll pick the perfect meal
+            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 12, backgroundColor: INK, borderRadius: Radius.pill, paddingHorizontal: 14, paddingVertical: 8, alignSelf: 'flex-start' }}>
+              <Sparkles size={13} color="#fff" />
+              <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: '#fff' }}>surprise me</Text>
+            </View>
+          </View>
+          <View style={{ width: 96, height: 96, borderRadius: 48, backgroundColor: Palette.brandTint, alignItems: 'center', justifyContent: 'center', marginLeft: 12 }}>
+            <UtensilsCrossed size={36} color={ORANGE} />
+          </View>
         </LinearGradient>
-      </View>
+      </PressableScale>
     </MotiView>
   );
 }
@@ -339,7 +401,7 @@ export default function HomeScreen() {
   const { user } = useAuth();
   const { width } = useWindowDimensions();
   const isTablet = width >= 768;
-  const bp = useBreakpoint();
+  const cols = useHomeColumns();
 
   const rawFirst = (user?.user_metadata?.full_name as string | undefined)?.trim().split(/\s+/)[0];
   const firstName = rawFirst ? rawFirst.toLowerCase() : null;
@@ -364,38 +426,30 @@ export default function HomeScreen() {
 
   const headerPad = isTablet ? 28 : 20;
 
-  return (
-    <View style={{ flex: 1, backgroundColor: Palette.canvas }}>
-      <SafeAreaView edges={['top']} style={{ flex: 1 }}>
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={ORANGE} colors={[ORANGE]} />}
-          contentContainerStyle={{ paddingTop: Platform.OS === 'web' ? 12 : 0, paddingBottom: 40 }}>
-
-          {/* 1. Header */}
+  // ─── Header (avatar + greeting + bell) — shared by both layouts ──────────────
+  const headerEl = (
           <MotiView from={{ opacity: 0, translateY: -8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280 }}>
             <View style={{ flexDirection: 'row', alignItems: 'flex-start', paddingHorizontal: headerPad, paddingTop: 8, gap: 12 }}>
-              {/* Greeting */}
-              <View style={{ flex: 1 }}>
+              <PressableScale onPress={() => { feedback.tap(); router.push('/profile'); }} accessibilityRole="button" accessibilityLabel="Your profile" style={{ position: 'relative' }}>
+                <LinearGradient colors={['#FF9A5A', ORANGE]} style={{ width: 52, height: 52, borderRadius: 26, padding: 2.5, alignItems: 'center', justifyContent: 'center' }}>
+                  <Avatar name={user?.user_metadata?.full_name ?? 'You'} url={user?.user_metadata?.avatar_url} size={44} />
+                </LinearGradient>
+                <View style={{ position: 'absolute', bottom: 0, right: 0, width: 18, height: 18, borderRadius: 9, backgroundColor: ORANGE, borderWidth: 2.5, borderColor: Palette.canvas, alignItems: 'center', justifyContent: 'center' }}>
+                  <Check size={10} color="#fff" strokeWidth={3} />
+                </View>
+              </PressableScale>
+              <View style={{ flex: 1, paddingTop: 1 }}>
                 <Text style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.textSecondary }}>{greeting()}{firstName ? `, ${firstName}` : ''}</Text>
-                <Text style={{ fontFamily: Font.display, fontSize: 28, color: INK, letterSpacing: -0.8, lineHeight: 34, marginTop: 2 }}>
-                  what can I{'\n'}<Text style={{ color: ORANGE }}>preorder today?</Text>
+                <Text style={{ fontFamily: Font.display, fontSize: 21, color: INK, letterSpacing: -0.5, lineHeight: 24, marginTop: 2 }}>
+                  what are you{'\n'}<Text style={{ color: ORANGE }}>craving today?</Text>
                 </Text>
               </View>
-              {/* Actions */}
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingTop: 4 }}>
-                <PressableScale
-                  onPress={() => { feedback.tap(); router.push('/search'); }}
-                  accessibilityRole="button"
-                  accessibilityLabel="Search"
-                  style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
-                  <Search size={20} color={INK} />
-                </PressableScale>
+              <View style={{ alignItems: 'flex-end', gap: 10, paddingTop: 2 }}>
                 <PressableScale
                   onPress={() => { feedback.tap(); router.push('/messages'); }}
                   accessibilityRole="button"
                   accessibilityLabel={badgeCount ? `Inbox, ${badgeCount} unread` : 'Inbox'}
-                  style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
+                  style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center', ...Shadow.card }}>
                   <Bell size={20} color={INK} />
                   {badgeCount > 0 ? (
                     <View style={{ position: 'absolute', top: 8, right: 9, minWidth: 16, height: 16, borderRadius: 8, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3 }}>
@@ -403,43 +457,109 @@ export default function HomeScreen() {
                     </View>
                   ) : null}
                 </PressableScale>
+                <PressableScale style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }} accessibilityRole="button" accessibilityLabel="Location">
+                  <MapPin size={12} color={ORANGE} />
+                  <Text style={{ fontFamily: Font.medium, fontSize: 12, color: Palette.textSecondary }}>New York, NY</Text>
+                </PressableScale>
               </View>
             </View>
           </MotiView>
 
-          {/* 2. Rush Banner (only when no active preorder in flight) */}
-          {!activeOrder ? <RushBanner /> : null}
+  );
 
-          {/* 3. Active Order Tracker */}
-          {activeOrder ? <ActiveOrderBanner order={activeOrder} /> : null}
+  // ─── Search bar — shared by both layouts ────────────────────────────────────
+  const searchEl = (
+          <MotiView from={{ opacity: 0, translateY: 6 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 40 }}>
+            <PressableScale
+              onPress={() => { feedback.tap(); router.push('/search'); }}
+              accessibilityRole="search"
+              accessibilityLabel="Search meals, cuisines, or preppers"
+              style={{ marginHorizontal: 20, marginTop: 16, flexDirection: 'row', alignItems: 'center', height: 52, borderRadius: 18, backgroundColor: Palette.surface, paddingLeft: 16, paddingRight: 8, gap: 10, ...Shadow.card }}>
+              <Search size={19} color={MUTED} />
+              <Text style={{ flex: 1, fontFamily: Font.body, fontSize: 14, color: MUTED }}>search meals, cuisines, or preppers…</Text>
+              <View style={{ width: 38, height: 38, borderRadius: 12, backgroundColor: Palette.brandTint, alignItems: 'center', justifyContent: 'center' }}>
+                <SlidersHorizontal size={17} color={ORANGE} />
+              </View>
+            </PressableScale>
+          </MotiView>
+  );
 
-          {/* 4. My Meal Plans */}
-          {user?.id ? (
-            <View style={{ marginTop: 24 }}>
-              <MyPlansSection userId={user.id} />
+  // ─── Section blocks (composed differently per layout) ───────────────────────
+  const rushBlock = !activeOrder ? <RushBanner /> : null;
+  const activeOrderBlock = activeOrder ? <ActiveOrderBanner order={activeOrder} /> : null;
+  const plansBlock = user?.id ? (
+    <View style={{ marginTop: 24 }}><MyPlansSection userId={user.id} /></View>
+  ) : null;
+  const nearbyBlock = (
+    <View style={{ marginTop: 24 }}><NearbyPreppersSection /></View>
+  );
+  // On the desktop two-column layout the feed column is narrow, so the
+  // "recommended" section stays a horizontal carousel instead of a wide grid.
+  const featuredBlock = (
+    <View style={{ marginTop: 24 }}>
+      <FeaturedMealsSection meals={meals} isLoading={mealsLoading} isTablet={isTablet && !cols.twoCol} />
+    </View>
+  );
+  const rewardsBlock = <View style={{ marginTop: 16 }}><RewardsBanner /></View>;
+  const discoveryBlock = <View style={{ marginTop: 24 }}><MealPlansDiscoverySection /></View>;
+  const surpriseBlock = <View style={{ marginTop: 24 }}><SurpriseMeBanner /></View>;
+
+  // ─── Desktop: primary feed column + right rail ──────────────────────────────
+  if (cols.twoCol) {
+    return (
+      <View style={{ flex: 1, backgroundColor: Palette.canvas }}>
+        <SafeAreaView edges={['top']} style={{ flex: 1 }}>
+          <View style={{ flex: 1, flexDirection: 'row', paddingHorizontal: 12, gap: cols.gap, justifyContent: 'center' }}>
+            {/* Primary feed */}
+            <View style={{ width: cols.main, maxWidth: cols.main }}>
+              <ScrollView
+                showsVerticalScrollIndicator={false}
+                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={ORANGE} colors={[ORANGE]} />}
+                contentContainerStyle={{ paddingTop: 12, paddingBottom: 48 }}>
+                {headerEl}
+                {searchEl}
+                <CategoryIconsRow />
+                {rushBlock}
+                {activeOrderBlock}
+                {nearbyBlock}
+                {featuredBlock}
+              </ScrollView>
             </View>
-          ) : null}
 
-          {/* 5. Nearby Preppers */}
-          <View style={{ marginTop: 24 }}>
-            <NearbyPreppersSection />
+            {/* Right rail — secondary surfaces */}
+            <View style={{ width: cols.rail }}>
+              <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 48, gap: 4 }}>
+                {plansBlock}
+                {rewardsBlock}
+                {discoveryBlock}
+                {surpriseBlock}
+              </ScrollView>
+            </View>
           </View>
+        </SafeAreaView>
+      </View>
+    );
+  }
 
-          {/* 6. Featured Meals */}
-          <View style={{ marginTop: 24 }}>
-            <FeaturedMealsSection meals={meals} isLoading={mealsLoading} isTablet={isTablet} />
-          </View>
-
-          {/* 7. Meal Plans Discovery */}
-          <View style={{ marginTop: 24 }}>
-            <MealPlansDiscoverySection />
-          </View>
-
-          {/* 8. Experiences Teaser */}
-          <View style={{ marginTop: 24 }}>
-            <ExperiencesBanner />
-          </View>
-
+  // ─── Mobile / iPad: single column (unchanged) ───────────────────────────────
+  return (
+    <View style={{ flex: 1, backgroundColor: Palette.canvas }}>
+      <SafeAreaView edges={['top']} style={{ flex: 1 }}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={ORANGE} colors={[ORANGE]} />}
+          contentContainerStyle={{ paddingTop: Platform.OS === 'web' ? 12 : 0, paddingBottom: 40 }}>
+          {headerEl}
+          {searchEl}
+          <CategoryIconsRow />
+          {rushBlock}
+          {activeOrderBlock}
+          {plansBlock}
+          {nearbyBlock}
+          {featuredBlock}
+          {rewardsBlock}
+          {discoveryBlock}
+          {surpriseBlock}
         </ScrollView>
       </SafeAreaView>
     </View>
