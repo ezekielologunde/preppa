@@ -126,6 +126,7 @@ export default function DietaryPreferencesScreen() {
   const [spice, setSpice] = useState<SpiceLevel>((meta.spice as SpiceLevel | undefined) ?? 'Medium');
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [saveErr, setSaveErr] = useState<string | null>(null);
 
   function toggle(arr: string[], set: (v: string[]) => void, val: string) {
     set(arr.includes(val) ? arr.filter((x) => x !== val) : [...arr, val]);
@@ -133,6 +134,7 @@ export default function DietaryPreferencesScreen() {
 
   async function handleSave() {
     setSaving(true);
+    setSaveErr(null);
     const { error } = await supabase.auth.updateUser({
       data: { dietary, allergies, cuisines, spice },
     });
@@ -147,6 +149,7 @@ export default function DietaryPreferencesScreen() {
       }
     } else {
       feedback.error();
+      setSaveErr('Could not save preferences. Please try again.');
     }
   }
 
@@ -199,6 +202,9 @@ export default function DietaryPreferencesScreen() {
 
         {/* Sticky save */}
         <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: Palette.canvas, paddingHorizontal: 20, paddingTop: 12, paddingBottom: 32 }}>
+          {saveErr ? (
+            <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.danger, textAlign: 'center', marginBottom: 8 }}>{saveErr}</Text>
+          ) : null}
           <MotiView
             animate={{ backgroundColor: saved ? Palette.success : Palette.brand }}
             transition={{ type: 'timing', duration: 300 }}
