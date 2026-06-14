@@ -68,7 +68,7 @@ function FollowBtn({ prepperId, followSet }: { prepperId: string; followSet: Set
   const following = followSet.has(prepperId);
   function handlePress() {
     feedback.tap();
-    toggle.mutate(following);
+    toggle.mutate(following, { onError: () => feedback.error() });
   }
   return (
     <ActionBtn
