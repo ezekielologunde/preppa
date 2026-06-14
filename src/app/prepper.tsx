@@ -79,7 +79,7 @@ export default function PrepperScreen() {
   const onToggleFollow = () => {
     if (!user?.id) { router.push('/auth'); return; }
     feedback.tap();
-    toggleFollow.mutate(!!following);
+    toggleFollow.mutate(!!following, { onError: () => feedback.error() });
   };
   const onSubscribe = (plan: MealPlan) => {
     if (!user?.id) { router.push('/auth?mode=signup'); return; }
@@ -374,7 +374,7 @@ export default function PrepperScreen() {
                 try {
                   const convId = await startConversation.mutateAsync(p.userId);
                   router.push(`/chat?id=${convId}&name=${encodeURIComponent(p.name)}`);
-                } catch {}
+                } catch { feedback.error(); }
               }}
               accessibilityLabel="Message this prepper"
             />
