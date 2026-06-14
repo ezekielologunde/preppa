@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
-import { AlertTriangle, Check, ChevronLeft, Lock, Receipt, RotateCcw, Star, X } from 'lucide-react-native';
+import { AlertTriangle, Check, ChevronLeft, Lock, MessageCircle, Receipt, RotateCcw, Star, X } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useState } from 'react';
 import { ActivityIndicator, Modal, Platform, Pressable, RefreshControl, ScrollView, Text, TextInput, useWindowDimensions, View } from 'react-native';
@@ -121,16 +121,16 @@ function dateLabel(iso: string): string {
   return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
 
-function OrderCard({ order, onCancel, onReview, onPay, onReorder, onReport, cancelling, needsPayment, paying, reordering }: { order: OrderSummary; onCancel: () => void; onReview: () => void; onPay: () => void; onReorder: () => void; onReport: () => void; cancelling: boolean; needsPayment: boolean; paying: boolean; reordering: boolean }) {
+function OrderCard({ order, onCancel, onReview, onPay, onReorder, onReport, onMessage, cancelling, needsPayment, paying, reordering }: { order: OrderSummary; onCancel: () => void; onReview: () => void; onPay: () => void; onReorder: () => void; onReport: () => void; onMessage: () => void; cancelling: boolean; needsPayment: boolean; paying: boolean; reordering: boolean }) {
   const st = statusStyle(order.status);
   return (
     <View style={{ backgroundColor: Palette.surface, borderRadius: Radius.md, padding: 14, gap: 12 }}>
       {/* Header: prepper + status pill */}
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-        <View style={{ flex: 1 }}>
+        <PressableScale onPress={onMessage} accessibilityRole="button" accessibilityLabel={`View ${order.prepper}'s kitchen`} style={{ flex: 1, minWidth: 0 }}>
           <Text style={{ fontFamily: Font.heading, fontSize: 15, color: INK }} numberOfLines={1}>{order.prepper}</Text>
           <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary, marginTop: 1, textTransform: 'capitalize' }}>{dateLabel(order.created_at)} · {order.fulfillment === 'meetup' ? 'meet up' : order.fulfillment === 'home_cook' ? 'home cook' : order.fulfillment}</Text>
-        </View>
+        </PressableScale>
         <View style={{ paddingHorizontal: 11, height: 26, borderRadius: Radius.pill, backgroundColor: st.bg, alignItems: 'center', justifyContent: 'center' }}>
           <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: st.fg }}>{STATUS_LABEL[order.status]}</Text>
         </View>
@@ -225,6 +225,15 @@ function OrderCard({ order, onCancel, onReview, onPay, onReorder, onReport, canc
             accessibilityLabel="Preorder these meals again"
           />
         </View>
+      ) : ['confirmed', 'preparing', 'ready', 'out_for_delivery'].includes(order.status) ? (
+        <PressableScale
+          onPress={onMessage}
+          accessibilityRole="button"
+          accessibilityLabel="Message your kitchen"
+          style={{ height: 44, borderRadius: Radius.sm, backgroundColor: Palette.brandTint, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
+          <MessageCircle size={15} color={ORANGE} />
+          <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: ORANGE }}>Message kitchen</Text>
+        </PressableScale>
       ) : null}
 
       {/* Report / disputed indicator — completed and cancelled orders */}
@@ -447,6 +456,7 @@ export default function OrdersScreen() {
                     onReview={() => { feedback.tap(); router.push(`/review?orderId=${o.id}&prepperId=${o.prepperId}&mealId=${o.firstMealId ?? ''}&prepper=${encodeURIComponent(o.prepper)}`); }}
                     onReorder={() => reorder(o)}
                     onReport={() => { feedback.tap(); setReportReason(''); setReportErr(null); setReportModal(o); }}
+                    onMessage={() => { feedback.tap(); router.push(`/prepper?id=${o.prepperId}`); }}
                     reordering={reorderingId === o.id}
                   />
                 </MotiView>
