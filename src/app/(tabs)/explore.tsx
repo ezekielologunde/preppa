@@ -379,7 +379,7 @@ export default function ExploreScreen() {
           {/* Limited Drops */}
           {drops && drops.length > 0 ? (
             <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 80 }}>
-              <SectionHeader title="limited drops" pad={pad} />
+              <SectionHeader title="limited drops" pad={pad} onSeeAll={() => router.push('/specials')} />
               {isDesktop ? (
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: pad, gap: 12, paddingBottom: 20 }}>
                   {drops.map((m, i) => (
