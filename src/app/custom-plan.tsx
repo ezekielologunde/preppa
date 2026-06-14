@@ -199,6 +199,7 @@ export default function CustomPlanScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [drillItem, setDrillItem] = useState<CustomPlanItem | null>(null);
   const [paying, setPaying] = useState(false);
+  const [payErr, setPayErr] = useState<string | null>(null);
 
   const groups = useMemo(() => groupByPrepper(plan?.items ?? []), [plan?.items]);
   const planTotal = groups.reduce((s, g) => s + g.subtotal, 0);
@@ -210,6 +211,7 @@ export default function CustomPlanScreen() {
     if (!plan || paying) return;
     feedback.tap();
     setPaying(true);
+    setPayErr(null);
     try {
       const { data, error } = await supabase.functions.invoke('stripe-subscribe', {
         body: { type: 'custom_plan', planId: plan.id },
@@ -222,6 +224,7 @@ export default function CustomPlanScreen() {
       }
     } catch {
       feedback.error();
+      setPayErr('Could not process payment. Please try again.');
     } finally {
       setPaying(false);
     }
@@ -327,6 +330,9 @@ export default function CustomPlanScreen() {
               </Text>
               <Text style={{ fontFamily: Font.heading, fontSize: 15, color: INK }}>{money(planTotal)}/{plan.frequency}</Text>
             </View>
+            {payErr ? (
+              <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.danger, textAlign: 'center' }}>{payErr}</Text>
+            ) : null}
             <Button
               title={isPaused ? 'Pay to resume' : 'Pay full subscription'}
               Icon={CreditCard}
