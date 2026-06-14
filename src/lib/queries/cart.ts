@@ -11,6 +11,7 @@ export type CartItem = {
   image: string | null;
   prepper: string;
   prepperId: string | null;
+  prepTime: number | null;
 };
 
 type Row = {
@@ -20,6 +21,7 @@ type Row = {
   price_snapshot: number;
   meal: {
     title: string;
+    prep_time_min: number | null;
     images: { url: string }[] | null;
     prepper: { id: string; display_name: string } | { id: string; display_name: string }[] | null;
   } | null;
@@ -45,7 +47,7 @@ export function useCart(userId?: string | null) {
       if (!cartId) return { items: [], subtotal: 0, count: 0 };
       const { data, error } = await supabase
         .from('cart_items')
-        .select('id,meal_id,quantity,price_snapshot,meal:meals(title,images:meal_images(url),prepper:prepper_profiles(id,display_name))')
+        .select('id,meal_id,quantity,price_snapshot,meal:meals(title,prep_time_min,images:meal_images(url),prepper:prepper_profiles(id,display_name))')
         .eq('cart_id', cartId)
         .order('created_at', { ascending: true });
       if (error) throw error;
@@ -60,6 +62,7 @@ export function useCart(userId?: string | null) {
           image: r.meal?.images?.[0]?.url ?? null,
           prepper: prepper?.display_name ?? 'preppa',
           prepperId: prepper?.id ?? null,
+          prepTime: r.meal?.prep_time_min ?? null,
         };
       });
       const subtotal = items.reduce((s, i) => s + i.price_snapshot * i.quantity, 0);

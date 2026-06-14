@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
-import { Bike, Check, ChefHat, ChevronLeft, ChevronRight, Lock, MapPin, Minus, Plus, ShoppingBag, Store, Trash2, Heart } from 'lucide-react-native';
+import { Bike, Check, ChefHat, ChevronLeft, ChevronRight, Clock, Lock, MapPin, Minus, Plus, ShoppingBag, Store, Trash2, Heart } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useState, type ComponentType } from 'react';
 import { ActivityIndicator, Platform, RefreshControl, ScrollView, Text, TextInput, useWindowDimensions, View } from 'react-native';
@@ -117,6 +117,10 @@ export default function CartScreen() {
   const subtotal = cart?.subtotal ?? 0;
   const deliveryFee = method === 'delivery' ? DELIVERY_FEE : 0;
   const total = subtotal + deliveryFee + tip;
+  const maxPrepTime = (cart?.items ?? []).reduce<number | null>((acc, it) => {
+    if (it.prepTime == null) return acc;
+    return acc == null ? it.prepTime : Math.max(acc, it.prepTime);
+  }, null);
   const noteConfig: Record<FulfillmentType | 'in_home', { label: string; placeholder: string } | null> = {
     delivery: { label: 'Delivery address', placeholder: 'Street, apt, city' },
     meetup: { label: 'Where & when to meet', placeholder: 'e.g. Park gate, today 6pm' },
@@ -299,6 +303,16 @@ export default function CartScreen() {
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 }}>
           <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary }}>Tip</Text>
           <Text style={{ fontFamily: Font.medium, fontSize: 13, color: INK, fontVariant: ['tabular-nums'] }}>{money(tip)}</Text>
+        </View>
+      ) : null}
+
+      {maxPrepTime ? (
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 }}>
+          <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary }}>Est. prep time</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+            <Clock size={13} color={Palette.textSecondary} />
+            <Text style={{ fontFamily: Font.medium, fontSize: 13, color: INK }}>{Math.max(maxPrepTime - 5, 5)}–{maxPrepTime + 5} min</Text>
+          </View>
         </View>
       ) : null}
 
