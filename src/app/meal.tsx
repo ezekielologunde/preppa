@@ -20,6 +20,7 @@ import { useMeal } from '@/lib/queries/meals';
 import { BP } from '@/lib/layout';
 import { useStartConversation } from '@/lib/queries/messages';
 import { getCurrentRush, getRushUrgency } from '@/lib/rush-hour';
+import { useIsFollowing, useToggleFollow } from '@/lib/queries/preppers';
 import { usePrepperReviews } from '@/lib/queries/reviews';
 import { useAuth } from '@/providers/auth-provider';
 
@@ -71,6 +72,8 @@ export default function MealScreen() {
   const addToCart = useAddToCart();
   const { data: cart } = useCart(user?.id);
   const { data: reviews } = usePrepperReviews(meal?.prepperId);
+  const { data: isFollowing } = useIsFollowing(meal?.prepperId, user?.id);
+  const toggleFollow = useToggleFollow(meal?.prepperId ?? '', user?.id);
   const orderingOn = useFeatureEnabled('ordering');
   const nowHour = new Date().getHours();
   const liveRush = getRushUrgency(nowHour, new Date().getMinutes()) === 'live' ? getCurrentRush(nowHour) : null;
@@ -92,6 +95,13 @@ export default function MealScreen() {
     startConv.mutate(meal.prepperUserId, {
       onSuccess: (convId) => router.push(`/chat?id=${convId}&name=${encodeURIComponent(meal.prepper)}`),
     });
+  }
+
+  function handleFollow() {
+    feedback.tap();
+    if (!user) return router.push('/auth?mode=signin');
+    if (!meal?.prepperId) return;
+    toggleFollow.mutate(isFollowing ?? false);
   }
 
   // A cart holds one prepper at a time (each prepper cooks & fulfils its own order).
@@ -230,10 +240,28 @@ export default function MealScreen() {
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                 <PressableScale
                   onPress={() => { if (meal.prepperId) { feedback.tap(); router.push(`/prepper?id=${meal.prepperId}`); } }}
-                  style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
-                  <Text style={{ fontFamily: Font.heading, fontSize: 15, color: Palette.inkSoft }}>by {meal.prepper}</Text>
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}>
+                  <Text numberOfLines={1} style={{ fontFamily: Font.heading, fontSize: 15, color: Palette.inkSoft, flexShrink: 1 }}>by {meal.prepper}</Text>
                   {meal.prepperVerified ? <BadgeCheck size={16} color={ORANGE} fill={ORANGE} stroke="#fff" /> : null}
                 </PressableScale>
+                {meal.prepperId ? (
+                  <MotiView
+                    animate={{ backgroundColor: isFollowing ? ORANGE : Palette.brandTint }}
+                    transition={{ type: 'spring', damping: 18, stiffness: 220 }}
+                    style={{ borderRadius: 18, overflow: 'hidden' }}>
+                    <PressableScale
+                      onPress={handleFollow}
+                      disabled={toggleFollow.isPending}
+                      accessibilityRole="button"
+                      accessibilityLabel={isFollowing ? `Unfollow ${meal.prepper}` : `Follow ${meal.prepper}`}
+                      style={{ flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 12, height: 36 }}>
+                      {isFollowing ? <Check size={13} color="#fff" strokeWidth={3} /> : null}
+                      <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: isFollowing ? '#fff' : ORANGE }}>
+                        {isFollowing ? 'following' : 'follow'}
+                      </Text>
+                    </PressableScale>
+                  </MotiView>
+                ) : null}
                 {meal.prepperUserId ? (
                   <PressableScale
                     onPress={messagePrepper}
