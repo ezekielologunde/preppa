@@ -152,6 +152,7 @@ export default function MealEditorScreen() {
   const [priceText, setPriceText] = useState('');
   const [timeText, setTimeText] = useState('');
   const [formErr, setFormErr] = useState<string | null>(null);
+  const [statusErr, setStatusErr] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
@@ -244,6 +245,9 @@ export default function MealEditorScreen() {
           </MotiView>
         ) : (
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 20, gap: 10, paddingBottom: 40 }}>
+            {statusErr ? (
+              <Text style={{ fontFamily: Font.medium, fontSize: 13, color: '#fca5a5', marginBottom: 4 }}>{statusErr}</Text>
+            ) : null}
             <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textMuted, marginBottom: 4 }}>
               {(() => {
                 const live = meals.filter((m) => m.status === 'published').length;
@@ -254,7 +258,7 @@ export default function MealEditorScreen() {
             </Text>
             {meals.map((m, i) => (
               <MotiView key={m.id} from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 220, delay: i * 50 }}>
-                <MealRow meal={m} busy={setStatus.isPending} onEdit={() => openEdit(m)} onSetStatus={(s) => setStatus.mutate({ id: m.id, status: s })} />
+                <MealRow meal={m} busy={setStatus.isPending} onEdit={() => openEdit(m)} onSetStatus={(s) => { setStatusErr(null); setStatus.mutate({ id: m.id, status: s }, { onError: () => { feedback.error(); setStatusErr('Could not update meal status. Please try again.'); } }); }} />
               </MotiView>
             ))}
           </ScrollView>
