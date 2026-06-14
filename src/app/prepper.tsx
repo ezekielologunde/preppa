@@ -20,6 +20,7 @@ import { Palette, Radius } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
 import { gridCardWidth, useContentWidth } from '@/lib/layout';
 import { useKitchenPlans, useMySubscriptions, type MealPlan } from '@/lib/queries/meal-plans';
+import { useStartConversation } from '@/lib/queries/messages';
 import { useIsFollowing, usePrepperBadges, usePrepperProfile, useToggleFollow, type PrepperStats } from '@/lib/queries/preppers';
 import { usePrepperReviews } from '@/lib/queries/reviews';
 import { useAuth } from '@/providers/auth-provider';
@@ -70,6 +71,7 @@ export default function PrepperScreen() {
   const { data: badges, refetch: refetchBadges } = usePrepperBadges(id);
   const { data: mySubs } = useMySubscriptions(user?.id);
   const cardW = gridCardWidth(useContentWidth());
+  const startConversation = useStartConversation();
   const [sheetPlan, setSheetPlan] = useState<MealPlan | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   async function handleRefresh() { setRefreshing(true); await Promise.all([refetchProfile(), refetchReviews(), refetchFollowing(), refetchPlans(), refetchBadges()]); setRefreshing(false); }
@@ -360,11 +362,20 @@ export default function PrepperScreen() {
         <BottomActionBar>
           <View style={{ flexDirection: 'row', gap: 10 }}>
             <Button
-              title="Message"
+              title={startConversation.isPending ? '…' : 'Message'}
               Icon={MessageSquare}
               variant="secondary"
               fullWidth={false}
-              onPress={() => router.push('/messages')}
+              disabled={startConversation.isPending}
+              onPress={async () => {
+                if (!user?.id) { router.push('/auth'); return; }
+                if (!p?.userId) return;
+                feedback.tap();
+                try {
+                  const convId = await startConversation.mutateAsync(p.userId);
+                  router.push(`/chat?id=${convId}&name=${encodeURIComponent(p.name)}`);
+                } catch {}
+              }}
               accessibilityLabel="Message this prepper"
             />
             <Button

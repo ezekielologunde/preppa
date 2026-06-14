@@ -75,6 +75,7 @@ export type PrepperStats = {
 
 export type PrepperProfile = {
   id: string;
+  userId: string;
   name: string;
   bio: string | null;
   avatar: string | null;
@@ -103,7 +104,7 @@ export function usePrepperProfile(prepperId?: string | null) {
       const [profileRes, mealsRes, statsRes] = await Promise.all([
         supabase
           .from('prepper_profiles')
-          .select('id,display_name,bio,avatar_url,city,verified,specialties,certifications,price_from,delivers,pickup,accepting_orders,home_cook_available,rating:prepper_rating_summary(average_rating,total_reviews,five_star)')
+          .select('id,user_id,display_name,bio,avatar_url,city,verified,specialties,certifications,price_from,delivers,pickup,accepting_orders,home_cook_available,rating:prepper_rating_summary(average_rating,total_reviews,five_star)')
           .eq('id', prepperId!)
           .single(),
         supabase
@@ -139,6 +140,7 @@ export function usePrepperProfile(prepperId?: string | null) {
       });
       return {
         id: p.id as string,
+        userId: (p.user_id as string) ?? '',
         name: (p.display_name as string) ?? 'preppa',
         bio: (p.bio as string | null) ?? null,
         avatar: (p.avatar_url as string | null) ?? null,
