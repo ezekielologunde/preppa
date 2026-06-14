@@ -49,6 +49,9 @@ begin
   -- (admin_set_user_status -> 'active'); the client auth gate blocks use meanwhile.
   update profiles set status = 'deleted' where id = v_uid;
 
+  -- Stop billing now — don't charge a deleting customer through the grace window.
+  update subscriptions set status = 'cancelled' where customer_id = v_uid and status <> 'cancelled';
+
   insert into account_deletion_requests (user_id, reason, note)
   values (v_uid, nullif(btrim(p_reason), ''), nullif(btrim(p_note), ''));
 
