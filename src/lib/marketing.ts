@@ -46,7 +46,7 @@ export const HOLIDAY_REGISTRY: HolidayEvent[] = [
   },
   {
     id: 'fathers_day',   name: "Father's Day",         mmdd: '06-15', culture: 'Universal',
-    flag: '👨',  color: '#F15F22', windowDays: 5,
+    flag: '👨',  color: '#E8611A', windowDays: 5,
     pushTitle: "👨 Father's Day feast packs available",
     pushBody: 'Treat dad to a homemade meal from a local prepper. Family packs for 4 in stock.',
     route: '/holiday-specials',  cuisineTags: ['Nigerian', 'Grills', 'Family'],

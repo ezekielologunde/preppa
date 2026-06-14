@@ -38,6 +38,9 @@ yarn-error.*
 # typescript
 *.tsbuildinfo
 
+# AI tooling state
+.cline/
+
 example
 
 # generated native folders

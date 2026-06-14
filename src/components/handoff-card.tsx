@@ -12,12 +12,12 @@ const SITE = 'https://app.preppa.live';
 // A few on-brand gradient palettes; each order gets a different one (seeded by
 // its token) so every generated QR looks distinct and fun.
 const QR_GRADIENTS: [string, string][] = [
-  ['#F15F22', '#D9430F'],
+  ['#E8611A', '#D9430F'],
   ['#FF814A', '#C2410C'],
   ['#F97316', '#DB2777'],
   ['#FB923C', '#9333EA'],
   ['#F59E0B', '#EA580C'],
-  ['#EF4444', '#F15F22'],
+  ['#EF4444', '#E8611A'],
 ];
 
 function gradientFor(seed: string): [string, string] {

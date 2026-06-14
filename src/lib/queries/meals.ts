@@ -32,7 +32,7 @@ const TWO_WEEKS = 14 * 24 * 60 * 60 * 1000;
 // (everything is "new" in a young catalog — popular/diet badges say more).
 function deriveBadge(row: MealRow, rating?: { average_rating: number; total_reviews: number }): Meal['badge'] {
   if (row.is_limited) return { label: 'limited drop', color: '#8b5cf6' };
-  if ((rating?.average_rating ?? 0) >= 4.85 && (rating?.total_reviews ?? 0) >= 90) return { label: 'popular', color: '#f15f22' };
+  if ((rating?.average_rating ?? 0) >= 4.85 && (rating?.total_reviews ?? 0) >= 90) return { label: 'popular', color: '#E8611A' };
   const cat = one(row.category as never) as { key: string } | undefined;
   if (cat?.key === 'healthy') return { label: 'healthy', color: '#16a34a' };
   if (cat?.key === 'vegan') return { label: 'vegan', color: '#8b5cf6' };

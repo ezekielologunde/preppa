@@ -26,17 +26,17 @@ export const orderAgain = { title: 'Jerk Chicken Bowl', prepper: 'spice haus', p
 export const categories = [
   { key: 'breakfast', label: 'breakfast', icon: 'Coffee', color: '#f59e0b' },
   { key: 'lunch', label: 'lunch', icon: 'Salad', color: '#22c55e' },
-  { key: 'dinner', label: 'dinner', icon: 'UtensilsCrossed', color: '#f15f22' },
+  { key: 'dinner', label: 'dinner', icon: 'UtensilsCrossed', color: '#E8611A' },
   { key: 'healthy', label: 'healthy', icon: 'Leaf', color: '#16a34a' },
   { key: 'vegan', label: 'vegan', icon: 'Sprout', color: '#8b5cf6' },
   { key: 'more', label: 'more', icon: 'MoreHorizontal', color: '#6b7280' },
 ] as const;
 
 export const exploreCategories = [
-  { key: 'all', label: 'all', icon: 'LayoutGrid', color: '#f15f22' },
+  { key: 'all', label: 'all', icon: 'LayoutGrid', color: '#E8611A' },
   { key: 'breakfast', label: 'breakfast', icon: 'Coffee', color: '#f59e0b' },
   { key: 'lunch', label: 'lunch', icon: 'Salad', color: '#22c55e' },
-  { key: 'dinner', label: 'dinner', icon: 'UtensilsCrossed', color: '#f15f22' },
+  { key: 'dinner', label: 'dinner', icon: 'UtensilsCrossed', color: '#E8611A' },
   { key: 'snacks', label: 'snacks', icon: 'Cookie', color: '#d97706' },
   { key: 'desserts', label: 'desserts', icon: 'CakeSlice', color: '#ec4899' },
   { key: 'more', label: 'more', icon: 'MoreHorizontal', color: '#6b7280' },

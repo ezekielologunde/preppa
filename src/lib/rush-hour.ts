@@ -45,7 +45,7 @@ export const RUSH_WINDOWS: RushWindow[] = [
     label: 'lunch rush',
     start: 11,
     end: 14,
-    color: '#F15F22',
+    color: '#E8611A',
     buyerTip: 'Lunch rush is on — preorder for 12–2 pm pickup or delivery.',
     prepperAlert: 'Lunch rush is active (11 am–2 pm)',
     prepperPrepTip: 'Stock extra rice, soups, and wraps. Batch-cook proteins — this is your highest-volume window.',

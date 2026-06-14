@@ -36,7 +36,7 @@ const PREPPER_META: Record<PrepperBadgeKey, BadgeMeta> = {
 
 const CUSTOMER_META: Record<CustomerBadgeKey, BadgeMeta> = {
   first_order:      { label: 'First Order',      Icon: Sparkles,    color: Palette.amber, bg: Palette.amber + '1A', description: 'Placed their first order' },
-  loyal_regular:    { label: 'Loyal Regular',    Icon: BadgeCheck,  color: '#f15f22', bg: '#fff7ed', description: '3+ orders from the same chef' },
+  loyal_regular:    { label: 'Loyal Regular',    Icon: BadgeCheck,  color: Palette.brand, bg: Palette.brandTint, description: '3+ orders from the same chef' },
   local_foodie:     { label: 'Local Foodie',     Icon: TrendingUp,  color: '#22c55e', bg: '#f0fdf4', description: 'Ordered from 3+ kitchens' },
   family_provider:  { label: 'Family Provider',  Icon: Heart,       color: '#3b82f6', bg: '#eff6ff', description: '5+ completed orders' },
   macro_hunter:     { label: 'Macro Hunter',     Icon: Zap,         color: Palette.danger, bg: '#fef2f2', description: 'Orders high-protein meals' },

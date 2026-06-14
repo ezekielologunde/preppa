@@ -106,7 +106,7 @@ export default function PrepPlusScreen() {
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 20, gap: 20, paddingBottom: 140 }}>
           {/* Hero gradient card */}
           <MotiView from={{ opacity: 0, translateY: 12 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 300 }}>
-            <LinearGradient colors={['#F15F22', '#F59E0B']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+            <LinearGradient colors={['#E8611A', '#F59E0B']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
               style={{ borderRadius: 24, padding: 24, gap: 10 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                 <View style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.25)', alignItems: 'center', justifyContent: 'center' }}>
@@ -172,7 +172,7 @@ export default function PrepPlusScreen() {
           <MotiView from={{ opacity: 0, translateY: 6 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 240, delay: 380 }}>
             <View style={{ backgroundColor: Palette.brandTint, borderRadius: Radius.md, padding: 16, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
               <View style={{ flexDirection: 'row' }}>
-                {['#F15F22', '#f59e0b', '#8b5cf6', '#ec4899'].map((c, i) => (
+                {['#E8611A', '#f59e0b', '#8b5cf6', '#ec4899'].map((c, i) => (
                   <View key={c} style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: c, borderWidth: 2, borderColor: Palette.canvas, marginLeft: i > 0 ? -8 : 0 }} />
                 ))}
               </View>

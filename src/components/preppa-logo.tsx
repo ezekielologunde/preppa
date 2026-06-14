@@ -3,8 +3,8 @@ import { View, type StyleProp, type ViewStyle } from 'react-native';
 
 /** Preppa brand palette. */
 export const BRAND = {
-  orange: '#F15F22',
-  orangeDeep: '#D94F14',
+  orange: '#E8611A',
+  orangeDeep: '#C84E10',
   orangeLight: '#FF814A',
 } as const;
 
