@@ -157,6 +157,7 @@ export default function BidRequestsScreen() {
   // Bid form
   const [bidPrice, setBidPrice] = useState('');
   const [bidNote, setBidNote] = useState('');
+  const [bidErr, setBidErr] = useState<string | null>(null);
 
   async function submitRequest() {
     setPostErr(null);
@@ -186,9 +187,12 @@ export default function BidRequestsScreen() {
     setPostErr(null);
   }
 
+  function closeBidModal() { setBidTarget(null); setBidErr(null); }
+
   async function submitBid() {
     const price = parseFloat(bidPrice.replace(/[^0-9.]/g, ''));
     if (!price || price <= 0 || !bidTarget || !prepper) return;
+    setBidErr(null);
     try {
       await placeBid.mutateAsync({
         requestId: bidTarget.id,
@@ -199,8 +203,9 @@ export default function BidRequestsScreen() {
       feedback.success();
       setBidTarget(null);
       setBidPrice(''); setBidNote('');
-    } catch (e) {
+    } catch {
       feedback.error();
+      setBidErr('Could not submit bid. Please try again.');
     }
   }
 
@@ -429,13 +434,13 @@ export default function BidRequestsScreen() {
         </Modal>
 
         {/* Bid modal */}
-        <Modal visible={!!bidTarget} transparent animationType="slide" onRequestClose={() => setBidTarget(null)}>
-          <Pressable onPress={() => setBidTarget(null)} style={{ flex: 1, backgroundColor: Palette.overlay, justifyContent: 'flex-end' }}>
+        <Modal visible={!!bidTarget} transparent animationType="slide" onRequestClose={closeBidModal}>
+          <Pressable onPress={closeBidModal} style={{ flex: 1, backgroundColor: Palette.overlay, justifyContent: 'flex-end' }}>
             <Pressable onPress={(e) => e.stopPropagation()} style={{ backgroundColor: Palette.surface, borderTopLeftRadius: 28, borderTopRightRadius: 28, maxHeight: '80%' }}>
               <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 24, gap: 14 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                   <Text style={{ fontFamily: Font.display, fontSize: 20, color: INK, letterSpacing: -0.4, flex: 1 }} numberOfLines={1}>{bidTarget?.title}</Text>
-                  <PressableScale onPress={() => { feedback.tap(); setBidTarget(null); }} accessibilityRole="button" accessibilityLabel="Close"
+                  <PressableScale onPress={() => { feedback.tap(); closeBidModal(); }} accessibilityRole="button" accessibilityLabel="Close"
                     style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: Palette.canvas, alignItems: 'center', justifyContent: 'center' }}>
                     <X size={18} color={Palette.inkSoft} />
                   </PressableScale>
@@ -465,6 +470,9 @@ export default function BidRequestsScreen() {
                 <TextInput value={bidNote} onChangeText={(t) => setBidNote(cleanBlock(t))} multiline maxLength={300}
                   placeholder="Message to the customer (optional)" placeholderTextColor={Palette.textMuted}
                   style={{ minHeight: 70, backgroundColor: Palette.canvas, borderRadius: 14, padding: 14, fontFamily: Font.body, fontSize: 14, color: INK, textAlignVertical: 'top', borderWidth: 1, borderColor: Palette.border }} />
+                {bidErr ? (
+                  <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.danger, textAlign: 'center' }}>{bidErr}</Text>
+                ) : null}
                 <PressableScale onPress={submitBid} disabled={placeBid.isPending || !bidPrice} accessibilityRole="button" accessibilityLabel="Submit bid"
                   style={{ height: 54, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', opacity: placeBid.isPending || !bidPrice ? 0.6 : 1 }}>
                   {placeBid.isPending ? <ActivityIndicator color="#fff" /> : <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>submit bid</Text>}
