@@ -3,6 +3,7 @@ import { MotiView } from 'moti';
 import { useState } from 'react';
 import { ActivityIndicator, Linking, Modal, Platform, Pressable, Text, View } from 'react-native';
 
+import { PaymentRedirectOverlay } from '@/components/payment-redirect-overlay';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
 import { Palette, Radius } from '@/constants/theme';
@@ -84,6 +85,7 @@ export function SubscribePlanSheet({ plan, userId, onClose }: { plan: MealPlan |
   }
 
   return (
+    <>
     <Modal visible={!!plan} transparent animationType="slide" onRequestClose={onClose}>
       <Pressable onPress={onClose} style={{ flex: 1, backgroundColor: Palette.overlay, justifyContent: 'flex-end' }}>
         <Pressable onPress={(e) => e.stopPropagation()} style={{ backgroundColor: Palette.surface, borderTopLeftRadius: 26, borderTopRightRadius: 26, padding: 22, paddingBottom: 34, gap: 16, alignSelf: 'center', width: '100%', maxWidth: 480 }}>
@@ -188,5 +190,7 @@ export function SubscribePlanSheet({ plan, userId, onClose }: { plan: MealPlan |
         </Pressable>
       </Pressable>
     </Modal>
+    <PaymentRedirectOverlay visible={loading} />
+    </>
   );
 }

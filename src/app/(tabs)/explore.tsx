@@ -47,6 +47,7 @@ import {
 } from '@/lib/layout';
 import { useRankedPreppers } from '@/lib/match';
 import { useAddresses } from '@/lib/queries/addresses';
+import { useGPSLocation } from '@/lib/use-location';
 import { useFeaturedMeals, useLimitedDrops } from '@/lib/queries/meals';
 import { useKitchenTags, useTopPreppers } from '@/lib/queries/preppers';
 import { usePersonalizedMeals } from '@/lib/queries/recommend';
@@ -147,13 +148,20 @@ export default function ExploreScreen() {
   const forYou = usePersonalizedMeals(meals ?? [], user?.id, user?.user_metadata ?? null).slice(0, 6);
   const rankedPreppers = useRankedPreppers(preppers ?? [], user?.id);
 
-  // Location is the user's default saved address — the SAME source the home
-  // header reads, so changing it once (in /addresses) updates everywhere.
   const { data: addresses = [] } = useAddresses(user?.id);
   const defaultAddress = addresses.find((a) => a.isDefault) ?? addresses[0];
   const locationLabel = defaultAddress
     ? [defaultAddress.city, defaultAddress.state].filter(Boolean).join(', ')
     : 'Set location';
+  const { captureLocation, capturing: locCapturing } = useGPSLocation(user?.id, addresses);
+
+  async function handleLocationTap() {
+    if (locCapturing) return;
+    feedback.tap();
+    if (!user) { router.push('/auth?mode=signup'); return; }
+    const result = await captureLocation();
+    if (result !== 'done') router.push('/addresses');
+  }
 
   const [refreshing, setRefreshing]     = useState(false);
   const [filterOpen, setFilterOpen]     = useState(false);
@@ -245,11 +253,13 @@ export default function ExploreScreen() {
           {/* Top row */}
           <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: pad, paddingTop: 10, paddingBottom: 4, gap: 10 }}>
             <Text numberOfLines={1} style={{ flex: 1, fontFamily: Font.display, fontSize: 34, color: Palette.ink, letterSpacing: -1.2 }}>explore</Text>
-            <PressableScale onPress={() => { feedback.tap(); router.push('/addresses'); }} accessibilityRole="button" accessibilityLabel={`Delivery location: ${locationLabel}. Tap to change.`}
+            <PressableScale onPress={handleLocationTap} accessibilityRole="button" accessibilityLabel={`Delivery location: ${locCapturing ? 'Detecting...' : locationLabel}. Tap to detect.`}
               style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: Palette.surface, borderRadius: Radius.pill, paddingHorizontal: 11, height: 40, maxWidth: 200, ...Shadow.card }}>
-              <MapPin size={13} color={Palette.brand} style={{ flexShrink: 0 }} />
-              <Text numberOfLines={1} style={{ fontFamily: Font.medium, fontSize: 13, color: defaultAddress ? Palette.inkSoft : Palette.brand, flexShrink: 1 }}>{locationLabel}</Text>
-              <ChevronDown size={12} color={Palette.textSecondary} style={{ flexShrink: 0 }} />
+              <MapPin size={13} color={locCapturing ? Palette.textMuted : Palette.brand} style={{ flexShrink: 0 }} />
+              <Text numberOfLines={1} style={{ fontFamily: Font.medium, fontSize: 13, color: locCapturing ? Palette.textMuted : (defaultAddress ? Palette.inkSoft : Palette.brand), flexShrink: 1 }}>
+                {locCapturing ? 'detecting...' : locationLabel}
+              </Text>
+              <ChevronDown size={12} color={locCapturing ? Palette.textMuted : Palette.textSecondary} style={{ flexShrink: 0 }} />
             </PressableScale>
             {isTabletUp ? (
               <PressableScale onPress={() => { feedback.tap(); setViewMode((m) => m === 'grid' ? 'list' : 'grid'); }} accessibilityRole="button" accessibilityLabel={`Switch to ${viewMode === 'grid' ? 'list' : 'grid'} view`}

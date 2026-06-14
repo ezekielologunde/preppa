@@ -1,63 +1,64 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import type { ComponentType } from 'react';
 import {
-  ChevronRight, Coffee, Gift, LayoutGrid, Leaf, MapPin,
-  Moon, Play, Sparkles, Sprout, Star, UtensilsCrossed, Zap,
+  ChevronRight, Coffee, Gift, LayoutGrid, Leaf, Moon, Sparkles, Sprout, UtensilsCrossed, Zap,
 } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useEffect, useRef, useState } from 'react';
 import { ScrollView, Text, useWindowDimensions, View } from 'react-native';
 
-import type { Meal } from '@/components/meal-card';
-import { MealCard } from '@/components/meal-card';
-import { PrepperCard } from '@/components/prepper-card';
-import { CardRowSkeleton } from '@/components/ui/skeleton';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
 import { Palette, Radius, Shadow } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
-import { imgUrl } from '@/lib/img';
-import { useCarouselCardWidth, useContentWidth, usePagePadding, gridCardWidth } from '@/lib/layout';
-import { useMealPlans, useMySubscriptions } from '@/lib/queries/meal-plans';
-import { useFollowedPreppers, useTopPreppers } from '@/lib/queries/preppers';
+import { useMySubscriptions } from '@/lib/queries/meal-plans';
 
 const ORANGE = Palette.brand;
 const INK = Palette.ink;
 const MUTED = Palette.textMuted;
-const ACID = '#d8ff3e';
-const ABS = { position: 'absolute' as const, top: 0, left: 0, right: 0, bottom: 0 };
+
 const ONBOARDING_KEY = 'preppa_onboarded';
 
-const HOME_CATS: { key: string; label: string; Icon: ComponentType<{ size?: number; color?: string }>; color: string }[] = [
-  { key: 'breakfast', label: 'breakfast', Icon: Coffee, color: Palette.amber },
-  { key: 'lunch', label: 'lunch', Icon: UtensilsCrossed, color: Palette.success },
-  { key: 'dinner', label: 'dinner', Icon: Moon, color: ORANGE },
-  { key: 'healthy', label: 'healthy', Icon: Leaf, color: '#22C55E' },
-  { key: 'vegan', label: 'vegan', Icon: Sprout, color: '#8B5CF6' },
-  { key: 'more', label: 'more', Icon: LayoutGrid, color: MUTED },
+const HOME_CATS: {
+  key: string; label: string;
+  Icon: ComponentType<{ size?: number; color?: string }>; color: string;
+}[] = [
+  { key: 'breakfast', label: 'breakfast',  Icon: Coffee,         color: Palette.amber },
+  { key: 'lunch',     label: 'lunch',      Icon: UtensilsCrossed, color: Palette.success },
+  { key: 'dinner',    label: 'dinner',     Icon: Moon,           color: ORANGE },
+  { key: 'healthy',   label: 'healthy',    Icon: Leaf,           color: '#22C55E' },
+  { key: 'vegan',     label: 'vegan',      Icon: Sprout,         color: '#8B5CF6' },
+  { key: 'more',      label: 'more',       Icon: LayoutGrid,     color: MUTED },
 ];
 
 const ONBOARDING_STEPS = [
-  { Icon: MapPin, color: ORANGE, title: 'local kitchens, nearby', desc: 'Discover home chefs and meal preppers within miles of you.' },
-  { Icon: UtensilsCrossed, color: Palette.amber, title: 'drops or weekly plans', desc: 'Order single meals or subscribe to recurring prep — your pace.' },
-  { Icon: Sparkles, color: Palette.success, title: 'fresh, real food', desc: 'Restaurant quality without the markup. Delivered or pickup.' },
-];
-
-const CHEF_PALETTES: [string, string][] = [
-  ['#1a0a00', '#5c2a0f'],
-  ['#0d1a1a', '#0f4040'],
-  ['#1a1020', '#3d1a50'],
-  ['#0d1a0d', '#1a4020'],
-  ['#1a0d00', '#4a2800'],
-  ['#0d0d1a', '#1a1a4a'],
+  {
+    emoji: '👩‍🍳',
+    color: ORANGE,
+    title: 'browse local chefs',
+    desc: 'Discover home chefs and meal preppers right in your neighborhood.',
+  },
+  {
+    emoji: '🍱',
+    color: Palette.amber,
+    title: 'mix & match meals',
+    desc: 'Build a custom plan from any kitchen — your macros, your pace.',
+  },
+  {
+    emoji: '🚀',
+    color: Palette.success,
+    title: 'enjoy flexibly',
+    desc: 'Pause, swap, or cancel anytime. No contracts, no commitments.',
+  },
 ];
 
 // ─── SectionHeader ────────────────────────────────────────────────────────────
 
-export function SectionHeader({ title, linkLabel, onLink }: { title: string; linkLabel?: string; onLink?: () => void }) {
+export function SectionHeader({
+  title, linkLabel, onLink,
+}: { title: string; linkLabel?: string; onLink?: () => void }) {
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, marginTop: 8, marginBottom: 10 }}>
       <Text style={{ fontFamily: Font.display, fontSize: 18, color: INK, letterSpacing: -0.4 }}>{title}</Text>
@@ -75,11 +76,16 @@ export function SectionHeader({ title, linkLabel, onLink }: { title: string; lin
 export function CategoryIconsRow() {
   const router = useRouter();
   return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 12, paddingVertical: 10 }}>
+    <ScrollView horizontal showsHorizontalScrollIndicator={false}
+      contentContainerStyle={{ paddingHorizontal: 20, gap: 12, paddingVertical: 10 }}>
       {HOME_CATS.map((c, i) => (
-        <MotiView key={c.key} from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 200, delay: 50 + i * 50 }}>
+        <MotiView key={c.key} from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }}
+          transition={{ type: 'timing', duration: 200, delay: 50 + i * 50 }}>
           <PressableScale
-            onPress={() => { feedback.tap(); router.push(c.key === 'more' ? '/explore' : `/category?key=${c.key}&label=${c.label}`); }}
+            onPress={() => {
+              feedback.tap();
+              router.push(c.key === 'more' ? '/explore' : `/category?key=${c.key}&label=${c.label}`);
+            }}
             accessibilityRole="button" accessibilityLabel={`Browse ${c.label}`}
             style={{ alignItems: 'center', gap: 6 }}>
             <View style={{ width: 60, height: 60, borderRadius: 22, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center', ...Shadow.card }}>
@@ -98,9 +104,9 @@ export function CategoryIconsRow() {
 export function RewardsBanner() {
   const router = useRouter();
   return (
-    <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 200 }}>
-      <PressableScale
-        onPress={() => { feedback.tap(); router.push('/rewards'); }}
+    <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }}
+      transition={{ type: 'timing', duration: 260, delay: 200 }}>
+      <PressableScale onPress={() => { feedback.tap(); router.push('/rewards'); }}
         accessibilityRole="button" accessibilityLabel="View your rewards"
         style={{ marginHorizontal: 20, backgroundColor: '#EDFBF1', borderRadius: Radius.md, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12, borderWidth: 1, borderColor: '#C6F0D4' }}>
         <View style={{ width: 42, height: 42, borderRadius: 21, backgroundColor: Palette.success, alignItems: 'center', justifyContent: 'center' }}>
@@ -124,10 +130,10 @@ export function MyPlansSection({ userId }: { userId: string }) {
 
   if (!subs?.length) {
     return (
-      <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 100 }}>
+      <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }}
+        transition={{ type: 'timing', duration: 260, delay: 100 }}>
         <SectionHeader title="your plans" />
-        <PressableScale
-          onPress={() => { feedback.tap(); router.push('/meal-plans'); }}
+        <PressableScale onPress={() => { feedback.tap(); router.push('/meal-plans'); }}
           accessibilityRole="button" accessibilityLabel="Subscribe to a weekly meal plan"
           style={{ marginHorizontal: 20, backgroundColor: Palette.brandTint, borderRadius: Radius.lg, paddingHorizontal: 18, paddingVertical: 16, flexDirection: 'row', alignItems: 'center', gap: 14 }}>
           <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
@@ -144,16 +150,21 @@ export function MyPlansSection({ userId }: { userId: string }) {
   }
 
   return (
-    <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 100 }}>
-      <SectionHeader title="your plans" linkLabel="manage →" onLink={() => { feedback.tap(); router.push('/meal-plans'); }} />
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 12, paddingBottom: 4 }}>
+    <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }}
+      transition={{ type: 'timing', duration: 260, delay: 100 }}>
+      <SectionHeader title="your plans" linkLabel="manage →"
+        onLink={() => { feedback.tap(); router.push('/meal-plans'); }} />
+      <ScrollView horizontal showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ paddingHorizontal: 20, gap: 12, paddingBottom: 4 }}>
         {subs.map((sub, i) => {
-          const nextDate = sub.next_billing_at ? new Date(sub.next_billing_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : null;
+          const nextDate = sub.next_billing_at
+            ? new Date(sub.next_billing_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+            : null;
           const isActive = sub.status === 'active';
           return (
-            <MotiView key={sub.id} from={{ opacity: 0, translateY: 6 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 220, delay: i * 50 }}>
-              <PressableScale
-                onPress={() => { feedback.tap(); router.push('/meal-plans'); }}
+            <MotiView key={sub.id} from={{ opacity: 0, translateY: 6 }} animate={{ opacity: 1, translateY: 0 }}
+              transition={{ type: 'timing', duration: 220, delay: i * 50 }}>
+              <PressableScale onPress={() => { feedback.tap(); router.push('/meal-plans'); }}
                 accessibilityRole="button" accessibilityLabel={`${sub.plan_name} plan, ${sub.status}`}
                 style={{ width: 200, backgroundColor: Palette.surface, borderRadius: Radius.lg, padding: 14, gap: 6, ...Shadow.card }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -173,143 +184,14 @@ export function MyPlansSection({ userId }: { userId: string }) {
   );
 }
 
-// ─── FollowingKitchensSection ─────────────────────────────────────────────────
-
-export function FollowingKitchensSection({ userId }: { userId: string }) {
-  const router = useRouter();
-  const { data: preppers } = useFollowedPreppers(userId);
-  if (!preppers?.length) return null;
-  return (
-    <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 100 }}>
-      <SectionHeader title="kitchens you follow" linkLabel="see all →" onLink={() => { feedback.tap(); router.push('/following'); }} />
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 12, paddingBottom: 4 }}>
-        {preppers.map((prepper, i) => (
-          <MotiView key={prepper.id} from={{ opacity: 0, translateX: 10 }} animate={{ opacity: 1, translateX: 0 }} transition={{ type: 'timing', duration: 220, delay: i * 50 }}>
-            <PrepperCard prepper={prepper} />
-          </MotiView>
-        ))}
-      </ScrollView>
-    </MotiView>
-  );
-}
-
-// ─── NearbyPreppersSection ────────────────────────────────────────────────────
-
-export function NearbyPreppersSection() {
-  const router = useRouter();
-  const { data: preppers, isLoading } = useTopPreppers(8);
-  return (
-    <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 100 }}>
-      <SectionHeader title="local kitchens near you" linkLabel="see all →" onLink={() => { feedback.tap(); router.push('/explore'); }} />
-      {isLoading ? <CardRowSkeleton count={3} /> : (
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 12, paddingBottom: 4 }}>
-          {(preppers ?? []).map((prepper, i) => (
-            <MotiView key={prepper.id} from={{ opacity: 0, translateY: 6 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 220, delay: i * 50 }}>
-              <PrepperCard prepper={prepper} showRank />
-            </MotiView>
-          ))}
-        </ScrollView>
-      )}
-    </MotiView>
-  );
-}
-
-// ─── TrendingSection ──────────────────────────────────────────────────────────
-
-export function TrendingSection({ meals, isLoading, isTablet }: { meals: Meal[] | undefined; isLoading: boolean; isTablet: boolean }) {
-  const router = useRouter();
-  const contentWidth = useContentWidth();
-  const pad = usePagePadding();
-  const carouselCardWidth = useCarouselCardWidth();
-  const list = meals ?? [];
-  const [hero, ...rest] = list;
-
-  return (
-    <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 150 }}>
-      <SectionHeader title="trending near you" linkLabel="see all →" onLink={() => { feedback.tap(); router.push('/search'); }} />
-      {isLoading ? <CardRowSkeleton count={3} /> : isTablet ? (
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12, paddingHorizontal: pad, paddingBottom: 4 }}>
-          {list.map((m, i) => (
-            <MotiView key={m.id} from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 200, delay: i * 50 }}>
-              <MealCard meal={m} width={gridCardWidth(contentWidth, pad)} />
-            </MotiView>
-          ))}
-        </View>
-      ) : (
-        <>
-          {hero ? (
-            <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 240 }} style={{ paddingHorizontal: 20, marginBottom: 12 }}>
-              <MealCard meal={hero} width={null} variant="big" />
-            </MotiView>
-          ) : null}
-          {rest.length > 0 ? (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 12, paddingBottom: 4 }}>
-              {rest.map((m, i) => (
-                <MotiView key={m.id} from={{ opacity: 0, translateY: 6 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 220, delay: i * 50 }}>
-                  <MealCard meal={m} width={carouselCardWidth} />
-                </MotiView>
-              ))}
-            </ScrollView>
-          ) : null}
-        </>
-      )}
-    </MotiView>
-  );
-}
-
-// ─── MealPlansDiscoverySection ────────────────────────────────────────────────
-
-export function MealPlansDiscoverySection() {
-  const router = useRouter();
-  const { data: plans, isLoading } = useMealPlans();
-  if (!isLoading && (!plans || plans.length === 0)) return null;
-  return (
-    <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 150 }}>
-      <SectionHeader title="meal plans" linkLabel="explore →" onLink={() => { feedback.tap(); router.push('/meal-plans'); }} />
-      {isLoading ? <CardRowSkeleton count={3} /> : (
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 12, paddingBottom: 4 }}>
-          {(plans ?? []).map((plan, i) => (
-            <MotiView key={plan.id} from={{ opacity: 0, translateY: 6 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 220, delay: i * 50 }}>
-              <PressableScale
-                onPress={() => { feedback.tap(); router.push('/meal-plans'); }}
-                accessibilityRole="button" accessibilityLabel={`${plan.name} by ${plan.prepper}, $${plan.price} per week`}
-                style={{ width: 190, backgroundColor: Palette.surface, borderRadius: Radius.lg, overflow: 'hidden', ...Shadow.card }}>
-                <View style={{ height: 100, backgroundColor: Palette.brandTint }}>
-                  {plan.image_url ? (
-                    <Image source={{ uri: plan.image_url }} style={{ flex: 1 }} contentFit="cover" transition={200} />
-                  ) : (
-                    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-                      <UtensilsCrossed size={32} color={ORANGE} />
-                    </View>
-                  )}
-                </View>
-                <View style={{ padding: 12, gap: 4 }}>
-                  <Text numberOfLines={1} style={{ fontFamily: Font.heading, fontSize: 14, color: INK }}>{plan.name}</Text>
-                  <Text numberOfLines={1} style={{ fontFamily: Font.body, fontSize: 12, color: MUTED }}>{plan.prepper}</Text>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 }}>
-                    <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: ORANGE }}>${plan.price.toFixed(0)}/wk</Text>
-                    {plan.tags?.length ? (
-                      <Text numberOfLines={1} style={{ fontFamily: Font.body, fontSize: 11, color: MUTED, flex: 1, textAlign: 'right' }}>{plan.tags[0]}</Text>
-                    ) : null}
-                  </View>
-                </View>
-              </PressableScale>
-            </MotiView>
-          ))}
-        </ScrollView>
-      )}
-    </MotiView>
-  );
-}
-
 // ─── SurpriseMeBanner ─────────────────────────────────────────────────────────
 
 export function SurpriseMeBanner() {
   const router = useRouter();
   return (
-    <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 200 }}>
-      <PressableScale
-        onPress={() => { feedback.tap(); router.push('/surprise'); }}
+    <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }}
+      transition={{ type: 'timing', duration: 260, delay: 200 }}>
+      <PressableScale onPress={() => { feedback.tap(); router.push('/surprise'); }}
         accessibilityRole="button" accessibilityLabel="Chef surprise me — let us pick the perfect meal"
         style={{ marginHorizontal: 20 }}>
         <LinearGradient colors={['#FEF0E8', '#FDDFC8']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
@@ -355,46 +237,58 @@ export function HomeOnboarding() {
   if (dismissed !== false) return null;
 
   return (
-    <MotiView from={{ opacity: 0, translateY: 16 }} animate={{ opacity: 1, translateY: 0 }}
+    <MotiView from={{ opacity: 0, translateY: 18 }} animate={{ opacity: 1, translateY: 0 }}
       transition={{ type: 'spring', damping: 15, stiffness: 120, mass: 0.6 }}
       style={{ marginHorizontal: 20, marginTop: 16, backgroundColor: Palette.surface, borderRadius: Radius.lg, overflow: 'hidden', ...Shadow.card }}>
-      <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 6, paddingTop: 14, paddingBottom: 2 }}>
-        {ONBOARDING_STEPS.map((_, i) => (
+      {/* Header: label + skip */}
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: 14, paddingBottom: 2 }}>
+        <Text style={{ fontFamily: Font.heading, fontSize: 11.5, color: MUTED, letterSpacing: 0.6, textTransform: 'uppercase' }}>
+          preppa in 3 steps
+        </Text>
+        <PressableScale onPress={dismiss} accessibilityRole="button" accessibilityLabel="Dismiss onboarding"
+          style={{ paddingHorizontal: 8, paddingVertical: 4 }}>
+          <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: MUTED }}>skip</Text>
+        </PressableScale>
+      </View>
+      {/* Progress dots */}
+      <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 6, paddingTop: 10, paddingBottom: 2 }}>
+        {ONBOARDING_STEPS.map((s, i) => (
           <MotiView key={i}
-            animate={{ width: i === page ? 20 : 6, backgroundColor: i === page ? Palette.brand : Palette.border }}
+            animate={{ width: i === page ? 22 : 6, backgroundColor: i === page ? s.color : Palette.border }}
             transition={{ type: 'spring', damping: 18, stiffness: 200 }}
             style={{ height: 6, borderRadius: 3 }} />
         ))}
       </View>
+      {/* Slide content */}
       <ScrollView ref={scrollRef} horizontal pagingEnabled showsHorizontalScrollIndicator={false}
         onScroll={(e) => setPage(Math.round(e.nativeEvent.contentOffset.x / cardWidth))}
         scrollEventThrottle={16}>
         {ONBOARDING_STEPS.map((step, i) => (
-          <View key={i} style={{ width: cardWidth, padding: 22, alignItems: 'center', gap: 12 }}>
-            <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: step.color + '1A', alignItems: 'center', justifyContent: 'center' }}>
-              <step.Icon size={28} color={step.color} />
+          <View key={i} style={{ width: cardWidth, paddingHorizontal: 24, paddingVertical: 24, alignItems: 'center', gap: 14 }}>
+            <View style={{ width: 78, height: 78, borderRadius: 39, backgroundColor: step.color + '1C', alignItems: 'center', justifyContent: 'center' }}>
+              <Text style={{ fontSize: 36 }}>{step.emoji}</Text>
             </View>
-            <Text style={{ fontFamily: Font.display, fontSize: 17, color: INK, letterSpacing: -0.3, textAlign: 'center' }}>{step.title}</Text>
-            <Text style={{ fontFamily: Font.body, fontSize: 13.5, color: Palette.textSecondary, textAlign: 'center', lineHeight: 20 }}>{step.desc}</Text>
+            <Text style={{ fontFamily: Font.display, fontSize: 18, color: INK, letterSpacing: -0.4, textAlign: 'center' }}>
+              {step.title}
+            </Text>
+            <Text style={{ fontFamily: Font.body, fontSize: 13.5, color: Palette.textSecondary, textAlign: 'center', lineHeight: 20 }}>
+              {step.desc}
+            </Text>
           </View>
         ))}
       </ScrollView>
-      <View style={{ paddingHorizontal: 20, paddingBottom: 18, paddingTop: 4, flexDirection: 'row', gap: 10 }}>
+      {/* CTA */}
+      <View style={{ paddingHorizontal: 20, paddingBottom: 18, paddingTop: 8 }}>
         {page < ONBOARDING_STEPS.length - 1 ? (
-          <>
-            <PressableScale onPress={dismiss}
-              style={{ flex: 1, height: 44, borderRadius: Radius.pill, borderWidth: 1.5, borderColor: Palette.border, alignItems: 'center', justifyContent: 'center' }}>
-              <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: Palette.textSecondary }}>skip</Text>
-            </PressableScale>
-            <PressableScale onPress={() => { feedback.tap(); scrollRef.current?.scrollTo({ x: (page + 1) * cardWidth, animated: true }); }}
-              style={{ flex: 2, height: 44, borderRadius: Radius.pill, backgroundColor: INK, alignItems: 'center', justifyContent: 'center' }}>
-              <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: '#fff' }}>next →</Text>
-            </PressableScale>
-          </>
+          <PressableScale
+            onPress={() => { feedback.tap(); scrollRef.current?.scrollTo({ x: (page + 1) * cardWidth, animated: true }); }}
+            style={{ height: 46, borderRadius: Radius.pill, backgroundColor: INK, alignItems: 'center', justifyContent: 'center' }}>
+            <Text style={{ fontFamily: Font.semibold, fontSize: 14.5, color: '#fff' }}>next →</Text>
+          </PressableScale>
         ) : (
           <PressableScale onPress={dismiss}
-            style={{ flex: 1, height: 44, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
-            <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#fff' }}>let's explore</Text>
+            style={{ height: 46, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
+            <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#fff' }}>let's explore 🚀</Text>
           </PressableScale>
         )}
       </View>
@@ -407,88 +301,43 @@ export function HomeOnboarding() {
 export function ActionSplitter() {
   const router = useRouter();
   return (
-    <MotiView from={{ opacity: 0, translateY: 12 }} animate={{ opacity: 1, translateY: 0 }}
+    <MotiView from={{ opacity: 0, translateY: 14 }} animate={{ opacity: 1, translateY: 0 }}
       transition={{ type: 'spring', damping: 15, stiffness: 120, mass: 0.6, delay: 50 }}
       style={{ marginHorizontal: 20, marginTop: 16, flexDirection: 'row', gap: 10 }}>
+      {/* Card A — Build Your Dream Meal Plan */}
       <PressableScale onPress={() => { feedback.tap(); router.push('/meal-plans'); }} style={{ flex: 1 }}>
         <LinearGradient colors={['#1c1108', '#3d2410']}
-          style={{ borderRadius: Radius.lg, padding: 16, minHeight: 116, justifyContent: 'space-between' }}>
-          <View style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: 'rgba(255,180,60,0.2)', alignItems: 'center', justifyContent: 'center' }}>
+          style={{ borderRadius: Radius.lg, padding: 16, minHeight: 130, justifyContent: 'space-between' }}>
+          <View style={{ width: 38, height: 38, borderRadius: 12, backgroundColor: 'rgba(255,180,60,0.22)', alignItems: 'center', justifyContent: 'center' }}>
             <Sparkles size={18} color={Palette.amber} />
           </View>
-          <View style={{ gap: 3 }}>
-            <Text style={{ fontFamily: Font.heading, fontSize: 13.5, color: '#fff' }}>plan your meals</Text>
-            <Text style={{ fontFamily: Font.body, fontSize: 11, color: 'rgba(255,255,255,0.5)' }}>weekly subscriptions</Text>
+          <View style={{ gap: 5 }}>
+            <Text style={{ fontFamily: Font.heading, fontSize: 14, color: '#fff', lineHeight: 20 }}>
+              build your dream meal plan
+            </Text>
+            <Text style={{ fontFamily: Font.body, fontSize: 10.5, color: 'rgba(255,255,255,0.5)', lineHeight: 15 }}>
+              macros tracked · weekly drops
+            </Text>
           </View>
         </LinearGradient>
       </PressableScale>
+      {/* Card B — Order an Immediate Drop */}
       <PressableScale onPress={() => { feedback.tap(); router.push('/search'); }} style={{ flex: 1 }}>
         <LinearGradient colors={['#F26B1D', '#c43c0d']}
-          style={{ borderRadius: Radius.lg, padding: 16, minHeight: 116, justifyContent: 'space-between' }}>
-          <View style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.18)', alignItems: 'center', justifyContent: 'center' }}>
+          style={{ borderRadius: Radius.lg, padding: 16, minHeight: 130, justifyContent: 'space-between' }}>
+          <View style={{ width: 38, height: 38, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center' }}>
             <Zap size={18} color="#fff" />
           </View>
-          <View style={{ gap: 3 }}>
-            <Text style={{ fontFamily: Font.heading, fontSize: 13.5, color: '#fff' }}>order a drop</Text>
-            <Text style={{ fontFamily: Font.body, fontSize: 11, color: 'rgba(255,255,255,0.65)' }}>browse individual meals</Text>
+          <View style={{ gap: 5 }}>
+            <Text style={{ fontFamily: Font.heading, fontSize: 14, color: '#fff', lineHeight: 20 }}>
+              order an immediate drop
+            </Text>
+            <Text style={{ fontFamily: Font.body, fontSize: 10.5, color: 'rgba(255,255,255,0.65)', lineHeight: 15 }}>
+              what's hot · local kitchens now
+            </Text>
           </View>
         </LinearGradient>
       </PressableScale>
-    </MotiView>
-  );
-}
-
-// ─── ChefsInActionFeed ────────────────────────────────────────────────────────
-
-export function ChefsInActionFeed() {
-  const router = useRouter();
-  const { data: preppers, isLoading } = useTopPreppers(6);
-  return (
-    <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }}
-      transition={{ type: 'spring', damping: 15, stiffness: 120, mass: 0.6, delay: 100 }}
-      style={{ marginTop: 24 }}>
-      <SectionHeader title="chefs in action" linkLabel="see all →" onLink={() => { feedback.tap(); router.push('/explore'); }} />
-      {isLoading ? <CardRowSkeleton count={4} /> : (
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 10, paddingBottom: 4 }}>
-          {(preppers ?? []).map((prepper, i) => {
-            const palette = CHEF_PALETTES[i % CHEF_PALETTES.length];
-            return (
-              <MotiView key={prepper.id} from={{ opacity: 0, translateX: 16 }} animate={{ opacity: 1, translateX: 0 }}
-                transition={{ type: 'spring', damping: 15, stiffness: 120, mass: 0.6, delay: i * 50 }}>
-                <PressableScale
-                  onPress={() => { feedback.tap(); router.push(`/prepper?id=${prepper.id}`); }}
-                  accessibilityRole="button" accessibilityLabel={`${prepper.name}, chef profile`}
-                  style={{ width: 130, height: 210, borderRadius: Radius.lg, overflow: 'hidden', ...Shadow.card }}>
-                  {prepper.image ? (
-                    <Image source={{ uri: imgUrl(prepper.image, 400) }} style={ABS} contentFit="cover" />
-                  ) : (
-                    <LinearGradient colors={palette} style={ABS} />
-                  )}
-                  <LinearGradient colors={['transparent', 'rgba(0,0,0,0.78)']} style={{ ...ABS, justifyContent: 'flex-end', padding: 10 }}>
-                    <View style={{ ...ABS, alignItems: 'center', justifyContent: 'center' }}>
-                      <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.18)', alignItems: 'center', justifyContent: 'center' }}>
-                        <Play size={18} color="#fff" fill="#fff" />
-                      </View>
-                    </View>
-                    <Text numberOfLines={1} style={{ fontFamily: Font.heading, fontSize: 13, color: '#fff' }}>{prepper.name}</Text>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 3 }}>
-                      <Star size={11} color="#FFD24A" fill="#FFD24A" />
-                      <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: 'rgba(255,255,255,0.85)' }}>
-                        {prepper.rating > 0 ? prepper.rating.toFixed(1) : 'new'}
-                      </Text>
-                    </View>
-                  </LinearGradient>
-                  {prepper.reviews === 0 ? (
-                    <View style={{ position: 'absolute', top: 8, left: 8, backgroundColor: ACID, borderRadius: 6, paddingHorizontal: 6, paddingVertical: 3 }}>
-                      <Text style={{ fontFamily: Font.semibold, fontSize: 9.5, color: '#1a1a0a', letterSpacing: 0.5 }}>NEW</Text>
-                    </View>
-                  ) : null}
-                </PressableScale>
-              </MotiView>
-            );
-          })}
-        </ScrollView>
-      )}
     </MotiView>
   );
 }

@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { ActivityIndicator, Linking, Platform, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { PaymentRedirectOverlay } from '@/components/payment-redirect-overlay';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
 import { Palette, Radius } from '@/constants/theme';
@@ -213,6 +214,7 @@ export default function PrepperPremiumScreen() {
           </Text>
         </View>
       </SafeAreaView>
+      <PaymentRedirectOverlay visible={loading} />
     </View>
   );
 }

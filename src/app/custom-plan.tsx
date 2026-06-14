@@ -7,6 +7,7 @@ import { ActivityIndicator, Linking, Modal, Platform, Pressable, RefreshControl,
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Avatar } from '@/components/ui/avatar';
+import { PaymentRedirectOverlay } from '@/components/payment-redirect-overlay';
 import { BottomActionBar } from '@/components/ui/bottom-action-bar';
 import { Button } from '@/components/ui/button';
 import { PressableScale } from '@/components/ui/pressable-scale';
@@ -346,6 +347,7 @@ export default function CustomPlanScreen() {
         paying={paying}
         onClose={() => setDrillItem(null)}
       />
+      <PaymentRedirectOverlay visible={paying} />
     </View>
   );
 }

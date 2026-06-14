@@ -10,10 +10,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PreppaLogo } from '@/components/preppa-logo';
 import {
-  ActionSplitter, CategoryIconsRow, ChefsInActionFeed, FollowingKitchensSection,
-  HomeOnboarding, MealPlansDiscoverySection, MyPlansSection, NearbyPreppersSection,
-  RewardsBanner, SurpriseMeBanner, TrendingSection,
+  ActionSplitter, CategoryIconsRow, HomeOnboarding, MyPlansSection,
+  RewardsBanner, SurpriseMeBanner,
 } from '@/components/home-extras';
+import {
+  ChefsInActionFeed, FollowingKitchensSection, MealPlansDiscoverySection,
+  NearbyPreppersSection, TrendingSection,
+} from '@/components/home-feed';
 import { BecomePrepperNudge } from '@/components/home-nudges';
 import { Font } from '@/constants/fonts';
 import { PressableScale } from '@/components/ui/pressable-scale';
@@ -22,6 +25,7 @@ import { greeting } from '@/lib/greeting';
 import { useCart } from '@/lib/queries/cart';
 import { useFeaturedMeals } from '@/lib/queries/meals';
 import { useAddresses } from '@/lib/queries/addresses';
+import { useGPSLocation } from '@/lib/use-location';
 import { useMyOrders } from '@/lib/queries/orders';
 import { useNotifications } from '@/lib/queries/notifications';
 import { usePersonalizedMeals } from '@/lib/queries/recommend';
@@ -149,6 +153,7 @@ export default function HomeScreen() {
   const locationLabel = defaultAddress
     ? [defaultAddress.city, defaultAddress.state].filter(Boolean).join(', ')
     : 'Set location';
+  const { captureLocation, capturing: locCapturing } = useGPSLocation(user?.id, addresses);
 
   const { data: myOrders, refetch: refetchOrders } = useMyOrders(user?.id);
   const activeOrder = (myOrders ?? []).find((o) => o.status !== 'completed' && o.status !== 'cancelled');
@@ -168,47 +173,76 @@ export default function HomeScreen() {
     setRefreshing(false);
   }
 
+  async function handleLocationTap() {
+    if (locCapturing) return;
+    feedback.tap();
+    if (!user) { router.push('/auth?mode=signup'); return; }
+    const result = await captureLocation();
+    if (result !== 'done') router.push('/addresses');
+  }
+
   const headerPad = isTablet ? 28 : 20;
   const headlineWidth = cols.twoCol ? cols.main : width;
   const cravingSize = Math.max(18, Math.min((headlineWidth - headerPad * 2) / 16, 26));
   const uid = user?.id;
 
   const headerEl = (
-    <MotiView from={{ opacity: 0, translateY: -8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280 }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: headerPad, paddingTop: 8, gap: 12 }}>
-        <PressableScale onPress={() => { feedback.tap(); router.push('/profile'); }} accessibilityRole="button" accessibilityLabel="Your profile" hitSlop={8}>
-          <PreppaLogo size={62} showTile={false} flameColor={ORANGE} />
-        </PressableScale>
-        <View style={{ flex: 1, gap: 3 }}>
-          <Text numberOfLines={1} style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.textSecondary }}>
-            {greeting()}{firstName ? `, ${firstName}` : ''}
-          </Text>
-          <PressableScale onPress={() => { feedback.tap(); router.push('/addresses'); }} accessibilityRole="button"
-            accessibilityLabel={`Delivery location: ${locationLabel}`}
-            hitSlop={{ top: 8, bottom: 8, left: 4, right: 8 }}
-            style={{ flexDirection: 'row', alignItems: 'center', gap: 3, alignSelf: 'flex-start' }}>
-            <MapPin size={12} color={ORANGE} />
-            <Text numberOfLines={1} style={{ fontFamily: Font.medium, fontSize: 12, color: defaultAddress ? Palette.textSecondary : ORANGE }}>{locationLabel}</Text>
+    <View>
+      {/* Top bar: logo + location + icons — slides in from above */}
+      <MotiView from={{ opacity: 0, translateY: -10 }} animate={{ opacity: 1, translateY: 0 }}
+        transition={{ type: 'spring', damping: 18, stiffness: 180 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: headerPad, paddingTop: 8, gap: 12 }}>
+          <PressableScale onPress={() => { feedback.tap(); router.push('/profile'); }} accessibilityRole="button" accessibilityLabel="Your profile" hitSlop={8}>
+            <PreppaLogo size={62} showTile={false} flameColor={ORANGE} />
           </PressableScale>
+          <View style={{ flex: 1, gap: 3 }}>
+            <Text numberOfLines={1} style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.textSecondary }}>
+              {greeting()}{firstName ? `, ${firstName}` : ''}
+            </Text>
+            <PressableScale onPress={handleLocationTap} accessibilityRole="button"
+              accessibilityLabel={`Delivery location: ${locCapturing ? 'Detecting...' : locationLabel}`}
+              hitSlop={{ top: 8, bottom: 8, left: 4, right: 8 }}
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 3, alignSelf: 'flex-start' }}>
+              <MapPin size={12} color={locCapturing ? Palette.textMuted : ORANGE} />
+              <Text numberOfLines={1} style={{ fontFamily: Font.medium, fontSize: 12, color: locCapturing ? Palette.textMuted : (defaultAddress ? Palette.textSecondary : ORANGE) }}>
+                {locCapturing ? 'detecting...' : locationLabel}
+              </Text>
+            </PressableScale>
+          </View>
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            <HeaderIconButton Icon={Bell} badge={badgeCount} onPress={() => router.push('/notifications')}
+              label={badgeCount ? `Notifications, ${badgeCount} unread` : 'Notifications'} />
+            {/* Cart: glow ring pulses when items are present */}
+            <View>
+              {cartCount > 0 ? (
+                <MotiView
+                  from={{ scale: 1, opacity: 0.8 }} animate={{ scale: 1.52, opacity: 0 }}
+                  transition={{ type: 'timing', duration: 1400, loop: true }}
+                  style={{ position: 'absolute', width: 48, height: 48, borderRadius: 16, borderWidth: 2, borderColor: ORANGE }}
+                />
+              ) : null}
+              <HeaderIconButton Icon={ShoppingCart} badge={cartCount} onPress={() => router.push('/cart')}
+                label={cartCount ? `Cart, ${cartCount} item${cartCount === 1 ? '' : 's'}` : 'Cart'} />
+            </View>
+          </View>
         </View>
-        <View style={{ flexDirection: 'row', gap: 8 }}>
-          <HeaderIconButton Icon={Bell} badge={badgeCount} onPress={() => router.push('/notifications')}
-            label={badgeCount ? `Notifications, ${badgeCount} unread` : 'Notifications'} />
-          <HeaderIconButton Icon={ShoppingCart} badge={cartCount} onPress={() => router.push('/cart')}
-            label={cartCount ? `Cart, ${cartCount} item${cartCount === 1 ? '' : 's'}` : 'Cart'} />
+      </MotiView>
+      {/* Kinetic greeting — bounces in from below with spring physics */}
+      <MotiView from={{ opacity: 0, translateY: 10, scale: 0.97 }} animate={{ opacity: 1, translateY: 0, scale: 1 }}
+        transition={{ type: 'spring', damping: 12, stiffness: 140, mass: 0.6, delay: 80 }}>
+        <View style={{ paddingHorizontal: headerPad, marginTop: 12 }}>
+          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72}
+            style={{ fontFamily: Font.display, fontSize: cravingSize, color: INK, letterSpacing: -0.6 }}>
+            what are you <Text style={{ color: ORANGE }}>craving today?</Text>
+          </Text>
         </View>
-      </View>
-      <View style={{ paddingHorizontal: headerPad, marginTop: 12 }}>
-        <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72}
-          style={{ fontFamily: Font.display, fontSize: cravingSize, color: INK, letterSpacing: -0.6 }}>
-          what are you <Text style={{ color: ORANGE }}>craving today?</Text>
-        </Text>
-      </View>
-    </MotiView>
+      </MotiView>
+    </View>
   );
 
   const searchEl = (
-    <MotiView from={{ opacity: 0, translateY: 6 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 40 }}>
+    <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }}
+      transition={{ type: 'spring', damping: 18, stiffness: 200, delay: 130 }}>
       <PressableScale onPress={() => { feedback.tap(); router.push('/search'); }} accessibilityRole="search"
         accessibilityLabel="Search meals, cuisines, or preppers"
         style={{ marginHorizontal: 20, marginTop: 16, flexDirection: 'row', alignItems: 'center', height: 52, borderRadius: 18, backgroundColor: Palette.surface, paddingLeft: 16, paddingRight: 8, gap: 10, ...Shadow.card }}>

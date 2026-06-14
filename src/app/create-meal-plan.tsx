@@ -7,6 +7,7 @@ import { ActivityIndicator, Linking, Platform, ScrollView, Text, TextInput, View
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import type { Meal } from '@/components/meal-card';
+import { PaymentRedirectOverlay } from '@/components/payment-redirect-overlay';
 import { Button } from '@/components/ui/button';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { ListSkeleton } from '@/components/ui/skeleton';
@@ -77,6 +78,7 @@ export default function CreateMealPlanScreen() {
   const [search, setSearch] = useState('');
   const [selectedMeals, setSelectedMeals] = useState<Map<string, Meal>>(new Map());
   const [err, setErr] = useState<string | null>(null);
+  const [paying, setPaying] = useState(false);
 
   const { data: featured, isLoading: loadingFeatured } = useFeaturedMeals(40);
   const { data: searchResults, isFetching: searching } = useMealSearch(search);
@@ -115,7 +117,7 @@ export default function CreateMealPlanScreen() {
       return;
     }
     feedback.success();
-    // Attempt Stripe billing — navigate to the plan regardless of outcome.
+    setPaying(true);
     try {
       const { data } = await supabase.functions.invoke('stripe-subscribe', {
         body: { type: 'custom_plan', planId },
@@ -130,6 +132,8 @@ export default function CreateMealPlanScreen() {
       }
     } catch {
       // Stripe unavailable — plan exists, navigate anyway.
+    } finally {
+      setPaying(false);
     }
     router.replace(`/custom-plan?id=${planId}` as never);
   }
@@ -262,6 +266,7 @@ export default function CreateMealPlanScreen() {
           />
         </View>
       </SafeAreaView>
+      <PaymentRedirectOverlay visible={paying} />
     </View>
   );
 }

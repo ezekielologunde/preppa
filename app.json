@@ -36,7 +36,13 @@
         }
       ],
       "expo-secure-store",
-      "expo-localization"
+      "expo-localization",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Preppa uses your location to find nearby chefs and set your delivery address."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
