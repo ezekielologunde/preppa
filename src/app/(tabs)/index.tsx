@@ -518,7 +518,7 @@ export default function HomeScreen() {
                 accessibilityRole="button"
                 accessibilityLabel="Your profile"
                 hitSlop={8}>
-                <PreppaLogo size={46} glow />
+                <PreppaLogo size={62} showTile={false} flameColor={ORANGE} />
               </PressableScale>
 
               {/* Greeting + tappable location */}
