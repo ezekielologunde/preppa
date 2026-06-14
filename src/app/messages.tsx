@@ -226,7 +226,7 @@ export default function MessagesScreen() {
     if (n.type === 'bid') return router.push('/experiences');
     if (n.type === 'bid_accepted') return router.push('/prepper-orders');
     if (n.type === 'order' && n.data?.request_id) return router.push('/experiences');
-    if (n.type === 'review') return router.push('/dashboard');
+    if (n.type === 'review') return router.push('/reviews');
     if (n.type === 'follow') return router.push('/dashboard');
     return router.push('/orders');
   }
