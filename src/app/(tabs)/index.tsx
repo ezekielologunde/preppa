@@ -503,9 +503,12 @@ export default function HomeScreen() {
   }
 
   const headerPad = isTablet ? 28 : 20;
-  // Fluid headline: clamp(22px, ~7vw, 30px) — single line that shrinks
-  // gracefully on narrow devices instead of wrapping to two lines.
-  const cravingSize = Math.max(22, Math.min(width * 0.07, 30));
+  // Fluid single-line headline. adjustsFontSizeToFit is a no-op on web, so the
+  // size must already fit the row: "what are you craving today?" (~27 chars at
+  // ~0.56em each) against the *container* width minus padding. On desktop the
+  // header lives in the narrower feed column, so size against that, not `width`.
+  const headlineWidth = cols.twoCol ? cols.main : width;
+  const cravingSize = Math.max(18, Math.min((headlineWidth - headerPad * 2) / 16, 26));
 
   // ─── Header (logo + greeting + bell/cart) — shared by both layouts ───────────
   const headerEl = (
