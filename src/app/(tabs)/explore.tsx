@@ -401,7 +401,15 @@ export default function ExploreScreen() {
           ) : null}
 
           {/* For You */}
-          {forYou.length > 0 ? (
+          {!mealsLoading && forYou.length === 0 && !!user ? (
+            <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 100 }}>
+              <SectionHeader title="for you" pad={pad} />
+              <View style={{ marginHorizontal: pad, marginBottom: 20, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Sparkles size={13} color={Palette.brand} />
+                <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary }}>Preorder from a few kitchens to unlock personalized picks.</Text>
+              </View>
+            </MotiView>
+          ) : forYou.length > 0 ? (
             <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 100 }}>
               <SectionHeader title="for you" pad={pad} onSeeAll={() => router.push('/category?key=all&label=for+you')} />
               {isDesktop ? (
