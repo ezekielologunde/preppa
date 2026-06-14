@@ -10,7 +10,7 @@ import { Font } from '@/constants/fonts';
 import { feedback } from '@/lib/feedback';
 import { useBreakpoint } from '@/lib/layout';
 import { usePrepperOrders, type OrderSummary } from '@/lib/queries/orders';
-import { useMyPrepperApplication } from '@/lib/queries/preppers';
+import { useMyPrepperApplication, usePrepperProfile } from '@/lib/queries/preppers';
 import { Palette, Radius } from '@/constants/theme';
 import { useAuth } from '@/providers/auth-provider';
 
@@ -94,6 +94,7 @@ export default function PrepperAnalyticsScreen() {
   const { user } = useAuth();
   const { data: application } = useMyPrepperApplication(user?.id);
   const { data: orders, refetch } = usePrepperOrders(application?.id);
+  const { data: prepperProfile } = usePrepperProfile(application?.id);
   const isDesktop = useBreakpoint() === 'desktop';
   const [period, setPeriod] = useState<'week' | 'month' | 'all'>('week');
   const [refreshing, setRefreshing] = useState(false);
@@ -190,6 +191,22 @@ export default function PrepperAnalyticsScreen() {
             ))}
           </View>
           </MotiView>
+
+          {/* Audience row — all-time social metrics from prepper_public_stats RPC */}
+          {prepperProfile?.stats != null ? (
+          <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 20 }}>
+          <View style={{ flexDirection: 'row', gap: 10 }}>
+            <View style={{ flex: 1, backgroundColor: '#eef2ff', borderRadius: 14, padding: 12, alignItems: 'center', gap: 4 }}>
+              <Text style={{ fontFamily: Font.display, fontSize: 22, color: '#4f46e5', letterSpacing: -0.5, fontVariant: ['tabular-nums'] }}>{prepperProfile.stats.followers}</Text>
+              <Text style={{ fontFamily: Font.body, fontSize: 10.5, color: '#6366f1', textAlign: 'center' }}>followers</Text>
+            </View>
+            <View style={{ flex: 1, backgroundColor: Palette.surface, borderRadius: 14, padding: 12, alignItems: 'center', gap: 4 }}>
+              <Text style={{ fontFamily: Font.display, fontSize: 22, color: Palette.textSecondary, letterSpacing: -0.5, fontVariant: ['tabular-nums'] }}>{prepperProfile.stats.unique_customers}</Text>
+              <Text style={{ fontFamily: Font.body, fontSize: 10.5, color: Palette.textMuted, textAlign: 'center' }}>lifetime customers</Text>
+            </View>
+          </View>
+          </MotiView>
+          ) : null}
 
           {/* Orders by day + revenue by day — side by side on desktop */}
           <View style={isDesktop ? { flexDirection: 'row', gap: 14 } : undefined}>
