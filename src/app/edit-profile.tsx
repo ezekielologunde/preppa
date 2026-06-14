@@ -104,13 +104,20 @@ export default function EditProfileScreen() {
     });
     if (Object.values(newErrors).some(Boolean)) { setErrors(newErrors); feedback.error(); return; }
     setSaving(true);
+    const fullName = cleanLine(fields.full_name).trim();
     const { error } = await supabase.auth.updateUser({
-      data: { full_name: cleanLine(fields.full_name).trim(), username: fields.username.trim(), bio: cleanBlock(fields.bio).trim(),
+      data: { full_name: fullName, username: fields.username.trim(), bio: cleanBlock(fields.bio).trim(),
               location: cleanLine(fields.location).trim(), website: cleanLine(fields.website).trim(),
               ...(avatarUrl ? { avatar_url: avatarUrl } : {}) },
     });
+    if (error) { setSaving(false); feedback.error(); setErrors((e) => ({ ...e, full_name: error.message })); return; }
+    // Mirror the public identity to the profiles row: the app's own screens read
+    // user_metadata, but everyone else (preppers on orders, order emails) reads
+    // profiles.full_name/avatar_url. Best-effort — the primary update already succeeded.
+    if (user?.id) {
+      await supabase.from('profiles').update({ full_name: fullName, ...(avatarUrl ? { avatar_url: avatarUrl } : {}) }).eq('id', user.id);
+    }
     setSaving(false);
-    if (error) { feedback.error(); setErrors((e) => ({ ...e, full_name: error.message })); return; }
     feedback.success();
     setSaved(true);
     setTimeout(() => router.back(), 1000);
