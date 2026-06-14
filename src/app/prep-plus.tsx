@@ -59,6 +59,7 @@ export default function PrepPlusScreen() {
   const { data: membership } = useCustomerMembership(user?.id);
   const [yearly, setYearly] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [joinErr, setJoinErr] = useState<string | null>(null);
   const price = yearly ? `$${YEARLY}` : `$${MONTHLY.toFixed(2)}`;
   const period = yearly ? 'year' : 'month';
   const isPlus = membership?.isPlus === true;
@@ -68,6 +69,7 @@ export default function PrepPlusScreen() {
     if (isPlus || loading) return;
     feedback.tap();
     setLoading(true);
+    setJoinErr(null);
     try {
       const { data, error } = await supabase.functions.invoke('stripe-subscribe', {
         body: { type: 'customer_plus', period: yearly ? 'yearly' : 'monthly' },
@@ -78,9 +80,9 @@ export default function PrepPlusScreen() {
       } else {
         Linking.openURL(data.url);
       }
-    } catch (e) {
+    } catch {
       feedback.error();
-      console.error('stripe-subscribe error', e);
+      setJoinErr('Could not start checkout. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -185,6 +187,9 @@ export default function PrepPlusScreen() {
 
         {/* Sticky CTA */}
         <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: Palette.canvas, paddingTop: 12, paddingBottom: 32, paddingHorizontal: 20, gap: 8 }}>
+          {joinErr ? (
+            <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.danger, textAlign: 'center' }}>{joinErr}</Text>
+          ) : null}
           {isPlus ? (
             <View style={{ height: 56, borderRadius: Radius.md, backgroundColor: Palette.success, alignItems: 'center', justifyContent: 'center' }}>
               <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>Prep+ Active ✦</Text>
