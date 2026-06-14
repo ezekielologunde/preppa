@@ -221,6 +221,7 @@ export default function AddressesScreen() {
   const [editing, setEditing] = useState<Address | undefined>(undefined);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [mutationErr, setMutationErr] = useState<string | null>(null);
   async function handleRefresh() { setRefreshing(true); await refetch(); setRefreshing(false); }
 
   const triggerDelete = (id: string) => {
@@ -229,7 +230,10 @@ export default function AddressesScreen() {
   };
 
   const confirmDelete = (id: string) => {
-    deleteAddress.mutate(id);
+    setMutationErr(null);
+    deleteAddress.mutate(id, {
+      onError: () => { feedback.error(); setMutationErr('Could not delete address. Please try again.'); },
+    });
     setPendingDeleteId(null);
   };
 
@@ -238,14 +242,21 @@ export default function AddressesScreen() {
 
   const handleSave = (form: FormState) => {
     const label = resolvedLabel(form);
+    setMutationErr(null);
     upsertAddress.mutate(
       { ...form, label, id: editing?.id },
-      { onSuccess: () => setSheetVisible(false) },
+      {
+        onSuccess: () => setSheetVisible(false),
+        onError: () => { feedback.error(); setSheetVisible(false); setMutationErr('Could not save address. Please try again.'); },
+      },
     );
   };
 
   const setDefault = (id: string) => {
-    setDefaultAddress.mutate({ id, allIds: addresses.map((a) => a.id) });
+    setMutationErr(null);
+    setDefaultAddress.mutate({ id, allIds: addresses.map((a) => a.id) }, {
+      onError: () => { feedback.error(); setMutationErr('Could not update default address.'); },
+    });
   };
 
   return (
@@ -300,6 +311,12 @@ export default function AddressesScreen() {
             <Plus size={20} color={Palette.surface} />
           </PressableScale>
         </View>
+
+        {mutationErr ? (
+          <View style={{ marginHorizontal: Spacing.three, marginTop: 4, backgroundColor: Palette.danger + '14', borderRadius: Radius.md, padding: 12, borderWidth: 1, borderColor: Palette.danger + '40' }}>
+            <Text style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.danger }}>{mutationErr}</Text>
+          </View>
+        ) : null}
 
         {/* Content */}
         {isLoading ? (

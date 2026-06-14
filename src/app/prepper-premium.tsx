@@ -69,6 +69,7 @@ export default function PrepperPremiumScreen() {
   const { data: myPrepper } = useMyPrepperApplication(user?.id);
   const [yearly, setYearly] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [upgradeErr, setUpgradeErr] = useState<string | null>(null);
   const price = yearly ? YEARLY : MONTHLY;
   const period = yearly ? 'year' : 'month';
 
@@ -77,6 +78,7 @@ export default function PrepperPremiumScreen() {
     if (!myPrepper?.id || loading) return;
     feedback.tap();
     setLoading(true);
+    setUpgradeErr(null);
     try {
       const { data, error } = await supabase.functions.invoke('stripe-subscribe', {
         body: { type: 'prepper_pro', period: yearly ? 'yearly' : 'monthly', prepperId: myPrepper.id },
@@ -87,9 +89,9 @@ export default function PrepperPremiumScreen() {
       } else {
         Linking.openURL(data.url);
       }
-    } catch (e) {
+    } catch {
       feedback.error();
-      console.error('stripe-subscribe error', e);
+      setUpgradeErr('Could not start checkout. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -199,6 +201,9 @@ export default function PrepperPremiumScreen() {
 
         {/* Sticky CTA */}
         <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: BG, paddingTop: 12, paddingBottom: 32, paddingHorizontal: 20, gap: 8 }}>
+          {upgradeErr ? (
+            <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.danger, textAlign: 'center' }}>{upgradeErr}</Text>
+          ) : null}
           <PressableScale onPress={handleUpgrade} disabled={loading}
             accessibilityRole="button" accessibilityLabel="Upgrade to Pro"
             style={{ height: 56, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8, opacity: loading ? 0.7 : 1 }}>

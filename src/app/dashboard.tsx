@@ -156,6 +156,7 @@ export default function DashboardScreen() {
   const [accepting, setAccepting] = useState<boolean | null>(null);
   const [homeCook, setHomeCook] = useState<boolean | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [advanceErr, setAdvanceErr] = useState<string | null>(null);
   async function handleRefresh() { setRefreshing(true); await Promise.all([refetchPrepper(), refetchMembership(), refetchBadges(), refetchOrders(), refetchReviews()]); setRefreshing(false); }
   async function shareKitchen() {
     if (!prepper?.id) return;
@@ -253,7 +254,7 @@ export default function DashboardScreen() {
                       feedback.tap();
                       const next = !isOpen;
                       setAccepting(next);
-                      toggleAvailability.mutate(next, { onError: () => setAccepting(!next) });
+                      toggleAvailability.mutate(next, { onError: () => { feedback.error(); setAccepting(!next); } });
                     }}
                     accessibilityRole="switch"
                     accessibilityState={{ checked: isOpen }}
@@ -275,7 +276,7 @@ export default function DashboardScreen() {
                       feedback.tap();
                       const next = !isHomeCookAvailable;
                       setHomeCook(next);
-                      toggleHomeCook.mutate(next, { onError: () => setHomeCook(!next) });
+                      toggleHomeCook.mutate(next, { onError: () => { feedback.error(); setHomeCook(!next); } });
                     }}
                     accessibilityRole="switch"
                     accessibilityState={{ checked: isHomeCookAvailable }}
@@ -339,14 +340,19 @@ export default function DashboardScreen() {
                 </View>
               </View>
               {step ? (
-                <PressableScale
-                  onPress={() => { feedback.tap(); advance.mutate({ orderId: next.id, next: step.next }); }}
-                  disabled={advance.isPending}
-                  accessibilityRole="button"
-                  accessibilityLabel={step.cta}
-                  style={{ height: 50, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 6, opacity: advance.isPending ? 0.7 : 1 }}>
-                  <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>{step.cta}</Text>
-                </PressableScale>
+                <>
+                  <PressableScale
+                    onPress={() => { feedback.tap(); setAdvanceErr(null); advance.mutate({ orderId: next.id, next: step.next }, { onError: () => { feedback.error(); setAdvanceErr('Could not update order status. Please try again.'); } }); }}
+                    disabled={advance.isPending}
+                    accessibilityRole="button"
+                    accessibilityLabel={step.cta}
+                    style={{ height: 50, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 6, opacity: advance.isPending ? 0.7 : 1 }}>
+                    <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>{step.cta}</Text>
+                  </PressableScale>
+                  {advanceErr ? (
+                    <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: Palette.danger, textAlign: 'center' }}>{advanceErr}</Text>
+                  ) : null}
+                </>
               ) : null}
               {active.length > 1 ? (
                 <PressableScale onPress={() => { feedback.tap(); router.push('/prepper-orders'); }} accessibilityRole="button" accessibilityLabel={`See all ${active.length} active orders`}
