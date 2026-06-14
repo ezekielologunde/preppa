@@ -16,6 +16,7 @@ import {
   MessageSquare,
   Plus,
   Search,
+  Share2,
   ShoppingBag,
   Star,
   TrendingUp,
@@ -25,7 +26,7 @@ import {
   Video,
   type LucideIcon,
 } from 'lucide-react-native';
-import { Platform, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { Platform, RefreshControl, ScrollView, Share, Text, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Circle, Polyline } from 'react-native-svg';
 
@@ -156,6 +157,25 @@ export default function DashboardScreen() {
   const [homeCook, setHomeCook] = useState<boolean | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   async function handleRefresh() { setRefreshing(true); await Promise.all([refetchPrepper(), refetchMembership(), refetchBadges(), refetchOrders(), refetchReviews()]); setRefreshing(false); }
+  async function shareKitchen() {
+    if (!prepper?.id) return;
+    feedback.tap();
+    const url = `https://app.preppa.live/prepper?id=${prepper.id}`;
+    const title = prepper.display_name ?? 'My kitchen on Preppa';
+    try {
+      if (Platform.OS === 'web' && typeof navigator !== 'undefined' && navigator.share) {
+        await navigator.share({ title, text: 'Check out my kitchen on Preppa!', url });
+      } else if (Platform.OS === 'web' && typeof navigator !== 'undefined' && navigator.clipboard) {
+        await navigator.clipboard.writeText(url);
+        feedback.success();
+      } else {
+        await Share.share({ title, message: `Check out my kitchen on Preppa! ${url}`, url });
+      }
+    } catch {
+      // user dismissed — not an error
+    }
+  }
+
   const isOpen = accepting !== null ? accepting : ((prepper as unknown as { accepting_orders?: boolean })?.accepting_orders !== false);
   const isHomeCookAvailable = homeCook !== null ? homeCook : (prepperProfile?.homeCookAvailable ?? false);
 
@@ -408,6 +428,18 @@ export default function DashboardScreen() {
                 style={{ marginHorizontal: 20, marginBottom: 10, backgroundColor: CARD, borderRadius: 14, paddingVertical: 10, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 10, borderWidth: 1, borderColor: ORANGE + '28' }}>
                 <Crown size={15} color={ORANGE} />
                 <Text style={{ flex: 1, fontFamily: Font.medium, fontSize: 13, color: MUTED }}>Go Pro — boosts, livestream & AI tools · $29/mo</Text>
+                <ChevronRight size={14} color={ORANGE} />
+              </PressableScale>
+            </MotiView>
+          ) : null}
+
+          {/* Share kitchen link */}
+          {prepper?.id ? (
+            <MotiView from={{ opacity: 0, translateY: 6 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 240, delay: 230 }}>
+              <PressableScale onPress={() => { void shareKitchen(); }} accessibilityRole="button" accessibilityLabel="Share your kitchen"
+                style={{ marginHorizontal: 20, marginBottom: 10, backgroundColor: CARD, borderRadius: 14, paddingVertical: 10, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 10, borderWidth: 1, borderColor: ORANGE + '28' }}>
+                <Share2 size={15} color={ORANGE} />
+                <Text style={{ flex: 1, fontFamily: Font.medium, fontSize: 13, color: MUTED }}>Share your kitchen with friends & followers</Text>
                 <ChevronRight size={14} color={ORANGE} />
               </PressableScale>
             </MotiView>
