@@ -121,8 +121,8 @@ export interface Database {
         Relationships: [];
       };
       prepper_profiles: {
-        Row: { id: string; user_id: string; display_name: string; bio: string | null; verified: boolean; status: PrepperStatus; reviewed_by: string | null; reviewed_at: string | null; rejection_note: string | null; delivery_radius_km: number | null; specialties: string[] | null; certifications: string[]; accepting_orders: boolean; home_cook_available: boolean } & Timestamps;
-        Insert: { user_id: string; display_name: string; bio?: string | null; specialties?: string[] | null; certifications?: string[]; accepting_orders?: boolean };
+        Row: { id: string; user_id: string; display_name: string; bio: string | null; verified: boolean; status: PrepperStatus; reviewed_by: string | null; reviewed_at: string | null; rejection_note: string | null; delivery_radius_km: number | null; specialties: string[] | null; certifications: string[]; accepting_orders: boolean; home_cook_available: boolean; application_documents: string[] } & Timestamps;
+        Insert: { user_id: string; display_name: string; bio?: string | null; specialties?: string[] | null; certifications?: string[]; accepting_orders?: boolean; application_documents?: string[] };
         Update: Partial<{ display_name: string; bio: string | null; specialties: string[] | null; certifications: string[]; accepting_orders: boolean; home_cook_available: boolean }>;
         Relationships: [];
       };
@@ -187,9 +187,9 @@ export interface Database {
         Relationships: [];
       };
       reviews: {
-        Row: { id: string; order_id: string; author_id: string; prepper_id: string; meal_id: string | null; rating: number; body: string | null } & Timestamps;
-        Insert: { order_id: string; author_id: string; prepper_id: string; rating: number; meal_id?: string | null; body?: string | null };
-        Update: Partial<{ rating: number; body: string | null }>;
+        Row: { id: string; order_id: string; author_id: string; prepper_id: string; meal_id: string | null; rating: number; body: string | null; photos: string[] } & Timestamps;
+        Insert: { order_id: string; author_id: string; prepper_id: string; rating: number; meal_id?: string | null; body?: string | null; photos?: string[] };
+        Update: Partial<{ rating: number; body: string | null; photos: string[] }>;
         Relationships: [];
       };
       follows: {
