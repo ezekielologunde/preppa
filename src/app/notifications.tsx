@@ -165,7 +165,7 @@ export default function NotificationsScreen() {
 
   function handlePress(n: AppNotification) {
     feedback.tap();
-    if (!n.read) markRead.mutate(n.id);
+    if (!n.read) markRead.mutate(n.id, { onError: () => feedback.error() });
     if (n.type === 'order' || n.type === 'payment') router.push('/orders');
     else if (n.type === 'chat') router.push('/messages');
     else if (n.type === 'review') router.push('/reviews');
@@ -230,7 +230,7 @@ export default function NotificationsScreen() {
             <PressableScale
               onPress={() => {
                 feedback.tap();
-                markRead.mutate(undefined);
+                markRead.mutate(undefined, { onError: () => feedback.error() });
               }}
               accessibilityRole="button"
               accessibilityLabel="Mark all as read"
