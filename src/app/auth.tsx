@@ -26,7 +26,7 @@ const emailOk = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
 export default function AuthScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ mode?: string }>();
-  const { signIn, signUp, sendCode, verifyCode, resetPassword, updatePassword } = useAuth();
+  const { signIn, signUp, sendCode, verifyCode, resetPassword, updatePassword, statusBlock } = useAuth();
 
   const [mode, setMode] = useState<Mode>(params.mode === 'signin' ? 'signin' : 'signup');
   const [step, setStep] = useState<'form' | 'code'>('form');
@@ -215,6 +215,18 @@ export default function AuthScreen() {
           {step === 'form' ? (
             <MotiView key={`form-${mode}`} from={{ opacity: 0, translateX: 22 }} animate={{ opacity: 1, translateX: 0 }}
               transition={{ type: 'spring', damping: 17, stiffness: 170 }} style={{ gap: 12 }}>
+              {statusBlock ? (
+                <View style={{ backgroundColor: 'rgba(239,68,68,0.12)', borderColor: 'rgba(239,68,68,0.4)', borderWidth: 1, borderRadius: 14, padding: 14 }}>
+                  <Text style={{ fontFamily: Font.heading, fontSize: 14, color: '#fff', marginBottom: 4 }}>
+                    {statusBlock === 'deleted' ? 'Account deleted' : 'Account suspended'}
+                  </Text>
+                  <Text style={{ fontFamily: Font.body, fontSize: 13, color: 'rgba(255,255,255,0.7)', lineHeight: 19 }}>
+                    {statusBlock === 'deleted'
+                      ? 'This account is scheduled for deletion. Contact support@preppa.live within 30 days to restore it.'
+                      : 'This account is suspended. Contact support@preppa.live for help.'}
+                  </Text>
+                </View>
+              ) : null}
               {mode === 'signup' ? (
                 <TextInput style={[input, errorInput]} placeholder="full name" placeholderTextColor="rgba(255,255,255,0.3)"
                   autoCapitalize="words" textContentType="name" value={name} onChangeText={setName} />

@@ -17,6 +17,8 @@ type AuthState = {
   /** Granted roles from user_roles (customer/prepper/admin/…). */
   roles: string[];
   isAdmin: boolean;
+  /** Non-null when the just-signed-in account is blocked (deactivated / suspended). */
+  statusBlock: 'deleted' | 'suspended' | null;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signUp: (
     email: string,
@@ -35,6 +37,8 @@ type AuthState = {
   resetPassword: (email: string) => Promise<{ error: string | null }>;
   /** Set a new password for the signed-in (or recovery) session. */
   updatePassword: (password: string) => Promise<{ error: string | null }>;
+  /** Self-service account deletion: soft-deletes server-side (status→deleted), then signs out. */
+  requestAccountDeletion: (reason: string | null, note: string | null) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
 };
 
@@ -47,6 +51,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Roles are stored with the user they were fetched for, so a signed-out (or
   // switched) user can never see a previous user's roles — no reset effect needed.
   const [rolesFor, setRolesFor] = useState<{ uid: string; keys: string[] } | null>(null);
+  const [statusBlock, setStatusBlock] = useState<'deleted' | 'suspended' | null>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -88,6 +93,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [userId, rolesFor],
   );
 
+  // Enforce account status: a deactivated ('deleted') or suspended profile may not
+  // use the app. Checked on every session load. Fail-OPEN on a fetch error so a
+  // transient network blip can never lock a valid user out — only a *definitive*
+  // non-active status boots the session.
+  useEffect(() => {
+    if (!userId) return;
+    let cancelled = false;
+    supabase
+      .from('profiles')
+      .select('status')
+      .eq('id', userId)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (cancelled || error || !data) return;
+        if (data.status === 'deleted' || data.status === 'suspended') {
+          setStatusBlock(data.status);
+          supabase.auth.signOut();
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
+
   function setActiveRole(role: ActiveRole) {
     setActiveRoleState(role);
     AsyncStorage.setItem(ROLE_KEY, role).catch(() => {});
@@ -102,7 +131,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setActiveRole,
       roles,
       isAdmin: roles.includes('admin'),
+      statusBlock,
       async signIn(email, password) {
+        setStatusBlock(null); // fresh attempt clears any prior blocked-account notice
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         return { error: error?.message ?? null };
       },
@@ -124,6 +155,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { error: error?.message ?? null };
       },
       async verifyCode(email, token, type = 'email') {
+        setStatusBlock(null); // fresh attempt clears any prior blocked-account notice
         const { error } = await supabase.auth.verifyOtp({ email, token, type });
         return { error: error?.message ?? null };
       },
@@ -135,11 +167,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const { error } = await supabase.auth.updateUser({ password });
         return { error: error?.message ?? null };
       },
+      async requestAccountDeletion(reason, note) {
+        // Server-side soft-delete (status→deleted) + durable audit row. We then
+        // sign out locally; the status gate keeps the account out everywhere else.
+        const { error } = await supabase.rpc('request_account_deletion', {
+          p_reason: reason,
+          p_note: note,
+        });
+        if (error) return { error: error.message };
+        await supabase.auth.signOut();
+        return { error: null };
+      },
       async signOut() {
         await supabase.auth.signOut();
       },
     }),
-    [session, loading, activeRole, roles],
+    [session, loading, activeRole, roles, statusBlock],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

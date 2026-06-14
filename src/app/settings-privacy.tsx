@@ -10,7 +10,6 @@ import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
 import { Palette, Radius } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
-import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/providers/auth-provider';
 
 const LEAVE_REASONS = [
@@ -114,20 +113,22 @@ function DeleteAccountModal({ visible, onClose, onConfirm }: { visible: boolean;
 
 export default function PrivacySecurityScreen() {
   const router = useRouter();
-  const { signOut } = useAuth();
+  const { requestAccountDeletion } = useAuth();
 
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const flash = (m: string) => { setToast(m); setTimeout(() => setToast((t) => (t === m ? null : t)), 2600); };
 
-  function handleDelete(reason: string, note: string) {
-    // Capture the exit survey (fire-and-forget analytics). Hard account deletion
-    // runs server-side (service_role); here we record the reason, confirm the
-    // request, and end the session so the user is signed out immediately.
-    supabase.rpc('record_event', { p_event: 'account_deletion_requested', p_props: { reason, note: note || null } }).then(() => {}, () => {});
+  async function handleDelete(reason: string, note: string) {
+    // Real deletion: the RPC deactivates the account (status→deleted), records the
+    // reason for the audit trail, then signs out. The auth screen explains the
+    // 30-day restore window. No more "check your email" promise that never arrives.
     setDeleteOpen(false);
-    flash('Account deletion requested — check your email to confirm.');
-    setTimeout(() => { signOut(); }, 1400);
+    const { error } = await requestAccountDeletion(reason, note || null);
+    if (error) {
+      feedback.error();
+      flash('Could not delete your account. Please try again.');
+    }
   }
 
   return (

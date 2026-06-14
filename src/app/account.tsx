@@ -35,7 +35,7 @@ import { useAuth } from '@/providers/auth-provider';
 
 export default function AccountScreen() {
   const router = useRouter();
-  const { user, signOut } = useAuth();
+  const { user, requestAccountDeletion } = useAuth();
 
   const [passwordOpen, setPasswordOpen] = useState(false);
   const [biometric, setBiometric] = useState(false);
@@ -69,12 +69,18 @@ export default function AccountScreen() {
   };
 
   const handleDeleteConfirm = async () => {
-    if (deleteInput !== 'DELETE') return;
+    if (deleteInput !== 'DELETE' || deleting) return;
     setDeleting(true);
-    await signOut();
+    const { error } = await requestAccountDeletion(null, null);
     setDeleting(false);
+    if (error) {
+      feedback.error();
+      flash('Could not delete your account. Please try again.');
+      return;
+    }
+    // requestAccountDeletion deactivated the account server-side and signed out;
+    // the user lands on the auth screen, which explains the deletion + restore window.
     setDeleteStep(0);
-    flash('Account deletion requested. We will process it within 24 hours.');
   };
 
   return (

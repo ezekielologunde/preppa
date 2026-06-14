@@ -299,6 +299,7 @@ export interface Database {
       skip_subscription_delivery: { Args: { p_id: string }; Returns: Json };
       mark_notifications_read: { Args: { p_id?: string }; Returns: undefined };
       record_event: { Args: { p_event: string; p_props?: Json }; Returns: undefined };
+      request_account_deletion: { Args: { p_reason?: string | null; p_note?: string | null }; Returns: undefined };
       prepper_public_stats: { Args: { p_prepper: string }; Returns: Json };
       top_preppers_ranked: { Args: { p_limit?: number }; Returns: TopPrepperRankedRow[] };
       my_prepper_earnings: { Args: Record<string, never>; Returns: Json };
