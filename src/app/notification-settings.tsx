@@ -9,45 +9,55 @@ import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
 import { Palette, Radius } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/providers/auth-provider';
 
-type Channel = { id: string; label: string; desc: string; Icon: typeof Bell; color: string };
+type ChannelId = 'push' | 'email' | 'sms';
+type Channel = { id: ChannelId; label: string; desc: string; Icon: typeof Bell; color: string };
 
 const CHANNELS: Channel[] = [
   { id: 'push', label: 'Push notifications', desc: 'Rush hours, new drops, order updates, and rewards on your device', Icon: Bell, color: Palette.brand },
-  { id: 'email', label: 'Email', desc: 'Weekly digest, order receipts, and prepper recommendations', Icon: Mail, color: '#0891b2' },
+  { id: 'email', label: 'Email', desc: 'Order status updates, weekly digest, and prepper recommendations', Icon: Mail, color: '#0891b2' },
   { id: 'sms', label: 'SMS', desc: 'Time-sensitive delivery alerts and order status texts', Icon: MessageSquare, color: '#16a34a' },
 ];
 
-const STORAGE_KEY = 'notification_prefs';
-const DEFAULTS: Record<string, boolean> = { push: true, email: true, sms: false };
+const DEFAULTS: Record<ChannelId, boolean> = { push: true, email: true, sms: false };
 
 export default function NotificationSettingsScreen() {
   const router = useRouter();
-  const [prefs, setPrefs] = useState<Record<string, boolean>>(DEFAULTS);
+  const { user } = useAuth();
+  const [prefs, setPrefs] = useState<Record<ChannelId, boolean>>(DEFAULTS);
 
+  // Load the server-stored preferences (canonical, per-user, cross-device).
   useEffect(() => {
-    AsyncStorage.getItem(STORAGE_KEY).then((raw) => {
-      if (!raw) return;
-      try {
-        const saved = JSON.parse(raw);
-        // Migrate: only carry over keys that exist in the new channel model
-        const next: Record<string, boolean> = { ...DEFAULTS };
-        for (const ch of CHANNELS) { if (typeof saved[ch.id] === 'boolean') next[ch.id] = saved[ch.id]; }
-        setPrefs(next);
-      } catch {}
-    });
-  }, []);
+    if (!user?.id) return;
+    let cancelled = false;
+    supabase
+      .from('notification_preferences')
+      .select('email,sms,push')
+      .eq('user_id', user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (cancelled || !data) return;
+        setPrefs({ push: data.push, email: data.email, sms: data.sms });
+      });
+    return () => { cancelled = true; };
+  }, [user?.id]);
 
   function goBack() { feedback.tap(); if (router.canGoBack()) { router.back(); } else { router.replace('/settings'); } }
 
-  function toggle(id: string) {
+  async function toggle(id: ChannelId) {
+    if (!user?.id) return;
     feedback.tap();
-    setPrefs((p) => {
-      const next = { ...p, [id]: !p[id] };
-      AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-      return next;
-    });
+    const next = { ...prefs, [id]: !prefs[id] };
+    setPrefs(next); // optimistic
+    const { error } = await supabase
+      .from('notification_preferences')
+      .upsert({ user_id: user.id, ...next }, { onConflict: 'user_id' });
+    if (error) {
+      setPrefs((p) => ({ ...p, [id]: !next[id] })); // revert on failure
+      feedback.error();
+    }
   }
 
   return (
@@ -85,6 +95,7 @@ export default function NotificationSettingsScreen() {
                 <Switch
                   value={prefs[id]}
                   onValueChange={() => toggle(id)}
+                  disabled={!user?.id}
                   trackColor={{ false: Palette.border, true: Palette.brand }}
                   thumbColor="#fff"
                   ios_backgroundColor={Palette.border}
@@ -97,7 +108,7 @@ export default function NotificationSettingsScreen() {
           {/* Footer note */}
           <MotiView from={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ type: 'timing', duration: 300, delay: 200 }}>
             <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted, textAlign: 'center', lineHeight: 18, paddingHorizontal: 8 }}>
-              We respect quiet hours (10 pm – 7 am). To fully silence all alerts, use your device's system settings.
+              Payment receipts are always sent. We respect quiet hours (10 pm – 7 am). To fully silence alerts, also use your device&apos;s system settings.
             </Text>
           </MotiView>
 

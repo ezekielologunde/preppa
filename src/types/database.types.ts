@@ -102,6 +102,12 @@ export interface Database {
         Update: Partial<{ full_name: string | null; avatar_url: string | null; phone: string | null }>;
         Relationships: [];
       };
+      notification_preferences: {
+        Row: { user_id: string; email: boolean; sms: boolean; push: boolean };
+        Insert: { user_id: string; email?: boolean; sms?: boolean; push?: boolean };
+        Update: Partial<{ email: boolean; sms: boolean; push: boolean }>;
+        Relationships: [];
+      };
       roles: {
         Row: { id: number; key: string };
         Insert: { key: string };
