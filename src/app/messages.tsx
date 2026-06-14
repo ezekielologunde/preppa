@@ -360,7 +360,7 @@ export default function MessagesScreen() {
                   )}
                 </ScrollView>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 12, paddingVertical: 8, borderTopWidth: 1, borderTopColor: Palette.border }}>
-                  <TextInput value={chatText} onChangeText={setChatText} placeholder="Message…" placeholderTextColor={Palette.textMuted} onSubmitEditing={submitChat}
+                  <TextInput value={chatText} onChangeText={setChatText} placeholder="Message…" placeholderTextColor={Palette.textMuted} onSubmitEditing={submitChat} maxLength={2000}
                     style={{ flex: 1, height: 40, borderRadius: 20, backgroundColor: Palette.canvas, paddingHorizontal: 14, fontFamily: Font.body, fontSize: 14, color: INK }} />
                   <PressableScale onPress={submitChat} disabled={!chatText.trim() || sendMsg.isPending} accessibilityRole="button" accessibilityLabel="Send"
                     style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: chatText.trim() ? ORANGE : Palette.border, alignItems: 'center', justifyContent: 'center' }}>

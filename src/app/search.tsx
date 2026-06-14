@@ -154,6 +154,7 @@ export default function SearchScreen() {
               onSubmitEditing={() => recordSearch(text)}
               autoCapitalize="none"
               autoCorrect={false}
+              maxLength={200}
               style={{ flex: 1, fontFamily: Font.body, fontSize: 15, color: INK }}
             />
             {text.length > 0 ? (
