@@ -173,6 +173,7 @@ export default function NotificationsScreen() {
     else if (n.type === 'follow') router.push('/profile');
     else if (n.type === 'bid') router.push('/experiences');
     else if (n.type === 'bid_accepted') router.push('/prepper-orders');
+    else if (n.type === 'promotion') router.push('/specials');
   }
 
   const unread = (notifs ?? []).filter((n) => !n.read).length;

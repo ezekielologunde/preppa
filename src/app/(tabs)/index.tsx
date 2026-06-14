@@ -545,8 +545,8 @@ export default function HomeScreen() {
                 <HeaderIconButton
                   Icon={Bell}
                   badge={badgeCount}
-                  onPress={() => router.push('/messages')}
-                  label={badgeCount ? `Inbox, ${badgeCount} unread` : 'Inbox'}
+                  onPress={() => router.push('/notifications')}
+                  label={badgeCount ? `Notifications, ${badgeCount} unread` : 'Notifications'}
                 />
                 <HeaderIconButton
                   Icon={ShoppingCart}
