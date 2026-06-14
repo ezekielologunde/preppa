@@ -104,7 +104,7 @@ export default function PrepperOrdersScreen() {
             <ChevronLeft size={22} color="#fff" />
           </PressableScale>
           <Text style={{ fontFamily: Font.display, fontSize: 24, color: '#fff', letterSpacing: -0.6 }}>
-            {tab === 'homecook' ? 'home cook jobs' : 'incoming preorders'}
+            {tab === 'homecook' ? 'home cook jobs' : tab === 'experiences' ? 'experience jobs' : 'incoming preorders'}
           </Text>
         </View>
 
