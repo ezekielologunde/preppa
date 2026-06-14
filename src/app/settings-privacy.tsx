@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { AlertTriangle, Bell, Download, Lock, Trash2, X } from 'lucide-react-native';
+import { AlertTriangle, Bell, Download, Lock, Mail, Trash2, X } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useState } from 'react';
 import { Modal, Platform, ScrollView, Text, TextInput, View } from 'react-native';
@@ -156,6 +156,7 @@ export default function PrivacySecurityScreen() {
 
           {/* Security */}
           <SettingsGroup title="security" delay={60}>
+            <SettingsRow Icon={Mail} label="Email address" sub="Change your sign-in email" onPress={() => router.push('/change-email' as never)} />
             <SettingsRow Icon={Lock} label="Password" sub="Change your account password" onPress={() => router.push('/change-password')} isLast />
           </SettingsGroup>
 
