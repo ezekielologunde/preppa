@@ -55,6 +55,7 @@ export default function MealScreen() {
   const { user } = useAuth();
   const { data: meal, isLoading, isError } = useMeal(id);
   const [added, setAdded] = useState(false);
+  const [cartErr, setCartErr] = useState<string | null>(null);
   const [switchPrompt, setSwitchPrompt] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIdx, setLightboxIdx] = useState(0);
@@ -96,6 +97,7 @@ export default function MealScreen() {
     if (!meal?.prepperUserId) return;
     startConv.mutate(meal.prepperUserId, {
       onSuccess: (convId) => router.push(`/chat?id=${convId}&name=${encodeURIComponent(meal.prepper)}`),
+      onError: () => feedback.error(),
     });
   }
 
@@ -103,7 +105,7 @@ export default function MealScreen() {
     feedback.tap();
     if (!user) return router.push('/auth?mode=signin');
     if (!meal?.prepperId) return;
-    toggleFollow.mutate(isFollowing ?? false);
+    toggleFollow.mutate(isFollowing ?? false, { onError: () => feedback.error() });
   }
 
   // A cart holds one prepper at a time (each prepper cooks & fulfils its own order).
@@ -113,6 +115,7 @@ export default function MealScreen() {
 
   function doAdd(replace: boolean) {
     if (!user || !meal) return;
+    setCartErr(null);
     addToCart.mutate(
       { userId: user.id, mealId: meal.id, price: meal.price, replace },
       {
@@ -123,7 +126,10 @@ export default function MealScreen() {
           feedback.success();
           setTimeout(() => setAdded(false), 2200);
         },
-        onError: () => feedback.error(),
+        onError: () => {
+          feedback.error();
+          setCartErr('Could not add to cart. Please try again.');
+        },
       },
     );
   }
@@ -384,6 +390,9 @@ export default function MealScreen() {
                 {liveRush.buyerTip}
               </Text>
             </MotiView>
+          ) : null}
+          {cartErr ? (
+            <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.danger, textAlign: 'center', paddingHorizontal: 20 }}>{cartErr}</Text>
           ) : null}
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 20, paddingVertical: 12 }}>
             <View>
