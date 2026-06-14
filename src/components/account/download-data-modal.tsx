@@ -6,11 +6,12 @@ import { Palette, Radius } from '@/constants/theme';
 
 interface DownloadDataModalProps {
   visible: boolean;
+  loading?: boolean;
   onClose: () => void;
   onConfirm: () => void;
 }
 
-export function DownloadDataModal({ visible, onClose, onConfirm }: DownloadDataModalProps) {
+export function DownloadDataModal({ visible, loading, onClose, onConfirm }: DownloadDataModalProps) {
   return (
     <Modal
       visible={visible}
@@ -49,8 +50,8 @@ export function DownloadDataModal({ visible, onClose, onConfirm }: DownloadDataM
               color: Palette.textSecondary,
               lineHeight: 21,
             }}>
-            We'll email you a link to download your data within 24 hours. The
-            archive includes your profile, orders, and preferences.
+            Download a copy of your Preppa data — your profile, orders,
+            addresses, reviews, subscriptions, and preferences — as a JSON file.
           </Text>
           <View style={{ flexDirection: 'row', gap: 10 }}>
             <PressableScale
@@ -76,8 +77,10 @@ export function DownloadDataModal({ visible, onClose, onConfirm }: DownloadDataM
             </PressableScale>
             <PressableScale
               onPress={onConfirm}
+              disabled={loading}
               accessibilityRole="button"
-              accessibilityLabel="Confirm data download request"
+              accessibilityLabel="Download my data"
+              accessibilityState={{ disabled: loading }}
               style={{
                 flex: 2,
                 height: 48,
@@ -85,10 +88,11 @@ export function DownloadDataModal({ visible, onClose, onConfirm }: DownloadDataM
                 backgroundColor: Palette.brand,
                 alignItems: 'center',
                 justifyContent: 'center',
+                opacity: loading ? 0.6 : 1,
               }}>
               <Text
                 style={{ fontFamily: Font.semibold, fontSize: 14, color: '#fff' }}>
-                request download
+                {loading ? 'preparing…' : 'download'}
               </Text>
             </PressableScale>
           </View>

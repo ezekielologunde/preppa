@@ -28,6 +28,7 @@ import { Divider, Row, SectionLabel, StatusBadge } from '@/components/account/ac
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
 import { Palette, Shadow } from '@/constants/theme';
+import { exportMyData } from '@/lib/export-data';
 import { feedback } from '@/lib/feedback';
 import { useAuth } from '@/providers/auth-provider';
 
@@ -44,6 +45,7 @@ export default function AccountScreen() {
 
   // Download data modal
   const [downloadModal, setDownloadModal] = useState(false);
+  const [downloading, setDownloading] = useState(false);
 
   // Delete account flow: step 0 = closed, 1 = "are you sure", 2 = "type DELETE"
   const [deleteStep, setDeleteStep] = useState(0);
@@ -62,10 +64,19 @@ export default function AccountScreen() {
     flash(`${label} — coming soon`);
   };
 
-  const handleDownloadConfirm = () => {
+  const handleDownloadConfirm = async () => {
+    if (downloading) return;
+    setDownloading(true);
+    const { error } = await exportMyData();
+    setDownloading(false);
+    if (error) {
+      feedback.error();
+      flash('Could not export your data. Please try again.');
+      return;
+    }
     setDownloadModal(false);
     feedback.success();
-    flash("We'll email you a download link within 24 hours.");
+    flash('Your data has been exported.');
   };
 
   const handleDeleteConfirm = async () => {
@@ -426,6 +437,7 @@ export default function AccountScreen() {
 
       <DownloadDataModal
         visible={downloadModal}
+        loading={downloading}
         onClose={() => setDownloadModal(false)}
         onConfirm={handleDownloadConfirm}
       />
