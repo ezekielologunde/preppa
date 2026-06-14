@@ -44,7 +44,6 @@ const ROUTE_CLASS: [string, WidthClass][] = [
   ['/cart', 'content'],
   ['/settings', 'form'],
   ['/edit-profile', 'form'],
-  ['/account', 'form'],
   ['/addresses', 'form'],
   ['/payment-methods', 'form'],
   ['/post-video', 'form'],

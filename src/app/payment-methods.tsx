@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { ChevronLeft, Lock, Plus, Trash2 } from 'lucide-react-native';
 import { feedback } from '@/lib/feedback';
@@ -207,6 +208,7 @@ function PaymentCard({
 
 export default function PaymentMethodsScreen() {
   const router = useRouter();
+  const qc = useQueryClient();
   const { data, isLoading, refetch } = usePaymentMethods();
   const detachPM = useDetachPaymentMethod();
   const setDefaultPM = useSetDefaultPaymentMethod();
@@ -358,9 +360,9 @@ export default function PaymentMethodsScreen() {
 
       <AddCardSheet
         visible={sheetVisible}
-        stripePublishableKey={data?.pk}
+        isFirstCard={cards.length === 0}
         onClose={() => setSheetVisible(false)}
-        onSave={() => setSheetVisible(false)}
+        onSaved={() => { qc.invalidateQueries({ queryKey: ['payment-methods'] }); setSheetVisible(false); }}
       />
     </View>
   );
