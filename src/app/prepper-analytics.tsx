@@ -8,6 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
 import { feedback } from '@/lib/feedback';
+import { useBreakpoint } from '@/lib/layout';
 import { usePrepperOrders, type OrderSummary } from '@/lib/queries/orders';
 import { useMyPrepperApplication } from '@/lib/queries/preppers';
 import { Palette, Radius } from '@/constants/theme';
@@ -93,6 +94,7 @@ export default function PrepperAnalyticsScreen() {
   const { user } = useAuth();
   const { data: application } = useMyPrepperApplication(user?.id);
   const { data: orders, refetch } = usePrepperOrders(application?.id);
+  const isDesktop = useBreakpoint() === 'desktop';
   const [period, setPeriod] = useState<'week' | 'month' | 'all'>('week');
   const [refreshing, setRefreshing] = useState(false);
   async function handleRefresh() { setRefreshing(true); await refetch(); setRefreshing(false); }
@@ -170,7 +172,8 @@ export default function PrepperAnalyticsScreen() {
             </Text>
           </MotiView>
         ) : (
-        <ScrollView showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={ORANGE} colors={[ORANGE]} />} contentContainerStyle={{ padding: 20, gap: 16, paddingBottom: 120 }}>
+        <ScrollView showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={ORANGE} colors={[ORANGE]} />} contentContainerStyle={{ paddingBottom: 120 }}>
+          <View style={[{ padding: 20, gap: 16 }, isDesktop ? { maxWidth: 900, alignSelf: 'center', width: '100%' } : null]}>
 
           {/* KPI row */}
           <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260 }}>
@@ -188,8 +191,9 @@ export default function PrepperAnalyticsScreen() {
           </View>
           </MotiView>
 
-          {/* Orders by day of week */}
-          <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 60 }}>
+          {/* Orders by day + revenue by day — side by side on desktop */}
+          <View style={isDesktop ? { flexDirection: 'row', gap: 14 } : undefined}>
+          <MotiView style={isDesktop ? { flex: 1 } : undefined} from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 60 }}>
           <View style={{ backgroundColor: Palette.surface, borderRadius: Radius.lg, padding: 16 }}>
             <Text style={{ fontFamily: Font.heading, fontSize: 14.5, color: INK, marginBottom: 14 }}>preorders by day of week</Text>
             <View style={{ flexDirection: 'row', gap: 4, alignItems: 'flex-end', height: 68 }}>
@@ -206,8 +210,7 @@ export default function PrepperAnalyticsScreen() {
           </View>
           </MotiView>
 
-          {/* Revenue by day of week */}
-          <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 80 }}>
+          <MotiView style={isDesktop ? { flex: 1 } : undefined} from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 80 }}>
           <View style={{ backgroundColor: Palette.surface, borderRadius: Radius.lg, padding: 16 }}>
             <Text style={{ fontFamily: Font.heading, fontSize: 14.5, color: INK, marginBottom: 14 }}>earnings by day of week</Text>
             <View style={{ flexDirection: 'row', gap: 4, alignItems: 'flex-end', height: 68 }}>
@@ -225,6 +228,7 @@ export default function PrepperAnalyticsScreen() {
             </View>
           </View>
           </MotiView>
+          </View>
 
           {/* Orders by time slot */}
           <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 100 }}>
@@ -250,8 +254,9 @@ export default function PrepperAnalyticsScreen() {
           </View>
           </MotiView>
 
-          {/* Top dishes */}
-          <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 140 }}>
+          {/* Top dishes + top customers — side by side on desktop */}
+          <View style={isDesktop ? { flexDirection: 'row', gap: 14, alignItems: 'flex-start' } : undefined}>
+          <MotiView style={isDesktop ? { flex: 1 } : undefined} from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 140 }}>
           <View style={{ backgroundColor: Palette.surface, borderRadius: Radius.lg, padding: 16, gap: 12 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               <Package size={15} color={Palette.amber} />
@@ -278,9 +283,8 @@ export default function PrepperAnalyticsScreen() {
           </View>
           </MotiView>
 
-          {/* Top customers */}
           {topCustomers.length > 0 ? (
-            <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 160 }}>
+            <MotiView style={isDesktop ? { flex: 1 } : undefined} from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 160 }}>
             <View style={{ backgroundColor: Palette.surface, borderRadius: Radius.lg, padding: 16, gap: 12 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                 <Users size={15} color={Palette.success} />
@@ -299,6 +303,7 @@ export default function PrepperAnalyticsScreen() {
             </View>
             </MotiView>
           ) : null}
+          </View>
 
           {/* AI Insights */}
           <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 180 }}>
@@ -332,6 +337,7 @@ export default function PrepperAnalyticsScreen() {
           </PressableScale>
           </MotiView>
 
+          </View>
         </ScrollView>
         )}
       </SafeAreaView>
