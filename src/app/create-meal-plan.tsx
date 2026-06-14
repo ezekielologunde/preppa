@@ -229,7 +229,7 @@ export default function CreateMealPlanScreen() {
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, height: 46, backgroundColor: Palette.surface, borderRadius: Radius.sm, paddingHorizontal: 14 }}>
                 <Search size={16} color={Palette.textMuted} />
                 <TextInput value={search} onChangeText={setSearch} placeholder="search any meal…"
-                  placeholderTextColor={Palette.textMuted}
+                  placeholderTextColor={Palette.textMuted} maxLength={100}
                   style={{ flex: 1, fontFamily: Font.body, fontSize: 14, color: INK }} />
                 {searching ? <ActivityIndicator size="small" color={Palette.textMuted} /> : null}
               </View>
