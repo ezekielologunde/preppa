@@ -334,7 +334,9 @@ export default function OrdersScreen() {
     setConfirmCancel(null);
     setActionErr(null);
     cancelOrder.mutate(o.id, {
-      onSuccess: () => refundOrder.mutate(o.id),
+      onSuccess: () => refundOrder.mutate(o.id, {
+        onError: () => { feedback.error(); setActionErr('Preorder cancelled but refund failed — contact support if needed.'); },
+      }),
       onError: (e) => { feedback.error(); setActionErr(e instanceof Error ? e.message : 'Could not cancel. Try again.'); },
     });
   }
@@ -465,7 +467,7 @@ export default function OrdersScreen() {
                       try {
                         const convId = await startConversation.mutateAsync(o.prepperUserId);
                         router.push(`/chat?id=${convId}&name=${encodeURIComponent(o.prepper)}`);
-                      } catch { setActionErr('Could not open chat. Try again.'); }
+                      } catch { feedback.error(); setActionErr('Could not open chat. Try again.'); }
                     }}
                     reordering={reorderingId === o.id}
                   />
