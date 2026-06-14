@@ -14,6 +14,8 @@ export type FeedItem = {
   image: string;
   videoUrl: string | null;
   thumbnail: string | null;
+  /** Currently airing live kitchen session — shows LIVE badge and routes to prepper page. */
+  isLive?: boolean;
   /** true = standalone prepper post (feed_posts), false = live meal listing */
   isPost?: boolean;
 };

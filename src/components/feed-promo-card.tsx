@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { ChefHat, ChevronRight, type LucideIcon, Megaphone, Sparkles } from 'lucide-react-native';
+import { ChefHat, ChevronRight, Leaf, type LucideIcon, Megaphone, Package, Sparkles } from 'lucide-react-native';
 import { Text, View } from 'react-native';
 
 import { PressableScale } from '@/components/ui/pressable-scale';
@@ -9,7 +9,7 @@ import { Font } from '@/constants/fonts';
 import { Palette, Radius } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
 
-export type PromoKind = 'meal_plans' | 'post_request' | 'become_prepper';
+export type PromoKind = 'meal_plans' | 'post_request' | 'become_prepper' | 'order_tracking' | 'dietary_profile';
 
 const promoImg = (id: string) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=900&q=70`;
 
@@ -19,7 +19,7 @@ type Promo = {
   subtitle: string;
   cta: string;
   /** Literal union (not bare string) so expo-router's typed push accepts it. */
-  route: '/meal-plans' | '/experience-request' | '/become-prepper';
+  route: '/meal-plans' | '/experience-request' | '/become-prepper' | '/orders' | '/dietary-preferences';
   Icon: LucideIcon;
   /** Brand-accent backdrop, shown if the image fails or while it loads. */
   gradient: [string, string];
@@ -57,6 +57,26 @@ export const PROMOS: Record<PromoKind, Promo> = {
     Icon: ChefHat,
     gradient: ['#0F766E', '#064E3B'],
     image: promoImg('photo-1577219491135-ce391730fb2c'),
+  },
+  order_tracking: {
+    eyebrow: 'Active order',
+    title: 'Your food\nis on its way',
+    subtitle: 'Track your delivery in real time and know exactly when your meal arrives.',
+    cta: 'Track my order',
+    route: '/orders',
+    Icon: Package,
+    gradient: ['#1d4ed8', '#1e3a8a'],
+    image: promoImg('photo-1565299585323-38d6b0865b47'),
+  },
+  dietary_profile: {
+    eyebrow: 'Eat better',
+    title: 'Tell us what\nyou love',
+    subtitle: 'Personalize your feed with dietary goals — vegan, gluten-free, high-protein and more.',
+    cta: 'Set preferences',
+    route: '/dietary-preferences',
+    Icon: Leaf,
+    gradient: ['#15803d', '#14532d'],
+    image: promoImg('photo-1512621776951-a57141f2eefd'),
   },
 };
 

@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { BadgeCheck, Heart, MonitorPlay, Play, Share2, Star, UserCheck, UserPlus } from 'lucide-react-native';
+import { BadgeCheck, CheckCircle, Heart, MonitorPlay, Play, Share2, ShoppingCart, Star, UserCheck, UserPlus } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useEffect, useMemo, useState } from 'react';
 import {
@@ -17,6 +17,8 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { FeedPromoCard, PROMOS, type PromoKind } from '@/components/feed-promo-card';
+import { useAddToCart } from '@/lib/queries/cart';
+import { useMyOrders } from '@/lib/queries/orders';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
 import { Palette, Radius } from '@/constants/theme';
@@ -84,8 +86,26 @@ function FollowBtn({ prepperId, followSet }: { prepperId: string; followSet: Set
 
 function FeedCard({ item, height, bottomInset, followSet }: { item: FeedItem; height: number; bottomInset: number; followSet: Set<string> }) {
   const router = useRouter();
+  const { user } = useAuth();
   const isSaved = useFavorite(`meal:${item.id}`);
+  const [addState, setAddState] = useState<'idle' | 'adding' | 'added'>('idle');
+  const addToCart = useAddToCart();
   const source = item.thumbnail ?? item.image;
+
+  async function handleAddToCart() {
+    if (!user) { feedback.tap(); router.push('/auth?mode=signup'); return; }
+    feedback.tap();
+    setAddState('adding');
+    try {
+      await addToCart.mutateAsync({ userId: user.id, mealId: item.id, price: item.price });
+      feedback.success();
+      setAddState('added');
+      setTimeout(() => setAddState('idle'), 1800);
+    } catch {
+      setAddState('idle');
+      feedback.error();
+    }
+  }
 
   async function handleShare() {
     feedback.tap();
@@ -120,12 +140,23 @@ function FeedCard({ item, height, bottomInset, followSet }: { item: FeedItem; he
         style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
       />
 
-      {item.videoUrl ? (
+      {item.videoUrl && !item.isLive ? (
         <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' }} pointerEvents="none">
           <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: 'rgba(0,0,0,0.42)', alignItems: 'center', justifyContent: 'center' }}>
             <Play size={28} color="#fff" fill="#fff" />
           </View>
         </View>
+      ) : null}
+      {item.isLive ? (
+        <MotiView
+          from={{ opacity: 0.55 }}
+          animate={{ opacity: 1 }}
+          transition={{ type: 'timing', duration: 700, loop: true, repeatReverse: true }}
+          style={{ position: 'absolute', top: 56, left: 14, flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: '#dc2626', borderRadius: 8, paddingHorizontal: 9, paddingVertical: 5 }}
+          pointerEvents="none">
+          <View style={{ width: 5, height: 5, borderRadius: 3, backgroundColor: '#fff' }} />
+          <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: '#fff', letterSpacing: 0.7 }}>LIVE</Text>
+        </MotiView>
       ) : null}
 
       {/* Side action panel */}
@@ -189,11 +220,21 @@ function FeedCard({ item, height, bottomInset, followSet }: { item: FeedItem; he
               ${item.price.toFixed(2)}
             </Text>
             <PressableScale
-              onPress={() => { feedback.tap(); router.push(`/meal?id=${item.id}`); }}
+              onPress={item.isLive ? () => { feedback.tap(); router.push(`/meal?id=${item.id}`); } : handleAddToCart}
+              disabled={addState === 'adding'}
               accessibilityRole="button"
-              accessibilityLabel={`Preorder ${item.title}`}
-              style={{ flex: 1, height: 50, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
-              <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>Preorder</Text>
+              accessibilityLabel={item.isLive ? `View ${item.title} live drop` : addState === 'added' ? 'Added to cart' : `Add ${item.title} to cart`}
+              style={{ flex: 1, height: 50, borderRadius: Radius.pill, backgroundColor: addState === 'added' ? '#16a34a' : ORANGE, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8 }}>
+              {addState === 'adding' ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : addState === 'added' ? (
+                <CheckCircle size={16} color="#fff" />
+              ) : item.isLive ? null : (
+                <ShoppingCart size={16} color="#fff" />
+              )}
+              <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#fff' }}>
+                {addState === 'added' ? 'Added!' : addState === 'adding' ? 'Adding…' : item.isLive ? 'Join live drop' : 'Add to cart'}
+              </Text>
             </PressableScale>
           </View>
         )}
@@ -255,14 +296,14 @@ type StreamEntry =
   | { kind: 'item'; item: FeedItem; key: string }
   | { kind: 'promo'; promo: PromoKind; key: string };
 
-const PROMO_SEQUENCE: PromoKind[] = ['meal_plans', 'post_request', 'become_prepper'];
-
 /**
  * Weave promo cards into the data feed: first after 3 drops, then every 5.
- * Any promos not placed (short feeds) are appended so all three CTAs always
- * surface at least once.
+ * Any promos not placed (short feeds) are appended so all CTAs surface at least once.
+ * `promoSeq` is computed at call-site to allow contextual promos (e.g. order_tracking
+ * only when the user has an active order).
  */
-function buildStream(items: FeedItem[]): StreamEntry[] {
+function buildStream(items: FeedItem[], promoSeq: PromoKind[]): StreamEntry[] {
+  if (!promoSeq.length) return items.map((item) => ({ kind: 'item', item, key: item.id }));
   const out: StreamEntry[] = [];
   const FIRST_AT = 3;
   const EVERY = 5;
@@ -271,12 +312,12 @@ function buildStream(items: FeedItem[]): StreamEntry[] {
     out.push({ kind: 'item', item, key: item.id });
     const pos = i + 1;
     if (pos === FIRST_AT || (pos > FIRST_AT && (pos - FIRST_AT) % EVERY === 0)) {
-      out.push({ kind: 'promo', promo: PROMO_SEQUENCE[p % PROMO_SEQUENCE.length], key: `promo-${p}` });
+      out.push({ kind: 'promo', promo: promoSeq[p % promoSeq.length], key: `promo-${p}` });
       p++;
     }
   });
-  while (p < PROMO_SEQUENCE.length) {
-    out.push({ kind: 'promo', promo: PROMO_SEQUENCE[p % PROMO_SEQUENCE.length], key: `promo-tail-${p}` });
+  while (p < promoSeq.length) {
+    out.push({ kind: 'promo', promo: promoSeq[p % promoSeq.length], key: `promo-tail-${p}` });
     p++;
   }
   return out;
@@ -299,9 +340,21 @@ export default function FeedsScreen() {
   const { data: followingItems, isLoading: followingLoading } = useFollowingFeed(user?.id);
   const { data: followIds } = useMyFollowIds(user?.id);
   const followSet = useMemo(() => new Set(followIds ?? []), [followIds]);
+  const { data: myOrders } = useMyOrders(user?.id);
+  const hasActiveOrder = useMemo(
+    () => (myOrders ?? []).some((o) => !['completed', 'cancelled', 'refunded'].includes(o.status)),
+    [myOrders],
+  );
+  const promoSeq = useMemo((): PromoKind[] => [
+    'meal_plans',
+    ...(hasActiveOrder ? ['order_tracking' as const] : []),
+    'post_request',
+    'become_prepper',
+    'dietary_profile',
+  ], [hasActiveOrder]);
   const items = tab === 'following' ? followingItems : exploreItems;
   const isLoading = tab === 'following' ? followingLoading : exploreLoading;
-  const stream = useMemo(() => buildStream(items ?? []), [items]);
+  const stream = useMemo(() => buildStream(items ?? [], promoSeq), [items, promoSeq]);
   const { height: windowHeight, width: windowWidth } = useWindowDimensions();
   const isDesktop = windowWidth >= BP.desktop;
   const insets = useSafeAreaInsets();
@@ -426,10 +479,10 @@ export default function FeedsScreen() {
                 <PressableScale
                   onPress={() => { feedback.tap(); router.push(`/meal?id=${currentItem.id}`); }}
                   accessibilityRole="button"
-                  accessibilityLabel={`Preorder ${currentItem.title}`}
+                  accessibilityLabel={`Order ${currentItem.title}`}
                   style={{ height: 52, borderRadius: Radius.pill, backgroundColor: Palette.brand, alignItems: 'center', justifyContent: 'center' }}>
                   <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>
-                    Preorder · ${currentItem.price.toFixed(2)}
+                    Order now · ${currentItem.price.toFixed(2)}
                   </Text>
                 </PressableScale>
               ) : (

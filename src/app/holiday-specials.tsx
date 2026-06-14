@@ -32,6 +32,16 @@ function daysUntil(dateStr: string): number {
   return Math.round((target.getTime() - today.getTime()) / 86_400_000);
 }
 
+const MONTH_ABR = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function fathersDayStr(): string {
+  const year = new Date().getFullYear();
+  const june1 = new Date(year, 5, 1);
+  const daysToFirstSun = (7 - june1.getDay()) % 7;
+  const fd = new Date(year, 5, 1 + daysToFirstSun + 14);
+  return `${MONTH_ABR[fd.getMonth()]} ${fd.getDate()}`;
+}
+const FATHERS_DAY_DATE = fathersDayStr();
+
 function urgencyFor(days: number): 'today' | 'soon' | 'upcoming' {
   if (days <= 0) return 'today';
   if (days <= 7) return 'soon';
@@ -52,7 +62,7 @@ const EVENTS: HolidayEvent[] = [
     culture: 'African American',
   },
   {
-    id: 'fathers_day', name: "Father's Day", flag: '👨', date: 'Jun 15', color: ORANGE,
+    id: 'fathers_day', name: "Father's Day", flag: '👨', date: FATHERS_DAY_DATE, color: ORANGE,
     description: 'Treat dad to a hearty homemade meal from local preppers. Feast packs for 4 available.',
     dishes: ['Pepper soup', 'Grilled chicken platter', 'Egusi with pounded yam', 'Beef stew rice', 'Chapman punch jug'],
     culture: 'Universal',
@@ -89,7 +99,7 @@ export default function HolidaySpecialsScreen() {
   function goBack() { feedback.tap(); if (router.canGoBack()) { router.back(); } else { router.replace('/explore'); } }
 
   const upcoming = EVENTS
-    .map((e) => ({ ...e, daysAway: daysUntil(e.date), urgency: urgencyFor(daysUntil(e.date)) }))
+    .map((e) => { const daysAway = daysUntil(e.date); return { ...e, daysAway, urgency: urgencyFor(daysAway) }; })
     .filter((e) => e.daysAway >= -1)
     .sort((a, b) => a.daysAway - b.daysAway);
 
