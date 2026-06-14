@@ -113,7 +113,7 @@ export default function ExperienceRequestScreen() {
           setPosted({ title: cleanTitle.slice(0, 100), kind, guests, budget });
           setTitle(''); setDetails(''); setGuests(10); setBudget(null); setLocation(''); setTitleTouched(false);
         },
-        onError: (e) => setErr(e instanceof Error ? e.message : 'Could not post request.'),
+        onError: (e) => { feedback.error(); setErr(e instanceof Error ? e.message : 'Could not post request.'); },
       },
     );
   }
