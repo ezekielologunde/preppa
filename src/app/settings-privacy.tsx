@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { AlertTriangle, Bell, Lock, Trash2, X } from 'lucide-react-native';
+import { AlertTriangle, Bell, Download, Lock, Trash2, X } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useState } from 'react';
 import { Modal, Platform, ScrollView, Text, TextInput, View } from 'react-native';
@@ -9,6 +9,7 @@ import { SettingsGroup, SettingsHeader, SettingsRow } from '@/components/setting
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
 import { Palette, Radius } from '@/constants/theme';
+import { exportMyData } from '@/lib/export-data';
 import { feedback } from '@/lib/feedback';
 import { useAuth } from '@/providers/auth-provider';
 
@@ -116,8 +117,20 @@ export default function PrivacySecurityScreen() {
   const { requestAccountDeletion } = useAuth();
 
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [downloading, setDownloading] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const flash = (m: string) => { setToast(m); setTimeout(() => setToast((t) => (t === m ? null : t)), 2600); };
+
+  async function handleExport() {
+    if (downloading) return;
+    setDownloading(true);
+    feedback.tap();
+    flash('Preparing your data…');
+    const { error } = await exportMyData();
+    setDownloading(false);
+    if (error) { feedback.error(); flash('Could not export your data. Please try again.'); }
+    else { feedback.success(); flash('Your data has been exported.'); }
+  }
 
   async function handleDelete(reason: string, note: string) {
     // Real deletion: the RPC deactivates the account (status→deleted), records the
@@ -146,8 +159,13 @@ export default function PrivacySecurityScreen() {
             <SettingsRow Icon={Lock} label="Password" sub="Change your account password" onPress={() => router.push('/change-password')} isLast />
           </SettingsGroup>
 
+          {/* Your data — GDPR / CCPA rights */}
+          <SettingsGroup title="your data" delay={120}>
+            <SettingsRow Icon={Download} label={downloading ? 'Preparing…' : 'Download my data'} sub="Get a copy of your Preppa data as a JSON file" onPress={handleExport} isLast />
+          </SettingsGroup>
+
           {/* Account management */}
-          <SettingsGroup title="account management" delay={120}>
+          <SettingsGroup title="account management" delay={180}>
             <SettingsRow Icon={Trash2} label="Delete account" sub="Permanently remove your account and data" danger onPress={() => { feedback.impact(); setDeleteOpen(true); }} isLast />
           </SettingsGroup>
         </ScrollView>
