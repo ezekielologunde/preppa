@@ -56,6 +56,7 @@ export default function MealScreen() {
   const { data: meal, isLoading, isError } = useMeal(id);
   const [added, setAdded] = useState(false);
   const [cartErr, setCartErr] = useState<string | null>(null);
+  const [msgErr, setMsgErr] = useState<string | null>(null);
   const [switchPrompt, setSwitchPrompt] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIdx, setLightboxIdx] = useState(0);
@@ -95,9 +96,10 @@ export default function MealScreen() {
     feedback.tap();
     if (!user) return router.push('/auth?mode=signin');
     if (!meal?.prepperUserId) return;
+    setMsgErr(null);
     startConv.mutate(meal.prepperUserId, {
       onSuccess: (convId) => router.push(`/chat?id=${convId}&name=${encodeURIComponent(meal.prepper)}`),
-      onError: () => feedback.error(),
+      onError: () => { feedback.error(); setMsgErr('Could not open chat. Please try again.'); },
     });
   }
 
@@ -295,6 +297,7 @@ export default function MealScreen() {
                 </View>
               </View>
 
+              {msgErr ? <Text style={{ fontFamily: Font.medium, fontSize: 12.5, color: Palette.danger }}>{msgErr}</Text> : null}
               {meal.description ? (
                 <Text style={{ fontFamily: Font.body, fontSize: 15, lineHeight: 23, color: Palette.inkSoft }}>{meal.description}</Text>
               ) : null}

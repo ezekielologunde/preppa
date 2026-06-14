@@ -74,6 +74,7 @@ export default function PrepperScreen() {
   const startConversation = useStartConversation();
   const [sheetPlan, setSheetPlan] = useState<MealPlan | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [msgErr, setMsgErr] = useState<string | null>(null);
   async function handleRefresh() { setRefreshing(true); await Promise.all([refetchProfile(), refetchReviews(), refetchFollowing(), refetchPlans(), refetchBadges()]); setRefreshing(false); }
   const subscribedNames = new Set((mySubs ?? []).filter((s) => s.status !== 'cancelled').map((s) => s.plan_name));
   const onToggleFollow = () => {
@@ -360,6 +361,7 @@ export default function PrepperScreen() {
       {/* Sticky action bar — message, preorder, and home cook booking */}
       {p && !isLoading ? (
         <BottomActionBar>
+          {msgErr ? <Text style={{ fontFamily: Font.medium, fontSize: 12.5, color: Palette.danger, textAlign: 'center', paddingHorizontal: 16 }}>{msgErr}</Text> : null}
           <View style={{ flexDirection: 'row', gap: 10 }}>
             <Button
               title={startConversation.isPending ? '…' : 'Message'}
@@ -371,10 +373,11 @@ export default function PrepperScreen() {
                 if (!user?.id) { router.push('/auth'); return; }
                 if (!p?.userId) return;
                 feedback.tap();
+                setMsgErr(null);
                 try {
                   const convId = await startConversation.mutateAsync(p.userId);
                   router.push(`/chat?id=${convId}&name=${encodeURIComponent(p.name)}`);
-                } catch { feedback.error(); }
+                } catch { feedback.error(); setMsgErr('Could not open chat. Please try again.'); }
               }}
               accessibilityLabel="Message this prepper"
             />

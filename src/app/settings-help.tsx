@@ -74,18 +74,25 @@ function ContactSupportModal({ visible, onClose, onSent }: { visible: boolean; o
   const [topic, setTopic] = useState<string | null>(null);
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
+  const [sendErr, setSendErr] = useState<string | null>(null);
 
-  function close() { setTopic(null); setMessage(''); setSending(false); onClose(); }
+  function close() { setTopic(null); setMessage(''); setSending(false); setSendErr(null); onClose(); }
 
   async function send() {
     if (!topic || message.trim().length < 4) return;
     setSending(true);
+    setSendErr(null);
     feedback.tap();
-    // Fire-and-forget: route the request into analytics so ops can triage it.
-    supabase.rpc('record_event', { p_event: 'support_request', p_props: { topic, message: cleanBlock(message).trim() } }).then(() => {}, () => {});
-    feedback.success();
-    close();
-    onSent();
+    try {
+      await supabase.rpc('record_event', { p_event: 'support_request', p_props: { topic, message: cleanBlock(message).trim() } });
+      feedback.success();
+      close();
+      onSent();
+    } catch {
+      feedback.error();
+      setSending(false);
+      setSendErr('Could not send message. Please try again.');
+    }
   }
 
   const canSend = !!topic && message.trim().length >= 4;
@@ -134,8 +141,9 @@ function ContactSupportModal({ visible, onClose, onSent }: { visible: boolean; o
             accessibilityLabel="Describe your issue"
           />
 
+          {sendErr ? <Text style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.danger, textAlign: 'center', marginTop: 8 }}>{sendErr}</Text> : null}
           <PressableScale onPress={send} disabled={!canSend || sending} accessibilityRole="button" accessibilityLabel="Send to Preppa support"
-            style={{ marginTop: 16, height: 52, borderRadius: Radius.pill, backgroundColor: canSend ? Palette.brand : Palette.border, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8 }}>
+            style={{ marginTop: 8, height: 52, borderRadius: Radius.pill, backgroundColor: canSend ? Palette.brand : Palette.border, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8 }}>
             <Send size={17} color={canSend ? '#fff' : Palette.textMuted} />
             <Text style={{ fontFamily: Font.heading, fontSize: 15.5, color: canSend ? '#fff' : Palette.textMuted }}>Send message</Text>
           </PressableScale>
