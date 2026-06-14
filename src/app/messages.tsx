@@ -1,9 +1,9 @@
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Bell, Bike, CalendarCheck, ChefHat, ChevronLeft, CircleCheck, CircleX, Handshake, Heart, MessageCircle, MessageSquareQuote, Package, Star, UtensilsCrossed } from 'lucide-react-native';
+import { Bell, Bike, CalendarCheck, ChefHat, ChevronLeft, CircleCheck, CircleX, Handshake, Heart, MessageCircle, MessageSquareQuote, Package, Send, Star, UtensilsCrossed } from 'lucide-react-native';
 import { MotiView } from 'moti';
-import { useEffect, useState } from 'react';
-import { Platform, RefreshControl, ScrollView, Text, useWindowDimensions, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, Platform, RefreshControl, ScrollView, Text, TextInput, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ListSkeleton } from '@/components/ui/skeleton';
@@ -12,7 +12,8 @@ import { feedback } from '@/lib/feedback';
 import { BP } from '@/lib/layout';
 import { Font } from '@/constants/fonts';
 import { Palette, Radius } from '@/constants/theme';
-import { useConversations, type Conversation } from '@/lib/queries/messages';
+import { supabase } from '@/lib/supabase';
+import { useConversations, useMessages, useSendMessage, type Conversation } from '@/lib/queries/messages';
 import { useNotifications, useMarkNotificationsRead, type AppNotification } from '@/lib/queries/notifications';
 import { useMyOrders, type OrderSummary } from '@/lib/queries/orders';
 import { useAuth } from '@/providers/auth-provider';
@@ -21,6 +22,7 @@ import type { OrderStatus } from '@/types/database.types';
 const ORANGE = Palette.brand;
 const INK = Palette.ink;
 type LucideIcon = typeof Bell;
+const cleanBlock = (s: string) => s.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
 
 function timeAgo(iso: string | null) {
   if (!iso) return '';
@@ -53,10 +55,10 @@ function notify(o: OrderSummary): { Icon: LucideIcon; color: string; bg: string;
   return { ...m, sub: `${item} · by ${by}` };
 }
 
-function ConversationRow({ c, onPress }: { c: Conversation; onPress: () => void }) {
+function ConversationRow({ c, onPress, selected }: { c: Conversation; onPress: () => void; selected?: boolean }) {
   return (
     <PressableScale onPress={() => { feedback.tap(); onPress(); }} accessibilityRole="button" accessibilityLabel={`Chat with ${c.otherName}`}
-      style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 20, paddingVertical: 12 }}>
+      style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 20, paddingVertical: 12, backgroundColor: selected ? Palette.brandTint + '50' : 'transparent' }}>
       {c.otherAvatar ? (
         <Image source={c.otherAvatar} style={{ width: 52, height: 52, borderRadius: 26 }} contentFit="cover" />
       ) : (
@@ -180,13 +182,37 @@ export default function MessagesScreen() {
   const { data: notifications, refetch: refetchNotifs } = useNotifications(user?.id);
   const markRead = useMarkNotificationsRead(user?.id);
   const [refreshing, setRefreshing] = useState(false);
+  const [selectedConv, setSelectedConv] = useState<{ id: string; name: string } | null>(null);
+  const [chatText, setChatText] = useState('');
+  const chatScrollRef = useRef<ScrollView>(null);
   const { width } = useWindowDimensions();
   const isDesktop = width >= BP.desktop;
+  const { data: chatMessages } = useMessages(selectedConv?.id, user?.id);
+  const sendMsg = useSendMessage();
 
   async function handleRefresh() {
     setRefreshing(true);
     await Promise.all([refetchConv(), refetchOrders(), refetchNotifs()]);
     setRefreshing(false);
+  }
+
+  useEffect(() => {
+    if (selectedConv?.id) supabase.rpc('mark_conversation_read', { p_conversation: selectedConv.id }).then(() => {});
+  }, [selectedConv?.id, chatMessages?.length]);
+
+  useEffect(() => {
+    if (chatMessages?.length) {
+      const t = setTimeout(() => chatScrollRef.current?.scrollToEnd({ animated: false }), 60);
+      return () => clearTimeout(t);
+    }
+  }, [chatMessages?.length]);
+
+  function submitChat() {
+    const body = cleanBlock(chatText).trim();
+    if (!body || !selectedConv || !user) return;
+    feedback.tap();
+    setChatText('');
+    sendMsg.mutate({ conversationId: selectedConv.id, senderId: user.id, body });
   }
 
   const hasUnread = (notifications ?? []).some((n) => !n.read);
@@ -260,7 +286,13 @@ export default function MessagesScreen() {
     <ScrollView showsVerticalScrollIndicator={false} refreshControl={refreshCtrl} contentContainerStyle={{ paddingTop: Platform.OS === 'web' ? 8 : 4, paddingBottom: 32 }}>
       {conversations.map((c, i) => (
         <MotiView key={c.id} from={{ opacity: 0, translateX: -8 }} animate={{ opacity: 1, translateX: 0 }} transition={{ type: 'timing', duration: 200, delay: i * 40 }}>
-          <ConversationRow c={c} onPress={() => router.push(`/chat?id=${c.id}&name=${encodeURIComponent(c.otherName)}`)} />
+          <ConversationRow
+            c={c}
+            selected={isDesktop && selectedConv?.id === c.id}
+            onPress={() => isDesktop
+              ? setSelectedConv({ id: c.id, name: c.otherName })
+              : router.push(`/chat?id=${c.id}&name=${encodeURIComponent(c.otherName)}`)}
+          />
         </MotiView>
       ))}
     </ScrollView>
@@ -285,22 +317,63 @@ export default function MessagesScreen() {
             </PressableScale>
           </View>
         ) : isDesktop ? (
-          // Desktop: both columns visible simultaneously — no tab switcher needed.
+          // Desktop: Updates | Conversations | Chat panel (3-column when conv is selected)
           <View style={{ flex: 1, flexDirection: 'row' }}>
-            <View style={{ flex: 1, borderRightWidth: 1, borderRightColor: Palette.border }}>
+            <View style={{ width: 280, borderRightWidth: 1, borderRightColor: Palette.border }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 20, paddingTop: 12, paddingBottom: 8 }}>
                 <Text style={{ fontFamily: Font.heading, fontSize: 15, color: INK }}>Updates</Text>
                 <ColBadge count={unreadNotifCount} />
               </View>
               {updatesEl}
             </View>
-            <View style={{ flex: 1 }}>
+            <View style={{ width: 280, borderRightWidth: selectedConv ? 1 : 0, borderRightColor: Palette.border }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 20, paddingTop: 12, paddingBottom: 8 }}>
                 <Text style={{ fontFamily: Font.heading, fontSize: 15, color: INK }}>Messages</Text>
                 <ColBadge count={unreadMsgCount} />
               </View>
               {messagesEl}
             </View>
+            {selectedConv ? (
+              <View style={{ flex: 1, backgroundColor: Palette.surface }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 8, borderBottomWidth: 1, borderBottomColor: Palette.border }}>
+                  <Text style={{ flex: 1, fontFamily: Font.heading, fontSize: 15, color: INK }} numberOfLines={1}>{selectedConv.name}</Text>
+                  <PressableScale onPress={() => { feedback.tap(); router.push(`/chat?id=${selectedConv.id}&name=${encodeURIComponent(selectedConv.name)}`); }} accessibilityRole="button" accessibilityLabel="Open full chat" style={{ paddingHorizontal: 10, height: 30, borderRadius: 8, backgroundColor: Palette.canvas, alignItems: 'center', justifyContent: 'center' }}>
+                    <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: Palette.textSecondary }}>expand</Text>
+                  </PressableScale>
+                  <PressableScale onPress={() => { feedback.tap(); setSelectedConv(null); }} accessibilityRole="button" accessibilityLabel="Close" style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: Palette.canvas, alignItems: 'center', justifyContent: 'center' }}>
+                    <ChevronLeft size={17} color={INK} />
+                  </PressableScale>
+                </View>
+                <ScrollView ref={chatScrollRef} showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 14, gap: 6, flexGrow: 1, justifyContent: chatMessages?.length ? 'flex-end' : 'center' }}>
+                  {!chatMessages?.length ? (
+                    <MotiView from={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ type: 'timing', duration: 280 }} style={{ alignItems: 'center', gap: 8 }}>
+                      <MessageCircle size={26} color={Palette.textMuted} />
+                      <Text style={{ fontFamily: Font.body, fontSize: 13.5, color: Palette.textMuted }}>No messages yet — say hello</Text>
+                    </MotiView>
+                  ) : (
+                    chatMessages.map((m) => (
+                      <MotiView key={m.id} from={{ opacity: 0, translateY: 4 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 140 }}
+                        style={{ alignSelf: m.mine ? 'flex-end' : 'flex-start', maxWidth: '75%', backgroundColor: m.mine ? ORANGE : Palette.canvas, borderRadius: 16, borderBottomRightRadius: m.mine ? 4 : 16, borderBottomLeftRadius: m.mine ? 16 : 4, paddingHorizontal: 12, paddingVertical: 8 }}>
+                        <Text style={{ fontFamily: Font.body, fontSize: 14, color: m.mine ? '#fff' : INK, lineHeight: 19 }}>{m.body}</Text>
+                      </MotiView>
+                    ))
+                  )}
+                </ScrollView>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 12, paddingVertical: 8, borderTopWidth: 1, borderTopColor: Palette.border }}>
+                  <TextInput value={chatText} onChangeText={setChatText} placeholder="Message…" placeholderTextColor={Palette.textMuted} onSubmitEditing={submitChat}
+                    style={{ flex: 1, height: 40, borderRadius: 20, backgroundColor: Palette.canvas, paddingHorizontal: 14, fontFamily: Font.body, fontSize: 14, color: INK }} />
+                  <PressableScale onPress={submitChat} disabled={!chatText.trim() || sendMsg.isPending} accessibilityRole="button" accessibilityLabel="Send"
+                    style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: chatText.trim() ? ORANGE : Palette.border, alignItems: 'center', justifyContent: 'center' }}>
+                    {sendMsg.isPending ? <ActivityIndicator size="small" color="#fff" /> : <Send size={17} color="#fff" />}
+                  </PressableScale>
+                </View>
+              </View>
+            ) : (
+              <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 10 }}>
+                <MessageCircle size={28} color={Palette.textMuted} />
+                <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textMuted }}>Select a conversation</Text>
+              </View>
+            )}
           </View>
         ) : (
           <>
