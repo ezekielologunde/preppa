@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { ChevronLeft, Hash, ImagePlus, Video } from 'lucide-react-native';
 import { MotiView } from 'moti';
@@ -27,6 +28,7 @@ export default function PostVideoScreen() {
   const router = useRouter();
   const { user } = useAuth();
   const { data: prepper } = useMyPrepperApplication(user?.id);
+  const qc = useQueryClient();
 
   const [caption, setCaption] = useState('');
   const [tags, setTags] = useState<string[]>([]);
@@ -83,6 +85,7 @@ export default function PostVideoScreen() {
       });
       if (error) throw error;
       feedback.success();
+      qc.invalidateQueries({ queryKey: ['feed'] });
       setPosted(true);
       setTimeout(() => router.replace('/dashboard'), 1200);
     } finally {

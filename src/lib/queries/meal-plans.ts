@@ -205,6 +205,7 @@ export function useCreatePrepperMealPlan(prepperId?: string | null) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['meal-plans', 'mine', prepperId ?? 'none'] });
       qc.invalidateQueries({ queryKey: ['meal-plans', 'active'] });
+      qc.invalidateQueries({ queryKey: ['meal-plans', 'kitchen', prepperId ?? 'none'] });
     },
   });
 }
@@ -220,6 +221,7 @@ export function useUpdatePrepperMealPlan(prepperId?: string | null) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['meal-plans', 'mine', prepperId ?? 'none'] });
       qc.invalidateQueries({ queryKey: ['meal-plans', 'active'] });
+      qc.invalidateQueries({ queryKey: ['meal-plans', 'kitchen', prepperId ?? 'none'] });
     },
   });
 }

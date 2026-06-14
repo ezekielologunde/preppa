@@ -124,7 +124,7 @@ export function useAcceptBid() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['experiences', 'mine'] });
-      qc.invalidateQueries({ queryKey: ['prepper-orders'] });
+      qc.invalidateQueries({ queryKey: ['orders'] });
     },
   });
 }

@@ -169,7 +169,7 @@ export default function DashboardScreen() {
   const revenueSpark = buildDailySpark(list, 8, (g) => g.filter((o) => o.status === 'completed').reduce((s, o) => s + o.total, 0));
   const ordersSpark = buildDailySpark(list, 8, (g) => g.length);
   const customersSpark = buildDailySpark(list, 8, (g) => new Set(g.map((o) => o.customerId)).size);
-  const ratingSpark = reviews && reviews.length >= 2 ? reviews.slice(-8).map((r) => r.rating) : [4, 4, 5, 5, 4, 5, 5, 5];
+  const ratingSpark = reviews && reviews.length >= 2 ? reviews.slice(-8).map((r) => r.rating) : [0];
 
   // Oldest still-active order = the one to act on next.
   const active = list.filter((o) => o.status === 'pending' || o.status === 'confirmed' || o.status === 'preparing' || o.status === 'ready');

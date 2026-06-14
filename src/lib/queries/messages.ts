@@ -93,7 +93,7 @@ export function useSendMessage() {
     },
     onSuccess: (_d, v) => {
       qc.invalidateQueries({ queryKey: ['messages', v.conversationId] });
-      qc.invalidateQueries({ queryKey: ['conversations'] });
+      qc.invalidateQueries({ queryKey: ['conversations', v.senderId] });
     },
   });
 }

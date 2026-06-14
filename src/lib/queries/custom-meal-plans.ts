@@ -91,7 +91,10 @@ export function useCreateCustomPlan() {
       }
       return id;
     },
-    onSuccess: (_id, v) => qc.invalidateQueries({ queryKey: ['custom-meal-plans', 'mine', v.userId] }),
+    onSuccess: (id, v) => {
+      qc.invalidateQueries({ queryKey: ['custom-meal-plans', 'mine', v.userId] });
+      qc.invalidateQueries({ queryKey: ['custom-meal-plans', 'single', id] });
+    },
   });
 }
 

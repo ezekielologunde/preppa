@@ -299,6 +299,7 @@ export function useToggleFollow(prepperId: string, userId?: string | null) {
       qc.invalidateQueries({ queryKey: key });
       qc.invalidateQueries({ queryKey: ['prepper', 'profile', prepperId] });
       qc.invalidateQueries({ queryKey: ['follows', 'mine', userId ?? 'anon'] });
+      qc.invalidateQueries({ queryKey: ['follows', 'preppers', userId ?? 'anon'] });
     },
   });
 }

@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { Check, MapPin, Play, Plus, Star, UtensilsCrossed } from 'lucide-react-native';
+import { Check, Plus, Star, UtensilsCrossed } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
@@ -43,12 +43,6 @@ const DIET_TAG: Record<string, { label: string; color: string }> = {
   lunch:     { label: 'Lunch',       color: '#06B6D4' },
   dinner:    { label: 'Dinner',      color: ORANGE },
 };
-
-function proximityLabel(id: string): string {
-  const h = id.split('').reduce((s, c) => s + c.charCodeAt(0), 0);
-  const tenths = (h % 85) + 5;
-  return tenths < 10 ? `0.${tenths} mi` : `${(tenths / 10).toFixed(1)} mi`;
-}
 
 // ─── QuickAddButton ───────────────────────────────────────────────────────────
 
@@ -136,7 +130,7 @@ export function TrendingSection({
   return (
     <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }}
       transition={{ type: 'timing', duration: 260, delay: 150 }}>
-      <SectionHeader title="trending near you" linkLabel="see all →"
+      <SectionHeader title="trending meals" linkLabel="see all →"
         onLink={() => { feedback.tap(); router.push('/search'); }} />
       {isLoading ? <CardRowSkeleton count={3} /> : isTablet ? (
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12, paddingHorizontal: pad, paddingBottom: 4 }}>
@@ -189,24 +183,18 @@ export function ChefsInActionFeed() {
           contentContainerStyle={{ paddingHorizontal: 20, gap: 10, paddingBottom: 4 }}>
           {(preppers ?? []).map((prepper, i) => {
             const palette = CHEF_PALETTES[i % CHEF_PALETTES.length];
-            const prox = proximityLabel(prepper.id);
             return (
               <MotiView key={prepper.id} from={{ opacity: 0, translateX: 16 }} animate={{ opacity: 1, translateX: 0 }}
                 transition={{ type: 'spring', damping: 15, stiffness: 120, mass: 0.6, delay: i * 50 }}>
                 <PressableScale
                   onPress={() => { feedback.tap(); router.push(`/prepper?id=${prepper.id}`); }}
-                  accessibilityRole="button" accessibilityLabel={`${prepper.name}, ${prox} away`}
+                  accessibilityRole="button" accessibilityLabel={prepper.name}
                   style={{ width: 130, height: 210, borderRadius: Radius.lg, overflow: 'hidden', ...Shadow.card }}>
                   {prepper.image
                     ? <Image source={{ uri: imgUrl(prepper.image, 400) }} style={ABS} contentFit="cover" />
                     : <LinearGradient colors={palette} style={ABS} />}
                   <LinearGradient colors={['transparent', 'rgba(0,0,0,0.82)']}
                     style={{ ...ABS, justifyContent: 'flex-end', padding: 10 }}>
-                    <View style={{ ...ABS, alignItems: 'center', justifyContent: 'center' }}>
-                      <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.18)', alignItems: 'center', justifyContent: 'center' }}>
-                        <Play size={18} color="#fff" fill="#fff" />
-                      </View>
-                    </View>
                     <Text numberOfLines={1} style={{ fontFamily: Font.heading, fontSize: 13, color: '#fff' }}>
                       {prepper.name}
                     </Text>
@@ -217,14 +205,6 @@ export function ChefsInActionFeed() {
                       </Text>
                     </View>
                   </LinearGradient>
-                  {/* Glowing proximity badge */}
-                  <MotiView
-                    from={{ opacity: 0.6 }} animate={{ opacity: 1 }}
-                    transition={{ type: 'timing', duration: 1100, loop: true, repeatReverse: true }}
-                    style={{ position: 'absolute', top: 8, right: 8, flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: 'rgba(0,0,0,0.56)', borderRadius: Radius.pill, paddingHorizontal: 7, paddingVertical: 4 }}>
-                    <MapPin size={9} color={ORANGE} fill={ORANGE} />
-                    <Text style={{ fontFamily: Font.semibold, fontSize: 9.5, color: '#fff' }}>{prox}</Text>
-                  </MotiView>
                   {prepper.reviews === 0 ? (
                     <View style={{ position: 'absolute', top: 8, left: 8, backgroundColor: ACID, borderRadius: 6, paddingHorizontal: 6, paddingVertical: 3 }}>
                       <Text style={{ fontFamily: Font.semibold, fontSize: 9.5, color: '#1a1a0a', letterSpacing: 0.5 }}>NEW</Text>
@@ -272,7 +252,7 @@ export function NearbyPreppersSection() {
   return (
     <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }}
       transition={{ type: 'timing', duration: 260, delay: 100 }}>
-      <SectionHeader title="local kitchens near you" linkLabel="see all →"
+      <SectionHeader title="top kitchens" linkLabel="see all →"
         onLink={() => { feedback.tap(); router.push('/explore'); }} />
       {isLoading ? <CardRowSkeleton count={3} /> : (
         <ScrollView horizontal showsHorizontalScrollIndicator={false}
@@ -319,7 +299,7 @@ export function MealPlansDiscoverySection() {
                   <Text numberOfLines={1} style={{ fontFamily: Font.heading, fontSize: 14, color: INK }}>{plan.name}</Text>
                   <Text numberOfLines={1} style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted }}>{plan.prepper}</Text>
                   <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 }}>
-                    <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: ORANGE }}>${plan.price.toFixed(0)}/wk</Text>
+                    <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: ORANGE }}>${plan.price.toFixed(0)}/{plan.frequency}</Text>
                     {plan.tags?.length ? (
                       <Text numberOfLines={1} style={{ fontFamily: Font.body, fontSize: 11, color: Palette.textMuted, flex: 1, textAlign: 'right' }}>
                         {plan.tags[0]}

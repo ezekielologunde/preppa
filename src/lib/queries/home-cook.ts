@@ -195,10 +195,15 @@ export function useCancelHomeCookRequest() {
  * Fire-and-forget — failure is logged but does not block order completion.
  */
 export function useCaptureHomeCookPayment() {
+  const qc = useQueryClient();
   return useMutation({
     mutationFn: async (orderId: string) => {
       const { error } = await supabase.functions.invoke('stripe-capture-home-cook', { body: { orderId } });
       if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['orders'] });
+      qc.invalidateQueries({ queryKey: ['home-cook'] });
     },
     onError: (e) => console.error('[HC capture] failed:', e instanceof Error ? e.message : e),
   });

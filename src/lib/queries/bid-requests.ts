@@ -254,7 +254,7 @@ export function useAcceptMealBid() {
     onSuccess: (_d, v) => {
       qc.invalidateQueries({ queryKey: ['meal-requests', 'mine-bids'] });
       qc.invalidateQueries({ queryKey: ['meal-request-bids', v.requestId] });
-      qc.invalidateQueries({ queryKey: ['prepper-orders'] });
+      qc.invalidateQueries({ queryKey: ['orders'] });
     },
   });
 }
