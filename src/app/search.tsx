@@ -30,6 +30,14 @@ import { useAuth } from '@/providers/auth-provider';
 const ORANGE = Palette.brand;
 const INK = Palette.ink;
 
+const DIET_ACCENT: Record<string, { label: string; color: string }> = {
+  vegan:     { label: 'plant-based', color: '#8B5CF6' },
+  healthy:   { label: 'clean',       color: '#22C55E' },
+  breakfast: { label: 'breakfast',   color: '#F59E0B' },
+  lunch:     { label: 'lunch',       color: '#06B6D4' },
+  dinner:    { label: 'dinner',      color: ORANGE },
+};
+
 const PRICES = [
   { key: 'under10', label: 'under $10', min: null, max: 10 },
   { key: '10to15', label: '$10–15', min: 10, max: 15 },
@@ -45,13 +53,13 @@ const SORTS: { key: SortKey; label: string }[] = [
   { key: 'top-rated', label: 'Top rated' },
 ];
 
-function Chip({ label, selected, onPress }: { label: string; selected: boolean; onPress: () => void }) {
+function Chip({ label, selected, accent, onPress }: { label: string; selected: boolean; accent?: string; onPress: () => void }) {
+  const bg = selected ? (accent ?? INK) : Palette.surface;
+  const border = selected ? (accent ?? INK) : accent ? accent + '44' : Palette.border;
+  const textColor = selected ? '#fff' : accent ?? Palette.inkSoft;
   return (
     <MotiView
-      animate={{
-        backgroundColor: selected ? INK : Palette.surface,
-        borderColor: selected ? INK : Palette.border,
-      }}
+      animate={{ backgroundColor: bg, borderColor: border }}
       transition={{ type: 'timing', duration: 180 }}
       style={{ borderRadius: Radius.pill, borderWidth: 1.5, overflow: 'hidden' }}>
       <PressableScale
@@ -60,8 +68,9 @@ function Chip({ label, selected, onPress }: { label: string; selected: boolean; 
         accessibilityLabel={`Filter: ${label}`}
         accessibilityState={{ selected }}
         hitSlop={{ top: 6, bottom: 6, left: 4, right: 4 }}
-        style={{ paddingHorizontal: 14, height: 36, alignItems: 'center', justifyContent: 'center' }}>
-        <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: selected ? '#fff' : Palette.inkSoft }}>{label}</Text>
+        style={{ paddingHorizontal: 14, height: 36, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 5 }}>
+        {accent && !selected ? <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: accent }} /> : null}
+        <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: textColor }}>{label}</Text>
       </PressableScale>
     </MotiView>
   );
@@ -157,9 +166,12 @@ export default function SearchScreen() {
 
         {/* Filters — categories then price; tap again to clear */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexGrow: 0 }} contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 4, gap: 8, alignItems: 'center' }}>
-          {(categories ?? []).map((c) => (
-            <Chip key={c.id} label={c.name.toLowerCase()} selected={categoryId === c.id} onPress={() => setCategoryId(categoryId === c.id ? null : c.id)} />
-          ))}
+          {(categories ?? []).map((c) => {
+            const diet = DIET_ACCENT[c.key];
+            return (
+              <Chip key={c.id} label={diet?.label ?? c.name.toLowerCase()} accent={diet?.color} selected={categoryId === c.id} onPress={() => setCategoryId(categoryId === c.id ? null : c.id)} />
+            );
+          })}
           <View style={{ width: 1, height: 22, backgroundColor: Palette.divider, marginHorizontal: 2 }} />
           {PRICES.map((p) => (
             <Chip key={p.key} label={p.label} selected={priceKey === p.key} onPress={() => setPriceKey(priceKey === p.key ? null : p.key)} />
