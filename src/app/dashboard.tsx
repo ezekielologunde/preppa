@@ -160,8 +160,22 @@ export default function DashboardScreen() {
   weekStart.setHours(0, 0, 0, 0);
   const weekCount = list.filter((o) => new Date(o.created_at) >= weekStart).length;
 
-  // Today's-goal ring: completed revenue toward a $2,000 day (display-only target).
-  const goalPct = Math.min(Math.round((revenue / 2000) * 100), 100);
+  // Today's revenue (start of calendar day).
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const todayRevenue = list
+    .filter((o) => o.status === 'completed' && new Date(o.created_at) >= todayStart)
+    .reduce((s, o) => s + o.total, 0);
+  const goalPct = Math.min(Math.round((todayRevenue / 2000) * 100), 100);
+
+  // Which days of the current ISO week have at least one completed order (Mon=0, Sun=6).
+  const weekDays = new Array<boolean>(7).fill(false);
+  list
+    .filter((o) => o.status === 'completed' && new Date(o.created_at) >= weekStart)
+    .forEach((o) => {
+      const dayIdx = (new Date(o.created_at).getDay() + 6) % 7;
+      weekDays[dayIdx] = true;
+    });
 
   return (
     <View style={{ flex: 1, backgroundColor: BG }}>
@@ -327,7 +341,7 @@ export default function DashboardScreen() {
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={{ fontFamily: Font.body, fontSize: 12, color: MUTED }}>today's goal</Text>
-                <Text style={{ fontFamily: Font.display, fontSize: 20, color: INK, letterSpacing: -0.4, fontVariant: ['tabular-nums'] }}>{money(revenue)}</Text>
+                <Text style={{ fontFamily: Font.display, fontSize: 20, color: INK, letterSpacing: -0.4, fontVariant: ['tabular-nums'] }}>{money(todayRevenue)}</Text>
                 <Text style={{ fontFamily: Font.body, fontSize: 11.5, color: MUTED }}>of $2k</Text>
               </View>
               <View style={{ alignItems: 'center', gap: 2 }}>
@@ -337,8 +351,8 @@ export default function DashboardScreen() {
             </View>
             <View style={{ flexDirection: 'row', gap: 6, paddingTop: 12, borderTopWidth: 1, borderTopColor: Palette.chip }}>
               {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => (
-                <View key={i} style={{ flex: 1, height: 24, borderRadius: 6, backgroundColor: i < 5 ? ORANGE + '22' : Palette.chip, alignItems: 'center', justifyContent: 'center' }}>
-                  <Text style={{ fontFamily: Font.semibold, fontSize: 10, color: i < 5 ? ORANGE : MUTED }}>{d}</Text>
+                <View key={i} style={{ flex: 1, height: 24, borderRadius: 6, backgroundColor: weekDays[i] ? ORANGE + '22' : Palette.chip, alignItems: 'center', justifyContent: 'center' }}>
+                  <Text style={{ fontFamily: Font.semibold, fontSize: 10, color: weekDays[i] ? ORANGE : MUTED }}>{d}</Text>
                 </View>
               ))}
             </View>
