@@ -66,6 +66,7 @@ export default function ReviewScreen() {
       setPhotos((prev) => prev.map((p, i) => i === idx ? { ...p, publicUrl: url, uploading: false } : p));
     } catch {
       setPhotos((prev) => prev.filter((_, i) => i !== idx));
+      feedback.error();
       setErr('Photo upload failed. Try again.');
     }
   }
@@ -82,7 +83,7 @@ export default function ReviewScreen() {
     const photoUrls = photos.filter((p) => p.publicUrl).map((p) => p.publicUrl!);
     submit.mutate(
       { orderId, authorId: user.id, prepperId, mealId: mealId || null, rating, body: cleanBlock(body).trim(), photos: photoUrls },
-      { onSuccess: () => setDone(true), onError: (e) => setErr(e instanceof Error ? e.message : 'Could not submit review.') },
+      { onSuccess: () => setDone(true), onError: (e) => { feedback.error(); setErr(e instanceof Error ? e.message : 'Could not submit review.'); } },
     );
   }
 
