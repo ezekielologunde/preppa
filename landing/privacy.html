@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Privacy Policy — preppa</title>
+    <meta name="description" content="Preppa privacy policy — what we collect, how we use it, and your rights." />
+    <meta name="robots" content="noindex" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔥</text></svg>" />
+    <link rel="preconnect" href="https://api.fontshare.com" crossorigin />
+    <link href="https://api.fontshare.com/v2/css?f[]=clash-display@600,700,800&f[]=general-sans@400,500,600&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --ink: #0b0604;
+        --paper: #fff7ef;
+        --flame: #f15f22;
+        --flame-deep: #d9430f;
+        --amber: #ffb43c;
+        --display: 'Clash Display', system-ui, sans-serif;
+        --sans: 'General Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+        --muted: rgba(255,247,239,0.56);
+        --divider: rgba(255,255,255,0.1);
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      html { scroll-behavior: smooth; }
+      body {
+        background: var(--ink);
+        color: var(--paper);
+        font-family: var(--sans);
+        -webkit-font-smoothing: antialiased;
+        min-height: 100vh;
+      }
+      body::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        background:
+          radial-gradient(60% 40% at 80% 0%, rgba(14,165,233,0.14) 0%, transparent 60%),
+          radial-gradient(50% 50% at 10% 100%, rgba(241,95,34,0.12) 0%, transparent 60%);
+        pointer-events: none;
+      }
+      header {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 16px 28px;
+        background: rgba(11,6,4,0.72);
+        border-bottom: 1px solid var(--divider);
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        text-decoration: none;
+        color: var(--paper);
+      }
+      .brand .tile {
+        width: 34px; height: 34px;
+        border-radius: 10px;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(155deg, var(--amber), var(--flame) 55%, var(--flame-deep));
+        flex-shrink: 0;
+      }
+      .brand .name {
+        font-family: var(--display);
+        font-weight: 800;
+        font-size: 18px;
+        letter-spacing: -0.02em;
+      }
+      .back-link {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--muted);
+        text-decoration: none;
+        transition: color 0.2s;
+      }
+      .back-link:hover { color: var(--paper); }
+      main {
+        position: relative;
+        z-index: 1;
+        max-width: 720px;
+        margin: 0 auto;
+        padding: 56px 28px 80px;
+      }
+      .page-eyebrow {
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: #0ea5e9;
+        margin-bottom: 14px;
+      }
+      h1 {
+        font-family: var(--display);
+        font-weight: 700;
+        font-size: clamp(34px, 6vw, 52px);
+        letter-spacing: -0.04em;
+        line-height: 1;
+        margin-bottom: 16px;
+      }
+      .effective {
+        font-size: 13.5px;
+        color: var(--muted);
+        margin-bottom: 44px;
+      }
+      h2 {
+        font-family: var(--display);
+        font-weight: 600;
+        font-size: 20px;
+        letter-spacing: -0.02em;
+        color: var(--paper);
+        margin: 40px 0 12px;
+        padding-top: 40px;
+        border-top: 1px solid var(--divider);
+      }
+      h2:first-of-type { margin-top: 0; padding-top: 0; border-top: none; }
+      p {
+        font-size: 15px;
+        line-height: 1.72;
+        color: rgba(255,247,239,0.84);
+        margin-bottom: 14px;
+      }
+      ul {
+        padding-left: 0;
+        list-style: none;
+        margin-bottom: 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 9px;
+      }
+      li {
+        font-size: 15px;
+        line-height: 1.6;
+        color: rgba(255,247,239,0.84);
+        padding-left: 20px;
+        position: relative;
+      }
+      li::before {
+        content: '';
+        position: absolute;
+        left: 4px;
+        top: 9px;
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: #0ea5e9;
+        opacity: 0.8;
+      }
+      a { color: var(--flame); text-decoration: none; }
+      a:hover { text-decoration: underline; }
+      .highlight-box {
+        margin: 28px 0;
+        padding: 20px 22px;
+        border-radius: 16px;
+        background: rgba(14,165,233,0.08);
+        border: 1px solid rgba(14,165,233,0.2);
+        font-size: 14.5px;
+        line-height: 1.65;
+        color: rgba(255,247,239,0.9);
+      }
+      footer {
+        position: relative;
+        z-index: 1;
+        border-top: 1px solid var(--divider);
+        padding: 28px;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        font-size: 13px;
+        color: var(--muted);
+      }
+      .footer-links { display: flex; gap: 20px; flex-wrap: wrap; }
+      .footer-links a { color: var(--muted); text-decoration: none; transition: color 0.2s; }
+      .footer-links a:hover { color: var(--paper); }
+      @media (max-width: 540px) {
+        header { padding: 14px 18px; }
+        main { padding: 40px 18px 60px; }
+        footer { padding: 22px 18px; flex-direction: column; align-items: flex-start; }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <a href="/" class="brand" aria-label="Preppa home">
+        <span class="tile">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="#fff" stroke="none">
+            <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" />
+          </svg>
+        </span>
+        <span class="name">preppa</span>
+      </a>
+      <a href="/" class="back-link" aria-label="Back to preppa.live">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 12H5m7-7-7 7 7 7"/>
+        </svg>
+        preppa.live
+      </a>
+    </header>
+
+    <main>
+      <p class="page-eyebrow">Legal</p>
+      <h1>Privacy Policy</h1>
+      <p class="effective">Effective <time datetime="2026-01-01">January 1, 2026</time></p>
+
+      <div class="highlight-box">
+        <strong>The short version:</strong> We collect only what we need to run the marketplace. We never sell your personal information to third parties. You can request a full export or deletion of your data at any time by emailing <a href="mailto:privacy@preppa.live">privacy@preppa.live</a>.
+      </div>
+
+      <h2>1. What We Collect</h2>
+      <p>When you use Preppa, we collect:</p>
+      <ul>
+        <li><strong>Account data</strong> — name, email address, and password (stored hashed via Supabase Auth).</li>
+        <li><strong>Location</strong> — approximate location (city/neighbourhood level) used to surface nearby Preppers. Precise GPS is requested only when you enable delivery or search nearby.</li>
+        <li><strong>Order data</strong> — items ordered, amounts, delivery address, and status history.</li>
+        <li><strong>Payment data</strong> — card payments are processed entirely by Stripe. Preppa never stores your full card number, CVV, or expiry. We only store Stripe's transaction IDs and outcome.</li>
+        <li><strong>Device & usage data</strong> — device type, OS version, and anonymised usage events (screens visited, features tapped) to improve the app.</li>
+        <li><strong>Communications</strong> — messages sent via in-app chat between you and a Prepper.</li>
+      </ul>
+
+      <h2>2. How We Use Your Data</h2>
+      <ul>
+        <li>To process and fulfil your orders and communicate their status.</li>
+        <li>To personalise your feed based on your order history and saved preferences.</li>
+        <li>To surface Preppers and meals relevant to your location.</li>
+        <li>To send transactional emails (receipts, order status updates).</li>
+        <li>To detect and prevent fraud or abuse on the platform.</li>
+        <li>To improve the app through aggregated, anonymised analytics.</li>
+      </ul>
+      <p>We do not use your data to train machine learning models for sale or licensing to third parties.</p>
+
+      <h2>3. Location Data</h2>
+      <p>Location is used exclusively to show you nearby Preppers and to estimate delivery feasibility. We do not share precise GPS coordinates with Preppers — they see only the delivery zone or neighbourhood you're ordering from. Location data is never sold to advertisers or data brokers.</p>
+
+      <h2>4. Payments & Stripe</h2>
+      <p>All payment processing is handled by <a href="https://stripe.com/privacy" target="_blank" rel="noopener">Stripe</a>, a PCI DSS Level 1 certified provider. When you enter card details, they go directly to Stripe's servers — Preppa's servers never receive them. We store the Stripe payment intent ID and outcome for order reconciliation only.</p>
+
+      <h2>5. Sharing With Preppers</h2>
+      <p>When you place an order, the Prepper receives your first name, the delivery zone (not your precise address), and your order details. They do not receive your email, full name, or payment information. After an order is completed or cancelled, we retain only the anonymised order record for accounting purposes.</p>
+
+      <h2>6. Third-Party Services</h2>
+      <ul>
+        <li><strong>Supabase</strong> — database, authentication, and storage (servers in US East).</li>
+        <li><strong>Stripe</strong> — payment processing.</li>
+        <li><strong>Resend</strong> — transactional email delivery.</li>
+        <li><strong>Vercel</strong> — app hosting.</li>
+      </ul>
+      <p>Each of these providers has their own privacy policies and is bound by data processing agreements with Preppa.</p>
+
+      <h2>7. Your Rights</h2>
+      <ul>
+        <li><strong>Access</strong> — request a copy of all personal data we hold about you.</li>
+        <li><strong>Correction</strong> — update inaccurate or incomplete data from your profile settings.</li>
+        <li><strong>Deletion</strong> — request permanent removal of your account and associated data via Settings → Privacy & Security → Delete account, or by emailing <a href="mailto:privacy@preppa.live">privacy@preppa.live</a>.</li>
+        <li><strong>Portability</strong> — request an export of your data in a machine-readable format.</li>
+        <li><strong>Opt-out</strong> — unsubscribe from marketing emails at any time via the link in any email we send, or in Settings → Notifications.</li>
+      </ul>
+      <p>We will respond to rights requests within 30 days. We may ask you to verify your identity before processing the request.</p>
+
+      <h2>8. Data Retention</h2>
+      <p>We keep your account data for as long as your account is active. Order records are retained for 7 years for accounting and legal compliance. When you delete your account, personal identifiers (name, email, address) are removed within 30 days; anonymised transaction records may be retained longer for financial compliance.</p>
+
+      <h2>9. Children's Privacy</h2>
+      <p>Preppa is not directed at children under 13. We do not knowingly collect personal information from children. If you believe a child has provided us with personal data, contact us at <a href="mailto:privacy@preppa.live">privacy@preppa.live</a> and we will delete it promptly.</p>
+
+      <h2>10. Changes to This Policy</h2>
+      <p>We may update this Privacy Policy. Material changes will be communicated via email or in-app notice at least 14 days before they take effect.</p>
+
+      <h2>11. Contact</h2>
+      <p>Privacy questions or requests: <a href="mailto:privacy@preppa.live">privacy@preppa.live</a>.</p>
+    </main>
+
+    <footer>
+      <span>&copy; 2026 Preppa. All rights reserved.</span>
+      <nav class="footer-links" aria-label="Legal">
+        <a href="/terms">Terms</a>
+        <a href="/privacy">Privacy</a>
+        <a href="/licenses">Open source</a>
+      </nav>
+    </footer>
+  </body>
+</html>

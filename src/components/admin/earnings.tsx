@@ -1,4 +1,4 @@
-import { BadgeCheck, Wallet } from 'lucide-react-native';
+import { BadgeCheck, Star, Wallet } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { Text, View } from 'react-native';
 
@@ -11,6 +11,7 @@ export function AdminEarnings() {
   const rows = data ?? [];
   const top = rows[0]?.completed_sales ?? 0;
   const totalGmv = rows.reduce((sum, r) => sum + Number(r.completed_sales ?? 0), 0);
+  const RANK_COLORS = ['#f59e0b', '#94a3b8', '#b45309'];
 
   return (
     <View style={{ gap: 12 }}>
@@ -34,6 +35,11 @@ export function AdminEarnings() {
           <MotiView key={r.prepper_id} from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 240, delay: i * 50 }}>
           <Card>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              {i < 3 ? (
+                <View style={{ width: 22, height: 22, borderRadius: 11, backgroundColor: RANK_COLORS[i] + '22', alignItems: 'center', justifyContent: 'center' }}>
+                  <Text style={{ fontFamily: Font.heading, fontSize: 9, color: RANK_COLORS[i] }}>#{i + 1}</Text>
+                </View>
+              ) : null}
               <Text style={{ fontFamily: Font.heading, fontSize: 15, color: Admin.text, flex: 1 }} numberOfLines={1}>{r.display_name}</Text>
               {r.verified ? <BadgeCheck size={15} color={Admin.brand} /> : null}
               <Pill label={r.status} />
@@ -44,14 +50,20 @@ export function AdminEarnings() {
                 <Text style={{ fontFamily: Font.display, fontSize: 22, color: Admin.success, fontVariant: ['tabular-nums'] }}>{money(r.completed_sales)}</Text>
                 <Text style={{ fontFamily: Font.body, fontSize: 11, color: Admin.textMuted }}>completed sales</Text>
               </View>
-              <View style={{ alignItems: 'flex-end' }}>
+              <View style={{ alignItems: 'flex-end', gap: 2 }}>
                 <Text style={{ fontFamily: Font.heading, fontSize: 14, color: Admin.text, fontVariant: ['tabular-nums'] }}>{compact(r.completed_orders)}/{compact(r.total_orders)}</Text>
                 <Text style={{ fontFamily: Font.body, fontSize: 11, color: Admin.textMuted }}>orders · avg {money(r.avg_order)}</Text>
+                {Number(r.rating) > 0 ? (
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 2 }}>
+                    <Star size={11} color="#f59e0b" fill="#f59e0b" />
+                    <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: '#f59e0b', fontVariant: ['tabular-nums'] }}>{Number(r.rating).toFixed(1)}</Text>
+                  </View>
+                ) : null}
               </View>
             </View>
 
             <View style={{ height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.06)', marginTop: 12, overflow: 'hidden' }}>
-              <View style={{ width: `${pct}%`, height: 6, borderRadius: 3, backgroundColor: Admin.brand }} />
+              <View style={{ width: `${pct}%`, height: 6, borderRadius: 3, backgroundColor: i < 3 ? RANK_COLORS[i] : Admin.brand }} />
             </View>
           </Card>
           </MotiView>

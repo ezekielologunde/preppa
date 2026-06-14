@@ -2,9 +2,10 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ChefHat, ChevronLeft, ChevronRight, Crown, MapPin, Minus, Plus, Sparkles, Users } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useMemo, useState } from 'react';
-import { ActivityIndicator, ScrollView, Text, TextInput, View } from 'react-native';
+import { ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { Button } from '@/components/ui/button';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
 import { Palette, Radius } from '@/constants/theme';
@@ -340,15 +341,14 @@ export default function BookHomeCookScreen() {
 
             {/* Footer — normal flow, not absolute */}
             <View style={{ backgroundColor: Palette.surface, borderTopWidth: 1, borderTopColor: Palette.border, paddingHorizontal: 20, paddingTop: 14, paddingBottom: Math.max(insets.bottom, 16) }}>
-              <PressableScale onPress={submit} disabled={create.isPending} accessibilityRole="button" accessibilityLabel="Send home cook request"
-                style={{ height: 54, borderRadius: Radius.pill, backgroundColor: HC, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8, opacity: create.isPending ? 0.7 : 1 }}>
-                {create.isPending ? <ActivityIndicator color="#fff" /> : (
-                  <>
-                    <ChefHat size={18} color="#fff" />
-                    <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>Send request to {prepperName}</Text>
-                  </>
-                )}
-              </PressableScale>
+              <Button
+                title={`Send request to ${prepperName}`}
+                Icon={ChefHat}
+                tone={HC}
+                loading={create.isPending}
+                onPress={submit}
+                accessibilityLabel="Send home cook request"
+              />
             </View>
           </>
         )}

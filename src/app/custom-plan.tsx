@@ -7,9 +7,11 @@ import { ActivityIndicator, Linking, Modal, Platform, Pressable, RefreshControl,
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Avatar } from '@/components/ui/avatar';
+import { BottomActionBar } from '@/components/ui/bottom-action-bar';
+import { Button } from '@/components/ui/button';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
-import { Palette, Radius, Shadow } from '@/constants/theme';
+import { Palette, Radius } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
 import { useCustomPlan, type CustomPlanItem } from '@/lib/queries/custom-meal-plans';
 import { useFeatureEnabled } from '@/lib/queries/feature-flags';
@@ -317,27 +319,22 @@ export default function CustomPlanScreen() {
 
         {/* Sticky pay CTA */}
         {showPayCta && (
-          <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: Palette.surface, paddingHorizontal: 20, paddingTop: 14, paddingBottom: 34, borderTopWidth: 1, borderTopColor: Palette.border, ...Shadow.floating }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+          <BottomActionBar>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
               <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary }}>
                 {isPaused ? 'Resume your plan' : 'Full subscription'}
               </Text>
               <Text style={{ fontFamily: Font.heading, fontSize: 15, color: INK }}>{money(planTotal)}/{plan.frequency}</Text>
             </View>
-            <PressableScale onPress={triggerPayment} disabled={paying}
-              accessibilityRole="button" accessibilityLabel="Pay full subscription"
-              style={{ height: 56, borderRadius: Radius.pill, backgroundColor: INK, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, opacity: paying ? 0.7 : 1 }}>
-              {paying
-                ? <ActivityIndicator color="#fff" />
-                : <>
-                    <CreditCard size={18} color="#fff" />
-                    <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>
-                      {isPaused ? 'Pay to resume' : 'Pay full subscription'}
-                    </Text>
-                  </>
-              }
-            </PressableScale>
-          </View>
+            <Button
+              title={isPaused ? 'Pay to resume' : 'Pay full subscription'}
+              Icon={CreditCard}
+              variant="ink"
+              loading={paying}
+              onPress={triggerPayment}
+              accessibilityLabel="Pay full subscription"
+            />
+          </BottomActionBar>
         )}
       </SafeAreaView>
 

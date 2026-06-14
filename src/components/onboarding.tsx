@@ -2,17 +2,27 @@ import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MotiView } from 'moti';
+import { useEffect, useState } from 'react';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withTiming,
+} from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Svg, { Defs, FeColorMatrix, FeTurbulence, Filter, Rect } from 'react-native-svg';
 
 import { Font } from '@/constants/fonts';
 import { Palette, Radius } from '@/constants/theme';
 import { PreppaLogo } from './preppa-logo';
 
-type Props = {
-  onGetStarted: () => void;
-  onSignIn?: () => void;
-};
+const ACID = '#d8ff3e';
+const SEG =
+  'Nigerian · Jamaican · Halal · Plant-Based · Keto · Ethiopian · Thai · Mexican · High Protein · Home-cooked · Real Food · ';
+
+type Props = { onGetStarted: () => void; onSignIn?: () => void };
 
 const FONT = {
   display: 'Bricolage-ExtraBold',
@@ -21,21 +31,83 @@ const FONT = {
   logo: Font.logo,
 };
 
-/** A soft, drifting gradient orb for depth/motion behind the content. */
-function Orb({
-  size,
-  color,
-  left,
-  top,
-  delay = 0,
-  drift = 28,
-}: {
-  size: number;
-  color: string;
-  left: number;
-  top: number;
-  delay?: number;
-  drift?: number;
+// ─── Film grain ───────────────────────────────────────────────────────────────
+
+function FilmGrain() {
+  return (
+    <Svg style={StyleSheet.absoluteFill as object} pointerEvents="none">
+      <Defs>
+        <Filter id="grain">
+          <FeTurbulence type="fractalNoise" baseFrequency={0.65} numOctaves={3} stitchTiles="stitch" />
+          <FeColorMatrix type="saturate" values="0" />
+        </Filter>
+      </Defs>
+      <Rect x="0" y="0" width="100%" height="100%" filter="url(#grain)" opacity={0.06} />
+    </Svg>
+  );
+}
+
+// ─── Acid ping dot ────────────────────────────────────────────────────────────
+
+function PingDot() {
+  const scale = useSharedValue(1);
+  const opacity = useSharedValue(0.7);
+
+  useEffect(() => {
+    scale.value = withRepeat(withTiming(2.4, { duration: 1600, easing: Easing.out(Easing.ease) }), -1, false);
+    opacity.value = withRepeat(withTiming(0, { duration: 1600, easing: Easing.out(Easing.ease) }), -1, false);
+  }, [scale, opacity]);
+
+  const ripple = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+    opacity: opacity.value,
+  }));
+
+  return (
+    <View style={{ width: 14, height: 14, alignItems: 'center', justifyContent: 'center' }}>
+      <Animated.View style={[{ position: 'absolute', width: 10, height: 10, borderRadius: 5, backgroundColor: ACID }, ripple]} />
+      <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: ACID }} />
+    </View>
+  );
+}
+
+// ─── Marquee ticker ───────────────────────────────────────────────────────────
+
+function Marquee() {
+  const tx = useSharedValue(0);
+  const [segWidth, setSegWidth] = useState(0);
+
+  useEffect(() => {
+    if (segWidth === 0) return;
+    tx.value = withRepeat(
+      withTiming(-segWidth, { duration: segWidth * 13, easing: Easing.linear }),
+      -1,
+      false,
+    );
+  }, [segWidth, tx]);
+
+  const style = useAnimatedStyle(() => ({ transform: [{ translateX: tx.value }] }));
+
+  return (
+    <View style={{ overflow: 'hidden', width: '100%' }}>
+      <Animated.View style={[{ flexDirection: 'row' }, style]}>
+        <Text
+          onLayout={(e) => setSegWidth(e.nativeEvent.layout.width)}
+          style={{ fontFamily: FONT.body, fontSize: 12.5, color: 'rgba(255,255,255,0.42)', letterSpacing: 0.3 }}>
+          {SEG}
+        </Text>
+        <Text style={{ fontFamily: FONT.body, fontSize: 12.5, color: 'rgba(255,255,255,0.42)', letterSpacing: 0.3 }}>
+          {SEG}
+        </Text>
+      </Animated.View>
+    </View>
+  );
+}
+
+// ─── Background orb ───────────────────────────────────────────────────────────
+
+function Orb({ size, color, left, top, delay = 0, drift = 28 }: {
+  size: number; color: string; left: number; top: number; delay?: number; drift?: number;
 }) {
   return (
     <MotiView
@@ -44,19 +116,15 @@ function Orb({
       transition={{ type: 'timing', duration: 5200, loop: true, repeatReverse: true, delay }}
       pointerEvents="none"
       style={{
-        position: 'absolute',
-        left,
-        top,
-        width: size,
-        height: size,
-        borderRadius: size / 2,
+        position: 'absolute', left, top, width: size, height: size, borderRadius: size / 2,
         experimental_backgroundImage: `radial-gradient(circle, ${color}, transparent 70%)`,
       }}
     />
   );
 }
 
-/** High-end orange brand onboarding — animated gradient, glass, haptics, springs. */
+// ─── Main component ───────────────────────────────────────────────────────────
+
 export function Onboarding({ onGetStarted, onSignIn }: Props) {
   function handleStart() {
     if (Platform.OS !== 'web') {
@@ -74,12 +142,12 @@ export function Onboarding({ onGetStarted, onSignIn }: Props) {
         end={{ x: 0.9, y: 1 }}
         style={StyleSheet.absoluteFill}
       />
+      <FilmGrain />
       <Orb size={360} color="rgba(255,205,90,0.55)" left={-90} top={-40} delay={0} />
       <Orb size={300} color="rgba(255,77,125,0.5)" left={210} top={120} delay={700} drift={36} />
       <Orb size={260} color="rgba(255,150,60,0.5)" left={-40} top={520} delay={1200} drift={22} />
 
       <SafeAreaView style={styles.safe}>
-        {/* Brand */}
         <View style={styles.center}>
           <MotiView
             from={{ opacity: 0, translateY: 24, scale: 0.9 }}
@@ -92,19 +160,16 @@ export function Onboarding({ onGetStarted, onSignIn }: Props) {
           </MotiView>
         </View>
 
-        {/* Actions */}
         <MotiView
           from={{ opacity: 0, translateY: 28 }}
           animate={{ opacity: 1, translateY: 0 }}
           transition={{ type: 'spring', damping: 16, stiffness: 120, delay: 320 }}
           style={styles.actions}>
+          <Marquee />
+
           <BlurView intensity={24} tint="light" style={styles.pill}>
-            <View style={styles.avatars}>
-              <View style={[styles.avatar, { backgroundColor: 'rgba(255,255,255,0.95)' }]} />
-              <View style={[styles.avatar, styles.avatarOverlap, { backgroundColor: 'rgba(255,255,255,0.75)' }]} />
-              <View style={[styles.avatar, styles.avatarOverlap, { backgroundColor: 'rgba(255,255,255,0.55)' }]} />
-            </View>
-            <Text style={styles.pillText}>Local Preppas joining now</Text>
+            <PingDot />
+            <Text style={styles.pillText}>Chefs live in your city</Text>
           </BlurView>
 
           <Pressable
@@ -133,41 +198,20 @@ const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   brandBlock: { alignItems: 'center', gap: 18 },
   wordmark: { fontFamily: FONT.logo, fontSize: 58, color: '#fff', letterSpacing: -1.5, marginTop: 4 },
-  tagline: {
-    fontFamily: FONT.body,
-    fontSize: 19,
-    lineHeight: 27,
-    color: 'rgba(255,255,255,0.92)',
-    textAlign: 'center',
-    maxWidth: 290,
-  },
+  tagline: { fontFamily: FONT.body, fontSize: 19, lineHeight: 27, color: 'rgba(255,255,255,0.92)', textAlign: 'center', maxWidth: 290 },
   actions: { width: '100%', alignItems: 'center', gap: 18 },
   pill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 9,
-    borderRadius: Radius.pill,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.25)',
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    paddingHorizontal: 16, paddingVertical: 9,
+    borderRadius: Radius.pill, overflow: 'hidden',
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.25)',
   },
-  avatars: { flexDirection: 'row' },
-  avatar: { width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: Palette.brand },
-  avatarOverlap: { marginLeft: -9 },
   pillText: { fontFamily: FONT.body, color: '#fff', fontSize: 14 },
   cta: {
-    width: '100%',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 18,
-    paddingVertical: 17,
-    shadowColor: '#7a2200',
-    shadowOpacity: 0.3,
-    shadowRadius: 18,
-    shadowOffset: { width: 0, height: 10 },
-    elevation: 8,
+    width: '100%', alignItems: 'center', backgroundColor: '#fff',
+    borderRadius: 18, paddingVertical: 17,
+    shadowColor: '#7a2200', shadowOpacity: 0.3, shadowRadius: 18,
+    shadowOffset: { width: 0, height: 10 }, elevation: 8,
   },
   ctaPressed: { transform: [{ scale: 0.97 }], opacity: 0.95 },
   ctaText: { fontFamily: FONT.bold, fontSize: 18, color: '#D9430F' },

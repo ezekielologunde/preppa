@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { Button } from '@/components/ui/button';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { feedback } from '@/lib/feedback';
 import { Font } from '@/constants/fonts';
@@ -197,9 +198,13 @@ export default function RewardsScreen() {
             </MotiView>
 
             <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 460 }}>
-            <PressableScale onPress={() => { feedback.tap(); router.push('/'); }} accessibilityRole="button" accessibilityLabel="Browse meals to earn points" style={{ height: 52, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', marginTop: 4 }}>
-              <Text style={{ fontFamily: Font.heading, fontSize: 15.5, color: '#fff' }}>Preorder to earn points</Text>
-            </PressableScale>
+            <Button
+              title="Preorder to earn points"
+              variant="primary"
+              onPress={() => router.push('/')}
+              style={{ marginTop: 4 }}
+              accessibilityLabel="Browse meals to earn points"
+            />
             </MotiView>
           </ScrollView>
         )}

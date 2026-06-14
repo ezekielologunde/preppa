@@ -43,7 +43,7 @@ import { useAdvanceOrder, usePrepperOrders, type OrderSummary } from '@/lib/quer
 import { useMyPrepperApplication, usePrepperBadges, usePrepperProfile, useToggleAvailability, useToggleHomeCookAvailability } from '@/lib/queries/preppers';
 import { usePrepperReviews } from '@/lib/queries/reviews';
 import { useAuth } from '@/providers/auth-provider';
-import type { OrderStatus } from '@/types/database.types';
+import type { FulfillmentType, OrderStatus } from '@/types/database.types';
 
 const ORANGE = Palette.brand;
 const GREEN = Palette.success;
@@ -57,6 +57,13 @@ const MUTED = Palette.textMuted;
 
 const money = (n: number) => (n >= 1000 ? `$${(n / 1000).toFixed(1)}k` : `$${Math.round(n)}`);
 
+const FULFILLMENT_LABEL: Record<FulfillmentType, string> = {
+  pickup: 'pickup', delivery: 'delivery', meetup: 'meetup', home_cook: 'home cook',
+};
+const FULFILLMENT_COLOR: Record<FulfillmentType, string> = {
+  pickup: '#f59e0b', delivery: '#06b6d4', meetup: '#a78bfa', home_cook: '#22c55e',
+};
+
 const NEXT: Partial<Record<OrderStatus, { next: OrderStatus; cta: string }>> = {
   pending: { next: 'confirmed', cta: 'confirm preorder' },
   confirmed: { next: 'preparing', cta: 'start prepping' },
@@ -64,6 +71,16 @@ const NEXT: Partial<Record<OrderStatus, { next: OrderStatus; cta: string }>> = {
   ready: { next: 'completed', cta: 'mark complete' },
   out_for_delivery: { next: 'completed', cta: 'mark complete' },
 };
+
+function buildDailySpark(orders: OrderSummary[], n: number, getValue: (grp: OrderSummary[]) => number): number[] {
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  return Array.from({ length: n }, (_, i) => {
+    const start = now.getTime() - (n - 1 - i) * 86400000;
+    const end = start + 86400000;
+    return getValue(orders.filter((o) => { const t = new Date(o.created_at).getTime(); return t >= start && t < end; }));
+  });
+}
 
 function Sparkline({ color, data, w = 116, h = 30 }: { color: string; data: number[]; w?: number; h?: number }) {
   const max = Math.max(...data);
@@ -145,9 +162,14 @@ export default function DashboardScreen() {
   const list: OrderSummary[] = orders ?? [];
   const newCount = list.filter((o) => o.status === 'pending').length;
   const revenue = list.filter((o) => o.status === 'completed').reduce((s, o) => s + o.total, 0);
-  const subscribers = new Set(list.map((o) => o.customer)).size;
+  const subscribers = new Set(list.map((o) => o.customerId)).size;
   const reviewCount = reviews?.length ?? 0;
   const avgRating = reviewCount ? reviews!.reduce((s, r) => s + r.rating, 0) / reviewCount : 0;
+
+  const revenueSpark = buildDailySpark(list, 8, (g) => g.filter((o) => o.status === 'completed').reduce((s, o) => s + o.total, 0));
+  const ordersSpark = buildDailySpark(list, 8, (g) => g.length);
+  const customersSpark = buildDailySpark(list, 8, (g) => new Set(g.map((o) => o.customerId)).size);
+  const ratingSpark = reviews && reviews.length >= 2 ? reviews.slice(-8).map((r) => r.rating) : [4, 4, 5, 5, 4, 5, 5, 5];
 
   // Oldest still-active order = the one to act on next.
   const active = list.filter((o) => o.status === 'pending' || o.status === 'confirmed' || o.status === 'preparing' || o.status === 'ready');
@@ -280,10 +302,13 @@ export default function DashboardScreen() {
                   <Text style={{ fontFamily: Font.body, fontSize: 13, color: MUTED }} numberOfLines={1}>
                     {next.items[0]?.title ?? 'preorder'}{next.items.length > 1 ? ` +${next.items.length - 1}` : ''}
                   </Text>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 2 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2, flexWrap: 'wrap' }}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: next.paymentStatus === 'paid' ? GREEN + '24' : Palette.chip, borderRadius: Radius.pill, paddingHorizontal: 9, paddingVertical: 3 }}>
                       {next.paymentStatus === 'paid' ? <Check size={11} color={GREEN} strokeWidth={2.5} /> : null}
                       <Text style={{ fontFamily: Font.semibold, fontSize: 11.5, color: next.paymentStatus === 'paid' ? GREEN : MUTED }}>{next.paymentStatus === 'paid' ? 'paid' : 'unpaid'}</Text>
+                    </View>
+                    <View style={{ backgroundColor: FULFILLMENT_COLOR[next.fulfillment] + '22', borderRadius: Radius.pill, paddingHorizontal: 8, paddingVertical: 3 }}>
+                      <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: FULFILLMENT_COLOR[next.fulfillment] }}>{FULFILLMENT_LABEL[next.fulfillment]}</Text>
                     </View>
                     <Text style={{ fontFamily: Font.display, fontSize: 16, color: INK, fontVariant: ['tabular-nums'] }}>${next.total.toFixed(2)}</Text>
                   </View>
@@ -297,6 +322,12 @@ export default function DashboardScreen() {
                   accessibilityLabel={step.cta}
                   style={{ height: 50, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 6, opacity: advance.isPending ? 0.7 : 1 }}>
                   <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>{step.cta}</Text>
+                </PressableScale>
+              ) : null}
+              {active.length > 1 ? (
+                <PressableScale onPress={() => { feedback.tap(); router.push('/prepper-orders'); }} accessibilityRole="button" accessibilityLabel={`See all ${active.length} active orders`}
+                  style={{ alignItems: 'center', paddingVertical: 4 }}>
+                  <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: ORANGE }}>+{active.length - 1} more in queue — see all →</Text>
                 </PressableScale>
               ) : null}
             </View>
@@ -313,17 +344,17 @@ export default function DashboardScreen() {
           <Text style={{ fontFamily: Font.display, fontSize: 15, color: INK, paddingHorizontal: 20, marginTop: 16, marginBottom: 8, letterSpacing: -0.3 }}>your stats</Text>
           {desktop ? (
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 10, gap: 10 }}>
-              <StatCard Icon={ShoppingBag} value={money(revenue)} label="total sales" trend={revenue > 0 ? 'earned' : '—'} color={ORANGE} spark={[3, 5, 4, 6, 5, 8, 7, 9]} onPress={() => router.push('/earnings')} />
-              <StatCard Icon={Boxes} value={String(list.length)} label="preorders" trend={`${newCount} new`} color={GREEN} spark={[2, 3, 3, 4, 6, 5, 7, 8]} onPress={() => router.push('/prepper-orders')} />
-              <StatCard Icon={Users} value={String(subscribers)} label="customers" trend="unique" color={PURPLE} spark={[1, 2, 2, 3, 4, 4, 5, 6]} onPress={() => router.push('/customers')} />
-              <StatCard Icon={Star} value={avgRating ? avgRating.toFixed(1) : '—'} label="rating" trend={`${reviewCount} reviews`} color={YELLOW} spark={[4, 4, 5, 5, 4, 5, 5, 5]} onPress={() => router.push('/prepper-analytics')} />
+              <StatCard Icon={ShoppingBag} value={money(revenue)} label="total sales" trend={revenue > 0 ? 'earned' : '—'} color={ORANGE} spark={revenueSpark} onPress={() => router.push('/earnings')} />
+              <StatCard Icon={Boxes} value={String(list.length)} label="preorders" trend={`${newCount} new`} color={GREEN} spark={ordersSpark} onPress={() => router.push('/prepper-orders')} />
+              <StatCard Icon={Users} value={String(subscribers)} label="customers" trend="unique" color={PURPLE} spark={customersSpark} onPress={() => router.push('/customers')} />
+              <StatCard Icon={Star} value={avgRating ? avgRating.toFixed(1) : '—'} label="rating" trend={`${reviewCount} reviews`} color={YELLOW} spark={ratingSpark} onPress={() => router.push('/prepper-analytics')} />
             </View>
           ) : (
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 20, gap: 10, paddingTop: 8, paddingBottom: 6 }}>
-              <StatCard Icon={ShoppingBag} value={money(revenue)} label="total sales" trend={revenue > 0 ? 'earned' : '—'} color={ORANGE} spark={[3, 5, 4, 6, 5, 8, 7, 9]} onPress={() => router.push('/earnings')} flex />
-              <StatCard Icon={Boxes} value={String(list.length)} label="orders" trend={`${newCount} new`} color={GREEN} spark={[2, 3, 3, 4, 6, 5, 7, 8]} onPress={() => router.push('/prepper-orders')} flex />
-              <StatCard Icon={Users} value={String(subscribers)} label="customers" trend="unique" color={PURPLE} spark={[1, 2, 2, 3, 4, 4, 5, 6]} onPress={() => router.push('/customers')} flex />
-              <StatCard Icon={Star} value={avgRating ? avgRating.toFixed(1) : '—'} label="rating" trend={`${reviewCount} reviews`} color={YELLOW} spark={[4, 4, 5, 5, 4, 5, 5, 5]} onPress={() => router.push('/prepper-analytics')} flex />
+              <StatCard Icon={ShoppingBag} value={money(revenue)} label="total sales" trend={revenue > 0 ? 'earned' : '—'} color={ORANGE} spark={revenueSpark} onPress={() => router.push('/earnings')} flex />
+              <StatCard Icon={Boxes} value={String(list.length)} label="orders" trend={`${newCount} new`} color={GREEN} spark={ordersSpark} onPress={() => router.push('/prepper-orders')} flex />
+              <StatCard Icon={Users} value={String(subscribers)} label="customers" trend="unique" color={PURPLE} spark={customersSpark} onPress={() => router.push('/customers')} flex />
+              <StatCard Icon={Star} value={avgRating ? avgRating.toFixed(1) : '—'} label="rating" trend={`${reviewCount} reviews`} color={YELLOW} spark={ratingSpark} onPress={() => router.push('/prepper-analytics')} flex />
             </View>
           )}
           </MotiView>

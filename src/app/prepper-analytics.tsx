@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { Award, ChevronLeft, ChevronRight, Clock, Flame, Lightbulb, Package, Sparkles, TrendingUp } from 'lucide-react-native';
+import { Award, ChevronLeft, ChevronRight, Clock, Flame, Lightbulb, Package, TrendingUp, Users } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useState } from 'react';
 import { RefreshControl, ScrollView, Text, View } from 'react-native';
@@ -15,6 +15,7 @@ import { useAuth } from '@/providers/auth-provider';
 
 const ORANGE = Palette.brand;
 const INK = Palette.ink;
+const DISH_RANK_COLORS = [Palette.amber, '#94a3b8', '#b45309'];
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const TIME_SLOTS = ['7–10am', '11am–2pm', '4–8pm', 'other'];
@@ -40,13 +41,12 @@ function buildSlotBars(orders: OrderSummary[]): { slot: string; count: number }[
   return TIME_SLOTS.map((slot, i) => ({ slot, count: counts[i] }));
 }
 
-function computeTopDish(orders: OrderSummary[]): string {
+function computeTopDishes(orders: OrderSummary[]): { title: string; count: number }[] {
   const freq: Record<string, number> = {};
   for (const o of orders) {
-    for (const item of o.items) freq[item.title] = (freq[item.title] ?? 0) + 1;
+    for (const item of o.items) freq[item.title] = (freq[item.title] ?? 0) + item.quantity;
   }
-  const sorted = Object.entries(freq).sort((a, b) => b[1] - a[1]);
-  return sorted[0]?.[0] ?? 'No data yet';
+  return Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([title, count]) => ({ title, count }));
 }
 
 function computeRepeatRate(orders: OrderSummary[]): number {
@@ -56,6 +56,15 @@ function computeRepeatRate(orders: OrderSummary[]): number {
   const unique = freq.size;
   const repeats = [...freq.values()].filter((c) => c > 1).length;
   return unique > 0 ? Math.round((repeats / unique) * 100) : 0;
+}
+
+function buildRevenueBars(orders: OrderSummary[]): { day: string; revenue: number }[] {
+  const amounts = Array(7).fill(0);
+  for (const o of orders) {
+    const d = new Date(o.created_at).getDay();
+    if (!isNaN(d)) amounts[d] += o.total ?? 0;
+  }
+  return DAYS.map((day, i) => ({ day, revenue: amounts[i] }));
 }
 
 function Bar({ value, max, color }: { value: number; max: number; color: string }) {
@@ -72,11 +81,11 @@ function Bar({ value, max, color }: { value: number; max: number; color: string 
   );
 }
 
-const INSIGHTS = [
-  { icon: Flame, color: Palette.danger, text: 'Your lunch slot (11am–2pm) drives the most preorders. Batch-prepping by 10:30 am can cut your fulfillment time by 25%.' },
-  { icon: TrendingUp, color: ORANGE, text: 'Your average preorder value ($18.40) is 12% above the platform average. Upsell dessert add-ons to push it further.' },
-  { icon: Award, color: '#8b5cf6', text: 'Thursday is your highest-earning day this month. Consider adding a "Thursday special" to capitalise on demand.' },
-  { icon: Clock, color: '#0891b2', text: 'Preorders placed after 9 pm arrive late — consider setting a daily cut-off time to protect your on-time rate.' },
+
+const PERIODS = [
+  { key: 'week' as const, label: '7 days', ms: 7 * 86400000 },
+  { key: 'month' as const, label: '30 days', ms: 30 * 86400000 },
+  { key: 'all' as const, label: 'all time', ms: 0 },
 ];
 
 export default function PrepperAnalyticsScreen() {
@@ -84,19 +93,46 @@ export default function PrepperAnalyticsScreen() {
   const { user } = useAuth();
   const { data: application } = useMyPrepperApplication(user?.id);
   const { data: orders, refetch } = usePrepperOrders(application?.id);
-  const completed = (orders ?? []).filter((o) => o.status === 'completed');
+  const [period, setPeriod] = useState<'week' | 'month' | 'all'>('week');
   const [refreshing, setRefreshing] = useState(false);
   async function handleRefresh() { setRefreshing(true); await refetch(); setRefreshing(false); }
+
+  const cutoff = PERIODS.find((p) => p.key === period)!.ms;
+  const now = Date.now();
+  const completed = (orders ?? []).filter((o) => o.status === 'completed' && (cutoff === 0 || new Date(o.created_at).getTime() >= now - cutoff));
 
   const todayIdx = new Date().getDay();
   const dayBars = buildDayBars(completed);
   const slotBars = buildSlotBars(completed);
-  const topDish = computeTopDish(completed);
+  const topDishes = computeTopDishes(completed);
+  const topDish = topDishes[0]?.title ?? 'No data yet';
   const maxDay = Math.max(...dayBars.map((d) => d.count), 1);
   const maxSlot = Math.max(...slotBars.map((s) => s.count), 1);
   const totalEarnings = completed.reduce((s, o) => s + (o.total ?? 0), 0);
   const avgOrder = completed.length ? totalEarnings / completed.length : 0;
   const repeatRate = computeRepeatRate(completed);
+
+  const revenueBars = buildRevenueBars(completed);
+  const maxRevenue = Math.max(...revenueBars.map((r) => r.revenue), 1);
+  const topDay = dayBars.reduce((a, b) => a.count >= b.count ? a : b, dayBars[0] ?? { day: 'Thursday', count: 0 });
+
+  const topCustomers = (() => {
+    const map = new Map<string, { name: string; orders: number; spend: number }>();
+    for (const o of completed) {
+      const row = map.get(o.customerId) ?? { name: o.customer, orders: 0, spend: 0 };
+      row.orders += 1;
+      row.spend += o.total ?? 0;
+      map.set(o.customerId, row);
+    }
+    return [...map.values()].sort((a, b) => b.spend - a.spend).slice(0, 3);
+  })();
+  const topSlot = slotBars.reduce((a, b) => a.count >= b.count ? a : b, slotBars[0] ?? { slot: '11am–2pm', count: 0 });
+  const insights = [
+    { icon: Flame, color: Palette.danger, text: completed.length === 0 ? 'Complete your first preorders to see which rush window drives your sales.' : `Your ${topSlot.slot} window drives the most preorders. Batch-prep 30 mins before to cut fulfillment time.` },
+    { icon: TrendingUp, color: ORANGE, text: avgOrder > 0 ? `Your average preorder is $${avgOrder.toFixed(0)}. Adding a dessert or drink add-on could push it 15–20% higher.` : 'List meals at different price points to attract more customers and raise your average order value.' },
+    { icon: Award, color: '#8b5cf6', text: topDish !== 'No data yet' ? `"${topDish}" is your best seller. Batch it on ${topDay.day} — your busiest day.` : 'Complete your first orders to discover which dishes your customers love most.' },
+    { icon: Clock, color: '#0891b2', text: repeatRate >= 30 ? `${repeatRate}% of your customers are repeat buyers — strong loyalty. Engage them with weekly specials and subscription plans.` : `Grow repeat buyers beyond ${repeatRate}% by offering subscription plans and responding to reviews promptly.` },
+  ];
 
   function goBack() { feedback.tap(); if (router.canGoBack()) { router.back(); } else { router.replace('/prepper-hub'); } }
 
@@ -111,9 +147,13 @@ export default function PrepperAnalyticsScreen() {
             <Text style={{ fontFamily: Font.display, fontSize: 24, color: INK, letterSpacing: -0.6 }}>performance</Text>
             <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: Palette.textSecondary, marginTop: 1 }}>your kitchen, by the numbers</Text>
           </View>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: Palette.brandTint, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 5 }}>
-            <Sparkles size={12} color={ORANGE} />
-            <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: ORANGE }}>weekly</Text>
+          <View style={{ flexDirection: 'row', gap: 4 }}>
+            {PERIODS.map((p) => (
+              <PressableScale key={p.key} onPress={() => { feedback.tap(); setPeriod(p.key); }} accessibilityRole="button" accessibilityState={{ selected: period === p.key }}
+                style={{ backgroundColor: period === p.key ? Palette.brandTint : Palette.chip, borderRadius: 8, paddingHorizontal: 9, paddingVertical: 5 }}>
+                <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: period === p.key ? ORANGE : Palette.textMuted }}>{p.label}</Text>
+              </PressableScale>
+            ))}
           </View>
         </View>
 
@@ -166,6 +206,26 @@ export default function PrepperAnalyticsScreen() {
           </View>
           </MotiView>
 
+          {/* Revenue by day of week */}
+          <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 80 }}>
+          <View style={{ backgroundColor: Palette.surface, borderRadius: Radius.lg, padding: 16 }}>
+            <Text style={{ fontFamily: Font.heading, fontSize: 14.5, color: INK, marginBottom: 14 }}>earnings by day of week</Text>
+            <View style={{ flexDirection: 'row', gap: 4, alignItems: 'flex-end', height: 68 }}>
+              {revenueBars.map(({ day, revenue }, i) => {
+                const isToday = i === todayIdx;
+                const label = revenue > 0 ? (revenue >= 1000 ? `$${(revenue / 1000).toFixed(1)}k` : `$${Math.round(revenue)}`) : '';
+                return (
+                  <View key={day} style={{ flex: 1, alignItems: 'center', gap: 4 }}>
+                    <Bar value={revenue} max={maxRevenue} color={isToday ? Palette.success : Palette.success + '60'} />
+                    {revenue > 0 ? <Text style={{ fontFamily: Font.medium, fontSize: 8, color: Palette.success, marginTop: -2 }} numberOfLines={1}>{label}</Text> : null}
+                    <Text style={{ fontFamily: Font.medium, fontSize: 10, color: isToday ? ORANGE : Palette.textMuted }}>{day}</Text>
+                  </View>
+                );
+              })}
+            </View>
+          </View>
+          </MotiView>
+
           {/* Orders by time slot */}
           <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 100 }}>
           <View style={{ backgroundColor: Palette.surface, borderRadius: Radius.lg, padding: 16 }}>
@@ -190,24 +250,61 @@ export default function PrepperAnalyticsScreen() {
           </View>
           </MotiView>
 
-          {/* Top dish */}
+          {/* Top dishes */}
           <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 140 }}>
-          <View style={{ backgroundColor: Palette.surface, borderRadius: Radius.lg, padding: 16, flexDirection: 'row', alignItems: 'center', gap: 14 }}>
-            <View style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: Palette.amber + '18', alignItems: 'center', justifyContent: 'center' }}>
-              <Package size={20} color={Palette.amber} />
+          <View style={{ backgroundColor: Palette.surface, borderRadius: Radius.lg, padding: 16, gap: 12 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <Package size={15} color={Palette.amber} />
+              <Text style={{ fontFamily: Font.heading, fontSize: 14, color: INK }}>top dishes</Text>
             </View>
-            <View style={{ flex: 1 }}>
-              <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: Palette.textMuted, textTransform: 'uppercase', letterSpacing: 0.5 }}>best-selling dish</Text>
-              <Text style={{ fontFamily: Font.heading, fontSize: 17, color: INK, marginTop: 2 }}>{topDish}</Text>
-            </View>
+            {topDishes.length === 0 ? (
+              <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textMuted }}>Complete preorders to see which dishes sell most.</Text>
+            ) : topDishes.map(({ title, count }, i) => {
+              const pct = topDishes[0].count > 0 ? (count / topDishes[0].count) * 100 : 0;
+              const DISH_COLORS = DISH_RANK_COLORS;
+              return (
+                <View key={title} style={{ gap: 4 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                    <Text style={{ fontFamily: Font.heading, fontSize: 11, color: DISH_COLORS[i], width: 18 }}>#{i + 1}</Text>
+                    <Text style={{ flex: 1, fontFamily: Font.semibold, fontSize: 13.5, color: INK }} numberOfLines={1}>{title}</Text>
+                    <Text style={{ fontFamily: Font.heading, fontSize: 13, color: DISH_COLORS[i], fontVariant: ['tabular-nums'] }}>{count}</Text>
+                  </View>
+                  <View style={{ marginLeft: 26, height: 4, backgroundColor: Palette.border, borderRadius: 2, overflow: 'hidden' }}>
+                    <View style={{ width: `${pct}%`, height: 4, backgroundColor: DISH_COLORS[i], borderRadius: 2 }} />
+                  </View>
+                </View>
+              );
+            })}
           </View>
           </MotiView>
+
+          {/* Top customers */}
+          {topCustomers.length > 0 ? (
+            <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 160 }}>
+            <View style={{ backgroundColor: Palette.surface, borderRadius: Radius.lg, padding: 16, gap: 12 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Users size={15} color={Palette.success} />
+                <Text style={{ fontFamily: Font.heading, fontSize: 14, color: INK }}>top customers</Text>
+              </View>
+              {topCustomers.map(({ name, orders, spend }, i) => (
+                <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                  <View style={{ width: 26, height: 26, borderRadius: 13, backgroundColor: Palette.success + '22', alignItems: 'center', justifyContent: 'center' }}>
+                    <Text style={{ fontFamily: Font.heading, fontSize: 10, color: Palette.success }}>#{i + 1}</Text>
+                  </View>
+                  <Text style={{ flex: 1, fontFamily: Font.semibold, fontSize: 13.5, color: INK }} numberOfLines={1}>{name}</Text>
+                  <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted }}>{orders} order{orders === 1 ? '' : 's'}</Text>
+                  <Text style={{ fontFamily: Font.heading, fontSize: 13.5, color: Palette.success, fontVariant: ['tabular-nums'], minWidth: 52, textAlign: 'right' }}>${spend.toFixed(0)}</Text>
+                </View>
+              ))}
+            </View>
+            </MotiView>
+          ) : null}
 
           {/* AI Insights */}
           <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 180 }}>
           <Text style={{ fontFamily: Font.display, fontSize: 15, color: INK, letterSpacing: -0.3, marginBottom: 10 }}>smart insights</Text>
           <View style={{ gap: 10 }}>
-            {INSIGHTS.map(({ icon: Icon, color, text }, i) => (
+            {insights.map(({ icon: Icon, color, text }, i) => (
               <MotiView key={i} from={{ opacity: 0, translateX: -6 }} animate={{ opacity: 1, translateX: 0 }} transition={{ type: 'timing', duration: 220, delay: 200 + i * 40 }}>
               <View style={{ backgroundColor: INK, borderRadius: 14, padding: 14, flexDirection: 'row', alignItems: 'flex-start', gap: 12 }}>
                 <View style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: color + '22', alignItems: 'center', justifyContent: 'center', marginTop: 1 }}>

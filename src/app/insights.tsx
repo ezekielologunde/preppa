@@ -70,6 +70,23 @@ export default function InsightsScreen() {
   completed.forEach((o) => { freqs[o.prepper] = (freqs[o.prepper] ?? 0) + 1; });
   const topKitchen = Object.entries(freqs).sort((a, b) => b[1] - a[1])[0];
 
+  const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const dayFreqs = Array(7).fill(0) as number[];
+  completed.forEach((o) => { const d = new Date(o.created_at).getDay(); if (!isNaN(d)) dayFreqs[d]++; });
+  const peakDay = completed.length >= 3 ? DAY_NAMES[dayFreqs.indexOf(Math.max(...dayFreqs))] : null;
+  const kitchenCount = Object.keys(freqs).length;
+  const now = Date.now();
+  const thisMonth = completed.filter((o) => new Date(o.created_at).getTime() >= now - 30 * 86400000);
+  const lastMonthCount = completed.filter((o) => { const t = new Date(o.created_at).getTime(); return t >= now - 60 * 86400000 && t < now - 30 * 86400000; }).length;
+  const aiInsight = completed.length > 0
+    ? [
+        peakDay ? `You order most on ${peakDay}s` : 'You order throughout the week',
+        kitchenCount === 1 && completed.length >= 3 ? ' and are loyal to your favourite kitchen' : kitchenCount >= 4 ? ' and love exploring different kitchens' : ' and return to a few favourite kitchens',
+        topCuisine ? `. Since you love ${topCuisine} food, try a prepper who specialises in a neighbouring cuisine for a fresh experience.` : '. Try exploring a new cuisine this week — variety keeps taste buds sharp.',
+        thisMonth.length > lastMonthCount + 1 ? ' Your orders are up this month — great momentum!' : '',
+      ].join('')
+    : 'Place your first order and Preppa AI will start building insights about your food preferences and spending patterns.';
+
   function goBack() { feedback.tap(); if (router.canGoBack()) { router.back(); } else { router.replace('/profile'); } }
 
   return (
@@ -99,6 +116,11 @@ export default function InsightsScreen() {
               <Text style={{ fontFamily: Font.medium, fontSize: 13, color: 'rgba(255,255,255,0.85)' }}>lifetime with Preppa</Text>
               <Text style={{ fontFamily: Font.display, fontSize: 42, color: '#fff', letterSpacing: -1, fontVariant: ['tabular-nums'] }}>{completed.length}</Text>
               <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: 'rgba(255,255,255,0.92)' }}>home-cooked meals ordered</Text>
+              {thisMonth.length > 0 ? (
+                <View style={{ flexDirection: 'row', alignSelf: 'flex-start', backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: Radius.pill, paddingHorizontal: 10, paddingVertical: 4, marginTop: 4 }}>
+                  <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: '#fff' }}>+{thisMonth.length} this month</Text>
+                </View>
+              ) : null}
               <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: 'rgba(255,255,255,0.78)', marginTop: 6 }}>
                 That's roughly {timeSaved} of cooking you didn't have to do.
               </Text>
@@ -157,16 +179,9 @@ export default function InsightsScreen() {
               </View>
               <Text style={{ fontFamily: Font.heading, fontSize: 14, color: '#fff' }}>Preppa AI insight</Text>
             </View>
-            {completed.length > 0 ? (
-              <Text style={{ fontFamily: Font.body, fontSize: 13.5, color: 'rgba(255,255,255,0.85)', lineHeight: 21 }}>
-                Based on your order history, you order most on weekends and tend to try the same kitchens.
-                {topCuisine ? ` Since you love ${topCuisine} food, try a prepper who specializes in a neighbouring cuisine for a fresh experience.` : ' Try exploring a new cuisine this week — variety keeps taste buds sharp.'}
-              </Text>
-            ) : (
-              <Text style={{ fontFamily: Font.body, fontSize: 13.5, color: 'rgba(255,255,255,0.85)', lineHeight: 21 }}>
-                Place your first order and Preppa AI will start building insights about your food preferences and spending patterns.
-              </Text>
-            )}
+            <Text style={{ fontFamily: Font.body, fontSize: 13.5, color: 'rgba(255,255,255,0.85)', lineHeight: 21 }}>
+              {aiInsight}
+            </Text>
             <PressableScale onPress={() => { feedback.tap(); router.push('/explore'); }} accessibilityRole="button" accessibilityLabel="Explore meals"
               style={{ backgroundColor: ORANGE, borderRadius: Radius.pill, paddingVertical: 11, alignItems: 'center' }}>
               <Text style={{ fontFamily: Font.semibold, fontSize: 13.5, color: '#fff' }}>{completed.length > 0 ? 'try something new' : 'explore meals'}</Text>

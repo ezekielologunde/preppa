@@ -18,6 +18,13 @@ import { useState } from 'react';
 const ORANGE = Palette.brand;
 const INK = Palette.ink;
 
+type StarFilter = 'all' | 'low' | 'high';
+const STAR_FILTERS: { key: StarFilter; label: string; color: string }[] = [
+  { key: 'all', label: 'All', color: Palette.brand },
+  { key: 'low', label: '1–2★', color: '#ef4444' },
+  { key: 'high', label: '4–5★', color: Palette.amber },
+];
+
 function Stars({ rating, size = 14 }: { rating: number; size?: number }) {
   return (
     <View style={{ flexDirection: 'row', gap: 2 }}>
@@ -54,6 +61,7 @@ export default function ReviewsScreen() {
   const { data: profile } = usePrepperProfile(prepperId);
   const { data: reviews, isLoading, refetch } = usePrepperReviews(prepperId, 50);
   const [refreshing, setRefreshing] = useState(false);
+  const [starFilter, setStarFilter] = useState<StarFilter>('all');
   async function handleRefresh() { setRefreshing(true); await refetch(); setRefreshing(false); }
 
   function goBack() { feedback.tap(); if (router.canGoBack()) { router.back(); } else { router.replace('/dashboard'); } }
@@ -66,6 +74,11 @@ export default function ReviewsScreen() {
     count: reviews?.filter((r) => Math.round(r.rating) === n).length ?? 0,
   }));
   const maxCount = Math.max(...ratingCounts.map((r) => r.count), 1);
+  const filteredReviews = starFilter === 'all'
+    ? (reviews ?? [])
+    : starFilter === 'low'
+      ? (reviews ?? []).filter((r) => Math.round(r.rating) <= 2)
+      : (reviews ?? []).filter((r) => Math.round(r.rating) >= 4);
 
   return (
     <View style={{ flex: 1, backgroundColor: Palette.canvas }}>
@@ -117,6 +130,21 @@ export default function ReviewsScreen() {
             </View>
             </MotiView>
 
+            {reviews && reviews.length > 0 ? (
+              <View style={{ flexDirection: 'row', gap: 8 }}>
+                {STAR_FILTERS.map(({ key, label, color }) => {
+                  const active = starFilter === key;
+                  return (
+                    <PressableScale key={key} onPress={() => { feedback.tap(); setStarFilter(key); }}
+                      accessibilityRole="button" accessibilityState={{ selected: active }}
+                      style={{ backgroundColor: active ? color : Palette.surface, borderRadius: Radius.pill, paddingHorizontal: 14, paddingVertical: 8 }}>
+                      <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: active ? '#fff' : Palette.textMuted }}>{label}</Text>
+                    </PressableScale>
+                  );
+                })}
+              </View>
+            ) : null}
+
             {/* Response tip */}
             {reviews && reviews.length > 0 ? (
               <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 80 }}>
@@ -142,8 +170,15 @@ export default function ReviewsScreen() {
                 </Text>
               </View>
               </MotiView>
+            ) : filteredReviews.length === 0 ? (
+              <View style={{ alignItems: 'center', paddingVertical: 32, gap: 10 }}>
+                <Star size={28} color={Palette.textMuted} />
+                <Text style={{ fontFamily: Font.heading, fontSize: 15, color: Palette.textSecondary }}>
+                  no {starFilter === 'low' ? '1–2★' : '4–5★'} reviews
+                </Text>
+              </View>
             ) : (
-              reviews.map((r, i) => (
+              filteredReviews.map((r, i) => (
                 <MotiView key={r.id} from={{ opacity: 0, translateY: 6 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 220, delay: 100 + i * 30 }}>
                 <View style={{ backgroundColor: Palette.surface, borderRadius: 14, padding: 14, gap: 8 }}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>

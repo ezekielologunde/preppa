@@ -215,8 +215,8 @@ function FeedCard({ item, height, bottomInset, followSet }: { item: FeedItem; he
             <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: '#fff' }}>View kitchen</Text>
           </PressableScale>
         ) : (
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-            <Text style={{ fontFamily: Font.display, fontSize: 22, color: '#fff', fontVariant: ['tabular-nums'] }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
+            <Text style={{ fontFamily: Font.display, fontSize: 22, color: '#fff', fontVariant: ['tabular-nums'], flexShrink: 0 }}>
               ${item.price.toFixed(2)}
             </Text>
             <PressableScale

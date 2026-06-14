@@ -296,6 +296,53 @@
       .marquee .track span { color: rgba(255, 247, 239, 0.85); }
       @keyframes scroll { to { transform: translateX(-50%); } }
 
+      /* How it works */
+      .how {
+        width: 100%;
+        margin-top: 32px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        border-top: 1px solid rgba(255,255,255,0.1);
+        padding-top: 26px;
+      }
+      .step {
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+        text-align: left;
+      }
+      .step-num {
+        flex-shrink: 0;
+        width: 28px;
+        height: 28px;
+        border-radius: 9px;
+        background: rgba(255,255,255,0.1);
+        border: 1px solid rgba(255,255,255,0.18);
+        display: grid;
+        place-items: center;
+        font-family: var(--display);
+        font-weight: 700;
+        font-size: 13px;
+        color: var(--acid);
+      }
+      .step div {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+      }
+      .step b {
+        font-family: var(--display);
+        font-size: 14px;
+        font-weight: 600;
+        color: rgba(255,247,239,0.95);
+      }
+      .step span {
+        font-size: 13px;
+        color: rgba(255,247,239,0.55);
+        line-height: 1.45;
+      }
+
       @media (prefers-reduced-motion: reduce) {
         .marquee .track, .eyebrow .ping { animation: none; }
       }
@@ -342,13 +389,23 @@
           <span class="avatars"><span></span><span></span><span></span></span>
           <span><b>Local Preppas</b> joining now</span>
         </div>
+
+        <div class="how" data-anim>
+          <div class="step"><span class="step-num">1</span><div><b>Find a Preppa near you</b><span>Browse local home chefs within miles of your door</span></div></div>
+          <div class="step"><span class="step-num">2</span><div><b>Pick your meals</b><span>Order individual drops or subscribe to a weekly plan</span></div></div>
+          <div class="step"><span class="step-num">3</span><div><b>Eat real food</b><span>Fresh, home-cooked — no additives, no restaurant markup</span></div></div>
+        </div>
       </section>
     </main>
 
     <div class="marquee" aria-hidden="true">
       <div class="track">
-        <span>🔥 Real Food</span><span>•</span><span>Local Preppas</span><span>•</span><span>Fresh Daily</span><span>•</span><span>On Demand</span><span>•</span>
-        <span>🔥 Real Food</span><span>•</span><span>Local Preppas</span><span>•</span><span>Fresh Daily</span><span>•</span><span>On Demand</span><span>•</span>
+        <span>🔥 Nigerian</span><span>•</span><span>Jamaican</span><span>•</span><span>Halal</span><span>•</span><span>Plant-Based</span><span>•</span>
+        <span>Keto</span><span>•</span><span>Ethiopian</span><span>•</span><span>High Protein</span><span>•</span><span>Home-cooked</span><span>•</span>
+        <span>Thai</span><span>•</span><span>Mexican</span><span>•</span><span>Real Food</span><span>•</span><span>Local Preppas</span><span>•</span>
+        <span>🔥 Nigerian</span><span>•</span><span>Jamaican</span><span>•</span><span>Halal</span><span>•</span><span>Plant-Based</span><span>•</span>
+        <span>Keto</span><span>•</span><span>Ethiopian</span><span>•</span><span>High Protein</span><span>•</span><span>Home-cooked</span><span>•</span>
+        <span>Thai</span><span>•</span><span>Mexican</span><span>•</span><span>Real Food</span><span>•</span><span>Local Preppas</span><span>•</span>
       </div>
     </div>
 

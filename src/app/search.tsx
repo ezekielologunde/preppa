@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ArrowUpDown, Check, ChevronLeft, Search, X } from 'lucide-react-native';
+import { ArrowUpDown, Check, ChevronLeft, Clock, Search, TrendingUp, X } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useEffect, useMemo, useState } from 'react';
 import { Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
@@ -21,6 +21,8 @@ import { useMealCategories } from '@/lib/queries/my-meals';
 import { useMyOrders } from '@/lib/queries/orders';
 import { useFavoriteKeys } from '@/lib/favorites';
 import { useRecentlyViewedIds } from '@/lib/recently-viewed';
+import { clearRecentSearches, recordSearch, removeSearch, useRecentSearches } from '@/lib/recent-searches';
+import { trendingForArea } from '@/lib/trending';
 import { buildMatchSignals } from '@/lib/match';
 import { rankSearchResults, boostBySignals, MEAL_FIELDS, getSuggestions } from '@/lib/search-rank';
 import { useAuth } from '@/providers/auth-provider';
@@ -57,6 +59,7 @@ function Chip({ label, selected, onPress }: { label: string; selected: boolean; 
         accessibilityRole="button"
         accessibilityLabel={`Filter: ${label}`}
         accessibilityState={{ selected }}
+        hitSlop={{ top: 6, bottom: 6, left: 4, right: 4 }}
         style={{ paddingHorizontal: 14, height: 36, alignItems: 'center', justifyContent: 'center' }}>
         <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: selected ? '#fff' : Palette.inkSoft }}>{label}</Text>
       </PressableScale>
@@ -93,6 +96,8 @@ export default function SearchScreen() {
   });
   const { data: orders } = useMyOrders(user?.id);
   const favKeys = useFavoriteKeys();
+  const recent = useRecentSearches();
+  const trending = useMemo(() => trendingForArea(), []);
 
   useEffect(() => {
     const t = setTimeout(() => setDebounced(text), 250);
@@ -137,6 +142,7 @@ export default function SearchScreen() {
               placeholder="search meals, cuisines, preppers"
               placeholderTextColor={Palette.textMuted}
               returnKeyType="search"
+              onSubmitEditing={() => recordSearch(text)}
               autoCapitalize="none"
               autoCorrect={false}
               style={{ flex: 1, fontFamily: Font.body, fontSize: 15, color: INK }}
@@ -188,7 +194,48 @@ export default function SearchScreen() {
 
         {/* Results */}
         {!active ? (
-          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
+            {/* Recent searches — quick-clear per row + clear all */}
+            {recent.length > 0 ? (
+              <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 240 }} style={{ paddingTop: 14 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, marginBottom: 4 }}>
+                  <Text style={{ fontFamily: Font.display, fontSize: 15, color: INK, letterSpacing: -0.3 }}>recent searches</Text>
+                  <PressableScale onPress={() => { feedback.tap(); clearRecentSearches(); }} accessibilityRole="button" accessibilityLabel="Clear all recent searches" hitSlop={8}>
+                    <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: Palette.textMuted }}>clear all</Text>
+                  </PressableScale>
+                </View>
+                {recent.map((s) => (
+                  <View key={s} style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 11 }}>
+                    <Clock size={16} color={Palette.textMuted} />
+                    <PressableScale onPress={() => { feedback.tap(); setText(s); }} accessibilityRole="button" accessibilityLabel={`Search ${s}`} style={{ flex: 1, marginLeft: 12 }}>
+                      <Text numberOfLines={1} style={{ fontFamily: Font.medium, fontSize: 14.5, color: INK }}>{s}</Text>
+                    </PressableScale>
+                    <PressableScale onPress={() => { feedback.tap(); removeSearch(s); }} accessibilityRole="button" accessibilityLabel={`Remove ${s}`} hitSlop={8} style={{ padding: 4 }}>
+                      <X size={16} color={Palette.textMuted} />
+                    </PressableScale>
+                  </View>
+                ))}
+              </MotiView>
+            ) : null}
+
+            {/* Trending in your area */}
+            {trending.length > 0 ? (
+              <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 240, delay: recent.length ? 60 : 0 }} style={{ paddingTop: 18 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7, paddingHorizontal: 20, marginBottom: 10 }}>
+                  <TrendingUp size={16} color={ORANGE} />
+                  <Text style={{ fontFamily: Font.display, fontSize: 15, color: INK, letterSpacing: -0.3 }}>trending in your area</Text>
+                </View>
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingHorizontal: 20 }}>
+                  {trending.map((t) => (
+                    <PressableScale key={t.tag} onPress={() => { feedback.tap(); setText(t.query); recordSearch(t.query); }} accessibilityRole="button" accessibilityLabel={`Trending: ${t.tag}`}
+                      style={{ paddingHorizontal: 14, height: 36, borderRadius: Radius.pill, backgroundColor: Palette.brandTint, alignItems: 'center', justifyContent: 'center' }}>
+                      <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: ORANGE }}>{t.tag}</Text>
+                    </PressableScale>
+                  ))}
+                </View>
+              </MotiView>
+            ) : null}
+
             {recentMeals && recentMeals.length > 0 ? (
               <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260 }}>
                 <Text style={{ fontFamily: Font.display, fontSize: 15, color: INK, letterSpacing: -0.3, paddingHorizontal: 20, marginTop: 18, marginBottom: 10 }}>recently viewed</Text>
@@ -212,7 +259,7 @@ export default function SearchScreen() {
               {suggestions.length > 0 ? (
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 8, marginTop: 4 }}>
                   {suggestions.map((s) => (
-                    <PressableScale key={s} onPress={() => { feedback.tap(); setText(s); }} accessibilityRole="button" accessibilityLabel={`Search for ${s}`} style={{ paddingHorizontal: 14, height: 34, borderRadius: Radius.pill, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
+                    <PressableScale key={s} onPress={() => { feedback.tap(); setText(s); recordSearch(s); }} accessibilityRole="button" accessibilityLabel={`Search for ${s}`} style={{ paddingHorizontal: 14, height: 34, borderRadius: Radius.pill, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
                       <Text style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.inkSoft }}>{s}</Text>
                     </PressableScale>
                   ))}

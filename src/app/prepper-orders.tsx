@@ -17,105 +17,7 @@ import { useMyPrepperApplication } from '@/lib/queries/preppers';
 import { usePrepperBookedExperiences, type BookedExperienceJob } from '@/lib/queries/experiences';
 import { useBreakpoint } from '@/lib/layout';
 import { useAuth } from '@/providers/auth-provider';
-import type { OrderStatus } from '@/types/database.types';
-
-const HC = '#5B21B6';
-const HC_TINT = '#EDE9FE';
-
-const ORANGE = Palette.brand;
-const CARD = Palette.prepperCard;
-const BG = Palette.prepperBg;
-const money = (n: number) => `$${n.toFixed(2)}`;
-
-// The next legal step a prepper takes, with the CTA label. null = terminal/no action.
-const NEXT: Partial<Record<OrderStatus, { next: OrderStatus; cta: string }>> = {
-  pending: { next: 'confirmed', cta: 'Confirm preorder' },
-  confirmed: { next: 'preparing', cta: 'Start prepping' },
-  preparing: { next: 'ready', cta: 'Mark ready' },
-  ready: { next: 'completed', cta: 'Mark complete' },
-  out_for_delivery: { next: 'completed', cta: 'Mark complete' },
-};
-
-const STATUS_LABEL: Record<OrderStatus, string> = {
-  pending: 'New',
-  confirmed: 'Confirmed',
-  preparing: 'Preparing',
-  ready: 'Ready',
-  out_for_delivery: 'On the way',
-  completed: 'Complete',
-  cancelled: 'Cancelled',
-};
-
-function OrderCard({
-  order,
-  onAdvance,
-  onCancel,
-  onVerify,
-  busy,
-}: {
-  order: OrderSummary;
-  onAdvance: (next: OrderStatus) => void;
-  onCancel: () => void;
-  onVerify: () => void;
-  busy: boolean;
-}) {
-  const step = NEXT[order.status];
-  const needsHandoff = step?.next === 'completed' && (order.fulfillment === 'pickup' || order.fulfillment === 'meetup' || order.fulfillment === 'home_cook');
-  const canCancel = order.status === 'pending' || order.status === 'confirmed';
-  const done = order.status === 'completed' || order.status === 'cancelled';
-  return (
-    <View style={{ backgroundColor: CARD, borderRadius: 20, padding: 16, gap: 12 }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-        <View style={{ flex: 1 }}>
-          <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#fff' }} numberOfLines={1}>{order.customer}</Text>
-          <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted, marginTop: 1 }}>
-            {order.items.length === 0
-              ? `Custom job · ${money(order.total)}`
-              : `${order.items.reduce((s, i) => s + i.quantity, 0)} item${order.items.length === 1 ? '' : 's'} · ${money(order.total)}`}
-          </Text>
-        </View>
-        <View style={{ paddingHorizontal: 11, height: 26, borderRadius: Radius.pill, backgroundColor: done ? '#252a34' : ORANGE + '26', alignItems: 'center', justifyContent: 'center' }}>
-          <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: done ? Palette.textMuted : ORANGE }}>{STATUS_LABEL[order.status]}</Text>
-        </View>
-      </View>
-
-      <View style={{ gap: 6 }}>
-        {order.items.map((it) => (
-          <View key={it.id} style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-            <Text style={{ flex: 1, fontFamily: Font.body, fontSize: 13.5, color: Palette.textSecondary }} numberOfLines={1}>{it.quantity}× {it.title}</Text>
-            <Text style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.textMuted, fontVariant: ['tabular-nums'] }}>{money(it.total)}</Text>
-          </View>
-        ))}
-      </View>
-
-      {/* Fulfillment */}
-      <View style={{ backgroundColor: '#1d2129', borderRadius: 12, padding: 10, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-        <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: order.fulfillment === 'home_cook' ? HC : ORANGE, textTransform: 'capitalize' }}>
-          {order.fulfillment === 'meetup' ? 'Meet up' : order.fulfillment === 'home_cook' ? 'Home cook' : order.fulfillment}
-        </Text>
-        {order.fulfillmentNote ? <Text style={{ flex: 1, fontFamily: Font.body, fontSize: 12.5, color: Palette.textMuted }} numberOfLines={2}>· {order.fulfillmentNote}</Text> : null}
-      </View>
-
-      {step ? (
-        <View style={{ flexDirection: 'row', gap: 10 }}>
-          {canCancel ? (
-            <PressableScale onPress={onCancel} disabled={busy} accessibilityRole="button" accessibilityLabel="Decline preorder" style={{ height: 46, paddingHorizontal: 18, borderRadius: 14, borderWidth: 1, borderColor: '#3f4451', alignItems: 'center', justifyContent: 'center', opacity: busy ? 0.5 : 1 }}>
-              <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: Palette.textMuted }}>Decline</Text>
-            </PressableScale>
-          ) : null}
-          <PressableScale onPress={() => { feedback.tap(); if (needsHandoff) onVerify(); else onAdvance(step.next); }} disabled={busy} accessibilityRole="button" accessibilityLabel={needsHandoff ? 'Verify handoff and complete' : step.cta} style={{ flex: 1, height: 46, borderRadius: Radius.pill, backgroundColor: ORANGE, flexDirection: 'row', gap: 7, alignItems: 'center', justifyContent: 'center', opacity: busy ? 0.6 : 1 }}>
-            {busy ? <ActivityIndicator color="#fff" /> : (
-              <>
-                {needsHandoff ? <QrCode size={16} color="#fff" /> : null}
-                <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#fff' }}>{needsHandoff ? 'Verify & complete' : step.cta}</Text>
-              </>
-            )}
-          </PressableScale>
-        </View>
-      ) : null}
-    </View>
-  );
-}
+import { HC, HC_TINT, ORANGE, CARD, BG, money, OrderCard } from '@/components/prepper-order-card';
 
 export default function PrepperOrdersScreen() {
   const router = useRouter();
@@ -140,6 +42,12 @@ export default function PrepperOrdersScreen() {
   const onErr = (e: unknown) => setActionErr(e instanceof Error ? e.message : 'Could not update the preorder. Try again.');
   const [declineOrder, setDeclineOrder] = useState<OrderSummary | null>(null);
   const [tab, setTab] = useState<'preorders' | 'homecook' | 'experiences'>('preorders');
+  const [orderFilter, setOrderFilter] = useState<'active' | 'history'>('active');
+  const pendingCount = (orders ?? []).filter((o) => o.status === 'pending').length;
+  const ACTIVE_STATUSES = ['pending', 'confirmed', 'preparing', 'ready', 'out_for_delivery'];
+  const filteredOrders = (orders ?? []).filter((o) =>
+    orderFilter === 'active' ? ACTIVE_STATUSES.includes(o.status) : ['completed', 'cancelled'].includes(o.status),
+  );
   const [proposeTarget, setProposeTarget] = useState<HomeCookRequest | null>(null);
   const [cookingFee, setCookingFee] = useState('');
   const [travelFee, setTravelFee] = useState('');
@@ -202,7 +110,7 @@ export default function PrepperOrdersScreen() {
 
         {/* Tab bar */}
         <View style={{ flexDirection: 'row', marginHorizontal: 16, marginBottom: 8, backgroundColor: CARD, borderRadius: 14, padding: 4, gap: 4 }}>
-          {([['preorders', 'Preorders', null], ['homecook', 'Home Cook', homeCookJobs?.length ?? 0], ['experiences', 'Experiences', expJobs?.length ?? 0]] as const).map(([key, label, badge]) => {
+          {([['preorders', 'Preorders', pendingCount], ['homecook', 'Home Cook', homeCookJobs?.length ?? 0], ['experiences', 'Experiences', expJobs?.length ?? 0]] as const).map(([key, label, badge]) => {
             const active = tab === key;
             const accentColor = key === 'homecook' ? HC : ORANGE;
             return (
@@ -398,9 +306,23 @@ export default function PrepperOrdersScreen() {
               <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textMuted, textAlign: 'center' }}>New preorders from customers will appear here in real time.</Text>
             </MotiView>
           ) : (
-            <ScrollView showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={ORANGE} colors={[ORANGE]} />} contentContainerStyle={{ padding: 20, paddingBottom: 40 }}>
-              <View style={isDesktop ? { flexDirection: 'row', flexWrap: 'wrap', gap: 14 } : { gap: 12 }}>
-                {orders.map((o, i) => (
+            <ScrollView showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={ORANGE} colors={[ORANGE]} />} contentContainerStyle={{ paddingBottom: 40 }}>
+              <View style={{ flexDirection: 'row', gap: 8, paddingHorizontal: 20, paddingVertical: 10 }}>
+                {(['active', 'history'] as const).map((f) => (
+                  <PressableScale key={f} onPress={() => { feedback.tap(); setOrderFilter(f); }} accessibilityRole="button" accessibilityState={{ selected: orderFilter === f }}
+                    style={{ backgroundColor: orderFilter === f ? ORANGE : CARD, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 7 }}>
+                    <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: orderFilter === f ? '#fff' : '#5b6170' }}>{f === 'active' ? `Active${pendingCount > 0 ? ` (${pendingCount} pending)` : ''}` : 'History'}</Text>
+                  </PressableScale>
+                ))}
+              </View>
+              {filteredOrders.length === 0 ? (
+                <View style={{ alignItems: 'center', paddingVertical: 32, gap: 8 }}>
+                  <ShoppingBag size={24} color="#5b6170" />
+                  <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textMuted }}>{orderFilter === 'active' ? 'No active preorders right now.' : 'No completed preorders yet.'}</Text>
+                </View>
+              ) : null}
+              <View style={[isDesktop ? { flexDirection: 'row', flexWrap: 'wrap', gap: 14 } : { gap: 12 }, { paddingHorizontal: 20, paddingBottom: 0 }]}>
+                {filteredOrders.map((o, i) => (
                   <MotiView key={o.id} from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: i * 45 }}
                     style={isDesktop ? { flex: 1, minWidth: 320, maxWidth: '48%' } : undefined}>
                     <OrderCard

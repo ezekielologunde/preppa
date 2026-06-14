@@ -104,6 +104,36 @@ export function useAdminCustomers(search?: string) {
   });
 }
 
+export type CustomerOrderStat = {
+  order_count: number;
+  completed_count: number;
+  total_spend: number;
+};
+
+/** Lightweight order-count + spend map keyed by customer_id for the customers panel. */
+export function useAdminCustomerOrderStats() {
+  return useQuery({
+    queryKey: ['admin', 'customer-order-stats'],
+    queryFn: async (): Promise<Map<string, CustomerOrderStat>> => {
+      const { data, error } = await supabase
+        .from('orders')
+        .select('customer_id,total,status');
+      if (error) throw error;
+      const map = new Map<string, CustomerOrderStat>();
+      for (const row of (data ?? []) as { customer_id: string; total: number; status: string }[]) {
+        const s = map.get(row.customer_id) ?? { order_count: 0, completed_count: 0, total_spend: 0 };
+        s.order_count += 1;
+        if (row.status === 'completed') {
+          s.completed_count += 1;
+          s.total_spend += Number(row.total ?? 0);
+        }
+        map.set(row.customer_id, s);
+      }
+      return map;
+    },
+  });
+}
+
 export type AdminOrder = {
   id: string;
   status: OrderStatus;
@@ -142,6 +172,36 @@ export function useAdminOrders(status?: OrderStatus) {
       return ((data ?? []) as unknown as (Omit<AdminOrder, 'payment'> & { payment: AdminOrder['payment'][] | AdminOrder['payment'] })[]).map(
         (o) => ({ ...o, payment: Array.isArray(o.payment) ? o.payment[0] ?? null : o.payment }),
       );
+    },
+  });
+}
+
+export type AdminOrderItem = { quantity: number; total: number; title: string };
+
+/**
+ * Line items for ONE order — lazy-loaded when an admin drills into a dispute.
+ * Reuses the exact access path of useAdminOrders (order_items nested through
+ * orders) so RLS behaves identically; only fires when `enabled` (card expanded).
+ */
+export function useAdminOrderItems(orderId: string | null, enabled: boolean) {
+  return useQuery({
+    queryKey: ['admin', 'order-items', orderId],
+    enabled: enabled && !!orderId,
+    queryFn: async (): Promise<AdminOrderItem[]> => {
+      if (!orderId) return [];
+      const { data, error } = await supabase
+        .from('orders')
+        .select('id,items:order_items(quantity,total,meal:meals(title))')
+        .eq('id', orderId)
+        .maybeSingle();
+      if (error) throw error;
+      type Row = { quantity: number; total: number; meal: { title: string } | { title: string }[] | null };
+      const items = ((data as { items?: Row[] } | null)?.items ?? []) as Row[];
+      return items.map((r) => ({
+        quantity: r.quantity,
+        total: Number(r.total ?? 0),
+        title: (Array.isArray(r.meal) ? r.meal[0]?.title : r.meal?.title) ?? 'item',
+      }));
     },
   });
 }

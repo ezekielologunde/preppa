@@ -9,6 +9,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { HandoffCard } from '@/components/handoff-card';
 import { StripeEmbeddedSheet } from '@/components/stripe-embedded';
+import { Button } from '@/components/ui/button';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { ListSkeleton } from '@/components/ui/skeleton';
 import { Font } from '@/constants/fonts';
@@ -213,15 +214,16 @@ function OrderCard({ order, onCancel, onReview, onPay, onReorder, onReport, canc
               <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: Palette.brandPressed }}>Leave a review</Text>
             </PressableScale>
           ) : null}
-          <PressableScale
+          <Button
+            title="Preorder again"
+            Icon={RotateCcw}
+            variant="primary"
+            size="md"
+            loading={reordering}
             onPress={onReorder}
-            disabled={reordering}
-            accessibilityRole="button"
+            style={{ flex: 1 }}
             accessibilityLabel="Preorder these meals again"
-            style={{ flex: 1, height: 44, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 6, opacity: reordering ? 0.7 : 1 }}>
-            {reordering ? <ActivityIndicator color="#fff" /> : <RotateCcw size={15} color="#fff" />}
-            <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: '#fff' }}>Preorder again</Text>
-          </PressableScale>
+          />
         </View>
       ) : null}
 

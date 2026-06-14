@@ -28,6 +28,7 @@ import { PressableScale } from '@/components/ui/pressable-scale';
 import { feedback } from '@/lib/feedback';
 import { Font } from '@/constants/fonts';
 import { Radius } from '@/constants/theme';
+import { useAdminDisputes, usePlatformStats } from '@/lib/queries/admin';
 import { useAuth } from '@/providers/auth-provider';
 
 type SectionKey = 'overview' | 'preppers' | 'customers' | 'orders' | 'earnings' | 'features' | 'disputes';
@@ -45,6 +46,10 @@ export default function AdminScreen() {
   const router = useRouter();
   const { isAdmin, loading } = useAuth();
   const [section, setSection] = useState<SectionKey>('overview');
+  const { data: openDisputes } = useAdminDisputes('open');
+  const { data: platformStats } = usePlatformStats();
+  const openDisputeCount = openDisputes?.length ?? 0;
+  const pendingPrepperCount = platformStats?.pending_preppers ?? 0;
 
   function goBack() {
     feedback.tap();
@@ -111,6 +116,16 @@ export default function AdminScreen() {
                   style={{ flexDirection: 'row', alignItems: 'center', gap: 7, paddingHorizontal: 14, height: 40 }}>
                   <s.Icon size={15} color={active ? '#fff' : Admin.textDim} />
                   <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: active ? '#fff' : Admin.textDim }}>{s.label}</Text>
+                  {s.key === 'disputes' && openDisputeCount > 0 && !active ? (
+                    <View style={{ minWidth: 16, height: 16, borderRadius: 8, backgroundColor: Admin.danger, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3 }}>
+                      <Text style={{ fontFamily: Font.heading, fontSize: 9, color: '#fff' }}>{openDisputeCount > 9 ? '9+' : openDisputeCount}</Text>
+                    </View>
+                  ) : null}
+                  {s.key === 'preppers' && pendingPrepperCount > 0 && !active ? (
+                    <View style={{ minWidth: 16, height: 16, borderRadius: 8, backgroundColor: Admin.warn, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3 }}>
+                      <Text style={{ fontFamily: Font.heading, fontSize: 9, color: '#fff' }}>{pendingPrepperCount > 9 ? '9+' : pendingPrepperCount}</Text>
+                    </View>
+                  ) : null}
                 </PressableScale>
               </MotiView>
             );
@@ -123,7 +138,7 @@ export default function AdminScreen() {
             from={{ opacity: 0, translateY: 10 }}
             animate={{ opacity: 1, translateY: 0 }}
             transition={{ type: 'timing', duration: 220 }}>
-            {section === 'overview' && <AdminOverview onReviewPreppers={() => setSection('preppers')} />}
+            {section === 'overview' && <AdminOverview onReviewPreppers={() => setSection('preppers')} onNavigate={(key) => setSection(key)} openDisputeCount={openDisputeCount} />}
             {section === 'preppers' && <AdminPreppers />}
             {section === 'customers' && <AdminCustomers />}
             {section === 'orders' && <AdminOrders />}

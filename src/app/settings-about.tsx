@@ -1,15 +1,17 @@
 import Constants from 'expo-constants';
 import { LinearGradient } from 'expo-linear-gradient';
-import { FileText, Heart, Info, ScrollText } from 'lucide-react-native';
+import { ExternalLink, FileText, Heart, Info, ScrollText, X } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useState } from 'react';
-import { Linking, ScrollView, Text, View } from 'react-native';
+import { Linking, Modal, Platform, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { SettingsGroup, SettingsHeader, SettingsRow } from '@/components/settings-ui';
+import { PressableScale } from '@/components/ui/pressable-scale';
 import { PreppaLogo } from '@/components/preppa-logo';
 import { Font } from '@/constants/fonts';
-import { Palette } from '@/constants/theme';
+import { Palette, Radius } from '@/constants/theme';
+import { feedback } from '@/lib/feedback';
 
 const APP_VERSION = Constants.expoConfig?.version ?? '1.0.0';
 
@@ -19,7 +21,125 @@ const IMPACT = [
   { value: '0', label: 'industrial kitchens' },
 ];
 
+type DocEntry = {
+  title: string;
+  Icon: typeof FileText;
+  color: string;
+  summary: string;
+  points: string[];
+  url: string;
+  cta: string;
+};
+type DocKey = 'terms' | 'privacy' | 'licenses';
+
+const DOCS: Record<DocKey, DocEntry> = {
+  terms: {
+    title: 'Terms of Service',
+    Icon: ScrollText,
+    color: '#7C3AED',
+    summary: 'By using Preppa you agree to these terms. Preppers are independent chefs — Preppa connects and facilitates but does not employ them.',
+    points: [
+      'You must be 18 or older to hold a Preppa account.',
+      'Preppers set their own prices, quantities, and order cutoff times.',
+      'Refunds and disputes are resolved between you and the Prepper, with Preppa mediating.',
+      'Resale or commercial bulk orders without written agreement are not permitted.',
+      'Leaving false reviews or manipulating ratings violates these terms.',
+    ],
+    url: 'https://preppa.live/terms',
+    cta: 'Read full terms',
+  },
+  privacy: {
+    title: 'Privacy Policy',
+    Icon: FileText,
+    color: '#0EA5E9',
+    summary: 'Your data helps us connect you with great local food. We never sell your personal information to third parties.',
+    points: [
+      'Location is used only to surface nearby Preppers — never sold to advertisers.',
+      'Order history powers your personalised recommendations.',
+      'Payments are processed by Stripe — we never store your card details.',
+      'You can request a full data export or permanent deletion at any time.',
+      'Analytics are anonymised and used only to improve the app experience.',
+    ],
+    url: 'https://preppa.live/privacy',
+    cta: 'Read full policy',
+  },
+  licenses: {
+    title: 'Open Source',
+    Icon: Heart,
+    color: '#e11d48',
+    summary: 'Preppa is built on great open-source projects. We are grateful to every contributor behind them.',
+    points: [
+      'Expo & React Native — MIT License',
+      'Supabase — Apache 2.0 License',
+      'TanStack Query — MIT License',
+      'Moti & Reanimated — MIT License',
+      'Lucide Icons — ISC License',
+    ],
+    url: 'https://preppa.live/licenses',
+    cta: 'View all licenses',
+  },
+};
+
+function LegalSheet({
+  docKey,
+  onClose,
+  onLinkFail,
+}: {
+  docKey: DocKey | null;
+  onClose: () => void;
+  onLinkFail: () => void;
+}) {
+  const doc = docKey ? DOCS[docKey] : null;
+  return (
+    <Modal visible={docKey !== null} transparent animationType="fade" onRequestClose={onClose}>
+      <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.52)', justifyContent: 'flex-end' }}>
+        {doc ? (
+          <MotiView
+            from={{ translateY: 48, opacity: 0 }}
+            animate={{ translateY: 0, opacity: 1 }}
+            transition={{ type: 'timing', duration: 260 }}
+            style={{ backgroundColor: Palette.surface, borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingHorizontal: 22, paddingTop: 18, paddingBottom: Platform.OS === 'ios' ? 40 : 26, maxHeight: '82%' }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                <View style={{ width: 42, height: 42, borderRadius: 13, backgroundColor: doc.color + '1A', alignItems: 'center', justifyContent: 'center' }}>
+                  <doc.Icon size={20} color={doc.color} />
+                </View>
+                <Text style={{ fontFamily: Font.display, fontSize: 20, color: Palette.ink, letterSpacing: -0.4 }}>{doc.title}</Text>
+              </View>
+              <PressableScale onPress={() => { feedback.tap(); onClose(); }} accessibilityRole="button" accessibilityLabel="Close"
+                style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: Palette.chip, alignItems: 'center', justifyContent: 'center' }}>
+                <X size={17} color={Palette.textSecondary} />
+              </PressableScale>
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+              <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, lineHeight: 21, marginBottom: 16 }}>
+                {doc.summary}
+              </Text>
+              {doc.points.map((point, i) => (
+                <View key={i} style={{ flexDirection: 'row', gap: 10, marginBottom: 10, alignItems: 'flex-start' }}>
+                  <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: doc.color, marginTop: 7 }} />
+                  <Text style={{ flex: 1, fontFamily: Font.body, fontSize: 13.5, color: Palette.ink, lineHeight: 20 }}>{point}</Text>
+                </View>
+              ))}
+              <PressableScale
+                onPress={() => { feedback.tap(); Linking.openURL(doc.url).catch(onLinkFail); }}
+                accessibilityRole="link"
+                accessibilityLabel={`${doc.cta} at preppa.live`}
+                style={{ marginTop: 20, marginBottom: 8, height: 52, borderRadius: Radius.pill, backgroundColor: doc.color, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8 }}>
+                <ExternalLink size={17} color="#fff" />
+                <Text style={{ fontFamily: Font.heading, fontSize: 15.5, color: '#fff' }}>{doc.cta} at preppa.live</Text>
+              </PressableScale>
+            </ScrollView>
+          </MotiView>
+        ) : null}
+      </View>
+    </Modal>
+  );
+}
+
 export default function AboutAppScreen() {
+  const [openDoc, setOpenDoc] = useState<DocKey | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const flash = (m: string) => { setToast(m); setTimeout(() => setToast((t) => (t === m ? null : t)), 2200); };
 
@@ -28,6 +148,7 @@ export default function AboutAppScreen() {
       <SafeAreaView edges={['top']} style={{ flex: 1 }}>
         <SettingsHeader title="about preppa" subtitle="Real food from real local Preppas near you." />
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 8, paddingBottom: 40, gap: 20 }}>
+
           {/* Mission hero */}
           <MotiView from={{ opacity: 0, translateY: 12 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 300 }}
             style={{ marginHorizontal: 20 }}>
@@ -56,17 +177,18 @@ export default function AboutAppScreen() {
             </LinearGradient>
           </MotiView>
 
-          {/* App */}
+          {/* App version */}
           <SettingsGroup title="the app" delay={60}>
             <SettingsRow Icon={Info} label="App version" right={{ type: 'value', label: APP_VERSION }} onPress={() => {}} isLast />
           </SettingsGroup>
 
-          {/* Legal */}
+          {/* Legal — tap opens an in-app overlay with a summary + link to full doc at preppa.live */}
           <SettingsGroup title="legal & attributions" delay={120}>
-            <SettingsRow Icon={ScrollText} label="Terms of service" onPress={() => Linking.openURL('https://preppa.live/terms').catch(() => flash('Could not open link'))} />
-            <SettingsRow Icon={FileText} label="Privacy policy" onPress={() => Linking.openURL('https://preppa.live/privacy').catch(() => flash('Could not open link'))} />
-            <SettingsRow Icon={Heart} label="Open source attributions" sub="The libraries that power Preppa" onPress={() => Linking.openURL('https://preppa.live/licenses').catch(() => flash('Could not open link'))} isLast />
+            <SettingsRow Icon={ScrollText} label="Terms of service" sub="How Preppa works and what you agree to" onPress={() => setOpenDoc('terms')} />
+            <SettingsRow Icon={FileText} label="Privacy policy" sub="What we collect, how we use it, and your rights" onPress={() => setOpenDoc('privacy')} />
+            <SettingsRow Icon={Heart} label="Open source" sub="The libraries that power Preppa" onPress={() => setOpenDoc('licenses')} isLast />
           </SettingsGroup>
+
         </ScrollView>
 
         {toast ? (
@@ -76,6 +198,8 @@ export default function AboutAppScreen() {
           </MotiView>
         ) : null}
       </SafeAreaView>
+
+      <LegalSheet docKey={openDoc} onClose={() => setOpenDoc(null)} onLinkFail={() => flash('Could not open link — visit preppa.live')} />
     </View>
   );
 }

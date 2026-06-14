@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { ChevronLeft, Repeat, Users } from 'lucide-react-native';
+import { ChevronDown, ChevronLeft, ChevronUp, Repeat, Users } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useState } from 'react';
 import { RefreshControl, ScrollView, Text, View } from 'react-native';
@@ -11,7 +11,7 @@ import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
 import { Palette, Radius } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
-import { usePrepperOrders } from '@/lib/queries/orders';
+import { usePrepperOrders, type OrderSummary } from '@/lib/queries/orders';
 import { useMyPrepperApplication } from '@/lib/queries/preppers';
 import { useAuth } from '@/providers/auth-provider';
 
@@ -20,26 +20,38 @@ const CARD = Palette.prepperCard;
 const BG = Palette.prepperBg;
 const money = (n: number) => `$${n.toFixed(2)}`;
 
+type CustomerOrder = { id: string; title: string; itemCount: number; total: number; status: string; created_at: string };
 type CustomerRow = {
   id: string;
   name: string;
   orders: number;
   paidTotal: number;
   lastOrder: string;
+  recent: CustomerOrder[];
 };
 
 /** Group the prepper's own orders (RLS-scoped) into a customer roster. */
-function aggregate(orders: { customerId: string; customer: string; total: number; status: string; paymentStatus: string | null; created_at: string }[]): CustomerRow[] {
+function aggregate(orders: OrderSummary[]): CustomerRow[] {
   const map = new Map<string, CustomerRow>();
   for (const o of orders) {
     if (o.status === 'cancelled') continue;
-    const row = map.get(o.customerId) ?? { id: o.customerId, name: o.customer, orders: 0, paidTotal: 0, lastOrder: o.created_at };
+    const row = map.get(o.customerId) ?? { id: o.customerId, name: o.customer, orders: 0, paidTotal: 0, lastOrder: o.created_at, recent: [] };
     row.orders += 1;
     if (o.paymentStatus === 'succeeded') row.paidTotal += o.total;
     if (o.created_at > row.lastOrder) row.lastOrder = o.created_at;
+    row.recent.push({
+      id: o.id,
+      title: o.items[0]?.title ?? 'Preorder',
+      itemCount: o.items.length,
+      total: o.total,
+      status: o.status,
+      created_at: o.created_at,
+    });
     map.set(o.customerId, row);
   }
-  return [...map.values()].sort((a, b) => b.paidTotal - a.paidTotal || b.orders - a.orders);
+  const rows = [...map.values()];
+  for (const r of rows) r.recent.sort((a, b) => b.created_at.localeCompare(a.created_at));
+  return rows.sort((a, b) => b.paidTotal - a.paidTotal || b.orders - a.orders);
 }
 
 const fmtDate = (iso: string) => new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
@@ -53,8 +65,15 @@ export default function CustomersScreen() {
   const [refreshing, setRefreshing] = useState(false);
   async function handleRefresh() { setRefreshing(true); await refetch(); setRefreshing(false); }
 
-  const rows = aggregate(orders ?? []);
+  const [sortBy, setSortBy] = useState<'spend' | 'recent'>('spend');
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const allRows = aggregate(orders ?? []);
+  const rows = sortBy === 'recent'
+    ? [...allRows].sort((a, b) => b.lastOrder.localeCompare(a.lastOrder))
+    : allRows;
   const repeat = rows.filter((r) => r.orders >= 2).length;
+  const totalEarned = rows.reduce((s, r) => s + r.paidTotal, 0);
+  const avgSpend = rows.length > 0 ? totalEarned / rows.length : 0;
 
   return (
     <View style={{ flex: 1, backgroundColor: BG }}>
@@ -63,7 +82,17 @@ export default function CustomersScreen() {
           <PressableScale onPress={() => { feedback.tap(); if (router.canGoBack()) { router.back(); } else { router.replace('/dashboard'); } }} accessibilityRole="button" accessibilityLabel="Go back" style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center' }}>
             <ChevronLeft size={22} color="#fff" />
           </PressableScale>
-          <Text style={{ fontFamily: Font.display, fontSize: 24, color: '#fff', letterSpacing: -0.6 }}>customers</Text>
+          <Text style={{ fontFamily: Font.display, fontSize: 24, color: '#fff', letterSpacing: -0.6, flex: 1 }}>customers</Text>
+          {rows.length > 1 ? (
+            <View style={{ flexDirection: 'row', gap: 4 }}>
+              {(['spend', 'recent'] as const).map((s) => (
+                <PressableScale key={s} onPress={() => { feedback.tap(); setSortBy(s); }} accessibilityRole="button" accessibilityState={{ selected: sortBy === s }}
+                  style={{ backgroundColor: sortBy === s ? ORANGE : CARD, borderRadius: 8, paddingHorizontal: 9, paddingVertical: 5 }}>
+                  <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: sortBy === s ? '#fff' : Palette.textMuted }}>{s === 'spend' ? 'top spend' : 'recent'}</Text>
+                </PressableScale>
+              ))}
+            </View>
+          ) : null}
         </View>
 
         {!prepperId ? (
@@ -93,31 +122,67 @@ export default function CustomersScreen() {
                 <Text style={{ fontFamily: Font.display, fontSize: 24, color: Palette.success, fontVariant: ['tabular-nums'] }}>{repeat}</Text>
                 <Text style={{ fontFamily: Font.medium, fontSize: 12, color: Palette.textMuted }}>repeat buyers</Text>
               </View>
+              <View style={{ flex: 1, backgroundColor: CARD, borderRadius: 16, padding: 14, gap: 2 }}>
+                <Text style={{ fontFamily: Font.display, fontSize: 24, color: ORANGE, fontVariant: ['tabular-nums'] }}>${avgSpend.toFixed(0)}</Text>
+                <Text style={{ fontFamily: Font.medium, fontSize: 12, color: Palette.textMuted }}>avg spend</Text>
+              </View>
             </View>
             </MotiView>
 
-            {rows.map((c, i) => (
+            {rows.map((c, i) => {
+              const expanded = expandedId === c.id;
+              return (
               <MotiView key={c.id} from={{ opacity: 0, translateX: -8 }} animate={{ opacity: 1, translateX: 0 }} transition={{ type: 'timing', duration: 250, delay: 60 + i * 50 }}>
-              <View style={{ backgroundColor: CARD, borderRadius: 18, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                <Avatar name={c.name} size={44} />
-                <View style={{ flex: 1, gap: 2 }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                    <Text style={{ fontFamily: Font.heading, fontSize: 14.5, color: '#fff' }} numberOfLines={1}>{c.name}</Text>
-                    {c.orders >= 2 ? (
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: Palette.success + '22', borderRadius: Radius.pill, paddingHorizontal: 8, height: 20 }}>
-                        <Repeat size={10} color={Palette.success} />
-                        <Text style={{ fontFamily: Font.semibold, fontSize: 10.5, color: Palette.success }}>repeat</Text>
-                      </View>
-                    ) : null}
+              <View style={{ backgroundColor: CARD, borderRadius: 18, overflow: 'hidden' }}>
+                <PressableScale onPress={() => { feedback.tap(); setExpandedId(expanded ? null : c.id); }} accessibilityRole="button" accessibilityState={{ expanded }} accessibilityLabel={`${c.name}, ${c.orders} preorder${c.orders === 1 ? '' : 's'}, ${money(c.paidTotal)}`}
+                  style={{ padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                  <Avatar name={c.name} size={44} />
+                  <View style={{ flex: 1, gap: 2 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                      <Text style={{ fontFamily: Font.heading, fontSize: 14.5, color: '#fff' }} numberOfLines={1}>{c.name}</Text>
+                      {c.orders >= 2 ? (
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: Palette.success + '22', borderRadius: Radius.pill, paddingHorizontal: 8, height: 20 }}>
+                          <Repeat size={10} color={Palette.success} />
+                          <Text style={{ fontFamily: Font.semibold, fontSize: 10.5, color: Palette.success }}>repeat</Text>
+                        </View>
+                      ) : null}
+                    </View>
+                    <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: Palette.textMuted }}>
+                      {c.orders} preorder{c.orders === 1 ? '' : 's'} · last {fmtDate(c.lastOrder)}
+                    </Text>
                   </View>
-                  <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: Palette.textMuted }}>
-                    {c.orders} preorder{c.orders === 1 ? '' : 's'} · last {fmtDate(c.lastOrder)}
-                  </Text>
-                </View>
-                <Text style={{ fontFamily: Font.display, fontSize: 16, color: '#fff', fontVariant: ['tabular-nums'] }}>{money(c.paidTotal)}</Text>
+                  <View style={{ alignItems: 'flex-end', gap: 4 }}>
+                    <Text style={{ fontFamily: Font.display, fontSize: 16, color: '#fff', fontVariant: ['tabular-nums'] }}>{money(c.paidTotal)}</Text>
+                    {expanded ? <ChevronUp size={15} color={Palette.textMuted} /> : <ChevronDown size={15} color={Palette.textMuted} />}
+                  </View>
+                </PressableScale>
+                {expanded ? (
+                  <MotiView from={{ opacity: 0, translateY: -6 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 200 }}
+                    style={{ paddingHorizontal: 14, paddingBottom: 12, paddingTop: 10, gap: 10, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.06)' }}>
+                    {c.recent.slice(0, 6).map((o) => {
+                      const done = o.status === 'completed';
+                      return (
+                        <View key={o.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                          <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: done ? Palette.success : ORANGE }} />
+                          <View style={{ flex: 1 }}>
+                            <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: '#fff' }} numberOfLines={1}>
+                              {o.title}{o.itemCount > 1 ? ` +${o.itemCount - 1}` : ''}
+                            </Text>
+                            <Text style={{ fontFamily: Font.body, fontSize: 11.5, color: Palette.textMuted }}>{fmtDate(o.created_at)} · {o.status}</Text>
+                          </View>
+                          <Text style={{ fontFamily: Font.heading, fontSize: 13.5, color: done ? Palette.success : Palette.textSecondary, fontVariant: ['tabular-nums'] }}>{money(o.total)}</Text>
+                        </View>
+                      );
+                    })}
+                    {c.recent.length > 6 ? (
+                      <Text style={{ fontFamily: Font.body, fontSize: 11.5, color: Palette.textMuted, textAlign: 'center' }}>+{c.recent.length - 6} earlier preorder{c.recent.length - 6 === 1 ? '' : 's'}</Text>
+                    ) : null}
+                  </MotiView>
+                ) : null}
               </View>
               </MotiView>
-            ))}
+              );
+            })}
           </ScrollView>
         )}
       </SafeAreaView>

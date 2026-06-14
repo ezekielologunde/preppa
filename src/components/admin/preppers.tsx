@@ -1,4 +1,4 @@
-import { BadgeCheck, Check, ChevronDown, ChevronUp, Store, X } from 'lucide-react-native';
+import { BadgeCheck, Check, ChevronDown, ChevronUp, Star, Store, X } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useState } from 'react';
 import { Text, TextInput, View } from 'react-native';
@@ -6,10 +6,10 @@ import { Text, TextInput, View } from 'react-native';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
 import { Radius } from '@/constants/theme';
-import { useAdminPreppers, useSetPrepperStatus, useVerifyPrepper } from '@/lib/queries/admin';
+import { useAdminPreppers, usePrepperEarnings, useSetPrepperStatus, useVerifyPrepper } from '@/lib/queries/admin';
 import type { AdminPrepper } from '@/lib/queries/admin';
-import type { PrepperStatus } from '@/types/database.types';
-import { Admin, Avatar, Card, Pill, SectionState } from './ui';
+import type { PrepperEarningsRow, PrepperStatus } from '@/types/database.types';
+import { Admin, Avatar, Card, money, compact, Pill, SectionState } from './ui';
 
 const FILTERS: { key: PrepperStatus; label: string }[] = [
   { key: 'pending', label: 'Pending' },
@@ -22,7 +22,7 @@ function dateLabel(iso: string) {
   return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
-function PrepperCard({ p }: { p: AdminPrepper }) {
+function PrepperCard({ p, earnings }: { p: AdminPrepper; earnings?: PrepperEarningsRow }) {
   const [expanded, setExpanded] = useState(false);
   const [rejecting, setRejecting] = useState(false);
   const [note, setNote] = useState('');
@@ -84,6 +84,27 @@ function PrepperCard({ p }: { p: AdminPrepper }) {
             <Text style={{ fontFamily: Font.body, fontSize: 13, color: Admin.textDim, marginTop: 10, lineHeight: 19 }}>
               {p.bio}
             </Text>
+          ) : null}
+          {earnings && Number(earnings.completed_sales) > 0 ? (
+            <View style={{ marginTop: 10, flexDirection: 'row', gap: 16, flexWrap: 'wrap', backgroundColor: Admin.bg, borderRadius: Radius.sm, padding: 10 }}>
+              <View>
+                <Text style={{ fontFamily: Font.display, fontSize: 18, color: Admin.success, fontVariant: ['tabular-nums'] }}>{money(earnings.completed_sales)}</Text>
+                <Text style={{ fontFamily: Font.body, fontSize: 10.5, color: Admin.textMuted }}>completed sales</Text>
+              </View>
+              <View>
+                <Text style={{ fontFamily: Font.heading, fontSize: 14, color: Admin.text, fontVariant: ['tabular-nums'] }}>{compact(earnings.completed_orders)}/{compact(earnings.total_orders)}</Text>
+                <Text style={{ fontFamily: Font.body, fontSize: 10.5, color: Admin.textMuted }}>orders</Text>
+              </View>
+              {Number(earnings.rating) > 0 ? (
+                <View>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+                    <Star size={12} color="#f59e0b" fill="#f59e0b" />
+                    <Text style={{ fontFamily: Font.heading, fontSize: 14, color: '#f59e0b', fontVariant: ['tabular-nums'] }}>{Number(earnings.rating).toFixed(1)}</Text>
+                  </View>
+                  <Text style={{ fontFamily: Font.body, fontSize: 10.5, color: Admin.textMuted }}>avg rating</Text>
+                </View>
+              ) : null}
+            </View>
           ) : null}
         </MotiView>
       ) : null}
@@ -183,13 +204,22 @@ function PrepperCard({ p }: { p: AdminPrepper }) {
 
 export function AdminPreppers() {
   const [filter, setFilter] = useState<PrepperStatus>('pending');
-  const { data, isLoading, isError } = useAdminPreppers(filter);
+  const { data: all, isLoading, isError } = useAdminPreppers();
+  const { data: earningsData } = usePrepperEarnings();
+  const earningsMap = Object.fromEntries((earningsData ?? []).map((r) => [r.prepper_id, r]));
+
+  const counts = (all ?? []).reduce<Partial<Record<PrepperStatus, number>>>((acc, p) => {
+    acc[p.status] = (acc[p.status] ?? 0) + 1;
+    return acc;
+  }, {});
+  const filtered = (all ?? []).filter((p) => p.status === filter);
 
   return (
     <View style={{ gap: 12 }}>
       <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
         {FILTERS.map((f) => {
           const active = filter === f.key;
+          const count = counts[f.key] ?? 0;
           return (
             <MotiView
               key={f.key}
@@ -200,18 +230,27 @@ export function AdminPreppers() {
                 onPress={() => setFilter(f.key)}
                 accessibilityRole="button"
                 accessibilityState={{ selected: active }}
-                accessibilityLabel={`${f.label} preppers`}
-                style={{ paddingHorizontal: 14, paddingVertical: 8 }}>
+                accessibilityLabel={`${f.label} preppers (${count})`}
+                style={{ paddingHorizontal: 14, paddingVertical: 8, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                 <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: active ? '#fff' : Admin.textDim }}>{f.label}</Text>
+                {count > 0 ? (
+                  <View style={{ minWidth: 18, height: 18, borderRadius: 9, backgroundColor: active ? 'rgba(255,255,255,0.25)' : Admin.bg, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 }}>
+                    <Text style={{ fontFamily: Font.heading, fontSize: 10, color: active ? '#fff' : Admin.textMuted }}>{count > 99 ? '99+' : count}</Text>
+                  </View>
+                ) : null}
               </PressableScale>
             </MotiView>
           );
         })}
       </View>
 
-      <SectionState loading={isLoading} error={isError} empty={!data?.length} emptyText={`No ${filter} preppers.`} Icon={Store} />
+      {filtered.length > 0 ? (
+        <Text style={{ fontFamily: Font.body, fontSize: 12, color: Admin.textDim }}>{filtered.length} {filter} prepper{filtered.length === 1 ? '' : 's'}</Text>
+      ) : null}
 
-      {(data ?? []).map((p) => <PrepperCard key={p.id} p={p} />)}
+      <SectionState loading={isLoading} error={isError} empty={!filtered.length} emptyText={`No ${filter} preppers.`} Icon={Store} />
+
+      {filtered.map((p) => <PrepperCard key={p.id} p={p} earnings={earningsMap[p.id]} />)}
     </View>
   );
 }

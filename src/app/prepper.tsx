@@ -11,6 +11,8 @@ import { PrepperBadgeShelf } from '@/components/badge-shelf';
 import { MealCard } from '@/components/meal-card';
 import { SubscribePlanSheet } from '@/components/subscribe-sheet';
 import { Avatar } from '@/components/ui/avatar';
+import { BottomActionBar } from '@/components/ui/bottom-action-bar';
+import { Button } from '@/components/ui/button';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { CardRowSkeleton, Skeleton } from '@/components/ui/skeleton';
 import { Font } from '@/constants/fonts';
@@ -355,20 +357,24 @@ export default function PrepperScreen() {
 
       {/* Sticky action bar — message, preorder, and home cook booking */}
       {p && !isLoading ? (
-        <MotiView
-          from={{ translateY: 64, opacity: 0 }}
-          animate={{ translateY: 0, opacity: 1 }}
-          transition={{ type: 'spring', damping: 18, stiffness: 200 }}
-          style={{ position: 'absolute', bottom: 80, left: 0, right: 0, backgroundColor: Palette.surface, borderTopWidth: 1, borderTopColor: Palette.divider, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 14, gap: 10, shadowColor: '#000', shadowOpacity: 0.10, shadowRadius: 16, shadowOffset: { width: 0, height: -4 } }}>
+        <BottomActionBar>
           <View style={{ flexDirection: 'row', gap: 10 }}>
-            <PressableScale onPress={() => { feedback.tap(); router.push('/messages'); }} accessibilityRole="button" accessibilityLabel="Message this prepper" style={{ height: 50, paddingHorizontal: 18, borderRadius: 14, borderWidth: 1.5, borderColor: Palette.border, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 6 }}>
-              <MessageSquare size={17} color={INK} />
-              <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: INK }}>Message</Text>
-            </PressableScale>
-            <PressableScale onPress={() => { feedback.tap(); router.push(`/search?q=${encodeURIComponent(p.name)}`); }} accessibilityRole="button" accessibilityLabel={`Preorder from ${p.name}`} style={{ flex: 1, height: 50, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 7 }}>
-              <ShoppingBag size={17} color="#fff" />
-              <Text style={{ fontFamily: Font.semibold, fontSize: 15, color: '#fff' }}>Preorder from {p.name.split(' ')[0]}</Text>
-            </PressableScale>
+            <Button
+              title="Message"
+              Icon={MessageSquare}
+              variant="secondary"
+              fullWidth={false}
+              onPress={() => router.push('/messages')}
+              accessibilityLabel="Message this prepper"
+            />
+            <Button
+              title={`Preorder from ${p.name.split(' ')[0]}`}
+              Icon={ShoppingBag}
+              variant="primary"
+              style={{ flex: 1 }}
+              onPress={() => router.push(`/search?q=${encodeURIComponent(p.name)}`)}
+              accessibilityLabel={`Preorder from ${p.name}`}
+            />
           </View>
           {p.homeCookAvailable ? (
             <PressableScale
@@ -384,7 +390,7 @@ export default function PrepperScreen() {
               </View>
             </PressableScale>
           ) : null}
-        </MotiView>
+        </BottomActionBar>
       ) : null}
     </View>
   );

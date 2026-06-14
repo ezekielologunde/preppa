@@ -7,6 +7,7 @@ import { ActivityIndicator, Linking, Platform, ScrollView, Text, TextInput, View
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import type { Meal } from '@/components/meal-card';
+import { Button } from '@/components/ui/button';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { ListSkeleton } from '@/components/ui/skeleton';
 import { Font } from '@/constants/fonts';
@@ -250,20 +251,15 @@ export default function CreateMealPlanScreen() {
           {err ? (
             <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.danger, textAlign: 'center', marginBottom: 8 }}>{err}</Text>
           ) : null}
-          <PressableScale onPress={handleCreate} disabled={!canCreate}
-            accessibilityRole="button" accessibilityLabel="Create meal plan"
-            style={{ height: 56, borderRadius: Radius.pill, backgroundColor: canCreate ? ORANGE : Palette.chip, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8 }}>
-            {createPlan.isPending ? (
-              <ActivityIndicator color="#fff" />
-            ) : selCount > 0 ? (
-              <>
-                <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>Create Plan · {money(total)}/{freq}</Text>
-                <ChevronRight size={18} color="#fff" />
-              </>
-            ) : (
-              <Text style={{ fontFamily: Font.heading, fontSize: 15, color: Palette.textMuted }}>Select meals to continue</Text>
-            )}
-          </PressableScale>
+          <Button
+            title={selCount > 0 ? `Create Plan · ${money(total)}/${freq}` : 'Select meals to continue'}
+            TrailingIcon={selCount > 0 ? ChevronRight : undefined}
+            variant={canCreate ? 'primary' : 'muted'}
+            loading={createPlan.isPending}
+            disabled={!canCreate}
+            onPress={handleCreate}
+            accessibilityLabel="Create meal plan"
+          />
         </View>
       </SafeAreaView>
     </View>

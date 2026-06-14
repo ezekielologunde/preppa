@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { ChevronLeft, ChevronRight, Clock, DollarSign, Flame, MessageSquare, Package, RefreshCw, Sparkles, Star, TrendingUp, Zap } from 'lucide-react-native';
+import { ChevronLeft, ChevronRight, Clock, DollarSign, Flame, MessageSquare, Package, RefreshCw, Sparkles, Star, TrendingUp, Users, Wallet, Zap } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useState } from 'react';
 import { RefreshControl, ScrollView, Text, View } from 'react-native';
@@ -31,6 +31,8 @@ const ACTIONS = [
   { label: 'reply to reviews', desc: 'Responding boosts your ranking score', Icon: MessageSquare, color: '#8b5cf6', route: '/reviews' },
   { label: 'boost your listing', desc: 'Appear at the top of search during rush', Icon: Zap, color: '#d97706', route: '/boost' },
   { label: 'view performance analytics', desc: 'Weekly trends, top dishes, and smart insights', Icon: TrendingUp, color: '#22c55e', route: '/prepper-analytics' },
+  { label: 'view earnings breakdown', desc: 'Net pay, weekly totals, and recent transactions', Icon: Wallet, color: '#10b981', route: '/earnings' },
+  { label: 'view your customers', desc: 'Your buyers, repeat rate, and spend per person', Icon: Users, color: '#06b6d4', route: '/customers' },
 ];
 
 const TIPS = [
@@ -57,6 +59,26 @@ export default function PrepperHubScreen() {
   const completedOrders = (orders ?? []).filter((o) => o.status === 'completed');
   const totalEarnings = completedOrders.reduce((s, o) => s + o.total, 0);
   const avgOrder = completedOrders.length ? totalEarnings / completedOrders.length : 0;
+  const activeCount = (orders ?? []).filter((o) => ['pending', 'confirmed', 'preparing', 'ready'].includes(o.status)).length;
+  const sevenDaysAgo = Date.now() - 7 * 86400000;
+  const weekCompleted = completedOrders.filter((o) => new Date(o.created_at).getTime() >= sevenDaysAgo);
+  const weekEarnings = weekCompleted.reduce((s, o) => s + o.total, 0);
+  const repeatRate = (() => {
+    const counts: Record<string, number> = {};
+    for (const o of (orders ?? [])) { if (o.customerId) counts[o.customerId] = (counts[o.customerId] ?? 0) + 1; }
+    const uniq = Object.keys(counts).length;
+    return uniq > 0 ? Math.round((Object.values(counts).filter((n) => n > 1).length / uniq) * 100) : null;
+  })();
+  const hubInsights = [
+    WEEKLY_INSIGHTS[0],
+    WEEKLY_INSIGHTS[1],
+    {
+      label: 'Your repeat buyers',
+      trend: repeatRate !== null ? `${repeatRate}%` : '—',
+      note: repeatRate === null ? 'Complete your first preorders to track your repeat buyer rate.' : repeatRate >= 30 ? 'Strong loyalty. Offer a weekly special to keep them coming back.' : 'Grow repeat buyers with subscription plans and fast message replies.',
+    },
+    WEEKLY_INSIGHTS[3],
+  ];
 
   function goBack() { feedback.tap(); if (router.canGoBack()) { router.back(); } else { router.replace('/profile'); } }
 
@@ -109,20 +131,38 @@ export default function PrepperHubScreen() {
           )}
           </MotiView>
 
+          {/* Active orders alert */}
+          {activeCount > 0 ? (
+            <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 240, delay: 40 }}>
+            <PressableScale onPress={() => { feedback.tap(); router.push('/prepper-orders'); }} accessibilityRole="button" accessibilityLabel={`${activeCount} active preorders`}
+              style={{ backgroundColor: ORANGE + '14', borderRadius: Radius.lg, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12, borderWidth: 1, borderColor: ORANGE + '40' }}>
+              <View style={{ width: 36, height: 36, borderRadius: 11, backgroundColor: ORANGE + '22', alignItems: 'center', justifyContent: 'center' }}>
+                <Package size={17} color={ORANGE} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontFamily: Font.heading, fontSize: 14.5, color: INK }}>{activeCount} preorder{activeCount === 1 ? '' : 's'} in queue</Text>
+                <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary, marginTop: 1 }}>Tap to review and advance</Text>
+              </View>
+              <ChevronRight size={16} color={ORANGE} />
+            </PressableScale>
+            </MotiView>
+          ) : null}
+
           {/* Quick stats */}
           <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 80 }}>
           <View style={{ flexDirection: 'row', gap: 10 }}>
             {[
-              { label: 'preorders filled', value: completedOrders.length.toString(), Icon: Package, color: '#06b6d4' },
-              { label: 'total earned', value: `$${totalEarnings.toFixed(0)}`, Icon: DollarSign, color: '#22c55e' },
-              { label: 'avg preorder', value: `$${avgOrder.toFixed(0)}`, Icon: TrendingUp, color: ORANGE },
-            ].map(({ label, value, Icon, color }, i) => (
+              { label: 'preorders filled', value: completedOrders.length.toString(), sub: weekCompleted.length > 0 ? `+${weekCompleted.length} this wk` : undefined, Icon: Package, color: '#06b6d4' },
+              { label: 'total earned', value: `$${totalEarnings.toFixed(0)}`, sub: weekEarnings > 0 ? `+$${weekEarnings.toFixed(0)} this wk` : undefined, Icon: DollarSign, color: '#22c55e' },
+              { label: 'avg preorder', value: `$${avgOrder.toFixed(0)}`, sub: undefined, Icon: TrendingUp, color: ORANGE },
+            ].map(({ label, value, sub, Icon, color }, i) => (
               <MotiView key={label} from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 240, delay: 100 + i * 50 }} style={{ flex: 1 }}>
-              <View style={{ backgroundColor: Palette.surface, borderRadius: 14, padding: 12, alignItems: 'center', gap: 6 }}>
+              <View style={{ backgroundColor: Palette.surface, borderRadius: 14, padding: 12, alignItems: 'center', gap: 4 }}>
                 <View style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: color + '18', alignItems: 'center', justifyContent: 'center' }}>
                   <Icon size={15} color={color} />
                 </View>
                 <Text style={{ fontFamily: Font.display, fontSize: 19, color: INK, fontVariant: ['tabular-nums'] }}>{value}</Text>
+                {sub ? <Text style={{ fontFamily: Font.medium, fontSize: 10, color: Palette.success, textAlign: 'center' }}>{sub}</Text> : null}
                 <Text style={{ fontFamily: Font.body, fontSize: 10.5, color: Palette.textMuted, textAlign: 'center' }}>{label}</Text>
               </View>
               </MotiView>
@@ -134,7 +174,7 @@ export default function PrepperHubScreen() {
           <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 140 }}>
           <Text style={{ fontFamily: Font.display, fontSize: 15, color: INK, letterSpacing: -0.3, marginBottom: 12 }}>market insights</Text>
           <View style={{ backgroundColor: Palette.surface, borderRadius: Radius.lg, overflow: 'hidden' }}>
-            {WEEKLY_INSIGHTS.map(({ label, trend, note }, i) => (
+            {hubInsights.map(({ label, trend, note }, i) => (
               <MotiView key={label} from={{ opacity: 0, translateX: -6 }} animate={{ opacity: 1, translateX: 0 }} transition={{ type: 'timing', duration: 220, delay: 160 + i * 40 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 13, borderTopWidth: i === 0 ? 0 : 1, borderTopColor: Palette.divider }}>
                 <View style={{ flex: 1 }}>

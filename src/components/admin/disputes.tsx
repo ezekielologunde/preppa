@@ -1,12 +1,13 @@
-import { AlertTriangle, Check, X } from 'lucide-react-native';
+import { AlertTriangle, Check, Receipt, X } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useState } from 'react';
-import { Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Text, TextInput, View } from 'react-native';
 
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
 import { Radius } from '@/constants/theme';
-import { useAdminDisputes, useResolveDispute } from '@/lib/queries/admin';
+import { useAdminDisputes, useAdminOrderItems, useResolveDispute } from '@/lib/queries/admin';
+import { feedback } from '@/lib/feedback';
 import type { AdminDisputeRow } from '@/types/database.types';
 import { Admin, Card, SectionState } from './ui';
 
@@ -21,6 +22,14 @@ const money = (n: number) => `$${Number(n).toFixed(2)}`;
 
 function dateLabel(iso: string) {
   return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
+
+function relativeTime(iso: string): string {
+  const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
+  if (days === 0) return 'today';
+  if (days === 1) return 'yesterday';
+  if (days < 7) return `${days}d ago`;
+  return dateLabel(iso);
 }
 
 function ResolveForm({ dispute, onDone }: { dispute: AdminDisputeRow; onDone: () => void }) {
@@ -73,6 +82,8 @@ function ResolveForm({ dispute, onDone }: { dispute: AdminDisputeRow; onDone: ()
 
 function DisputeCard({ d }: { d: AdminDisputeRow }) {
   const [expanded, setExpanded] = useState(false);
+  const [showOrder, setShowOrder] = useState(false);
+  const { data: orderItems, isLoading: itemsLoading } = useAdminOrderItems(d.order_id, showOrder);
 
   const statusColor =
     d.status === 'open' ? Admin.danger :
@@ -88,10 +99,13 @@ function DisputeCard({ d }: { d: AdminDisputeRow }) {
         <View style={{ flex: 1 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
             <Text style={{ fontFamily: Font.heading, fontSize: 14, color: Admin.text }}>{d.reporter_name ?? 'Customer'}</Text>
-            <Text style={{ fontFamily: Font.body, fontSize: 11.5, color: Admin.textDim }}>{dateLabel(d.created_at)}</Text>
+            <Text style={{ fontFamily: Font.body, fontSize: 11.5, color: d.status === 'open' ? Admin.warn : Admin.textDim }}>{relativeTime(d.created_at)}</Text>
           </View>
           <Text style={{ fontFamily: Font.body, fontSize: 12, color: Admin.textDim, marginTop: 1 }}>
             {d.prepper_name} · {money(d.order_total)} · {d.order_status}
+          </Text>
+          <Text style={{ fontFamily: Font.medium, fontSize: 11, color: Admin.textMuted, marginTop: 1 }}>
+            order #{d.order_id.slice(-8)}
           </Text>
         </View>
       </View>
@@ -104,6 +118,46 @@ function DisputeCard({ d }: { d: AdminDisputeRow }) {
         <Text style={{ fontFamily: Font.body, fontSize: 12, color: Admin.textDim, marginTop: 6, fontStyle: 'italic' }}>
           Note: {d.admin_note}
         </Text>
+      ) : null}
+
+      {/* Drill-down: what was actually ordered — the context to judge a refund fairly */}
+      <PressableScale
+        onPress={() => { feedback.tap(); setShowOrder((x) => !x); }}
+        accessibilityRole="button"
+        accessibilityLabel={showOrder ? 'Hide order contents' : 'View order contents'}
+        style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 10 }}>
+        <Receipt size={13} color={Admin.brand} />
+        <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: Admin.brand }}>{showOrder ? 'Hide order' : 'View order contents'}</Text>
+      </PressableScale>
+
+      {showOrder ? (
+        <MotiView
+          from={{ opacity: 0, translateY: -6 }}
+          animate={{ opacity: 1, translateY: 0 }}
+          transition={{ type: 'timing', duration: 200 }}
+          style={{ marginTop: 8, backgroundColor: Admin.bg, borderRadius: Radius.sm, padding: 12, gap: 6 }}>
+          {itemsLoading ? (
+            <ActivityIndicator color={Admin.brand} />
+          ) : !orderItems || orderItems.length === 0 ? (
+            <Text style={{ fontFamily: Font.body, fontSize: 12, color: Admin.textMuted }}>No line items found for this order.</Text>
+          ) : (
+            <>
+              {orderItems.map((it, i) => (
+                <View key={i} style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 10 }}>
+                  <Text style={{ flex: 1, fontFamily: Font.body, fontSize: 12.5, color: Admin.text }} numberOfLines={1}>
+                    {it.quantity}× {it.title}
+                  </Text>
+                  <Text style={{ fontFamily: Font.medium, fontSize: 12.5, color: Admin.textDim, fontVariant: ['tabular-nums'] }}>{money(it.total)}</Text>
+                </View>
+              ))}
+              <View style={{ height: 1, backgroundColor: Admin.border, marginVertical: 4 }} />
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                <Text style={{ fontFamily: Font.heading, fontSize: 13, color: Admin.text }}>Order total</Text>
+                <Text style={{ fontFamily: Font.heading, fontSize: 13, color: Admin.text, fontVariant: ['tabular-nums'] }}>{money(d.order_total)}</Text>
+              </View>
+            </>
+          )}
+        </MotiView>
       ) : null}
 
       {d.status === 'open' ? (
@@ -134,42 +188,78 @@ function DisputeCard({ d }: { d: AdminDisputeRow }) {
 
 export function AdminDisputes() {
   const [filter, setFilter] = useState<'open' | 'resolved' | 'dismissed' | 'all'>('open');
+  const [sort, setSort] = useState<'recent' | 'value'>('recent');
   const { data, isLoading, isError } = useAdminDisputes(filter);
-
-  const openCount = filter === 'open' ? (data?.length ?? 0) : undefined;
+  const { data: openData } = useAdminDisputes('open');
+  const openCount = openData?.length ?? 0;
+  const atStake = (openData ?? []).reduce((s, d) => s + Number(d.order_total ?? 0), 0);
+  const sorted = [...(data ?? [])].sort((a, b) =>
+    sort === 'value'
+      ? Number(b.order_total ?? 0) - Number(a.order_total ?? 0)
+      : b.created_at.localeCompare(a.created_at),
+  );
 
   return (
     <View style={{ gap: 12 }}>
       <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
         {FILTERS.map((f) => {
           const active = filter === f.key;
+          const badge = f.key === 'open' && openCount > 0;
           return (
             <MotiView
               key={f.key}
-              animate={{ backgroundColor: active ? Admin.brand : Admin.card, borderColor: active ? Admin.brand : Admin.border }}
+              animate={{ backgroundColor: active ? Admin.brand : Admin.card, borderColor: active ? (badge ? Admin.danger : Admin.brand) : badge ? Admin.danger + '55' : Admin.border }}
               transition={{ type: 'timing', duration: 180 }}
               style={{ borderRadius: Radius.pill, borderWidth: 1, overflow: 'hidden' }}>
               <PressableScale
-                onPress={() => setFilter(f.key)}
+                onPress={() => { feedback.tap(); setFilter(f.key); }}
                 accessibilityRole="button"
                 accessibilityState={{ selected: active }}
-                accessibilityLabel={f.label}
-                style={{ paddingHorizontal: 14, paddingVertical: 8 }}>
-                <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: active ? '#fff' : Admin.textDim }}>{f.label}</Text>
+                accessibilityLabel={badge ? `${f.label} (${openCount})` : f.label}
+                style={{ paddingHorizontal: 14, paddingVertical: 8, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: active ? '#fff' : badge ? Admin.danger : Admin.textDim }}>{f.label}</Text>
+                {badge ? (
+                  <View style={{ minWidth: 18, height: 18, borderRadius: 9, backgroundColor: active ? 'rgba(255,255,255,0.25)' : Admin.danger + '22', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 }}>
+                    <Text style={{ fontFamily: Font.heading, fontSize: 10, color: active ? '#fff' : Admin.danger }}>{openCount > 9 ? '9+' : openCount}</Text>
+                  </View>
+                ) : null}
               </PressableScale>
             </MotiView>
           );
         })}
-        {openCount ? (
-          <View style={{ paddingHorizontal: 10, paddingVertical: 8, borderRadius: Radius.pill, backgroundColor: Admin.danger + '22' }}>
-            <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: Admin.danger }}>{openCount} open</Text>
-          </View>
-        ) : null}
       </View>
+
+      {openCount > 0 ? (
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: Admin.danger + '12', borderWidth: 1, borderColor: Admin.danger + '33', borderRadius: Radius.sm, paddingHorizontal: 12, paddingVertical: 10 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <AlertTriangle size={15} color={Admin.danger} />
+            <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: Admin.text }}>
+              {openCount} open dispute{openCount === 1 ? '' : 's'}
+            </Text>
+          </View>
+          <Text style={{ fontFamily: Font.heading, fontSize: 13.5, color: Admin.danger, fontVariant: ['tabular-nums'] }}>{money(atStake)} at stake</Text>
+        </View>
+      ) : null}
+
+      {sorted.length > 1 ? (
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <Text style={{ fontFamily: Font.body, fontSize: 12, color: Admin.textMuted }}>Sort</Text>
+          {(['recent', 'value'] as const).map((s) => {
+            const active = sort === s;
+            return (
+              <PressableScale key={s} onPress={() => { feedback.tap(); setSort(s); }}
+                accessibilityRole="button" accessibilityState={{ selected: active }}
+                style={{ paddingHorizontal: 11, paddingVertical: 5, borderRadius: Radius.pill, backgroundColor: active ? Admin.brand : Admin.card, borderWidth: 1, borderColor: active ? Admin.brand : Admin.border }}>
+                <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: active ? '#fff' : Admin.textDim }}>{s === 'recent' ? 'Recent' : 'Highest value'}</Text>
+              </PressableScale>
+            );
+          })}
+        </View>
+      ) : null}
 
       <SectionState loading={isLoading} error={isError} empty={!data?.length} emptyText={`No ${filter} disputes.`} Icon={AlertTriangle} />
 
-      {(data ?? []).map((d) => <DisputeCard key={d.id} d={d} />)}
+      {sorted.map((d) => <DisputeCard key={d.id} d={d} />)}
     </View>
   );
 }
