@@ -34,7 +34,10 @@ export function RequestDetailSheet({
   const updateDetails = useUpdateRequestDetails();
   const [editingPrefs, setEditingPrefs] = useState(false);
   const [prefsDraft, setPrefsDraft] = useState('');
+  const [prefsErr, setPrefsErr] = useState<string | null>(null);
+  const [acceptErr, setAcceptErr] = useState<string | null>(null);
   const [cancelConfirm, setCancelConfirm] = useState(false);
+  const [cancelErr, setCancelErr] = useState<string | null>(null);
 
   if (!request) return null;
 
@@ -129,9 +132,15 @@ export function RequestDetailSheet({
                     <PressableScale
                       onPress={async () => {
                         feedback.tap();
-                        await updateDetails.mutateAsync({ requestId: request.id, details: cleanBlock(prefsDraft).trim() });
-                        feedback.success();
-                        setEditingPrefs(false);
+                        setPrefsErr(null);
+                        try {
+                          await updateDetails.mutateAsync({ requestId: request.id, details: cleanBlock(prefsDraft).trim() });
+                          feedback.success();
+                          setEditingPrefs(false);
+                        } catch (e) {
+                          feedback.error();
+                          setPrefsErr(e instanceof Error ? e.message : 'Could not save preferences.');
+                        }
                       }}
                       disabled={updateDetails.isPending}
                       accessibilityRole="button" accessibilityLabel="Save preferences"
@@ -146,6 +155,7 @@ export function RequestDetailSheet({
                         )}
                     </PressableScale>
                   </View>
+                  {prefsErr ? <Text style={{ fontFamily: Font.medium, fontSize: 12.5, color: Palette.danger }}>{prefsErr}</Text> : null}
                 </View>
               ) : (
                 <Text style={{ fontFamily: Font.body, fontSize: 13.5, color: request.details ? INK : Palette.textMuted, lineHeight: 20 }}>
@@ -203,7 +213,8 @@ export function RequestDetailSheet({
                         <PressableScale
                           onPress={async () => {
                             feedback.tap();
-                            try { await accept.mutateAsync(b.id); feedback.success(); handleClose(); } catch { feedback.error(); }
+                            setAcceptErr(null);
+                            try { await accept.mutateAsync(b.id); feedback.success(); handleClose(); } catch { feedback.error(); setAcceptErr('Could not accept bid. Please try again.'); }
                           }}
                           disabled={accept.isPending}
                           accessibilityRole="button" accessibilityLabel={`Accept bid from ${b.prepper?.display_name ?? 'this prepper'}`}
@@ -212,6 +223,7 @@ export function RequestDetailSheet({
                             ? <ActivityIndicator color="#fff" size="small" />
                             : <Text style={{ fontFamily: Font.heading, fontSize: 14, color: '#fff' }}>Accept · {money(b.amount)}</Text>}
                         </PressableScale>
+                        {acceptErr ? <Text style={{ fontFamily: Font.medium, fontSize: 12.5, color: Palette.danger, textAlign: 'center' }}>{acceptErr}</Text> : null}
                       </View>
                     </MotiView>
                   ))}
@@ -236,7 +248,8 @@ export function RequestDetailSheet({
                     <PressableScale
                       onPress={async () => {
                         feedback.tap();
-                        try { await cancel.mutateAsync(request.id); feedback.success(); handleClose(); } catch { feedback.error(); }
+                        setCancelErr(null);
+                        try { await cancel.mutateAsync(request.id); feedback.success(); handleClose(); } catch { feedback.error(); setCancelErr('Could not cancel request. Please try again.'); }
                       }}
                       disabled={cancel.isPending}
                       accessibilityRole="button" accessibilityLabel="Confirm cancel"
@@ -246,6 +259,7 @@ export function RequestDetailSheet({
                         : <Text style={{ fontFamily: Font.heading, fontSize: 14, color: '#fff' }}>Yes, cancel</Text>}
                     </PressableScale>
                   </View>
+                  {cancelErr ? <Text style={{ fontFamily: Font.medium, fontSize: 12.5, color: '#991B1B' }}>{cancelErr}</Text> : null}
                 </MotiView>
               ) : (
                 <PressableScale onPress={() => { feedback.tap(); setCancelConfirm(true); }} accessibilityRole="button" accessibilityLabel="Cancel request"
