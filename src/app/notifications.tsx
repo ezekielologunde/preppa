@@ -170,7 +170,7 @@ export default function NotificationsScreen() {
     else if (n.type === 'chat') router.push('/messages');
     else if (n.type === 'review') router.push('/profile');
     else if (n.type === 'live' || n.type === 'drop') router.push('/explore');
-    else if (n.type === 'follow') router.push('/profile');
+    else if (n.type === 'follow') router.push('/dashboard');
     else if (n.type === 'bid') router.push('/experiences');
     else if (n.type === 'bid_accepted') router.push('/prepper-orders');
     else if (n.type === 'promotion') router.push('/specials');
