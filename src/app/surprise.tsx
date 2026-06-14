@@ -66,6 +66,7 @@ export default function SurpriseScreen() {
   const [vibe, setVibe] = useState<typeof VIBE_OPTIONS[0] | null>(null);
   const [revealed, setRevealed] = useState(false);
   const [addingId, setAddingId] = useState<string | null>(null);
+  const [pickErr, setPickErr] = useState<string | null>(null);
 
   const filters: SurpriseFilters = {
     maxPrice: budget > 0 ? budget : undefined,
@@ -85,10 +86,14 @@ export default function SurpriseScreen() {
     feedback.tap();
     if (!user) { router.push('/auth?mode=signup'); return; }
     setAddingId(mealId);
-    feedback.success();
+    setPickErr(null);
     try {
       await addToCart.mutateAsync({ userId: user.id, mealId, price, quantity: 1, replace: false });
+      feedback.success();
       router.push('/cart');
+    } catch {
+      feedback.error();
+      setPickErr('Could not add to cart. Please try again.');
     } finally {
       setAddingId(null);
     }
@@ -180,9 +185,12 @@ export default function SurpriseScreen() {
               </MotiView>
             ) : (
               <View style={{ paddingHorizontal: 20 }}>
-                <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK, marginBottom: 14 }}>
+                <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK, marginBottom: pickErr ? 6 : 14 }}>
                   {picks.length === 1 ? "here's your pick" : `here's ${picks.length} options`}
                 </Text>
+                {pickErr ? (
+                  <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.danger, marginBottom: 10 }}>{pickErr}</Text>
+                ) : null}
                 <View style={{ gap: 16 }}>
                   {picks.map((meal, i) => (
                     <MotiView
