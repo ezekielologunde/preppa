@@ -1,18 +1,17 @@
+import Constants from 'expo-constants';
 import { LinearGradient } from 'expo-linear-gradient';
-import { FileText, Heart, Info, ScrollText, Smartphone } from 'lucide-react-native';
+import { FileText, Heart, Info, ScrollText } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useState } from 'react';
-import { Linking, Platform, ScrollView, Text, View } from 'react-native';
+import { Linking, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { SettingsGroup, SettingsHeader, SettingsRow } from '@/components/settings-ui';
 import { PreppaLogo } from '@/components/preppa-logo';
 import { Font } from '@/constants/fonts';
 import { Palette } from '@/constants/theme';
-import { feedback } from '@/lib/feedback';
 
-const APP_VERSION = '1.0.0';
-const BUILD = `${APP_VERSION} (${Platform.OS})`;
+const APP_VERSION = Constants.expoConfig?.version ?? '1.0.0';
 
 const IMPACT = [
   { value: '100%', label: 'neighbourhood-made' },
@@ -59,14 +58,7 @@ export default function AboutAppScreen() {
 
           {/* App */}
           <SettingsGroup title="the app" delay={60}>
-            <SettingsRow Icon={Info} label="App version" right={{ type: 'value', label: APP_VERSION }} onPress={() => {}} />
-            <SettingsRow
-              Icon={Smartphone}
-              label="Diagnostics"
-              sub={`Build ${BUILD} · tap to copy for support`}
-              onPress={() => { feedback.tap(); flash(`Diagnostics copied: build ${BUILD}`); }}
-              isLast
-            />
+            <SettingsRow Icon={Info} label="App version" right={{ type: 'value', label: APP_VERSION }} onPress={() => {}} isLast />
           </SettingsGroup>
 
           {/* Legal */}
