@@ -22,6 +22,7 @@ export type OrderSummary = {
   total: number;
   created_at: string;
   prepperId: string;
+  prepperUserId: string;
   prepper: string;
   customer: string;
   paymentStatus: string | null;
@@ -60,7 +61,7 @@ type Row = {
   fulfillment_type: FulfillmentType;
   fulfillment_note: string | null;
   created_at: string;
-  prepper: { display_name: string } | { display_name: string }[] | null;
+  prepper: { display_name: string; user_id: string } | { display_name: string; user_id: string }[] | null;
   customer: { display_name: string } | { display_name: string }[] | null;
   payment: { status: string } | { status: string }[] | null;
   review: { id: string }[] | null;
@@ -79,7 +80,7 @@ type Row = {
 
 const SELECT =
   'id,prepper_id,customer_id,status,subtotal,tip,total,delivery_fee,fulfillment_type,fulfillment_note,created_at,' +
-  'prepper:prepper_profiles(display_name),' +
+  'prepper:prepper_profiles(display_name,user_id),' +
   'customer:profiles(display_name:full_name),' +
   'payment:payments(status),' +
   'review:reviews(id),' +
@@ -100,6 +101,7 @@ function toSummary(r: Row): OrderSummary {
     total: r.total,
     created_at: r.created_at,
     prepperId: r.prepper_id,
+    prepperUserId: prepper?.user_id ?? '',
     prepper: prepper?.display_name ?? 'preppa',
     customer: maskName(customer?.display_name) ?? 'customer',
     paymentStatus: payment?.status ?? null,

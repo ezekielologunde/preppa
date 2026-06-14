@@ -17,6 +17,7 @@ import { Palette, Radius } from '@/constants/theme';
 import { useAddToCart, useEmbeddedCheckout, useRefundOrder, useStripeCheckout, type EmbeddedPay } from '@/lib/queries/cart';
 import { useFeatureEnabled } from '@/lib/queries/feature-flags';
 import { feedback } from '@/lib/feedback';
+import { useStartConversation } from '@/lib/queries/messages';
 import { useCancelOrder, useMyOrders, useOrdersRealtime, useReportDispute, type OrderSummary } from '@/lib/queries/orders';
 import { BP } from '@/lib/layout';
 import { useAuth } from '@/providers/auth-provider';
@@ -121,7 +122,7 @@ function dateLabel(iso: string): string {
   return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
 
-function OrderCard({ order, onCancel, onReview, onPay, onReorder, onReport, onMessage, cancelling, needsPayment, paying, reordering }: { order: OrderSummary; onCancel: () => void; onReview: () => void; onPay: () => void; onReorder: () => void; onReport: () => void; onMessage: () => void; cancelling: boolean; needsPayment: boolean; paying: boolean; reordering: boolean }) {
+function OrderCard({ order, onCancel, onReview, onPay, onReorder, onReport, onMessage, onChat, cancelling, needsPayment, paying, reordering }: { order: OrderSummary; onCancel: () => void; onReview: () => void; onPay: () => void; onReorder: () => void; onReport: () => void; onMessage: () => void; onChat: () => void; cancelling: boolean; needsPayment: boolean; paying: boolean; reordering: boolean }) {
   const st = statusStyle(order.status);
   return (
     <View style={{ backgroundColor: Palette.surface, borderRadius: Radius.md, padding: 14, gap: 12 }}>
@@ -227,7 +228,7 @@ function OrderCard({ order, onCancel, onReview, onPay, onReorder, onReport, onMe
         </View>
       ) : ['confirmed', 'preparing', 'ready', 'out_for_delivery'].includes(order.status) ? (
         <PressableScale
-          onPress={onMessage}
+          onPress={onChat}
           accessibilityRole="button"
           accessibilityLabel="Message your kitchen"
           style={{ height: 44, borderRadius: Radius.sm, backgroundColor: Palette.brandTint, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
@@ -270,6 +271,7 @@ export default function OrdersScreen() {
   const cancelOrder = useCancelOrder();
   const refundOrder = useRefundOrder();
   const reportDispute = useReportDispute();
+  const startConversation = useStartConversation();
   const [reportModal, setReportModal] = useState<OrderSummary | null>(null);
   const [reportReason, setReportReason] = useState('');
   const [reportErr, setReportErr] = useState<string | null>(null);
@@ -457,6 +459,14 @@ export default function OrdersScreen() {
                     onReorder={() => reorder(o)}
                     onReport={() => { feedback.tap(); setReportReason(''); setReportErr(null); setReportModal(o); }}
                     onMessage={() => { feedback.tap(); router.push(`/prepper?id=${o.prepperId}`); }}
+                    onChat={async () => {
+                      if (!o.prepperUserId) { router.push(`/prepper?id=${o.prepperId}`); return; }
+                      feedback.tap();
+                      try {
+                        const convId = await startConversation.mutateAsync(o.prepperUserId);
+                        router.push(`/chat?id=${convId}&name=${encodeURIComponent(o.prepper)}`);
+                      } catch { setActionErr('Could not open chat. Try again.'); }
+                    }}
                     reordering={reorderingId === o.id}
                   />
                 </MotiView>
