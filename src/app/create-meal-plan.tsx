@@ -130,7 +130,7 @@ export default function CreateMealPlanScreen() {
     } catch {
       // Stripe unavailable — plan exists, navigate anyway.
     }
-    router.replace(`/custom-plan?id=${planId}`);
+    router.replace(`/custom-plan?id=${planId}` as never);
   }
 
   return (

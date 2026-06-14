@@ -372,7 +372,7 @@ export default function PrepperScreen() {
           </View>
           {p.homeCookAvailable ? (
             <PressableScale
-              onPress={() => { feedback.tap(); router.push({ pathname: '/book-home-cook', params: { prepperId: id } }); }}
+              onPress={() => { feedback.tap(); router.push({ pathname: '/book-home-cook' as never, params: { prepperId: id } }); }}
               accessibilityRole="button"
               accessibilityLabel={`Book ${p.name.split(' ')[0]} to cook at your home`}
               style={{ height: 48, borderRadius: 14, backgroundColor: '#EDE9FE', alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8, borderWidth: 1.5, borderColor: '#7C3AED26' }}>

@@ -43,6 +43,7 @@ function ShortcutCard({
   title,
   sub,
   meta,
+  warning,
   onPress,
   delay,
 }: {
@@ -51,6 +52,7 @@ function ShortcutCard({
   title: string;
   sub: string;
   meta?: string;
+  warning?: string;
   onPress: () => void;
   delay: number;
 }) {
@@ -65,11 +67,16 @@ function ShortcutCard({
           <Icon size={23} color={tint} />
         </View>
         <View style={{ flex: 1 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 6 }}>
             <Text style={{ fontFamily: Font.heading, fontSize: 15.5, color: Palette.ink, letterSpacing: -0.2 }}>{title}</Text>
             {meta ? (
               <View style={{ paddingHorizontal: 8, height: 20, borderRadius: Radius.pill, backgroundColor: tint + '1A', alignItems: 'center', justifyContent: 'center' }}>
                 <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: tint }}>{meta}</Text>
+              </View>
+            ) : null}
+            {warning ? (
+              <View style={{ paddingHorizontal: 7, height: 20, borderRadius: Radius.pill, backgroundColor: '#FEF3C7', alignItems: 'center', justifyContent: 'center' }}>
+                <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: '#D97706' }}>{warning}</Text>
               </View>
             ) : null}
           </View>
@@ -98,6 +105,7 @@ export default function ProfileScreen() {
   const { data: conversations } = useConversations(user?.id);
 
   const activeSubs = (subs ?? []).filter((s) => s.status === 'active').length;
+  const pausedSubs = (subs ?? []).filter((s) => s.status === 'paused').length;
   const followed = followedPreppers?.length ?? 0;
   const totalUnread = (notifications ?? []).filter((n) => !n.read).length + (conversations ?? []).filter((c) => c.unread).length;
   const displayName = (user?.user_metadata?.full_name as string | undefined) ?? user?.email?.split('@')[0] ?? 'guest';
@@ -187,6 +195,7 @@ export default function ProfileScreen() {
         tint={Palette.brand}
         title="My Subscriptions"
         meta={activeSubs > 0 ? `${activeSubs} active` : undefined}
+        warning={pausedSubs > 0 ? `${pausedSubs} paused` : undefined}
         sub="Manage multi-chef plans, pause meals, adjust your delivery calendar"
         onPress={() => go('/meal-plans')}
         delay={120}

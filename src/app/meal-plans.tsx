@@ -191,7 +191,7 @@ export default function MealPlansScreen() {
                 {customPlans.filter((p) => p.status !== 'cancelled').map((p, i) => (
                   <MotiView key={p.id} from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 240, delay: i * 45 }}>
                     <CustomPlanCard plan={p} busy={updateCustomPlan.isPending}
-                      onView={() => { feedback.tap(); router.push(`/custom-plan?id=${p.id}`); }}
+                      onView={() => { feedback.tap(); router.push(`/custom-plan?id=${p.id}` as never); }}
                       onUpdate={(status) => updateCustomPlan.mutate({ id: p.id, status })}
                       onCancel={() => setCancelTarget({ id: p.id, name: p.name, isCustom: true })} />
                   </MotiView>

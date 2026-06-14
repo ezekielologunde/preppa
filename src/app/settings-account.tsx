@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { CreditCard, MapPin, User } from 'lucide-react-native';
+import { CreditCard, Leaf, MapPin, User } from 'lucide-react-native';
 import { ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -30,6 +30,12 @@ export default function PersonalizationLogisticsScreen() {
               label="Profile information"
               sub={`Name, ${email}, and verified phone`}
               onPress={() => router.push('/edit-profile')}
+            />
+            <SettingsRow
+              Icon={Leaf}
+              label="Dietary & Allergen Profile"
+              sub="Controls your curated 'Recommended for You' engine"
+              onPress={() => router.push('/dietary-preferences')}
             />
             <SettingsRow
               Icon={MapPin}
