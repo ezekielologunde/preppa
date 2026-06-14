@@ -71,7 +71,7 @@ export default function CartScreen() {
   function keepOnly(keepKey: string) {
     feedback.tap();
     const drop = (cart?.items ?? []).filter((it) => (it.prepperId ?? it.prepper) !== keepKey).map((it) => it.id);
-    removeItems.mutate(drop);
+    removeItems.mutate(drop, { onError: () => feedback.error() });
   }
 
   function goBack() {
@@ -202,11 +202,11 @@ export default function CartScreen() {
               <Text style={{ fontFamily: Font.display, fontSize: 16, color: ORANGE, marginTop: 4 }}>{money(it.price_snapshot)}</Text>
             </View>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: Palette.canvas, borderRadius: Radius.pill, paddingHorizontal: 6, paddingVertical: 4 }}>
-              <PressableScale onPress={() => { feedback.tap(); updateItem.mutate({ itemId: it.id, quantity: it.quantity - 1 }); }} accessibilityRole="button" accessibilityLabel="Decrease quantity" hitSlop={8} style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
+              <PressableScale onPress={() => { feedback.tap(); updateItem.mutate({ itemId: it.id, quantity: it.quantity - 1 }, { onError: () => feedback.error() }); }} accessibilityRole="button" accessibilityLabel="Decrease quantity" hitSlop={8} style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
                 {it.quantity <= 1 ? <Trash2 size={14} color={Palette.danger} /> : <Minus size={14} color={INK} />}
               </PressableScale>
               <Text style={{ fontFamily: Font.heading, fontSize: 15, color: INK, minWidth: 18, textAlign: 'center', fontVariant: ['tabular-nums'] }}>{it.quantity}</Text>
-              <PressableScale onPress={() => { feedback.tap(); updateItem.mutate({ itemId: it.id, quantity: it.quantity + 1 }); }} accessibilityRole="button" accessibilityLabel="Increase quantity" hitSlop={8} style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
+              <PressableScale onPress={() => { feedback.tap(); updateItem.mutate({ itemId: it.id, quantity: it.quantity + 1 }, { onError: () => feedback.error() }); }} accessibilityRole="button" accessibilityLabel="Increase quantity" hitSlop={8} style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
                 <Plus size={14} color="#fff" />
               </PressableScale>
             </View>

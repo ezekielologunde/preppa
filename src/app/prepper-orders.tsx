@@ -56,7 +56,7 @@ export default function PrepperOrdersScreen() {
   function doDecline(o: OrderSummary) {
     setDeclineOrder(null);
     setActionErr(null);
-    cancel.mutate(o.id, { onSuccess: () => refund.mutate(o.id), onError: onErr });
+    cancel.mutate(o.id, { onSuccess: () => refund.mutate(o.id, { onError: () => setActionErr('Could not issue refund. Contact support if the customer was not refunded.') }), onError: onErr });
   }
 
   function submitTerms() {
@@ -87,7 +87,7 @@ export default function PrepperOrdersScreen() {
         if (r.ok && r.completed) {
           feedback.success();
           setVerifyOrder(null);
-          if (verifyOrder?.fulfillment === 'home_cook') captureHC.mutate(verifyOrder.id);
+          if (verifyOrder?.fulfillment === 'home_cook') captureHC.mutate(verifyOrder.id, { onError: () => { feedback.error(); setActionErr('Payment capture failed — contact support if needed.'); } });
         }
         else if (r.locked) { feedback.error(); setVerifyMsg(r.reason ?? 'Locked — ask for the QR code.'); }
         else { feedback.error(); setVerifyMsg(`${r.reason ?? 'Wrong code'}${typeof r.attempts_left === 'number' ? ` · ${r.attempts_left} tries left` : ''}`); setPin(''); }
