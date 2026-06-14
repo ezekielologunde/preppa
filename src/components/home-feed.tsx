@@ -18,6 +18,7 @@ import { feedback } from '@/lib/feedback';
 import { imgUrl } from '@/lib/img';
 import { useCarouselCardWidth, useContentWidth, usePagePadding, gridCardWidth } from '@/lib/layout';
 import { useMealPlans } from '@/lib/queries/meal-plans';
+import { useNewestMeals } from '@/lib/queries/meals';
 import { useFollowedPreppers, useTopPreppers } from '@/lib/queries/preppers';
 import { useAddToCart } from '@/lib/queries/cart';
 import { useAuth } from '@/providers/auth-provider';
@@ -244,23 +245,25 @@ export function FollowingKitchensSection({ userId }: { userId: string }) {
   );
 }
 
-// ─── NearbyPreppersSection ────────────────────────────────────────────────────
+// ─── FreshDropsSection ────────────────────────────────────────────────────────
 
-export function NearbyPreppersSection() {
+export function FreshDropsSection() {
   const router = useRouter();
-  const { data: preppers, isLoading } = useTopPreppers(8);
+  const { data: meals, isLoading } = useNewestMeals(8);
+  const carouselCardWidth = useCarouselCardWidth();
+  if (!isLoading && (!meals || meals.length === 0)) return null;
   return (
     <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }}
       transition={{ type: 'timing', duration: 260, delay: 100 }}>
-      <SectionHeader title="top kitchens" linkLabel="see all →"
+      <SectionHeader title="just dropped" linkLabel="see all →"
         onLink={() => { feedback.tap(); router.push('/explore'); }} />
       {isLoading ? <CardRowSkeleton count={3} /> : (
         <ScrollView horizontal showsHorizontalScrollIndicator={false}
           contentContainerStyle={{ paddingHorizontal: 20, gap: 12, paddingBottom: 4 }}>
-          {(preppers ?? []).map((prepper, i) => (
-            <MotiView key={prepper.id} from={{ opacity: 0, translateY: 6 }} animate={{ opacity: 1, translateY: 0 }}
+          {(meals ?? []).map((meal, i) => (
+            <MotiView key={meal.id} from={{ opacity: 0, translateY: 6 }} animate={{ opacity: 1, translateY: 0 }}
               transition={{ type: 'timing', duration: 220, delay: i * 50 }}>
-              <PrepperCard prepper={prepper} showRank />
+              <TrendingMealCard meal={meal} width={carouselCardWidth} />
             </MotiView>
           ))}
         </ScrollView>

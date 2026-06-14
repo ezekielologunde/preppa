@@ -26,7 +26,46 @@ export type Meal = {
   /** Category key for personalization (breakfast/lunch/dinner/…). */
   category?: string | null;
   badge?: { label: string; color: string };
+  /** ISO timestamp — limited drops only. Drives live countdown badge. */
+  expiresAt?: string | null;
 };
+
+function computeCountdown(expiresAt: string | null | undefined): string | null {
+  if (!expiresAt) return null;
+  const ms = new Date(expiresAt).getTime() - Date.now();
+  if (ms <= 0) return null;
+  const totalMins = Math.floor(ms / 60_000);
+  if (totalMins > 60 * 24 * 7) return null;
+  if (totalMins > 60 * 24) {
+    const days = Math.floor(totalMins / (60 * 24));
+    const hrs = Math.floor((totalMins % (60 * 24)) / 60);
+    return `${days}d ${hrs}h left`;
+  }
+  if (totalMins > 60) {
+    const hrs = Math.floor(totalMins / 60);
+    const mins = totalMins % 60;
+    return `${hrs}h ${mins}m left`;
+  }
+  return `${totalMins}m left`;
+}
+
+function urgencyColor(expiresAt: string): string {
+  const ms = new Date(expiresAt).getTime() - Date.now();
+  if (ms < 3_600_000) return '#ef4444';
+  if (ms < 86_400_000) return Palette.brand;
+  return '#8b5cf6';
+}
+
+function useCountdown(expiresAt?: string | null): string | null {
+  const [label, setLabel] = useState<string | null>(() => computeCountdown(expiresAt));
+  useEffect(() => {
+    setLabel(computeCountdown(expiresAt));
+    if (!expiresAt) return;
+    const id = setInterval(() => setLabel(computeCountdown(expiresAt)), 60_000);
+    return () => clearInterval(id);
+  }, [expiresAt]);
+  return label;
+}
 
 /** Crossfading gallery — auto-cycles on native, hover-driven on web. */
 function CardGallery({ images, hovered, height }: { images: string[]; hovered: boolean; height: number }) {
@@ -90,6 +129,13 @@ export function MealCard({ meal, width = 200, variant = 'normal' }: { meal: Meal
   const [hovered, setHovered] = useState(false);
   const images = meal.images && meal.images.length ? meal.images : meal.image ? [meal.image] : [];
   const big = variant === 'big';
+  const expiresAt = meal.expiresAt ?? null;
+  const countdown = useCountdown(expiresAt);
+  const displayBadge = countdown && expiresAt
+    ? { label: countdown, color: urgencyColor(expiresAt), solid: true }
+    : meal.badge
+    ? { label: meal.badge.label, color: meal.badge.color, solid: false }
+    : null;
   // Hero card scales with screen — taller on larger devices.
   const imgHeight = big
     ? Math.min(280, Math.max(176, Math.floor(screenWidth * 0.5)))
@@ -105,10 +151,10 @@ export function MealCard({ meal, width = 200, variant = 'normal' }: { meal: Meal
       <View style={{ borderRadius: big ? 24 : 20, overflow: 'hidden', backgroundColor: Palette.surface, ...Shadow.card }}>
         <View style={{ position: 'relative' }}>
           <CardGallery images={images} hovered={hovered} height={imgHeight} />
-          {meal.badge ? (
-            <View style={{ position: 'absolute', top: 10, left: 10, backgroundColor: '#fff', borderRadius: Radius.pill, paddingHorizontal: 9, paddingVertical: 4, flexDirection: 'row', alignItems: 'center' }}>
-              <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: meal.badge.color, marginRight: 5 }} />
-              <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: Palette.ink }}>{meal.badge.label}</Text>
+          {displayBadge ? (
+            <View style={{ position: 'absolute', top: 10, left: 10, backgroundColor: displayBadge.solid ? displayBadge.color : '#fff', borderRadius: Radius.pill, paddingHorizontal: 9, paddingVertical: 4, flexDirection: 'row', alignItems: 'center' }}>
+              {!displayBadge.solid ? <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: displayBadge.color, marginRight: 5 }} /> : null}
+              <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: displayBadge.solid ? '#fff' : Palette.ink }}>{displayBadge.label}</Text>
             </View>
           ) : null}
           <View style={{ position: 'absolute', top: 10, right: 10 }}>

@@ -11,6 +11,7 @@ type MealRow = {
   prep_time_min: number | null;
   created_at: string | null;
   is_limited: boolean;
+  expires_at: string | null;
   prepper: {
     display_name: string;
     verified: boolean;
@@ -21,7 +22,7 @@ type MealRow = {
 };
 
 const SELECT =
-  'id,title,base_price,prep_time_min,created_at,is_limited,' +
+  'id,title,base_price,prep_time_min,created_at,is_limited,expires_at,' +
   'prepper:prepper_profiles(display_name,verified,rating:prepper_rating_summary(average_rating,total_reviews)),' +
   'images:meal_images(url),' +
   'category:meal_categories(key)';
@@ -66,6 +67,7 @@ function mapMeal(row: MealRow): Meal {
     images,
     category: cat?.key ?? null,
     badge: deriveBadge(row, rating),
+    expiresAt: row.expires_at ?? null,
   };
 }
 
@@ -274,6 +276,23 @@ export function useSurpriseMeals(filters: SurpriseFilters, enabled = true) {
       // Client-side shuffle + pick 3 for the surprise reveal
       const shuffled = pool.sort(() => Math.random() - 0.5);
       return shuffled.slice(0, Math.min(3, shuffled.length));
+    },
+  });
+}
+
+/** Newest published meals sorted by creation date — powers the "just dropped" feed section. */
+export function useNewestMeals(limit = 8) {
+  return useQuery({
+    queryKey: ['meals', 'newest', limit],
+    queryFn: async (): Promise<Meal[]> => {
+      const { data, error } = await supabase
+        .from('meals')
+        .select(SELECT)
+        .eq('status', 'published')
+        .order('created_at', { ascending: false })
+        .limit(limit);
+      if (error) throw error;
+      return ((data ?? []) as unknown as MealRow[]).map(mapMeal);
     },
   });
 }

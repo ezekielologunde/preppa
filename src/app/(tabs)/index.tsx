@@ -14,8 +14,8 @@ import {
   RewardsBanner, SurpriseMeBanner,
 } from '@/components/home-extras';
 import {
-  ChefsInActionFeed, FollowingKitchensSection, MealPlansDiscoverySection,
-  NearbyPreppersSection, TrendingSection,
+  ChefsInActionFeed, FreshDropsSection, FollowingKitchensSection, MealPlansDiscoverySection,
+  TrendingSection,
 } from '@/components/home-feed';
 import { BecomePrepperNudge } from '@/components/home-nudges';
 import { Font } from '@/constants/fonts';
@@ -273,7 +273,7 @@ export default function HomeScreen() {
                 {activeOrder ? <ActiveOrderBanner order={activeOrder} /> : null}
                 <ChefsInActionFeed />
                 {uid ? <View style={{ marginTop: 24 }}><FollowingKitchensSection userId={uid} /></View> : null}
-                <View style={{ marginTop: 24 }}><NearbyPreppersSection /></View>
+                <View style={{ marginTop: 24 }}><FreshDropsSection /></View>
                 <View style={{ marginTop: 24 }}><TrendingSection meals={meals} isLoading={mealsLoading} isTablet={false} /></View>
               </ScrollView>
             </View>
@@ -310,7 +310,7 @@ export default function HomeScreen() {
           <ChefsInActionFeed />
           {uid ? <View style={{ marginTop: 24 }}><MyPlansSection userId={uid} /></View> : null}
           {uid ? <View style={{ marginTop: 24 }}><FollowingKitchensSection userId={uid} /></View> : null}
-          <View style={{ marginTop: 24 }}><NearbyPreppersSection /></View>
+          <View style={{ marginTop: 24 }}><FreshDropsSection /></View>
           <View style={{ marginTop: 24 }}><TrendingSection meals={meals} isLoading={mealsLoading} isTablet={isTablet} /></View>
           <View style={{ marginTop: 16 }}><RewardsBanner /></View>
           <View style={{ marginTop: 24 }}><MealPlansDiscoverySection /></View>
