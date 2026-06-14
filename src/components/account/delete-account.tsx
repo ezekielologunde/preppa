@@ -164,6 +164,7 @@ export function DeleteAccountModals({
               placeholderTextColor={Palette.textMuted}
               autoCapitalize="characters"
               autoCorrect={false}
+              maxLength={6}
               accessibilityLabel="Type DELETE to confirm"
               style={{
                 fontFamily: Font.body,

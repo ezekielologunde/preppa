@@ -53,6 +53,7 @@ function ResolveForm({ dispute, onDone }: { dispute: AdminDisputeRow; onDone: ()
         placeholder="Admin note (optional)"
         placeholderTextColor={Admin.textDim}
         multiline
+        maxLength={500}
         style={{ minHeight: 60, backgroundColor: Admin.bg, borderRadius: Radius.sm, borderWidth: 1, borderColor: Admin.border, padding: 10, fontFamily: Font.body, fontSize: 13, color: Admin.text, textAlignVertical: 'top' }}
       />
       {err ? <Text style={{ fontFamily: Font.medium, fontSize: 12.5, color: Admin.danger }}>{err}</Text> : null}

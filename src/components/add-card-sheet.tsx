@@ -175,6 +175,7 @@ export function AddCardSheet({
               placeholder="Alex Johnson"
               placeholderTextColor={Palette.textMuted}
               autoCapitalize="words"
+              maxLength={80}
               accessibilityLabel="Cardholder name"
               style={{
                 fontFamily: Font.body,

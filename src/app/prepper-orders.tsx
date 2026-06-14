@@ -422,6 +422,7 @@ export default function PrepperOrdersScreen() {
                 placeholder="e.g. 120"
                 placeholderTextColor={Palette.textMuted}
                 keyboardType="numeric"
+                maxLength={7}
                 style={{ height: 50, borderRadius: 13, backgroundColor: '#1d2129', paddingHorizontal: 14, fontFamily: Font.body, fontSize: 15, color: '#fff' }}
                 accessibilityLabel="Cooking fee"
               />
@@ -432,6 +433,7 @@ export default function PrepperOrdersScreen() {
                 placeholder="e.g. 15"
                 placeholderTextColor={Palette.textMuted}
                 keyboardType="numeric"
+                maxLength={7}
                 style={{ height: 50, borderRadius: 13, backgroundColor: '#1d2129', paddingHorizontal: 14, fontFamily: Font.body, fontSize: 15, color: '#fff' }}
                 accessibilityLabel="Travel or transport fee"
               />

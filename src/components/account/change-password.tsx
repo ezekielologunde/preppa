@@ -106,6 +106,7 @@ export function ChangePasswordPanel({ onClose }: { onClose: () => void }) {
             placeholder="Current password"
             placeholderTextColor={Palette.textMuted}
             secureTextEntry
+            maxLength={128}
             accessibilityLabel="Current password"
             style={inputStyle}
           />
@@ -116,6 +117,7 @@ export function ChangePasswordPanel({ onClose }: { onClose: () => void }) {
               placeholder="New password (min 8 characters)"
               placeholderTextColor={Palette.textMuted}
               secureTextEntry={!showNext}
+              maxLength={128}
               accessibilityLabel="New password"
               style={inputStyle}
             />
@@ -144,6 +146,7 @@ export function ChangePasswordPanel({ onClose }: { onClose: () => void }) {
               placeholder="Confirm new password"
               placeholderTextColor={Palette.textMuted}
               secureTextEntry={!showConfirm}
+              maxLength={128}
               accessibilityLabel="Confirm new password"
               style={inputStyle}
             />

@@ -328,7 +328,7 @@ export default function MealEditorScreen() {
                     </PressableScale>
                   ) : null}
                   {(draft?.imageUrls.length ?? 0) < 5 && !uploadSupported ? (
-                    <TextInput value={draft?.imageUrls[0] ?? ''} onChangeText={(t) => setDraft((d) => d && { ...d, imageUrls: t ? [t] : [] })} placeholder="Paste image URL" placeholderTextColor="#4b5563" autoCapitalize="none" style={[inputStyle, { minWidth: 200 }]} />
+                    <TextInput value={draft?.imageUrls[0] ?? ''} onChangeText={(t) => setDraft((d) => d && { ...d, imageUrls: t ? [t] : [] })} placeholder="Paste image URL" placeholderTextColor="#4b5563" autoCapitalize="none" maxLength={500} style={[inputStyle, { minWidth: 200 }]} />
                   ) : null}
                 </ScrollView>
               </Field>

@@ -33,6 +33,7 @@ export function AdminCustomers() {
           placeholderTextColor={Admin.textMuted}
           returnKeyType="search"
           autoCapitalize="none"
+          maxLength={100}
           style={{ flex: 1, fontFamily: Font.body, fontSize: 14, color: Admin.text }}
         />
         {query ? (
