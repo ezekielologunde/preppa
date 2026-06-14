@@ -39,7 +39,7 @@ export default function PrepperOrdersScreen() {
   const captureHC = useCaptureHomeCookPayment();
   const busyId = advance.isPending ? advance.variables?.orderId : cancel.isPending ? cancel.variables : undefined;
   const [actionErr, setActionErr] = useState<string | null>(null);
-  const onErr = (e: unknown) => setActionErr(e instanceof Error ? e.message : 'Could not update the preorder. Try again.');
+  const onErr = (e: unknown) => { feedback.error(); setActionErr(e instanceof Error ? e.message : 'Could not update the preorder. Try again.'); };
   const [declineOrder, setDeclineOrder] = useState<OrderSummary | null>(null);
   const [tab, setTab] = useState<'preorders' | 'homecook' | 'experiences'>('preorders');
   const [orderFilter, setOrderFilter] = useState<'active' | 'history'>('active');
@@ -56,7 +56,7 @@ export default function PrepperOrdersScreen() {
   function doDecline(o: OrderSummary) {
     setDeclineOrder(null);
     setActionErr(null);
-    cancel.mutate(o.id, { onSuccess: () => refund.mutate(o.id, { onError: () => setActionErr('Could not issue refund. Contact support if the customer was not refunded.') }), onError: onErr });
+    cancel.mutate(o.id, { onSuccess: () => refund.mutate(o.id, { onError: () => { feedback.error(); setActionErr('Could not issue refund. Contact support if the customer was not refunded.'); } }), onError: onErr });
   }
 
   function submitTerms() {
@@ -69,7 +69,7 @@ export default function PrepperOrdersScreen() {
       { requestId: proposeTarget.id, cookingFee: cf, travelFee: tf || 0 },
       {
         onSuccess: () => { feedback.success(); setProposeTarget(null); setCookingFee(''); setTravelFee(''); },
-        onError: (e) => setTermsErr(e instanceof Error ? e.message : 'Could not send proposal.'),
+        onError: (e) => { feedback.error(); setTermsErr(e instanceof Error ? e.message : 'Could not send proposal.'); },
       },
     );
   }
