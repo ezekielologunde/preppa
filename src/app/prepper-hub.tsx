@@ -8,6 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
 import { feedback } from '@/lib/feedback';
+import { useBreakpoint } from '@/lib/layout';
 import { usePrepperOrders } from '@/lib/queries/orders';
 import { useMyPrepperApplication } from '@/lib/queries/preppers';
 import { getCurrentRush, getNextRush } from '@/lib/rush-hour';
@@ -48,6 +49,7 @@ export default function PrepperHubScreen() {
   const router = useRouter();
   const { user } = useAuth();
   const { data: application } = useMyPrepperApplication(user?.id);
+  const isDesktop = useBreakpoint() === 'desktop';
   const { data: orders, refetch: refetchOrders } = usePrepperOrders(application?.id);
   const [refreshing, setRefreshing] = useState(false);
   async function handleRefresh() { setRefreshing(true); await refetchOrders(); setRefreshing(false); }
@@ -92,7 +94,8 @@ export default function PrepperHubScreen() {
           <Text style={{ fontFamily: Font.display, fontSize: 24, color: INK, letterSpacing: -0.6 }}>kitchen hub</Text>
         </View>
 
-        <ScrollView showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={ORANGE} colors={[ORANGE]} />} contentContainerStyle={{ padding: 20, gap: 16, paddingBottom: 32 }}>
+        <ScrollView showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={ORANGE} colors={[ORANGE]} />} contentContainerStyle={{ paddingBottom: 32 }}>
+          <View style={[{ padding: 20, gap: 16 }, isDesktop ? { maxWidth: 860, alignSelf: 'center', width: '100%' } : null]}>
 
           {/* Rush hour status */}
           <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280 }}>
@@ -193,9 +196,9 @@ export default function PrepperHubScreen() {
           {/* Action items */}
           <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 200 }}>
           <Text style={{ fontFamily: Font.display, fontSize: 15, color: INK, letterSpacing: -0.3, marginBottom: 12 }}>action items</Text>
-          <View style={{ gap: 10 }}>
+          <View style={isDesktop ? { flexDirection: 'row', flexWrap: 'wrap', gap: 10 } : { gap: 10 }}>
             {ACTIONS.map(({ label, desc, Icon, color, route }, i) => (
-              <MotiView key={label} from={{ opacity: 0, translateY: 6 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 220, delay: 220 + i * 40 }}>
+              <MotiView key={label} style={isDesktop ? { flex: 1, minWidth: 280, maxWidth: '48%' } : undefined} from={{ opacity: 0, translateY: 6 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 220, delay: 220 + i * 40 }}>
               <PressableScale onPress={() => { feedback.tap(); router.push(route as any); }} accessibilityRole="button" accessibilityLabel={label}
                 style={{ backgroundColor: Palette.surface, borderRadius: 14, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
                 <View style={{ width: 38, height: 38, borderRadius: 12, backgroundColor: color + '18', alignItems: 'center', justifyContent: 'center' }}>
@@ -225,6 +228,7 @@ export default function PrepperHubScreen() {
           </View>
           </MotiView>
 
+          </View>
         </ScrollView>
       </SafeAreaView>
     </View>
