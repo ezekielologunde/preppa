@@ -3,7 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { BadgeCheck, Heart, MonitorPlay, Play, Share2, Star, UserCheck, UserPlus } from 'lucide-react-native';
 import { MotiView } from 'moti';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   NativeScrollEvent,
@@ -16,6 +16,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { FeedPromoCard, PROMOS, type PromoKind } from '@/components/feed-promo-card';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
 import { Palette, Radius } from '@/constants/theme';
@@ -246,6 +247,39 @@ function FeedTabs({ tab, onTab }: { tab: 'following' | 'explore'; onTab: (t: 'fo
   );
 }
 
+// ─── Feed stream: real items + interleaved promo cards ───────────────────────
+
+type StreamEntry =
+  | { kind: 'item'; item: FeedItem; key: string }
+  | { kind: 'promo'; promo: PromoKind; key: string };
+
+const PROMO_SEQUENCE: PromoKind[] = ['meal_plans', 'post_request', 'become_prepper'];
+
+/**
+ * Weave promo cards into the data feed: first after 3 drops, then every 5.
+ * Any promos not placed (short feeds) are appended so all three CTAs always
+ * surface at least once.
+ */
+function buildStream(items: FeedItem[]): StreamEntry[] {
+  const out: StreamEntry[] = [];
+  const FIRST_AT = 3;
+  const EVERY = 5;
+  let p = 0;
+  items.forEach((item, i) => {
+    out.push({ kind: 'item', item, key: item.id });
+    const pos = i + 1;
+    if (pos === FIRST_AT || (pos > FIRST_AT && (pos - FIRST_AT) % EVERY === 0)) {
+      out.push({ kind: 'promo', promo: PROMO_SEQUENCE[p % PROMO_SEQUENCE.length], key: `promo-${p}` });
+      p++;
+    }
+  });
+  while (p < PROMO_SEQUENCE.length) {
+    out.push({ kind: 'promo', promo: PROMO_SEQUENCE[p % PROMO_SEQUENCE.length], key: `promo-tail-${p}` });
+    p++;
+  }
+  return out;
+}
+
 export default function FeedsScreen() {
   const router = useRouter();
   const { user } = useAuth();
@@ -263,6 +297,7 @@ export default function FeedsScreen() {
   const { data: followingItems, isLoading: followingLoading } = useFollowingFeed(user?.id);
   const items = tab === 'following' ? followingItems : exploreItems;
   const isLoading = tab === 'following' ? followingLoading : exploreLoading;
+  const stream = useMemo(() => buildStream(items ?? []), [items]);
   const { height: windowHeight, width: windowWidth } = useWindowDimensions();
   const isDesktop = windowWidth >= BP.desktop;
   const insets = useSafeAreaInsets();
@@ -332,7 +367,15 @@ export default function FeedsScreen() {
     );
   }
 
-  const currentItem = items[Math.min(page, items.length - 1)];
+  const currentEntry = stream.length ? stream[Math.min(page, stream.length - 1)] : undefined;
+  const currentItem = currentEntry?.kind === 'item' ? currentEntry.item : undefined;
+  const currentPromo = currentEntry?.kind === 'promo' ? PROMOS[currentEntry.promo] : undefined;
+
+  function renderEntry(entry: StreamEntry) {
+    return entry.kind === 'item'
+      ? <FeedCard key={entry.key} item={entry.item} height={cardHeight} bottomInset={insets.bottom} />
+      : <FeedPromoCard key={entry.key} kind={entry.promo} height={cardHeight} bottomInset={insets.bottom} />;
+  }
 
   if (isDesktop) {
     return (
@@ -348,11 +391,9 @@ export default function FeedsScreen() {
             snapToAlignment="start"
             onScroll={onScroll}
             scrollEventThrottle={cardHeight / 2}>
-            {items.map((item) => (
-              <FeedCard key={item.id} item={item} height={cardHeight} bottomInset={insets.bottom} />
-            ))}
+            {stream.map(renderEntry)}
           </ScrollView>
-          <PositionDots total={items.length} current={page} />
+          <PositionDots total={stream.length} current={page} />
         </View>
 
         {/* Sidebar: info about the current card */}
@@ -398,6 +439,28 @@ export default function FeedsScreen() {
               )}
               <View style={{ height: 1, backgroundColor: 'rgba(255,255,255,0.07)' }} />
             </>
+          ) : currentPromo ? (
+            <>
+              <View style={{ gap: 6 }}>
+                <Text style={{ fontFamily: Font.medium, fontSize: 11.5, color: Palette.brand, textTransform: 'uppercase', letterSpacing: 1 }}>
+                  {currentPromo.eyebrow}
+                </Text>
+                <Text style={{ fontFamily: Font.display, fontSize: 26, color: '#fff', letterSpacing: -0.5 }}>
+                  {currentPromo.title.replace('\n', ' ')}
+                </Text>
+                <Text style={{ fontFamily: Font.body, fontSize: 15, color: 'rgba(255,255,255,0.65)', lineHeight: 21 }}>
+                  {currentPromo.subtitle}
+                </Text>
+              </View>
+              <PressableScale
+                onPress={() => { feedback.tap(); router.push(currentPromo.route); }}
+                accessibilityRole="button"
+                accessibilityLabel={currentPromo.cta}
+                style={{ height: 52, borderRadius: Radius.pill, backgroundColor: Palette.brand, alignItems: 'center', justifyContent: 'center' }}>
+                <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>{currentPromo.cta}</Text>
+              </PressableScale>
+              <View style={{ height: 1, backgroundColor: 'rgba(255,255,255,0.07)' }} />
+            </>
           ) : null}
           <PressableScale
             onPress={() => { feedback.tap(); router.push('/explore'); }}
@@ -424,11 +487,9 @@ export default function FeedsScreen() {
         snapToAlignment="start"
         onScroll={onScroll}
         scrollEventThrottle={cardHeight / 2}>
-        {items.map((item) => (
-          <FeedCard key={item.id} item={item} height={cardHeight} bottomInset={insets.bottom} />
-        ))}
+        {stream.map(renderEntry)}
       </ScrollView>
-      <PositionDots total={items.length} current={page} />
+      <PositionDots total={stream.length} current={page} />
     </View>
   );
 }
