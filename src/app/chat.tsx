@@ -329,6 +329,7 @@ export default function ChatScreen() {
                 placeholder="e.g. 120"
                 placeholderTextColor={Palette.textMuted}
                 keyboardType="numeric"
+                maxLength={7}
                 style={{ height: 50, borderRadius: 13, backgroundColor: Palette.canvas, paddingHorizontal: 14, fontFamily: Font.body, fontSize: 15, color: INK, borderWidth: 1, borderColor: Palette.border }}
                 accessibilityLabel="Cooking fee"
               />
@@ -339,6 +340,7 @@ export default function ChatScreen() {
                 placeholder="e.g. 15"
                 placeholderTextColor={Palette.textMuted}
                 keyboardType="numeric"
+                maxLength={7}
                 style={{ height: 50, borderRadius: 13, backgroundColor: Palette.canvas, paddingHorizontal: 14, fontFamily: Font.body, fontSize: 15, color: INK, borderWidth: 1, borderColor: Palette.border }}
                 accessibilityLabel="Travel fee"
               />
