@@ -104,6 +104,7 @@ export default function PrepperMealPlansScreen() {
 
   const [showCreate, setShowCreate] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [toggleErr, setToggleErr] = useState<string | null>(null);
   async function handleRefresh() { setRefreshing(true); await refetch(); setRefreshing(false); }
 
   // Create form state
@@ -166,6 +167,9 @@ export default function PrepperMealPlansScreen() {
           </PressableScale>
         </View>
 
+        {toggleErr ? (
+          <Text style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.danger, marginHorizontal: 16, marginBottom: 6 }}>{toggleErr}</Text>
+        ) : null}
         <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={ORANGE} colors={[ORANGE]} />}
           contentContainerStyle={{ padding: 16, paddingBottom: 40, gap: 12 }}>
@@ -186,7 +190,12 @@ export default function PrepperMealPlansScreen() {
           ) : (plans ?? []).map((p, i) => (
             <MotiView key={p.id} from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 220, delay: i * 50 }}>
               <PlanCard plan={p} busy={updatePlan.isPending}
-                onToggle={() => updatePlan.mutate({ id: p.id, active: !p.active })} />
+                onToggle={() => {
+                  setToggleErr(null);
+                  updatePlan.mutate({ id: p.id, active: !p.active }, {
+                    onError: () => { feedback.error(); setToggleErr('Could not update plan status. Please try again.'); },
+                  });
+                }} />
             </MotiView>
           ))}
         </ScrollView>

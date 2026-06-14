@@ -148,6 +148,7 @@ export default function MealPlansScreen() {
   }, [openPlanId, livePlans]);
   // Cancel confirmation
   const [cancelTarget, setCancelTarget] = useState<{ id: string; name: string; isCustom?: boolean } | null>(null);
+  const [actionErr, setActionErr] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   async function handleRefresh() { setRefreshing(true); await Promise.all([refetchPlans(), refetchSubs(), refetchCustom()]); setRefreshing(false); }
 
@@ -176,6 +177,12 @@ export default function MealPlansScreen() {
           </View>
         </View>
 
+        {actionErr ? (
+          <PressableScale onPress={() => { feedback.tap(); setActionErr(null); }} accessibilityRole="button" accessibilityLabel="Dismiss error"
+            style={{ marginHorizontal: 16, marginBottom: 8, backgroundColor: Palette.danger + '14', borderWidth: 1, borderColor: Palette.danger + '40', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10 }}>
+            <Text style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.danger }}>{actionErr} (tap to dismiss)</Text>
+          </PressableScale>
+        ) : null}
         <ScrollView showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={ORANGE} colors={[ORANGE]} />} contentContainerStyle={{ paddingTop: Platform.OS === 'web' ? 12 : 6, paddingBottom: 32 }}>
           {/* Build your own plan CTA */}
           <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260 }}>
@@ -201,7 +208,7 @@ export default function MealPlansScreen() {
                   <MotiView key={p.id} from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 240, delay: i * 45 }}>
                     <CustomPlanCard plan={p} busy={updateCustomPlan.isPending}
                       onView={() => { feedback.tap(); router.push(`/custom-plan?id=${p.id}` as never); }}
-                      onUpdate={(status) => updateCustomPlan.mutate({ id: p.id, status })}
+                      onUpdate={(status) => { setActionErr(null); updateCustomPlan.mutate({ id: p.id, status }, { onError: (e) => { feedback.error(); setActionErr(e instanceof Error ? e.message : 'Could not update plan. Please try again.'); } }); }}
                       onCancel={() => setCancelTarget({ id: p.id, name: p.name, isCustom: true })} />
                   </MotiView>
                 ))}
@@ -243,7 +250,7 @@ export default function MealPlansScreen() {
                     <View style={{ flexDirection: 'row', gap: 8 }}>
                       {s.status === 'active' ? (
                         <PressableScale
-                          onPress={() => { feedback.tap(); skipDelivery.mutate(s.id, { onSuccess: (r) => (r.ok ? feedback.success() : feedback.warning()) }); }}
+                          onPress={() => { feedback.tap(); setActionErr(null); skipDelivery.mutate(s.id, { onSuccess: (r) => (r.ok ? feedback.success() : feedback.warning()), onError: () => { feedback.error(); setActionErr('Could not skip delivery. Please try again.'); } }); }}
                           disabled={skipDelivery.isPending}
                           accessibilityRole="button"
                           accessibilityLabel="Skip next batch"
@@ -252,7 +259,7 @@ export default function MealPlansScreen() {
                         </PressableScale>
                       ) : null}
                       <PressableScale
-                        onPress={() => { feedback.tap(); updateSub.mutate({ id: s.id, status: s.status === 'active' ? 'paused' : 'active' }); }}
+                        onPress={() => { feedback.tap(); setActionErr(null); updateSub.mutate({ id: s.id, status: s.status === 'active' ? 'paused' : 'active' }, { onError: (e) => { feedback.error(); setActionErr(e instanceof Error ? e.message : 'Could not update plan. Please try again.'); } }); }}
                         disabled={updateSub.isPending}
                         accessibilityRole="button"
                         accessibilityLabel={s.status === 'active' ? 'Pause plan' : 'Resume plan'}
@@ -341,10 +348,12 @@ export default function MealPlansScreen() {
                 onPress={() => {
                   if (!cancelTarget) return;
                   feedback.warning();
+                  setActionErr(null);
+                  const onCancelErr = (e: unknown) => { feedback.error(); setActionErr(e instanceof Error ? e.message : 'Could not cancel plan. Please try again.'); };
                   if (cancelTarget.isCustom) {
-                    updateCustomPlan.mutate({ id: cancelTarget.id, status: 'cancelled' });
+                    updateCustomPlan.mutate({ id: cancelTarget.id, status: 'cancelled' }, { onError: onCancelErr });
                   } else {
-                    updateSub.mutate({ id: cancelTarget.id, status: 'cancelled' });
+                    updateSub.mutate({ id: cancelTarget.id, status: 'cancelled' }, { onError: onCancelErr });
                   }
                   setCancelTarget(null);
                 }}
