@@ -54,6 +54,7 @@ export default function ChatScreen() {
   const proposeTerms = useProposeHomeCookTerms();
   const confirmBooking = useConfirmHomeCookBooking();
   const [text, setText] = useState('');
+  const [sendErr, setSendErr] = useState<string | null>(null);
   const scrollRef = useRef<ScrollView>(null);
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [cookingFeeInput, setCookingFeeInput] = useState('');
@@ -83,8 +84,11 @@ export default function ChatScreen() {
     const body = cleanBlock(text).trim();
     if (!body || !id || !user) return;
     feedback.tap();
+    setSendErr(null);
     setText('');
-    send.mutate({ conversationId: id, senderId: user.id, body });
+    send.mutate({ conversationId: id, senderId: user.id, body }, {
+      onError: () => { feedback.error(); setText(body); setSendErr('Message not sent. Try again.'); },
+    });
   }
 
   function submitTerms() {
@@ -285,6 +289,9 @@ export default function ChatScreen() {
           ) : null}
 
           {/* Composer */}
+          {sendErr ? (
+            <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: Palette.danger, textAlign: 'center', paddingHorizontal: 16, paddingBottom: 4 }}>{sendErr}</Text>
+          ) : null}
           <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 10, paddingHorizontal: 12, paddingVertical: 8, borderTopWidth: 1, borderTopColor: Palette.chip }}>
             <TextInput
               value={text}

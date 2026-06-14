@@ -215,6 +215,7 @@ export default function PaymentMethodsScreen() {
   const cards = data?.methods ?? [];
   const [sheetVisible, setSheetVisible] = useState(false);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const [mutationErr, setMutationErr] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   async function handleRefresh() { setRefreshing(true); await refetch(); setRefreshing(false); }
 
@@ -224,7 +225,10 @@ export default function PaymentMethodsScreen() {
   };
 
   const confirmDelete = (id: string) => {
-    detachPM.mutate(id);
+    setMutationErr(null);
+    detachPM.mutate(id, {
+      onError: () => { feedback.error(); setMutationErr('Could not remove card. Please try again.'); },
+    });
     setPendingDeleteId(null);
   };
 
@@ -266,6 +270,12 @@ export default function PaymentMethodsScreen() {
           </Text>
         </View>
 
+        {mutationErr ? (
+          <View style={{ marginHorizontal: Spacing.three, marginBottom: 4, backgroundColor: Palette.danger + '14', borderRadius: Radius.md, padding: 12, borderWidth: 1, borderColor: Palette.danger + '40' }}>
+            <Text style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.danger }}>{mutationErr}</Text>
+          </View>
+        ) : null}
+
         {isLoading ? (
           <ListSkeleton count={2} rowHeight={80} />
         ) : (
@@ -285,7 +295,7 @@ export default function PaymentMethodsScreen() {
                 card={card}
                 index={index}
                 pendingDelete={pendingDeleteId === card.id}
-                onSetDefault={() => setDefaultPM.mutate(card.id)}
+                onSetDefault={() => { setMutationErr(null); setDefaultPM.mutate(card.id, { onError: () => { feedback.error(); setMutationErr('Could not update default card.'); } }); }}
                 onDelete={() => triggerDelete(card.id)}
                 onConfirmDelete={() => confirmDelete(card.id)}
                 onCancelDelete={() => setPendingDeleteId(null)}
