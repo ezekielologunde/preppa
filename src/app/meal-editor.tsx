@@ -68,8 +68,9 @@ const inputStyle = {
 function MealRow({ meal, busy, onEdit, onSetStatus }: { meal: MyMeal; busy: boolean; onEdit: () => void; onSetStatus: (s: MealStatus) => void }) {
   const st = STATUS_STYLE[meal.status];
   const isLive = meal.status === 'published';
+  const isArchived = meal.status === 'archived';
   return (
-    <View style={{ backgroundColor: CARD, borderRadius: 18, padding: 12, flexDirection: 'row', gap: 12, alignItems: 'center' }}>
+    <View style={{ backgroundColor: CARD, borderRadius: 18, padding: 12, flexDirection: 'row', gap: 12, alignItems: 'center', opacity: isArchived ? 0.55 : 1 }}>
       {meal.image ? (
         <Image source={meal.image} style={{ width: 58, height: 58, borderRadius: 13 }} contentFit="cover" accessibilityLabel={meal.title} />
       ) : (
@@ -89,15 +90,48 @@ function MealRow({ meal, busy, onEdit, onSetStatus }: { meal: MyMeal; busy: bool
         <PressableScale onPress={() => { feedback.tap(); onEdit(); }} accessibilityRole="button" accessibilityLabel={`Edit ${meal.title}`} hitSlop={6} style={{ paddingHorizontal: 12, height: 32, borderRadius: 10, borderWidth: 1, borderColor: '#3f4451', alignItems: 'center', justifyContent: 'center' }}>
           <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: Palette.textMuted }}>Edit</Text>
         </PressableScale>
-        <PressableScale
-          onPress={() => { feedback.tap(); onSetStatus(isLive ? 'paused' : 'published'); }}
-          disabled={busy}
-          accessibilityRole="button"
-          accessibilityLabel={isLive ? `Pause ${meal.title}` : `Publish ${meal.title}`}
-          hitSlop={6}
-          style={{ paddingHorizontal: 12, height: 32, borderRadius: 10, backgroundColor: isLive ? '#252a34' : ORANGE, alignItems: 'center', justifyContent: 'center', opacity: busy ? 0.6 : 1 }}>
-          <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: isLive ? Palette.textMuted : '#fff' }}>{isLive ? 'Pause' : 'Publish'}</Text>
-        </PressableScale>
+        {isArchived ? (
+          <PressableScale
+            onPress={() => { feedback.tap(); onSetStatus('draft'); }}
+            disabled={busy}
+            accessibilityRole="button"
+            accessibilityLabel={`Restore ${meal.title} to draft`}
+            hitSlop={6}
+            style={{ paddingHorizontal: 12, height: 32, borderRadius: 10, backgroundColor: '#252a34', alignItems: 'center', justifyContent: 'center', opacity: busy ? 0.6 : 1 }}>
+            <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: Palette.textMuted }}>Restore</Text>
+          </PressableScale>
+        ) : isLive ? (
+          <PressableScale
+            onPress={() => { feedback.tap(); onSetStatus('paused'); }}
+            disabled={busy}
+            accessibilityRole="button"
+            accessibilityLabel={`Pause ${meal.title}`}
+            hitSlop={6}
+            style={{ paddingHorizontal: 12, height: 32, borderRadius: 10, backgroundColor: '#252a34', alignItems: 'center', justifyContent: 'center', opacity: busy ? 0.6 : 1 }}>
+            <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: Palette.textMuted }}>Pause</Text>
+          </PressableScale>
+        ) : (
+          <View style={{ flexDirection: 'row', gap: 6 }}>
+            <PressableScale
+              onPress={() => { feedback.tap(); onSetStatus('published'); }}
+              disabled={busy}
+              accessibilityRole="button"
+              accessibilityLabel={`Publish ${meal.title}`}
+              hitSlop={6}
+              style={{ paddingHorizontal: 10, height: 32, borderRadius: 10, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', opacity: busy ? 0.6 : 1 }}>
+              <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: '#fff' }}>Publish</Text>
+            </PressableScale>
+            <PressableScale
+              onPress={() => { feedback.tap(); onSetStatus('archived'); }}
+              disabled={busy}
+              accessibilityRole="button"
+              accessibilityLabel={`Archive ${meal.title}`}
+              hitSlop={6}
+              style={{ paddingHorizontal: 10, height: 32, borderRadius: 10, backgroundColor: '#1d2129', borderWidth: 1, borderColor: '#3f4451', alignItems: 'center', justifyContent: 'center', opacity: busy ? 0.6 : 1 }}>
+              <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: '#6b7280' }}>Archive</Text>
+            </PressableScale>
+          </View>
+        )}
       </View>
     </View>
   );
@@ -211,7 +245,12 @@ export default function MealEditorScreen() {
         ) : (
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 20, gap: 10, paddingBottom: 40 }}>
             <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textMuted, marginBottom: 4 }}>
-              {meals.filter((m) => m.status === 'published').length} live · {meals.length} total
+              {(() => {
+                const live = meals.filter((m) => m.status === 'published').length;
+                const archived = meals.filter((m) => m.status === 'archived').length;
+                const active = meals.length - archived;
+                return `${live} live · ${active} active${archived > 0 ? ` · ${archived} archived` : ''}`;
+              })()}
             </Text>
             {meals.map((m, i) => (
               <MotiView key={m.id} from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 220, delay: i * 50 }}>
