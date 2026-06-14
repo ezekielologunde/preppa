@@ -12,22 +12,17 @@ import { Palette, Radius } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
 import { gridCardWidth, useContentWidth } from '@/lib/layout';
 import { clearRecentlyViewed, useRecentlyViewedIds } from '@/lib/recently-viewed';
-import { useMeal } from '@/lib/queries/meals';
+import { useMealsByIds } from '@/lib/queries/meals';
 
 const ORANGE = Palette.brand;
 const INK = Palette.ink;
-
-function MealByIdCard({ id, width }: { id: string; width: number }) {
-  const { data: meal, isLoading } = useMeal(id);
-  if (isLoading || !meal) return <CardSkeleton width={width} />;
-  return <MealCard meal={{ ...meal, image: meal.images[0] ?? '' }} width={width} />;
-}
 
 export default function RecentlyViewedScreen() {
   const router = useRouter();
   const ids = useRecentlyViewedIds();
   const CARD_W = gridCardWidth(useContentWidth());
   const visible = ids.slice(0, 20);
+  const { data: meals, isLoading } = useMealsByIds(visible);
 
   return (
     <View style={{ flex: 1, backgroundColor: Palette.canvas }}>
@@ -54,7 +49,11 @@ export default function RecentlyViewedScreen() {
           ) : null}
         </View>
 
-        {visible.length === 0 ? (
+        {isLoading && visible.length > 0 ? (
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 60, flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
+            {visible.map((id) => <CardSkeleton key={id} width={CARD_W} />)}
+          </ScrollView>
+        ) : visible.length === 0 ? (
           <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }}
             style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
             <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: Palette.success + '1A', alignItems: 'center', justifyContent: 'center' }}>
@@ -74,9 +73,9 @@ export default function RecentlyViewedScreen() {
           </MotiView>
         ) : (
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 60, flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
-            {visible.map((id, i) => (
-              <MotiView key={id} from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 210, delay: i * 25 }}>
-                <MealByIdCard id={id} width={CARD_W} />
+            {(meals ?? []).map((meal, i) => (
+              <MotiView key={meal.id} from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 210, delay: i * 25 }}>
+                <MealCard meal={{ ...meal, image: meal.images?.[0] ?? '' }} width={CARD_W} />
               </MotiView>
             ))}
           </ScrollView>

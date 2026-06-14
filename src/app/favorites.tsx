@@ -14,17 +14,11 @@ import { Palette, Radius } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
 import { useFavoriteKeys } from '@/lib/favorites';
 import { gridCardWidth, useContentWidth } from '@/lib/layout';
-import { useMeal } from '@/lib/queries/meals';
+import { useMealsByIds } from '@/lib/queries/meals';
 import { usePrepperProfile } from '@/lib/queries/preppers';
 
 const ORANGE = Palette.brand;
 const INK = Palette.ink;
-
-function MealByIdCard({ id, width }: { id: string; width: number }) {
-  const { data: meal, isLoading } = useMeal(id);
-  if (isLoading || !meal) return <CardSkeleton width={width} />;
-  return <MealCard meal={{ ...meal, image: meal.images[0] ?? '' }} width={width} />;
-}
 
 function PrepperByIdRow({ id }: { id: string }) {
   const router = useRouter();
@@ -56,6 +50,7 @@ export default function FavoritesScreen() {
   const prepperIds = allKeys.filter((k) => k.startsWith('prepper:')).map((k) => k.replace('prepper:', ''));
   const [tab, setTab] = useState<'meals' | 'kitchens'>('meals');
   const CARD_W = gridCardWidth(useContentWidth());
+  const { data: favMeals, isLoading: mealsLoading } = useMealsByIds(mealIds);
 
   return (
     <View style={{ flex: 1, backgroundColor: Palette.canvas }}>
@@ -119,11 +114,13 @@ export default function FavoritesScreen() {
           </MotiView>
         ) : tab === 'meals' ? (
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 60, flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
-            {mealIds.map((id, i) => (
-              <MotiView key={id} from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 210, delay: i * 25 }}>
-                <MealByIdCard id={id} width={CARD_W} />
-              </MotiView>
-            ))}
+            {mealsLoading
+              ? mealIds.map((id) => <CardSkeleton key={id} width={CARD_W} />)
+              : (favMeals ?? []).map((meal, i) => (
+                  <MotiView key={meal.id} from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 210, delay: i * 25 }}>
+                    <MealCard meal={{ ...meal, image: meal.images?.[0] ?? '' }} width={CARD_W} />
+                  </MotiView>
+                ))}
           </ScrollView>
         ) : prepperIds.length === 0 ? (
           <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }}
