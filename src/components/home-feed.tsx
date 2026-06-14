@@ -286,9 +286,9 @@ export function MealPlansDiscoverySection() {
           {(plans ?? []).map((plan, i) => (
             <MotiView key={plan.id} from={{ opacity: 0, translateY: 6 }} animate={{ opacity: 1, translateY: 0 }}
               transition={{ type: 'timing', duration: 220, delay: i * 50 }}>
-              <PressableScale onPress={() => { feedback.tap(); router.push('/meal-plans'); }}
+              <PressableScale onPress={() => { feedback.tap(); router.push(`/meal-plans?openPlanId=${plan.id}` as never); }}
                 accessibilityRole="button"
-                accessibilityLabel={`${plan.name} by ${plan.prepper}, $${plan.price} per week`}
+                accessibilityLabel={`${plan.name} by ${plan.prepper}, $${plan.price} per ${plan.frequency}`}
                 style={{ width: 190, backgroundColor: Palette.surface, borderRadius: Radius.lg, overflow: 'hidden', ...Shadow.card }}>
                 <View style={{ height: 100, backgroundColor: Palette.brandTint }}>
                   {plan.image_url

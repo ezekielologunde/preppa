@@ -1,8 +1,8 @@
 import { Image } from 'expo-image';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { AlertTriangle, CalendarCheck, Check, ChefHat, ChevronLeft, ChevronRight, Plus, RefreshCw, Users } from 'lucide-react-native';
 import { MotiView } from 'moti';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Modal, Platform, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -126,6 +126,7 @@ function FeaturedCard({ plan, onSubscribe }: { plan: MealPlan; onSubscribe: () =
 
 export default function MealPlansScreen() {
   const router = useRouter();
+  const { openPlanId } = useLocalSearchParams<{ openPlanId?: string }>();
   const { user } = useAuth();
   const { data: livePlans, isLoading, refetch: refetchPlans } = useMealPlans();
   const { data: subs, refetch: refetchSubs } = useMySubscriptions(user?.id);
@@ -137,6 +138,14 @@ export default function MealPlansScreen() {
 
   // Subscribe sheet — the chosen plan (null = closed).
   const [sheetPlan, setSheetPlan] = useState<MealPlan | null>(null);
+
+  // Auto-open the sheet when navigated here with a specific plan ID.
+  useEffect(() => {
+    if (openPlanId && livePlans) {
+      const target = livePlans.find((p) => p.id === openPlanId);
+      if (target) setSheetPlan(target);
+    }
+  }, [openPlanId, livePlans]);
   // Cancel confirmation
   const [cancelTarget, setCancelTarget] = useState<{ id: string; name: string; isCustom?: boolean } | null>(null);
   const [refreshing, setRefreshing] = useState(false);

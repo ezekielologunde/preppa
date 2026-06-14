@@ -188,7 +188,11 @@ export default function DashboardScreen() {
   const todayRevenue = list
     .filter((o) => o.status === 'completed' && new Date(o.created_at) >= todayStart)
     .reduce((s, o) => s + o.total, 0);
-  const goalPct = Math.min(Math.round((todayRevenue / 2000) * 100), 100);
+
+  // Daily goal: 25% above 8-day avg revenue, rounded to nearest $50, min $50.
+  const avgDaily = revenueSpark.reduce((s, v) => s + v, 0) / (revenueSpark.length || 1);
+  const dailyGoal = Math.max(50, Math.ceil((avgDaily * 1.25) / 50) * 50);
+  const goalPct = Math.min(Math.round((todayRevenue / dailyGoal) * 100), 100);
 
   // Which days of the current ISO week have at least one completed order (Mon=0, Sun=6).
   const weekDays = new Array<boolean>(7).fill(false);
@@ -373,7 +377,7 @@ export default function DashboardScreen() {
               <View style={{ flex: 1 }}>
                 <Text style={{ fontFamily: Font.body, fontSize: 12, color: MUTED }}>today's goal</Text>
                 <Text style={{ fontFamily: Font.display, fontSize: 20, color: INK, letterSpacing: -0.4, fontVariant: ['tabular-nums'] }}>{money(todayRevenue)}</Text>
-                <Text style={{ fontFamily: Font.body, fontSize: 11.5, color: MUTED }}>of $2k</Text>
+                <Text style={{ fontFamily: Font.body, fontSize: 11.5, color: MUTED }}>of {money(dailyGoal)}</Text>
               </View>
               <View style={{ alignItems: 'center', gap: 2 }}>
                 <Text style={{ fontFamily: Font.display, fontSize: 26, color: ORANGE, letterSpacing: -0.5, fontVariant: ['tabular-nums'] }}>{weekCount}</Text>
@@ -425,7 +429,9 @@ export default function DashboardScreen() {
           transition={{ type: 'spring', damping: 20, stiffness: 220, delay: 300 }}
           style={[{ position: 'absolute', left: 16, right: 16, bottom: Math.max(insets.bottom, 16) + (desktop ? 0 : 56), flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: CARD, borderRadius: 26, paddingVertical: 12, paddingHorizontal: 18, ...Shadow.floating }, desktop && { left: undefined, right: undefined, alignSelf: 'center', width: 520 }]}>
           <ActionItem Icon={TrendingUp} label="earnings" color={Palette.inkSoft} onPress={() => router.push('/earnings')} />
-          <ActionItem Icon={Video} label="go live" color={PINK} onPress={() => router.push('/post-video')} />
+          {isPro
+            ? <ActionItem Icon={Video} label="go live" color={PINK} onPress={() => router.push('/post-video')} />
+            : <ActionItem Icon={Crown} label="go pro" color={ORANGE} onPress={() => router.push('/prepper-premium')} />}
           <PressableScale accessibilityRole="button" accessibilityLabel="Add new meal" onPress={() => { feedback.tap(); router.push('/meal-editor'); }}>
             <View style={{ width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center', marginTop: -26, backgroundColor: ORANGE, ...Shadow.floating, shadowColor: ORANGE, shadowOpacity: 0.45 }}>
               <Plus size={28} color="#fff" />
