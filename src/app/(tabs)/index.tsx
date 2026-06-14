@@ -1,10 +1,10 @@
 import { Image } from 'expo-image';
 import { MotiView } from 'moti';
+import type { ComponentType } from 'react';
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import {
   Bell,
-  Check,
   ChevronRight,
   Coffee,
   Flame,
@@ -14,6 +14,7 @@ import {
   MapPin,
   Moon,
   Search,
+  ShoppingCart,
   SlidersHorizontal,
   Sparkles,
   Sprout,
@@ -23,7 +24,7 @@ import { Platform, RefreshControl, ScrollView, Text, View, useWindowDimensions }
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 
-import { Avatar } from '@/components/ui/avatar';
+import { PreppaLogo } from '@/components/preppa-logo';
 import { MealCard } from '@/components/meal-card';
 import { PrepperCard } from '@/components/prepper-card';
 import { Font } from '@/constants/fonts';
@@ -31,6 +32,7 @@ import { PressableScale } from '@/components/ui/pressable-scale';
 import { CardRowSkeleton } from '@/components/ui/skeleton';
 import { Palette, Radius, Shadow } from '@/constants/theme';
 import { greeting } from '@/lib/greeting';
+import { useCart } from '@/lib/queries/cart';
 import { useFeaturedMeals } from '@/lib/queries/meals';
 import { useAddresses } from '@/lib/queries/addresses';
 import { useMealPlans, useMySubscriptions } from '@/lib/queries/meal-plans';
@@ -65,6 +67,42 @@ const HOME_CATS = [
 ];
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
+
+/**
+ * Header utility toggle (bell, cart). 48×48 physical hit target with a soft
+ * squircle clip, brand-tinted scale micro-interaction (via PressableScale), and
+ * an optional count badge that reads instantly from live query state.
+ */
+function HeaderIconButton({
+  Icon,
+  badge,
+  onPress,
+  label,
+}: {
+  Icon: ComponentType<{ size?: number; color?: string }>;
+  badge: number;
+  onPress: () => void;
+  label: string;
+}) {
+  return (
+    <PressableScale
+      onPress={() => { feedback.tap(); onPress(); }}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      style={{ width: 48, height: 48, borderRadius: 16, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center', ...Shadow.card }}>
+      <Icon size={21} color={INK} />
+      {badge > 0 ? (
+        <MotiView
+          from={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ type: 'spring', stiffness: 320, damping: 18 }}
+          style={{ position: 'absolute', top: 6, right: 6, minWidth: 17, height: 17, borderRadius: 8.5, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4, borderWidth: 1.5, borderColor: Palette.canvas }}>
+          <Text style={{ fontFamily: Font.semibold, fontSize: 9.5, color: '#fff' }}>{badge > 99 ? '99+' : badge}</Text>
+        </MotiView>
+      ) : null}
+    </PressableScale>
+  );
+}
 
 function SectionHeader({ title, linkLabel, onLink }: { title: string; linkLabel?: string; onLink?: () => void }) {
   return (
@@ -454,55 +492,77 @@ export default function HomeScreen() {
   const activeOrders = (myOrders ?? []).filter((o) => o.status !== 'completed' && o.status !== 'cancelled').length;
   const badgeCount = activeOrders + unreadNotifs;
 
+  const { data: cart, refetch: refetchCart } = useCart(user?.id);
+  const cartCount = cart?.count ?? 0;
+
   const [refreshing, setRefreshing] = useState(false);
   async function handleRefresh() {
     setRefreshing(true);
-    await Promise.all([refetchMeals(), refetchOrders(), refetchNotifs()]);
+    await Promise.all([refetchMeals(), refetchOrders(), refetchNotifs(), refetchCart()]);
     setRefreshing(false);
   }
 
   const headerPad = isTablet ? 28 : 20;
+  // Fluid headline: clamp(22px, ~7vw, 30px) — single line that shrinks
+  // gracefully on narrow devices instead of wrapping to two lines.
+  const cravingSize = Math.max(22, Math.min(width * 0.07, 30));
 
-  // ─── Header (avatar + greeting + bell) — shared by both layouts ──────────────
+  // ─── Header (logo + greeting + bell/cart) — shared by both layouts ───────────
   const headerEl = (
           <MotiView from={{ opacity: 0, translateY: -8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'flex-start', paddingHorizontal: headerPad, paddingTop: 8, gap: 12 }}>
-              <PressableScale onPress={() => { feedback.tap(); router.push('/profile'); }} accessibilityRole="button" accessibilityLabel="Your profile" style={{ position: 'relative' }}>
-                <LinearGradient colors={['#FF9A5A', ORANGE]} style={{ width: 52, height: 52, borderRadius: 26, padding: 2.5, alignItems: 'center', justifyContent: 'center' }}>
-                  <Avatar name={user?.user_metadata?.full_name ?? 'You'} url={user?.user_metadata?.avatar_url} size={44} />
-                </LinearGradient>
-                <View style={{ position: 'absolute', bottom: 0, right: 0, width: 18, height: 18, borderRadius: 9, backgroundColor: ORANGE, borderWidth: 2.5, borderColor: Palette.canvas, alignItems: 'center', justifyContent: 'center' }}>
-                  <Check size={10} color="#fff" strokeWidth={3} />
-                </View>
+            {/* Control row: brand logo · greeting + location · bell + cart */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: headerPad, paddingTop: 8, gap: 12 }}>
+              {/* Native Preppa mark — borderless, floats on the canvas (no ring/plate) */}
+              <PressableScale
+                onPress={() => { feedback.tap(); router.push('/profile'); }}
+                accessibilityRole="button"
+                accessibilityLabel="Your profile"
+                hitSlop={8}>
+                <PreppaLogo size={46} glow />
               </PressableScale>
-              <View style={{ flex: 1, paddingTop: 1 }}>
-                <Text style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.textSecondary }}>{greeting()}{firstName ? `, ${firstName}` : ''}</Text>
-                <Text style={{ fontFamily: Font.display, fontSize: 21, color: INK, letterSpacing: -0.5, lineHeight: 24, marginTop: 2 }}>
-                  what are you{'\n'}<Text style={{ color: ORANGE }}>craving today?</Text>
+
+              {/* Greeting + tappable location */}
+              <View style={{ flex: 1, gap: 3 }}>
+                <Text numberOfLines={1} style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.textSecondary }}>
+                  {greeting()}{firstName ? `, ${firstName}` : ''}
                 </Text>
-              </View>
-              <View style={{ alignItems: 'flex-end', gap: 10, paddingTop: 2 }}>
-                <PressableScale
-                  onPress={() => { feedback.tap(); router.push('/messages'); }}
-                  accessibilityRole="button"
-                  accessibilityLabel={badgeCount ? `Inbox, ${badgeCount} unread` : 'Inbox'}
-                  style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center', ...Shadow.card }}>
-                  <Bell size={20} color={INK} />
-                  {badgeCount > 0 ? (
-                    <View style={{ position: 'absolute', top: 8, right: 9, minWidth: 16, height: 16, borderRadius: 8, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3 }}>
-                      <Text style={{ fontFamily: Font.semibold, fontSize: 9, color: '#fff' }}>{badgeCount}</Text>
-                    </View>
-                  ) : null}
-                </PressableScale>
                 <PressableScale
                   onPress={() => { feedback.tap(); router.push('/addresses'); }}
-                  style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}
                   accessibilityRole="button"
-                  accessibilityLabel={`Delivery location: ${locationLabel}`}>
+                  accessibilityLabel={`Delivery location: ${locationLabel}`}
+                  hitSlop={{ top: 8, bottom: 8, left: 4, right: 8 }}
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: 3, alignSelf: 'flex-start' }}>
                   <MapPin size={12} color={ORANGE} />
-                  <Text style={{ fontFamily: Font.medium, fontSize: 12, color: defaultAddress ? Palette.textSecondary : ORANGE }}>{locationLabel}</Text>
+                  <Text numberOfLines={1} style={{ fontFamily: Font.medium, fontSize: 12, color: defaultAddress ? Palette.textSecondary : ORANGE }}>{locationLabel}</Text>
                 </PressableScale>
               </View>
+
+              {/* Control cluster: notifications + cart, adjacent */}
+              <View style={{ flexDirection: 'row', gap: 8 }}>
+                <HeaderIconButton
+                  Icon={Bell}
+                  badge={badgeCount}
+                  onPress={() => router.push('/messages')}
+                  label={badgeCount ? `Inbox, ${badgeCount} unread` : 'Inbox'}
+                />
+                <HeaderIconButton
+                  Icon={ShoppingCart}
+                  badge={cartCount}
+                  onPress={() => router.push('/cart')}
+                  label={cartCount ? `Cart, ${cartCount} item${cartCount === 1 ? '' : 's'}` : 'Cart'}
+                />
+              </View>
+            </View>
+
+            {/* Headline: single fluid line — shrinks, never wraps */}
+            <View style={{ paddingHorizontal: headerPad, marginTop: 12 }}>
+              <Text
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.72}
+                style={{ fontFamily: Font.display, fontSize: cravingSize, color: INK, letterSpacing: -0.6 }}>
+                what are you <Text style={{ color: ORANGE }}>craving today?</Text>
+              </Text>
             </View>
           </MotiView>
 
