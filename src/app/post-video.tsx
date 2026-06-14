@@ -35,6 +35,7 @@ export default function PostVideoScreen() {
   const [thumb, setThumb] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [posted, setPosted] = useState(false);
+  const [postErr, setPostErr] = useState<string | null>(null);
 
   if (!prepper || prepper.status !== 'approved') {
     return (
@@ -76,6 +77,7 @@ export default function PostVideoScreen() {
     if (!caption.trim() && !thumb) return;
     feedback.tap();
     setUploading(true);
+    setPostErr(null);
     try {
       const { error } = await supabase.from('feed_posts').insert({
         prepper_id: prepper!.id,
@@ -88,6 +90,9 @@ export default function PostVideoScreen() {
       qc.invalidateQueries({ queryKey: ['feed'] });
       setPosted(true);
       setTimeout(() => router.replace('/dashboard'), 1200);
+    } catch {
+      feedback.error();
+      setPostErr('Could not post. Please try again.');
     } finally {
       setUploading(false);
     }
@@ -182,6 +187,9 @@ export default function PostVideoScreen() {
           </MotiView>
 
           {/* Post / success */}
+          {postErr ? (
+            <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.danger, textAlign: 'center' }}>{postErr}</Text>
+          ) : null}
           {posted ? (
             <MotiView from={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'spring', damping: 15, stiffness: 220 }}
               style={{ height: 54, borderRadius: Radius.pill, backgroundColor: Palette.success, alignItems: 'center', justifyContent: 'center' }}>
