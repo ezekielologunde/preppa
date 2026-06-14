@@ -16,7 +16,8 @@ import { imgUrl } from '@/lib/img';
 import { recordMealView } from '@/lib/recently-viewed';
 import { useAddToCart, useCart } from '@/lib/queries/cart';
 import { useFeatureEnabled } from '@/lib/queries/feature-flags';
-import { useMeal } from '@/lib/queries/meals';
+import { MealCard } from '@/components/meal-card';
+import { useMeal, useMealsByPrepper } from '@/lib/queries/meals';
 import { BP } from '@/lib/layout';
 import { useStartConversation } from '@/lib/queries/messages';
 import { getCurrentRush, getRushUrgency } from '@/lib/rush-hour';
@@ -72,6 +73,7 @@ export default function MealScreen() {
   const addToCart = useAddToCart();
   const { data: cart } = useCart(user?.id);
   const { data: reviews } = usePrepperReviews(meal?.prepperId);
+  const { data: moreMeals } = useMealsByPrepper(meal?.prepperId, id ?? null, 6);
   const { data: isFollowing } = useIsFollowing(meal?.prepperId, user?.id);
   const toggleFollow = useToggleFollow(meal?.prepperId ?? '', user?.id);
   const orderingOn = useFeatureEnabled('ordering');
@@ -344,6 +346,27 @@ export default function MealScreen() {
               ) : null}
             </MotiView>
           )}
+
+          {/* More from this kitchen */}
+          {moreMeals && moreMeals.length > 0 ? (
+            <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: 20, paddingBottom: 10 }}>
+                <Text style={{ fontFamily: Font.display, fontSize: 16, color: INK, letterSpacing: -0.3 }}>more from this kitchen</Text>
+                {meal?.prepperId ? (
+                  <PressableScale onPress={() => { feedback.tap(); router.push(`/prepper?id=${meal.prepperId}`); }} accessibilityRole="button" accessibilityLabel="View all meals from this kitchen" style={{ paddingVertical: 4 }}>
+                    <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: ORANGE }}>see all →</Text>
+                  </PressableScale>
+                ) : null}
+              </View>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 12, paddingBottom: 8 }}>
+                {moreMeals.map((m, i) => (
+                  <MotiView key={m.id} from={{ opacity: 0, translateX: 14 }} animate={{ opacity: 1, translateX: 0 }} transition={{ type: 'timing', duration: 220, delay: i * 35 }}>
+                    <MealCard meal={m} width={160} />
+                  </MotiView>
+                ))}
+              </ScrollView>
+            </MotiView>
+          ) : null}
         </View>
   );
 

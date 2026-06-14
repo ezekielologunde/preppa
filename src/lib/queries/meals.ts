@@ -297,6 +297,27 @@ export function useNewestMeals(limit = 8) {
   });
 }
 
+/** Other published meals from the same prepper, excluding the current one. Used for "more from this kitchen" carousel. */
+export function useMealsByPrepper(prepperId?: string | null, excludeId?: string | null, limit = 6) {
+  return useQuery({
+    queryKey: ['meals', 'by-prepper', prepperId ?? 'none', excludeId ?? '', limit],
+    enabled: !!prepperId,
+    queryFn: async (): Promise<Meal[]> => {
+      let q = supabase
+        .from('meals')
+        .select(SELECT)
+        .eq('status', 'published')
+        .eq('prepper_id', prepperId!)
+        .order('created_at', { ascending: false })
+        .limit(limit);
+      if (excludeId) q = q.neq('id', excludeId);
+      const { data, error } = await q;
+      if (error) throw error;
+      return ((data ?? []) as unknown as MealRow[]).map(mapMeal);
+    },
+  });
+}
+
 /** Fetch a specific set of published meals by their IDs, preserving input order (recently-viewed, etc). */
 export function useMealsByIds(ids: string[]) {
   return useQuery({
