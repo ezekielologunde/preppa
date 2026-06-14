@@ -60,9 +60,13 @@ export default function PostVideoScreen() {
   async function pickThumb() {
     feedback.tap();
     setUploading(true);
+    setPostErr(null);
     try {
       const url = await pickAndUploadImage('meal-videos', user?.id ?? 'anon');
       if (url) setThumb(url);
+    } catch {
+      feedback.error();
+      setPostErr('Could not upload thumbnail. Please try again.');
     } finally {
       setUploading(false);
     }
