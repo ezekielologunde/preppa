@@ -76,11 +76,14 @@ export default function EditProfileScreen() {
   const [original] = useState<Fields>({ ...fields });
   const [errors, setErrors] = useState<Errors>({});
   const [avatarUrl, setAvatarUrl] = useState<string | null>((meta.avatar_url as string | null) ?? null);
+  const [originalAvatarUrl] = useState<string | null>((meta.avatar_url as string | null) ?? null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
 
-  const hasChanges = (Object.keys(fields) as (keyof Fields)[]).some((k) => fields[k] !== original[k]);
+  const hasChanges =
+    (Object.keys(fields) as (keyof Fields)[]).some((k) => fields[k] !== original[k]) ||
+    avatarUrl !== originalAvatarUrl;
   const hasErrors = Object.values(errors).some(Boolean);
 
   const set = useCallback((key: keyof Fields, val: string) => {
