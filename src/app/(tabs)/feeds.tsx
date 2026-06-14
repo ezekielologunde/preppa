@@ -24,7 +24,7 @@ import { feedback } from '@/lib/feedback';
 import { BP } from '@/lib/layout';
 import { toggleFavorite, useFavorite } from '@/lib/favorites';
 import { useFeed, useFollowingFeed, type FeedItem } from '@/lib/queries/feed';
-import { useIsFollowing, useMyPrepperApplication, useToggleFollow } from '@/lib/queries/preppers';
+import { useMyFollowIds, useMyPrepperApplication, useToggleFollow } from '@/lib/queries/preppers';
 import { useAuth } from '@/providers/auth-provider';
 
 const ORANGE = Palette.brand;
@@ -60,11 +60,10 @@ function ActionBtn({
   );
 }
 
-function FollowBtn({ prepperId }: { prepperId: string }) {
+function FollowBtn({ prepperId, followSet }: { prepperId: string; followSet: Set<string> }) {
   const { user } = useAuth();
-  const { data: isFollowing } = useIsFollowing(prepperId, user?.id);
   const toggle = useToggleFollow(prepperId, user?.id);
-  const following = isFollowing ?? false;
+  const following = followSet.has(prepperId);
   function handlePress() {
     feedback.tap();
     toggle.mutate(following);
@@ -83,7 +82,7 @@ function FollowBtn({ prepperId }: { prepperId: string }) {
 
 // ─── Unified feed card ────────────────────────────────────────────────────────
 
-function FeedCard({ item, height, bottomInset }: { item: FeedItem; height: number; bottomInset: number }) {
+function FeedCard({ item, height, bottomInset, followSet }: { item: FeedItem; height: number; bottomInset: number; followSet: Set<string> }) {
   const router = useRouter();
   const isSaved = useFavorite(`meal:${item.id}`);
   const source = item.thumbnail ?? item.image;
@@ -132,7 +131,7 @@ function FeedCard({ item, height, bottomInset }: { item: FeedItem; height: numbe
       {/* Side action panel */}
       <View style={{ position: 'absolute', right: 14, bottom: bottomInset + 56, gap: 16, alignItems: 'center' }}>
         <ActionBtn icon={Heart} label={isSaved ? 'Unsave' : 'Save meal'} caption={isSaved ? 'saved' : 'save'} active={isSaved} onPress={handleSave} />
-        {item.prepper_id ? <FollowBtn prepperId={item.prepper_id} /> : null}
+        {item.prepper_id ? <FollowBtn prepperId={item.prepper_id} followSet={followSet} /> : null}
         <ActionBtn icon={Share2} label="Share" caption="share" onPress={handleShare} />
       </View>
 
@@ -298,6 +297,8 @@ export default function FeedsScreen() {
   const [tab, setTab] = useState<'following' | 'explore'>('following');
   const { data: exploreItems, isLoading: exploreLoading } = useFeed();
   const { data: followingItems, isLoading: followingLoading } = useFollowingFeed(user?.id);
+  const { data: followIds } = useMyFollowIds(user?.id);
+  const followSet = useMemo(() => new Set(followIds ?? []), [followIds]);
   const items = tab === 'following' ? followingItems : exploreItems;
   const isLoading = tab === 'following' ? followingLoading : exploreLoading;
   const stream = useMemo(() => buildStream(items ?? []), [items]);
@@ -376,7 +377,7 @@ export default function FeedsScreen() {
 
   function renderEntry(entry: StreamEntry) {
     return entry.kind === 'item'
-      ? <FeedCard key={entry.key} item={entry.item} height={cardHeight} bottomInset={insets.bottom} />
+      ? <FeedCard key={entry.key} item={entry.item} height={cardHeight} bottomInset={insets.bottom} followSet={followSet} />
       : <FeedPromoCard key={entry.key} kind={entry.promo} height={cardHeight} bottomInset={insets.bottom} />;
   }
 

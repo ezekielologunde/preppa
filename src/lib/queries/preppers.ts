@@ -239,6 +239,22 @@ export function usePrepperSearch(query: string) {
   });
 }
 
+/** All prepper IDs the signed-in user follows — one query for the whole feed. */
+export function useMyFollowIds(userId?: string | null) {
+  return useQuery({
+    queryKey: ['follows', 'mine', userId ?? 'anon'],
+    enabled: !!userId,
+    queryFn: async (): Promise<string[]> => {
+      const { data, error } = await supabase
+        .from('follows')
+        .select('prepper_id')
+        .eq('follower_id', userId!);
+      if (error) throw error;
+      return (data ?? []).map((r) => (r as { prepper_id: string }).prepper_id);
+    },
+  });
+}
+
 /** Whether the signed-in user follows this kitchen (own follow row is readable). */
 export function useIsFollowing(prepperId?: string | null, userId?: string | null) {
   return useQuery({
@@ -282,6 +298,7 @@ export function useToggleFollow(prepperId: string, userId?: string | null) {
     onSettled: () => {
       qc.invalidateQueries({ queryKey: key });
       qc.invalidateQueries({ queryKey: ['prepper', 'profile', prepperId] });
+      qc.invalidateQueries({ queryKey: ['follows', 'mine', userId ?? 'anon'] });
     },
   });
 }

@@ -106,16 +106,25 @@ function SeasonalCard() {
   );
 }
 
+/** 3rd Sunday of June for the given year. */
+function fathersDayDate(year: number): Date {
+  const june1 = new Date(year, 5, 1);
+  const daysToFirstSun = (7 - june1.getDay()) % 7;
+  return new Date(year, 5, 1 + daysToFirstSun + 14);
+}
+
 export default function SpecialsScreen() {
   const now = new Date();
-  const isFathersDayWindow = now.getMonth() === 5 && now.getDate() >= 12 && now.getDate() <= 22;
-  const fathersDayDaysLeft = isFathersDayWindow ? 21 - now.getDate() : 0;
+  const fdDay = fathersDayDate(now.getFullYear());
+  const today = new Date(now); today.setHours(0, 0, 0, 0); fdDay.setHours(0, 0, 0, 0);
+  const fathersDayDaysLeft = Math.round((fdDay.getTime() - today.getTime()) / 86_400_000);
+  const isFathersDayWindow = now.getMonth() === 5 && fathersDayDaysLeft >= 0 && fathersDayDaysLeft <= 10;
   const router = useRouter();
   const { data: featuredMeals = [] } = useFeaturedMeals(8);
   const { data: limitedDrops = [] } = useLimitedDrops(8);
   const weeklyPicks = featuredMeals.slice(0, 4);
   const freshDrops = limitedDrops.length ? limitedDrops.slice(0, 4) : featuredMeals.slice(4, 8);
-  const fathersDayPicks = featuredMeals.slice(0, 4);
+  const fathersDayPicks = featuredMeals.slice(4, 8).length ? featuredMeals.slice(4, 8) : featuredMeals.slice(0, 4);
   const carouselCardWidth = useCarouselCardWidth();
   const pad = usePagePadding();
 
@@ -195,7 +204,7 @@ export default function SpecialsScreen() {
                 <View style={{ flex: 1 }}>
                   <Text style={{ fontFamily: Font.display, fontSize: 16, color: '#c7d2fe', letterSpacing: -0.3 }}>Father's Day picks</Text>
                   <Text style={{ fontFamily: Font.body, fontSize: 12, color: '#6366f1', marginTop: 1 }}>
-                    {fathersDayDaysLeft === 0 ? 'Today — treat dad to something special' : `${fathersDayDaysLeft} day${fathersDayDaysLeft !== 1 ? 's' : ''} away — preorder now`}
+                    {fathersDayDaysLeft <= 0 ? 'Today — treat dad to something special' : `${fathersDayDaysLeft} day${fathersDayDaysLeft !== 1 ? 's' : ''} away — preorder now`}
                   </Text>
                 </View>
               </View>
