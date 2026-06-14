@@ -73,7 +73,7 @@ function PreppaTabBar({ state, navigation }: TabBarProps) {
   const { data: pendingOrders } = usePrepperOrders(isPrepper ? prepper?.id : undefined, 'pending');
   const pendingCount = pendingOrders?.length ?? 0;
   const { data: notifications } = useNotifications(!isPrepper ? user?.id : undefined);
-  const unreadBids = (notifications ?? []).filter((n) => !n.read && (n.type === 'bid' || n.type === 'bid_accepted')).length;
+  const unreadBids = (notifications ?? []).filter((n) => !n.read && n.type === 'bid').length;
 
   // Tablet+ uses the AppSidebar rail; hide the bottom bar there.
   if (width >= BP.tablet) return null;
