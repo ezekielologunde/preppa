@@ -115,6 +115,7 @@ function FormField({
   optional,
   autoCapitalize,
   keyboardType,
+  maxLength,
 }: {
   label: string;
   value: string;
@@ -124,6 +125,7 @@ function FormField({
   optional?: boolean;
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
   keyboardType?: 'default' | 'numeric';
+  maxLength?: number;
 }) {
   return (
     <View style={{ marginBottom: Spacing.three }}>
@@ -146,6 +148,7 @@ function FormField({
         placeholderTextColor={Palette.textMuted}
         autoCapitalize={autoCapitalize ?? 'sentences'}
         keyboardType={keyboardType ?? 'default'}
+        maxLength={maxLength}
         accessibilityLabel={label}
         style={{
           fontFamily: Font.body,
@@ -314,6 +317,7 @@ export function AddressSheet({
                 value={form.customLabel}
                 onChangeText={set('customLabel')}
                 placeholder="e.g. Gym, Parents..."
+                maxLength={30}
               />
             )}
 
@@ -326,6 +330,7 @@ export function AddressSheet({
               }}
               placeholder="123 Main Street"
               error={errors.street1}
+              maxLength={100}
             />
 
             <FormField
@@ -334,6 +339,7 @@ export function AddressSheet({
               onChangeText={set('street2')}
               placeholder="Apt 4B"
               optional
+              maxLength={50}
             />
 
             <FormField
@@ -344,6 +350,7 @@ export function AddressSheet({
                 if (errors.city) setErrors((e) => ({ ...e, city: undefined }));
               }}
               error={errors.city}
+              maxLength={80}
             />
 
             <View style={{ flexDirection: 'row', gap: Spacing.two }}>
@@ -357,6 +364,7 @@ export function AddressSheet({
                   }}
                   autoCapitalize="characters"
                   error={errors.state}
+                  maxLength={80}
                 />
               </View>
               <View style={{ flex: 1 }}>
@@ -370,6 +378,7 @@ export function AddressSheet({
                   keyboardType="default"
                   autoCapitalize="characters"
                   error={errors.postalCode}
+                  maxLength={10}
                 />
               </View>
             </View>
@@ -378,6 +387,7 @@ export function AddressSheet({
               label="country"
               value={form.country}
               onChangeText={set('country')}
+              maxLength={50}
             />
 
             {/* Default toggle */}
