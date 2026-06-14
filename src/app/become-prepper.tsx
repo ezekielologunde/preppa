@@ -72,6 +72,7 @@ function DocSection({
       setItems((prev) => prev.map((d, i) => i === insertIdx ? { ...d, storagePath: path, uploading: false } : d));
     } catch {
       setItems((prev) => prev.map((d, i) => i === insertIdx ? { ...d, uploading: false, error: true } : d));
+      feedback.error();
     }
   }
 
@@ -139,7 +140,7 @@ export default function BecomePrepperScreen() {
     const docs = [...idDocs, ...certDocs].filter((d) => d.storagePath).map((d) => d.storagePath!);
     apply.mutate(
       { userId: user.id, displayName: cleanLine(name).trim(), bio: cleanBlock(bio).trim(), specialties: picked, applicationDocuments: docs },
-      { onSuccess: () => feedback.success(), onError: (e) => setErr(e instanceof Error ? e.message : 'Something went wrong.') },
+      { onSuccess: () => feedback.success(), onError: (e) => { feedback.error(); setErr(e instanceof Error ? e.message : 'Something went wrong.'); } },
     );
   }
 

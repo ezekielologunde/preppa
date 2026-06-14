@@ -176,6 +176,7 @@ export default function BidRequestsScreen() {
       setPostSuccess({ title: t.slice(0, 100), servings: reqServings, budget: reqBudget });
       setReqTitle(''); setReqDesc(''); setReqServings(4); setReqBudget(null);
     } catch (e) {
+      feedback.error();
       setPostErr(e instanceof Error ? e.message : 'Could not post request.');
     }
   }
