@@ -82,6 +82,7 @@ function StepLocation({ onNext }: { onNext: (city: string) => void }) {
         onChangeText={setCity}
         placeholder="City or zip code"
         placeholderTextColor="rgba(255,255,255,0.3)"
+        maxLength={100}
         style={{ height: 54, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.07)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)', paddingHorizontal: 16, fontSize: 16, fontFamily: Font.body, color: '#fff', marginBottom: 16 }}
         returnKeyType="done"
         onSubmitEditing={() => onNext(city.trim())}

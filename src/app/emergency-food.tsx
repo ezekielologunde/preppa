@@ -170,6 +170,7 @@ export default function EmergencyFoodScreen() {
             placeholderTextColor={Palette.textMuted}
             multiline
             numberOfLines={3}
+            maxLength={300}
             accessibilityLabel="Special instructions"
             style={{ fontFamily: Font.body, fontSize: 14, color: INK, backgroundColor: Palette.surface, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, borderWidth: 1, borderColor: Palette.border, minHeight: 80, textAlignVertical: 'top' }}
           />

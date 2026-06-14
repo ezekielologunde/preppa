@@ -175,7 +175,7 @@ export default function EditProfileScreen() {
               <ProfileField label="full name" icon={<User size={14} color={Palette.textSecondary} />} error={errors.full_name} delay={80}>
                 <TextInput value={fields.full_name} onChangeText={(v) => set('full_name', v)} onBlur={() => onBlur('full_name')}
                   placeholder="Your full name" placeholderTextColor={Palette.textMuted} accessibilityLabel="Full name"
-                  returnKeyType="next" textContentType="name"
+                  returnKeyType="next" textContentType="name" maxLength={80}
                   style={inputStyle(!!errors.full_name)} />
               </ProfileField>
 
@@ -183,7 +183,7 @@ export default function EditProfileScreen() {
                 hint={fields.username.length >= 3 && !errors.username ? `preppa.live/@${fields.username.toLowerCase()}` : undefined}>
                 <TextInput value={fields.username} onChangeText={(v) => set('username', v.toLowerCase())} onBlur={() => onBlur('username')}
                   placeholder="your_handle" placeholderTextColor={Palette.textMuted} autoCapitalize="none" autoCorrect={false}
-                  returnKeyType="next" textContentType="username"
+                  returnKeyType="next" textContentType="username" maxLength={30}
                   accessibilityLabel="Username" style={inputStyle(!!errors.username)} />
               </ProfileField>
 
@@ -191,14 +191,14 @@ export default function EditProfileScreen() {
                 hint={`${fields.bio.length}/160`}>
                 <TextInput value={fields.bio} onChangeText={(v) => set('bio', v)} onBlur={() => onBlur('bio')}
                   placeholder="Tell people a little about yourself…" placeholderTextColor={Palette.textMuted}
-                  multiline numberOfLines={3} accessibilityLabel="Bio"
+                  multiline numberOfLines={3} maxLength={160} accessibilityLabel="Bio"
                   style={{ ...inputStyle(!!errors.bio), minHeight: 88, textAlignVertical: 'top' }} />
               </ProfileField>
 
               <ProfileField label="location" icon={<MapPin size={14} color={Palette.textSecondary} />} delay={200}>
                 <TextInput value={fields.location} onChangeText={(v) => set('location', v.slice(0, 80))}
                   placeholder="City, State" placeholderTextColor={Palette.textMuted} accessibilityLabel="Location"
-                  returnKeyType="next" textContentType="location"
+                  returnKeyType="next" textContentType="location" maxLength={80}
                   style={inputStyle()} />
               </ProfileField>
 
@@ -206,7 +206,7 @@ export default function EditProfileScreen() {
                 <TextInput value={fields.website} onChangeText={(v) => set('website', v)} onBlur={() => onBlur('website')}
                   placeholder="https://yoursite.com" placeholderTextColor={Palette.textMuted}
                   autoCapitalize="none" autoCorrect={false} keyboardType="url" accessibilityLabel="Website URL"
-                  returnKeyType="done" textContentType="URL"
+                  returnKeyType="done" textContentType="URL" maxLength={200}
                   style={inputStyle(!!errors.website)} />
               </ProfileField>
             </MotiView>

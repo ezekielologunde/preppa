@@ -248,7 +248,7 @@ export default function CartScreen() {
       {noteConfig[method] ? (
         <View style={{ gap: 6 }}>
           <Text style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.textSecondary }}>{noteConfig[method]!.label}</Text>
-          <TextInput value={note} onChangeText={(t) => { setNote(t); setErr(null); }} placeholder={noteConfig[method]!.placeholder} placeholderTextColor={Palette.textMuted} style={{ minHeight: 48, backgroundColor: Palette.surface, borderRadius: Radius.md, borderWidth: 1, borderColor: Palette.border, paddingHorizontal: 14, paddingVertical: 12, fontFamily: Font.body, fontSize: 15, color: INK }} />
+          <TextInput value={note} onChangeText={(t) => { setNote(t); setErr(null); }} placeholder={noteConfig[method]!.placeholder} placeholderTextColor={Palette.textMuted} maxLength={300} style={{ minHeight: 48, backgroundColor: Palette.surface, borderRadius: Radius.md, borderWidth: 1, borderColor: Palette.border, paddingHorizontal: 14, paddingVertical: 12, fontFamily: Font.body, fontSize: 15, color: INK }} />
         </View>
       ) : null}
 
@@ -277,7 +277,7 @@ export default function CartScreen() {
       {customTip ? (
         <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: Palette.surface, borderRadius: Radius.md, borderWidth: 1.5, borderColor: ORANGE, paddingHorizontal: 14, height: 50, gap: 6 }}>
           <Text style={{ fontFamily: Font.display, fontSize: 20, color: INK }}>$</Text>
-          <TextInput value={tip ? String(tip) : ''} onChangeText={(t) => { const n = Number(t.replace(/[^0-9.]/g, '')); setTip(Number.isFinite(n) ? Math.min(n, 200) : 0); }} placeholder="0" placeholderTextColor={Palette.textMuted} keyboardType="decimal-pad" autoFocus accessibilityLabel="Custom tip amount" style={{ flex: 1, fontFamily: Font.display, fontSize: 20, color: INK }} />
+          <TextInput value={tip ? String(tip) : ''} onChangeText={(t) => { const n = Number(t.replace(/[^0-9.]/g, '')); setTip(Number.isFinite(n) ? Math.min(n, 200) : 0); }} placeholder="0" placeholderTextColor={Palette.textMuted} keyboardType="decimal-pad" autoFocus maxLength={6} accessibilityLabel="Custom tip amount" style={{ flex: 1, fontFamily: Font.display, fontSize: 20, color: INK }} />
         </View>
       ) : null}
       {err ? (

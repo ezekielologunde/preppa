@@ -170,6 +170,7 @@ export default function ReviewScreen() {
               placeholder="Share a few words (optional)"
               placeholderTextColor={Palette.textMuted}
               multiline
+              maxLength={1000}
               style={{ minHeight: 120, borderRadius: Radius.md, backgroundColor: Palette.canvas, padding: 16, fontFamily: Font.body, fontSize: 15, color: INK, textAlignVertical: 'top' }}
             />
           </MotiView>

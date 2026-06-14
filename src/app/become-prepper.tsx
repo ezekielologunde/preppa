@@ -243,11 +243,11 @@ export default function BecomePrepperScreen() {
           <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280, delay: 60 }}>
             <SectionHeader icon={<ChefHat size={14} color={ORANGE} />} title="Kitchen basics" />
             <Text style={{ fontFamily: Font.heading, fontSize: 14, color: INK, marginTop: 14, marginBottom: 8 }}>Kitchen / chef name</Text>
-            <TextInput value={name} onChangeText={setName} placeholder="e.g. Kelsi's Kitchen" placeholderTextColor={Palette.textMuted} autoCapitalize="words"
+            <TextInput value={name} onChangeText={setName} placeholder="e.g. Kelsi's Kitchen" placeholderTextColor={Palette.textMuted} autoCapitalize="words" maxLength={80}
               accessibilityLabel="Kitchen or chef name"
               style={{ height: 54, borderRadius: 16, backgroundColor: Palette.canvas, paddingHorizontal: 16, fontSize: 16, fontFamily: Font.body, color: INK }} />
             <Text style={{ fontFamily: Font.heading, fontSize: 14, color: INK, marginTop: 18, marginBottom: 8 }}>About your kitchen</Text>
-            <TextInput value={bio} onChangeText={setBio} placeholder="Tell customers what makes your food special…" placeholderTextColor={Palette.textMuted} multiline
+            <TextInput value={bio} onChangeText={setBio} placeholder="Tell customers what makes your food special…" placeholderTextColor={Palette.textMuted} multiline maxLength={500}
               accessibilityLabel="About your kitchen"
               style={{ minHeight: 88, borderRadius: 16, backgroundColor: Palette.canvas, padding: 16, fontSize: 15, fontFamily: Font.body, color: INK, textAlignVertical: 'top' }} />
             <Text style={{ fontFamily: Font.heading, fontSize: 14, color: INK, marginTop: 18, marginBottom: 10 }}>Specialties</Text>

@@ -106,6 +106,7 @@ export default function ChangeEmailScreen() {
                   keyboardType="email-address"
                   autoCapitalize="none"
                   autoCorrect={false}
+                  maxLength={254}
                   accessibilityLabel="New email address"
                   style={inputStyle}
                 />
