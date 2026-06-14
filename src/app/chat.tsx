@@ -292,6 +292,7 @@ export default function ChatScreen() {
               placeholder="Message…"
               placeholderTextColor={Palette.textMuted}
               multiline
+              maxLength={2000}
               style={{ flex: 1, maxHeight: 120, minHeight: 44, borderRadius: 22, backgroundColor: Palette.canvas, paddingHorizontal: 16, paddingTop: 11, paddingBottom: 11, fontFamily: Font.body, fontSize: 15, color: INK }}
             />
             <PressableScale onPress={submit} disabled={!text.trim() || send.isPending} accessibilityRole="button" accessibilityLabel="Send message"

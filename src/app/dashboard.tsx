@@ -327,9 +327,9 @@ export default function DashboardScreen() {
                     {next.items[0]?.title ?? 'preorder'}{next.items.length > 1 ? ` +${next.items.length - 1}` : ''}
                   </Text>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2, flexWrap: 'wrap' }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: next.paymentStatus === 'paid' ? GREEN + '24' : Palette.chip, borderRadius: Radius.pill, paddingHorizontal: 9, paddingVertical: 3 }}>
-                      {next.paymentStatus === 'paid' ? <Check size={11} color={GREEN} strokeWidth={2.5} /> : null}
-                      <Text style={{ fontFamily: Font.semibold, fontSize: 11.5, color: next.paymentStatus === 'paid' ? GREEN : MUTED }}>{next.paymentStatus === 'paid' ? 'paid' : 'unpaid'}</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: next.paymentStatus === 'succeeded' ? GREEN + '24' : Palette.chip, borderRadius: Radius.pill, paddingHorizontal: 9, paddingVertical: 3 }}>
+                      {next.paymentStatus === 'succeeded' ? <Check size={11} color={GREEN} strokeWidth={2.5} /> : null}
+                      <Text style={{ fontFamily: Font.semibold, fontSize: 11.5, color: next.paymentStatus === 'succeeded' ? GREEN : MUTED }}>{next.paymentStatus === 'succeeded' ? 'paid' : 'unpaid'}</Text>
                     </View>
                     <View style={{ backgroundColor: FULFILLMENT_COLOR[next.fulfillment] + '22', borderRadius: Radius.pill, paddingHorizontal: 8, paddingVertical: 3 }}>
                       <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: FULFILLMENT_COLOR[next.fulfillment] }}>{FULFILLMENT_LABEL[next.fulfillment]}</Text>
