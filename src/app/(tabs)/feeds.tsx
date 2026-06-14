@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { BadgeCheck, CheckCircle, Heart, MonitorPlay, Play, Share2, ShoppingCart, Star, UserCheck, UserPlus } from 'lucide-react-native';
+import { BadgeCheck, CheckCircle, Heart, MonitorPlay, Play, Share2, ShoppingCart, Star, UserCheck, UserPlus, Zap } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useEffect, useMemo, useState } from 'react';
 import {
@@ -82,6 +82,45 @@ function FollowBtn({ prepperId, followSet }: { prepperId: string; followSet: Set
   );
 }
 
+// ─── Countdown utilities (mirrors meal-card.tsx) ─────────────────────────────
+
+function computeCountdown(expiresAt: string | null | undefined): string | null {
+  if (!expiresAt) return null;
+  const ms = new Date(expiresAt).getTime() - Date.now();
+  if (ms <= 0) return null;
+  const totalMins = Math.floor(ms / 60_000);
+  if (totalMins > 60 * 24 * 7) return null;
+  if (totalMins > 60 * 24) {
+    const days = Math.floor(totalMins / (60 * 24));
+    const hrs = Math.floor((totalMins % (60 * 24)) / 60);
+    return `${days}d ${hrs}h left`;
+  }
+  if (totalMins > 60) {
+    const hrs = Math.floor(totalMins / 60);
+    const mins = totalMins % 60;
+    return `${hrs}h ${mins}m left`;
+  }
+  return `${totalMins}m left`;
+}
+
+function urgencyColor(expiresAt: string): string {
+  const ms = new Date(expiresAt).getTime() - Date.now();
+  if (ms < 3_600_000) return '#ef4444';
+  if (ms < 86_400_000) return Palette.brand;
+  return '#8b5cf6';
+}
+
+function useCountdownLabel(expiresAt?: string | null): string | null {
+  const [label, setLabel] = useState<string | null>(() => computeCountdown(expiresAt));
+  useEffect(() => {
+    setLabel(computeCountdown(expiresAt));
+    if (!expiresAt) return;
+    const id = setInterval(() => setLabel(computeCountdown(expiresAt)), 60_000);
+    return () => clearInterval(id);
+  }, [expiresAt]);
+  return label;
+}
+
 // ─── Unified feed card ────────────────────────────────────────────────────────
 
 function FeedCard({ item, height, bottomInset, followSet }: { item: FeedItem; height: number; bottomInset: number; followSet: Set<string> }) {
@@ -91,6 +130,7 @@ function FeedCard({ item, height, bottomInset, followSet }: { item: FeedItem; he
   const [addState, setAddState] = useState<'idle' | 'adding' | 'added'>('idle');
   const addToCart = useAddToCart();
   const source = item.thumbnail ?? item.image;
+  const countdown = useCountdownLabel(item.isLimited && !item.isPost ? (item.expiresAt ?? null) : null);
 
   async function handleAddToCart() {
     if (!user) { feedback.tap(); router.push('/auth?mode=signup'); return; }
@@ -157,6 +197,13 @@ function FeedCard({ item, height, bottomInset, followSet }: { item: FeedItem; he
           <View style={{ width: 5, height: 5, borderRadius: 3, backgroundColor: '#fff' }} />
           <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: '#fff', letterSpacing: 0.7 }}>LIVE</Text>
         </MotiView>
+      ) : countdown && item.expiresAt ? (
+        <View
+          style={{ position: 'absolute', top: 56, left: 14, flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: urgencyColor(item.expiresAt) + 'DD', borderRadius: 8, paddingHorizontal: 9, paddingVertical: 5 }}
+          pointerEvents="none">
+          <Zap size={11} color="#fff" fill="#fff" />
+          <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: '#fff' }}>{countdown}</Text>
+        </View>
       ) : null}
 
       {/* Side action panel */}

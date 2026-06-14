@@ -14,6 +14,10 @@ export type FeedItem = {
   image: string;
   videoUrl: string | null;
   thumbnail: string | null;
+  /** ISO timestamp when this limited drop expires; null = no expiry or not a limited drop. */
+  expiresAt?: string | null;
+  /** true = is_limited meal; drives countdown badge in FeedCard. */
+  isLimited?: boolean;
   /** Currently airing live kitchen session — shows LIVE badge and routes to prepper page. */
   isLive?: boolean;
   /** true = standalone prepper post (feed_posts), false = live meal listing */
@@ -27,6 +31,8 @@ type Row = {
   title: string;
   base_price: number;
   description: string | null;
+  is_limited: boolean;
+  expires_at: string | null;
   prepper:
     | { id: string; display_name: string; verified: boolean; rating: { average_rating: number; total_reviews: number } | { average_rating: number; total_reviews: number }[] | null }
     | { id: string; display_name: string; verified: boolean; rating: unknown }[]
@@ -36,7 +42,7 @@ type Row = {
 };
 
 const SELECT =
-  'id,title,base_price,created_at,' +
+  'id,title,base_price,created_at,is_limited,expires_at,' +
   'prepper:prepper_profiles(id,display_name,verified,rating:prepper_rating_summary(average_rating,total_reviews)),' +
   'images:meal_images(url),' +
   'videos:meal_videos(video_url,thumbnail_url)';
@@ -87,6 +93,8 @@ function mapMealRows(rows: Row[]): FeedItem[] {
         image: r.images?.[0]?.url ?? '',
         videoUrl: video?.video_url ?? null,
         thumbnail: video?.thumbnail_url ?? null,
+        isLimited: r.is_limited ?? false,
+        expiresAt: r.expires_at ?? null,
         isPost: false,
       };
     })
