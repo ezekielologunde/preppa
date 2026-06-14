@@ -184,6 +184,7 @@ export default function MessagesScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [selectedConv, setSelectedConv] = useState<{ id: string; name: string } | null>(null);
   const [chatText, setChatText] = useState('');
+  const [sendErr, setSendErr] = useState<string | null>(null);
   const chatScrollRef = useRef<ScrollView>(null);
   const { width } = useWindowDimensions();
   const isDesktop = width >= BP.desktop;
@@ -211,13 +212,16 @@ export default function MessagesScreen() {
     const body = cleanBlock(chatText).trim();
     if (!body || !selectedConv || !user) return;
     feedback.tap();
+    setSendErr(null);
     setChatText('');
-    sendMsg.mutate({ conversationId: selectedConv.id, senderId: user.id, body });
+    sendMsg.mutate({ conversationId: selectedConv.id, senderId: user.id, body }, {
+      onError: () => { feedback.error(); setChatText(body); setSendErr('Message failed to send. Try again.'); },
+    });
   }
 
   const hasUnread = (notifications ?? []).some((n) => !n.read);
   useEffect(() => {
-    if ((isDesktop || tab === 'updates') && hasUnread) markRead.mutate(undefined);
+    if ((isDesktop || tab === 'updates') && hasUnread) markRead.mutate(undefined, { onError: () => feedback.error() });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab, hasUnread, isDesktop]);
 
@@ -359,6 +363,9 @@ export default function MessagesScreen() {
                     ))
                   )}
                 </ScrollView>
+                {sendErr ? (
+                  <Text style={{ fontFamily: Font.medium, fontSize: 12, color: Palette.danger, paddingHorizontal: 14, paddingTop: 6, paddingBottom: 2 }}>{sendErr}</Text>
+                ) : null}
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 12, paddingVertical: 8, borderTopWidth: 1, borderTopColor: Palette.border }}>
                   <TextInput value={chatText} onChangeText={setChatText} placeholder="Message…" placeholderTextColor={Palette.textMuted} onSubmitEditing={submitChat} maxLength={2000}
                     style={{ flex: 1, height: 40, borderRadius: 20, backgroundColor: Palette.canvas, paddingHorizontal: 14, fontFamily: Font.body, fontSize: 14, color: INK }} />
