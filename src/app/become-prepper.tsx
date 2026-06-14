@@ -139,7 +139,7 @@ export default function BecomePrepperScreen() {
     const docs = [...idDocs, ...certDocs].filter((d) => d.storagePath).map((d) => d.storagePath!);
     apply.mutate(
       { userId: user.id, displayName: cleanLine(name).trim(), bio: cleanBlock(bio).trim(), specialties: picked, applicationDocuments: docs },
-      { onError: (e) => setErr(e instanceof Error ? e.message : 'Something went wrong.') },
+      { onSuccess: () => feedback.success(), onError: (e) => setErr(e instanceof Error ? e.message : 'Something went wrong.') },
     );
   }
 
@@ -244,9 +244,11 @@ export default function BecomePrepperScreen() {
             <SectionHeader icon={<ChefHat size={14} color={ORANGE} />} title="Kitchen basics" />
             <Text style={{ fontFamily: Font.heading, fontSize: 14, color: INK, marginTop: 14, marginBottom: 8 }}>Kitchen / chef name</Text>
             <TextInput value={name} onChangeText={setName} placeholder="e.g. Kelsi's Kitchen" placeholderTextColor={Palette.textMuted} autoCapitalize="words"
+              accessibilityLabel="Kitchen or chef name"
               style={{ height: 54, borderRadius: 16, backgroundColor: Palette.canvas, paddingHorizontal: 16, fontSize: 16, fontFamily: Font.body, color: INK }} />
             <Text style={{ fontFamily: Font.heading, fontSize: 14, color: INK, marginTop: 18, marginBottom: 8 }}>About your kitchen</Text>
             <TextInput value={bio} onChangeText={setBio} placeholder="Tell customers what makes your food special…" placeholderTextColor={Palette.textMuted} multiline
+              accessibilityLabel="About your kitchen"
               style={{ minHeight: 88, borderRadius: 16, backgroundColor: Palette.canvas, padding: 16, fontSize: 15, fontFamily: Font.body, color: INK, textAlignVertical: 'top' }} />
             <Text style={{ fontFamily: Font.heading, fontSize: 14, color: INK, marginTop: 18, marginBottom: 10 }}>Specialties</Text>
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
