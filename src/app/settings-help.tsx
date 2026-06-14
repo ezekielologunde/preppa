@@ -176,6 +176,7 @@ export default function HelpKnowledgeScreen() {
                 onChangeText={setQuery}
                 placeholder="Search FAQs…"
                 placeholderTextColor={Palette.textMuted}
+                maxLength={100}
                 style={{ flex: 1, fontFamily: Font.body, fontSize: 14.5, color: Palette.ink }}
                 accessibilityLabel="Search frequently asked questions"
                 returnKeyType="search"
