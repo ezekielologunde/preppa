@@ -312,32 +312,32 @@ export function ActionSplitter({ planImage, dropImage }: { planImage?: string; d
   const router = useRouter();
   const ABS = { position: 'absolute' as const, top: 0, left: 0, right: 0, bottom: 0 };
   return (
-    <MotiView from={{ opacity: 0, translateY: 14 }} animate={{ opacity: 1, translateY: 0 }}
+    <MotiView from={{ opacity: 0, translateY: 12 }} animate={{ opacity: 1, translateY: 0 }}
       transition={{ type: 'spring', damping: 15, stiffness: 120, mass: 0.6, delay: 50 }}
-      style={{ marginHorizontal: 20, marginTop: 16, flexDirection: 'row', gap: 10 }}>
+      style={{ marginHorizontal: 20, marginTop: 12, flexDirection: 'row', gap: 10 }}>
       {/* Card A — Build your weekly plan */}
       <PressableScale onPress={() => { feedback.tap(); router.push('/meal-plans'); }}
         accessibilityRole="button" accessibilityLabel="Build your weekly plan"
         style={{ flex: 1 }}>
-        <View style={{ borderRadius: Radius.lg, minHeight: 140, overflow: 'hidden' }}>
+        <View style={{ borderRadius: Radius.lg, height: 100, overflow: 'hidden' }}>
           <LinearGradient colors={['#1c1108', '#3d2410']} style={ABS} />
           {planImage ? (
             <Image source={imgUrl(planImage, 400)}
-              style={{ position: 'absolute', right: -10, top: 0, bottom: 0, width: '65%', opacity: 0.42 }}
+              style={{ position: 'absolute', right: -8, top: 0, bottom: 0, width: '60%', opacity: 0.38 }}
               contentFit="cover" />
           ) : null}
-          <LinearGradient colors={['#1c1108', '#1c110800']}
+          <LinearGradient colors={['#1c1108e6', '#1c110800']}
             start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={ABS} />
-          <View style={{ padding: 16, minHeight: 140, justifyContent: 'space-between' }}>
-            <View style={{ width: 38, height: 38, borderRadius: 12, backgroundColor: 'rgba(255,180,60,0.22)', alignItems: 'center', justifyContent: 'center' }}>
-              <CalendarCheck size={18} color={Palette.amber} />
+          <View style={{ flex: 1, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+            <View style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: 'rgba(255,180,60,0.22)', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <CalendarCheck size={16} color={Palette.amber} />
             </View>
-            <View style={{ gap: 5 }}>
-              <Text style={{ fontFamily: Font.heading, fontSize: 14, color: '#fff', lineHeight: 20 }}>
-                Build your weekly plan
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontFamily: Font.heading, fontSize: 13, color: '#fff', lineHeight: 18 }}>
+                Build weekly plan
               </Text>
-              <Text style={{ fontFamily: Font.body, fontSize: 10.5, color: 'rgba(255,255,255,0.5)', lineHeight: 15 }}>
-                Custom meals • Macros{'\n'}Save time
+              <Text style={{ fontFamily: Font.body, fontSize: 10, color: 'rgba(255,255,255,0.5)', marginTop: 2 }}>
+                Custom meals • Save time
               </Text>
             </View>
           </View>
@@ -347,25 +347,25 @@ export function ActionSplitter({ planImage, dropImage }: { planImage?: string; d
       <PressableScale onPress={() => { feedback.tap(); router.push('/search'); }}
         accessibilityRole="button" accessibilityLabel="Order an immediate drop"
         style={{ flex: 1 }}>
-        <View style={{ borderRadius: Radius.lg, minHeight: 140, overflow: 'hidden' }}>
+        <View style={{ borderRadius: Radius.lg, height: 100, overflow: 'hidden' }}>
           <LinearGradient colors={['#F26B1D', '#c43c0d']} style={ABS} />
           {dropImage ? (
             <Image source={imgUrl(dropImage, 400)}
-              style={{ position: 'absolute', right: -10, top: 0, bottom: 0, width: '65%', opacity: 0.42 }}
+              style={{ position: 'absolute', right: -8, top: 0, bottom: 0, width: '60%', opacity: 0.38 }}
               contentFit="cover" />
           ) : null}
-          <LinearGradient colors={['#F26B1D', '#F26B1D00']}
+          <LinearGradient colors={['#F26B1De6', '#F26B1D00']}
             start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={ABS} />
-          <View style={{ padding: 16, minHeight: 140, justifyContent: 'space-between' }}>
-            <View style={{ width: 38, height: 38, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center' }}>
-              <Zap size={18} color="#fff" />
+          <View style={{ flex: 1, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+            <View style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <Zap size={16} color="#fff" />
             </View>
-            <View style={{ gap: 5 }}>
-              <Text style={{ fontFamily: Font.heading, fontSize: 14, color: '#fff', lineHeight: 20 }}>
-                Order an immediate drop
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontFamily: Font.heading, fontSize: 13, color: '#fff', lineHeight: 18 }}>
+                Order now
               </Text>
-              <Text style={{ fontFamily: Font.body, fontSize: 10.5, color: 'rgba(255,255,255,0.65)', lineHeight: 15 }}>
-                What's hot • Local{'\n'}kitchens now
+              <Text style={{ fontFamily: Font.body, fontSize: 10, color: 'rgba(255,255,255,0.65)', marginTop: 2 }}>
+                What's hot • Local kitchens
               </Text>
             </View>
           </View>
