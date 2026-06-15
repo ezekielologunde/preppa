@@ -190,7 +190,18 @@ export default function EarningsScreen() {
             {/* Recent paid orders */}
             <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff', marginTop: 4 }}>Recent</Text>
             {data.recent.length === 0 ? (
-              <Text style={{ fontFamily: Font.body, fontSize: 13.5, color: MUTED }}>No paid orders yet. They&apos;ll appear here as customers check out.</Text>
+              <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }}
+                style={{ alignItems: 'center', paddingVertical: 28, paddingHorizontal: 16, gap: 10 }}>
+                <View style={{ width: 52, height: 52, borderRadius: 16, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center' }}>
+                  <Receipt size={22} color={MUTED} />
+                </View>
+                <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#fff', textAlign: 'center' }}>No paid orders yet</Text>
+                <Text style={{ fontFamily: Font.body, fontSize: 13, color: MUTED, textAlign: 'center', lineHeight: 19 }}>Your first payout will show here once a customer checks out.</Text>
+                <PressableScale onPress={() => { feedback.tap(); router.push('/prepper-hub'); }} accessibilityRole="button" accessibilityLabel="Go to kitchen hub"
+                  style={{ marginTop: 4, backgroundColor: ORANGE, borderRadius: Radius.pill, paddingHorizontal: 22, paddingVertical: 11 }}>
+                  <Text style={{ fontFamily: Font.semibold, fontSize: 13.5, color: '#fff' }}>kitchen hub →</Text>
+                </PressableScale>
+              </MotiView>
             ) : (
               <View style={{ gap: 10 }}>
                 {data.recent.map((it, i) => (

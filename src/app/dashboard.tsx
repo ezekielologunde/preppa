@@ -313,10 +313,18 @@ export default function DashboardScreen() {
               <Skeleton width="100%" height={108} radius={22} />
             </View>
           ) : (
-            <View style={{ marginHorizontal: 20, backgroundColor: CARD, borderRadius: 22, padding: 24, alignItems: 'center', gap: 8 }}>
-              <ShoppingBag size={26} color={Palette.textSecondary} />
-              <Text style={{ fontFamily: Font.body, fontSize: 14, color: MUTED, textAlign: 'center' }}>No active preorders right now. New preorders land here instantly.</Text>
-            </View>
+            <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }}
+              style={{ marginHorizontal: 20, backgroundColor: CARD, borderRadius: 22, padding: 24, alignItems: 'center', gap: 10 }}>
+              <View style={{ width: 52, height: 52, borderRadius: 16, backgroundColor: '#ffffff10', alignItems: 'center', justifyContent: 'center' }}>
+                <ShoppingBag size={24} color={Palette.textSecondary} />
+              </View>
+              <Text style={{ fontFamily: Font.heading, fontSize: 15, color: INK, textAlign: 'center' }}>No active preorders</Text>
+              <Text style={{ fontFamily: Font.body, fontSize: 13, color: MUTED, textAlign: 'center', lineHeight: 19 }}>New preorders land here instantly once customers check out.</Text>
+              <PressableScale onPress={() => { feedback.tap(); router.push('/prepper-orders'); }} accessibilityRole="button" accessibilityLabel="View all preorders"
+                style={{ marginTop: 2, backgroundColor: ORANGE, borderRadius: Radius.pill, paddingHorizontal: 22, paddingVertical: 10 }}>
+                <Text style={{ fontFamily: Font.semibold, fontSize: 13.5, color: '#fff' }}>view all orders →</Text>
+              </PressableScale>
+            </MotiView>
           )}
           </MotiView>
 
