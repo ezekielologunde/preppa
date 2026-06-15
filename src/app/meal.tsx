@@ -1,19 +1,18 @@
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { BadgeCheck, Check, ChevronLeft, ChevronRight, Clock, Maximize2, MessageCircle, Share2, ShoppingBag, Star, X, Zap } from 'lucide-react-native';
+import { BadgeCheck, Check, Clock, MessageCircle, RefreshCw, Star, Zap } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { MotiView } from 'moti';
-import { ActivityIndicator, Modal, Platform, Pressable, ScrollView, Share, Text, useWindowDimensions, View } from 'react-native';
+import { ActivityIndicator, Platform, ScrollView, Text, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { MealConfirmSheet, MealLightboxModal, MealSwitchPrompt } from '@/components/meal-modals';
-import { FavoriteButton } from '@/components/ui/favorite-button';
+import { MealGallery } from '@/components/meal-gallery';
+import { MealConfirmSheet, MealSwitchPrompt } from '@/components/meal-modals';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Font } from '@/constants/fonts';
 import { Palette, Radius } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
-import { imgUrl } from '@/lib/img';
 import { recordMealView } from '@/lib/recently-viewed';
 import { useAddToCart, useCart } from '@/lib/queries/cart';
 import { useFeatureEnabled } from '@/lib/queries/feature-flags';
@@ -55,14 +54,11 @@ export default function MealScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id?: string }>();
   const { user } = useAuth();
-  const { data: meal, isLoading, isError } = useMeal(id);
+  const { data: meal, isLoading, isError, refetch: refetchMeal } = useMeal(id);
   const [added, setAdded] = useState(false);
   const [cartErr, setCartErr] = useState<string | null>(null);
   const [msgErr, setMsgErr] = useState<string | null>(null);
   const [switchPrompt, setSwitchPrompt] = useState(false);
-  const [lightboxOpen, setLightboxOpen] = useState(false);
-  const [lightboxIdx, setLightboxIdx] = useState(0);
-  const [heroIdx, setHeroIdx] = useState(0);
   const [allReviews, setAllReviews] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const insets = useSafeAreaInsets();
@@ -83,16 +79,6 @@ export default function MealScreen() {
   const orderingOn = useFeatureEnabled('ordering');
   const nowHour = new Date().getHours();
   const liveRush = getRushUrgency(nowHour, new Date().getMinutes()) === 'live' ? getCurrentRush(nowHour) : null;
-
-  async function handleShare() {
-    feedback.tap();
-    try {
-      await Share.share({
-        title: meal?.title ?? 'Check this out on Preppa',
-        message: `${meal?.title ?? 'A great meal'} by ${meal?.prepper ?? 'a prepper'} — preorder on Preppa: https://app.preppa.live/meal?id=${id}`,
-      });
-    } catch { /* share sheet closed */ }
-  }
 
   function messagePrepper() {
     feedback.tap();
@@ -152,72 +138,6 @@ export default function MealScreen() {
     doAdd(false);
   }
 
-  // ─── Gallery (hero + thumbnail strip) ───────────────────────────────────────
-  const galleryEl = (
-    <>
-        {/* Hero */}
-        <View style={{ height: twoCol ? 440 : 320, backgroundColor: Palette.brandTint, borderRadius: twoCol ? 24 : 0, overflow: twoCol ? 'hidden' : 'visible' }}>
-          {isLoading ? (
-            <Skeleton width="100%" height={320} radius={0} />
-          ) : meal?.images.length ? (
-            <>
-              <Pressable onPress={() => { feedback.tap(); setLightboxIdx(heroIdx); setLightboxOpen(true); }} accessibilityRole="button" accessibilityLabel="View full-screen photo" style={{ flex: 1 }}>
-                <Image source={imgUrl(meal.images[heroIdx], 1000)} style={{ flex: 1 }} contentFit="cover" transition={250} />
-              </Pressable>
-              {meal.images.length > 1 ? (
-                <>
-                  <Pressable onPress={() => setHeroIdx(i => Math.max(0, i - 1))} style={{ position: 'absolute', left: 0, top: 60, bottom: 60, width: '33%' }} accessibilityLabel="Previous photo" />
-                  <Pressable onPress={() => setHeroIdx(i => Math.min(meal.images.length - 1, i + 1))} style={{ position: 'absolute', right: 0, top: 60, bottom: 60, width: '33%' }} accessibilityLabel="Next photo" />
-                  <View style={{ position: 'absolute', bottom: 12, alignSelf: 'center', flexDirection: 'row', gap: 5 }} pointerEvents="none">
-                    {meal.images.map((_, i) => (
-                      <MotiView key={i} animate={{ width: i === heroIdx ? 14 : 5, backgroundColor: i === heroIdx ? '#fff' : 'rgba(255,255,255,0.55)' }} transition={{ type: 'timing', duration: 200 }} style={{ height: 5, borderRadius: 3 }} />
-                    ))}
-                  </View>
-                </>
-              ) : null}
-            </>
-          ) : null}
-          <SafeAreaView edges={['top']} style={{ position: 'absolute', top: 0, left: 0, right: 0, flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 8 }}>
-            <PressableScale onPress={() => { feedback.tap(); if (router.canGoBack()) { router.back(); } else { router.replace('/'); } }} accessibilityRole="button" accessibilityLabel="Go back" style={{ width: 42, height: 42, borderRadius: 21, backgroundColor: 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center' }}>
-              <ChevronLeft size={22} color={INK} />
-            </PressableScale>
-            <View style={{ flexDirection: 'row', gap: 10 }}>
-              <PressableScale onPress={handleShare} accessibilityRole="button" accessibilityLabel="Share this meal" style={{ width: 42, height: 42, borderRadius: 21, backgroundColor: 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center' }}>
-                <Share2 size={17} color={INK} />
-              </PressableScale>
-              {meal?.images.length ? (
-                <PressableScale onPress={() => { feedback.tap(); setLightboxIdx(heroIdx); setLightboxOpen(true); }} accessibilityRole="button" accessibilityLabel="View full-screen photo" style={{ width: 42, height: 42, borderRadius: 21, backgroundColor: 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center' }}>
-                  <Maximize2 size={17} color={INK} />
-                </PressableScale>
-              ) : null}
-              {cart && cart.count > 0 ? (
-                <PressableScale onPress={() => { feedback.tap(); router.push('/cart'); }} accessibilityRole="button" accessibilityLabel={`Cart, ${cart.count} items`} style={{ width: 42, height: 42, borderRadius: 21, backgroundColor: 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center' }}>
-                  <ShoppingBag size={19} color={INK} />
-                  <View style={{ position: 'absolute', top: -2, right: -2, minWidth: 18, height: 18, borderRadius: 9, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 }}>
-                    <Text style={{ fontFamily: Font.semibold, fontSize: 10, color: '#fff' }}>{cart.count}</Text>
-                  </View>
-                </PressableScale>
-              ) : null}
-              {id ? <FavoriteButton id={`meal:${id}`} size={42} /> : null}
-            </View>
-          </SafeAreaView>
-        </View>
-
-        {/* Thumbnail strip — only when meal has 2+ images */}
-        {meal?.images && meal.images.length > 1 ? (
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, gap: 8, paddingVertical: 8, backgroundColor: Palette.surface }}>
-            {meal.images.map((img, i) => (
-              <PressableScale key={i} onPress={() => { feedback.tap(); setHeroIdx(i); }} accessibilityRole="button" accessibilityLabel={`Photo ${i + 1}`}>
-                <MotiView animate={{ borderColor: i === heroIdx ? ORANGE : Palette.border }} transition={{ type: 'timing', duration: 200 }} style={{ width: 64, height: 64, borderRadius: 12, overflow: 'hidden', borderWidth: 2.5 }}>
-                  <Image source={img} style={{ flex: 1 }} contentFit="cover" transition={150} />
-                </MotiView>
-              </PressableScale>
-            ))}
-          </ScrollView>
-        ) : null}
-    </>
-  );
-
   // ─── Body (details, macros, reviews) ────────────────────────────────────────
   const bodyEl = (
         <View style={{ padding: 20, gap: 12, backgroundColor: Palette.surface, ...(twoCol ? {} : { borderTopLeftRadius: 24, borderTopRightRadius: 24, marginTop: -24 }) }}>
@@ -228,7 +148,13 @@ export default function MealScreen() {
               <Skeleton width="100%" height={60} radius={10} />
             </>
           ) : isError || !meal ? (
-            <Text style={{ fontFamily: Font.medium, fontSize: 15, color: Palette.danger }}>Couldn&apos;t load this meal. Please try again.</Text>
+            <View style={{ alignItems: 'center', gap: 14, paddingVertical: 24 }}>
+              <Text style={{ fontFamily: Font.medium, fontSize: 15, color: Palette.danger, textAlign: 'center' }}>Couldn&apos;t load this meal. Check your connection and try again.</Text>
+              <PressableScale onPress={() => { feedback.tap(); refetchMeal(); }} accessibilityRole="button" accessibilityLabel="Retry loading meal" style={{ flexDirection: 'row', alignItems: 'center', gap: 6, height: 44, paddingHorizontal: 20, borderRadius: Radius.pill, backgroundColor: Palette.ink }}>
+                <RefreshCw size={15} color="#fff" />
+                <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: '#fff' }}>Try again</Text>
+              </PressableScale>
+            </View>
           ) : (
             <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260 }}>
               {meal.isLimited ? (() => {
@@ -435,7 +361,9 @@ export default function MealScreen() {
         <SafeAreaView edges={['top']} style={{ flex: 1 }}>
           <View style={{ flex: 1, flexDirection: 'row', gap: 24, paddingHorizontal: 24, paddingVertical: 20, width: '100%', maxWidth: 1080, alignSelf: 'center' }}>
             {/* Left: gallery */}
-            <View style={{ width: '44%', maxWidth: 480 }}>{galleryEl}</View>
+            <View style={{ width: '44%', maxWidth: 480 }}>
+              <MealGallery meal={meal} isLoading={isLoading} cart={cart} id={id} />
+            </View>
             {/* Right: details + pinned CTA */}
             <View style={{ flex: 1, maxWidth: 600, backgroundColor: Palette.surface, borderRadius: 24, overflow: 'hidden' }}>
               <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 16 }}>
@@ -450,7 +378,7 @@ export default function MealScreen() {
       ) : (
         <>
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
-            {galleryEl}
+            <MealGallery meal={meal} isLoading={isLoading} cart={cart} id={id} />
             {bodyEl}
           </ScrollView>
           {ctaContent ? (
@@ -461,16 +389,6 @@ export default function MealScreen() {
         </>
       )}
 
-      <MealLightboxModal
-        visible={lightboxOpen}
-        onClose={() => setLightboxOpen(false)}
-        images={meal?.images ?? []}
-        lightboxIdx={lightboxIdx}
-        onPrev={() => setLightboxIdx(i => i - 1)}
-        onNext={() => setLightboxIdx(i => i + 1)}
-        title={meal?.title}
-        prepper={meal?.prepper}
-      />
       <MealConfirmSheet
         visible={showConfirm}
         onClose={() => setShowConfirm(false)}
