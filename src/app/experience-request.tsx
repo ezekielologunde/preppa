@@ -107,7 +107,7 @@ export default function ExperienceRequestScreen() {
     setErr(null);
     if (!user) return router.push('/auth?mode=signup');
     const cleanTitle = cleanLine(title).trim();
-    if (cleanTitle.length < 3) { setTitleTouched(true); return setErr('Give your request a short title (at least 3 characters).'); }
+    if (cleanTitle.length < 3) { setTitleTouched(true); feedback.error(); return setErr('Give your request a short title (at least 3 characters).'); }
     feedback.tap();
     create.mutate(
       { userId: user.id, kind, title: cleanTitle.slice(0, 100), details: cleanBlock(details).trim().slice(0, 500), guests, budget, location: cleanLine(location).trim().slice(0, 200) },

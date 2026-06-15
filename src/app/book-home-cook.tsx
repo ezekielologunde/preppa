@@ -146,12 +146,12 @@ export default function BookHomeCookScreen() {
   function submit() {
     if (!user) return router.push('/auth?mode=signup');
     setErr(null);
-    if (!selectedDate) return setErr('Pick a date for your session.');
-    if (selectedDate <= today) return setErr('The date must be in the future.');
+    if (!selectedDate) { feedback.error(); return setErr('Pick a date for your session.'); }
+    if (selectedDate <= today) { feedback.error(); return setErr('The date must be in the future.'); }
     const addr = cleanLine(address).trim();
-    if (addr.length < 5) return setErr('Enter your full home address.');
-    if (!budget || budget < 20) return setErr('Set an ingredient budget of at least $20.');
-    if (!prepperId) return setErr('Prepper not found.');
+    if (addr.length < 5) { feedback.error(); return setErr('Enter your full home address.'); }
+    if (!budget || budget < 20) { feedback.error(); return setErr('Set an ingredient budget of at least $20.'); }
+    if (!prepperId) { feedback.error(); return setErr('Prepper not found.'); }
 
     const iso = [
       selectedDate.getFullYear(),

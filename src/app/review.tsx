@@ -78,7 +78,7 @@ export default function ReviewScreen() {
 
   function send() {
     if (!user || !orderId || !prepperId || rating < 1) return;
-    if (photos.some((p) => p.uploading)) return setErr('Please wait for photos to finish uploading.');
+    if (photos.some((p) => p.uploading)) { feedback.warning(); return setErr('Please wait for photos to finish uploading.'); }
     setErr(null);
     const photoUrls = photos.filter((p) => p.publicUrl).map((p) => p.publicUrl!);
     submit.mutate(
