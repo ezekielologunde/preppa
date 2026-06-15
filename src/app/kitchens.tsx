@@ -111,12 +111,20 @@ export default function KitchensScreen() {
             from={{ opacity: 0, scale: 0.97 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ type: 'timing', duration: 260 }}
-            style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 10 }}>
-            <Compass size={40} color={Palette.textMuted} />
+            style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
+            <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
+              <Compass size={28} color={Palette.textMuted} />
+            </View>
             <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>no kitchens here yet</Text>
             <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textMuted, textAlign: 'center' }}>
               {selected ? `No ${selected} kitchens nearby yet — try another tag.` : 'Check back soon as more kitchens join.'}
             </Text>
+            {selected ? (
+              <PressableScale onPress={() => pick(null)} accessibilityRole="button" accessibilityLabel="Clear tag filter"
+                style={{ marginTop: 4, backgroundColor: INK, borderRadius: Radius.pill, paddingHorizontal: 22, paddingVertical: 11 }}>
+                <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: '#fff' }}>show all kitchens</Text>
+              </PressableScale>
+            ) : null}
           </MotiView>
         )}
       </SafeAreaView>
