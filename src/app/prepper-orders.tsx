@@ -329,10 +329,25 @@ export default function PrepperOrdersScreen() {
                 ))}
               </View>
               {filteredOrders.length === 0 ? (
-                <View style={{ alignItems: 'center', paddingVertical: 32, gap: 8 }}>
-                  <ShoppingBag size={24} color="#5b6170" />
-                  <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textMuted, textAlign: 'center' }}>{orderFilter === 'active' ? 'No active preorders right now. New orders will appear here.' : 'No completed preorders yet — history builds as you fulfil orders.'}</Text>
-                </View>
+                <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260 }}
+                  style={{ alignItems: 'center', paddingVertical: 40, paddingHorizontal: 32, gap: 10 }}>
+                  <View style={{ width: 56, height: 56, borderRadius: 18, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center' }}>
+                    <ShoppingBag size={24} color="#5b6170" />
+                  </View>
+                  <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#fff', textAlign: 'center' }}>
+                    {orderFilter === 'active' ? 'No active preorders' : 'No history yet'}
+                  </Text>
+                  <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textMuted, textAlign: 'center', lineHeight: 19 }}>
+                    {orderFilter === 'active' ? 'New preorders from customers will appear here in real time.' : 'Completed preorders build up here over time.'}
+                  </Text>
+                  <PressableScale
+                    onPress={() => { feedback.tap(); router.push('/prepper-hub'); }}
+                    accessibilityRole="button"
+                    accessibilityLabel="Go to kitchen hub"
+                    style={{ marginTop: 4, backgroundColor: ORANGE, borderRadius: Radius.pill, paddingHorizontal: 22, paddingVertical: 11 }}>
+                    <Text style={{ fontFamily: Font.semibold, fontSize: 13.5, color: '#fff' }}>kitchen hub →</Text>
+                  </PressableScale>
+                </MotiView>
               ) : null}
               <View style={[isDesktop ? { flexDirection: 'row', flexWrap: 'wrap', gap: 14 } : { gap: 12 }, { paddingHorizontal: 20, paddingBottom: 0 }]}>
                 {filteredOrders.map((o, i) => (

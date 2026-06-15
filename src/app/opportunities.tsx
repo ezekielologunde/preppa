@@ -155,10 +155,18 @@ export default function OpportunitiesScreen() {
             </PressableScale>
           </MotiView>
         ) : !requests?.length ? (
-          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 10 }}>
-            <Inbox size={28} color={Palette.textMuted} />
-            <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center' }}>No open requests right now. Check back soon.</Text>
-          </View>
+          <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }}
+            style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
+            <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
+              <Inbox size={28} color={Palette.textMuted} />
+            </View>
+            <Text style={{ fontFamily: Font.heading, fontSize: 17, color: INK, textAlign: 'center' }}>No open requests</Text>
+            <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center', lineHeight: 20, maxWidth: 300 }}>Customer experience requests will appear here when posted. Pull down to refresh.</Text>
+            <PressableScale onPress={() => { feedback.tap(); void refetch(); }} accessibilityRole="button" accessibilityLabel="Refresh requests"
+              style={{ marginTop: 4, backgroundColor: ORANGE, borderRadius: Radius.pill, paddingHorizontal: 24, paddingVertical: 12 }}>
+              <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: '#fff' }}>refresh</Text>
+            </PressableScale>
+          </MotiView>
         ) : (
           <ScrollView showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={ORANGE} colors={[ORANGE]} />} contentContainerStyle={{ padding: 20, paddingTop: Platform.OS === 'web' ? 12 : 8, gap: 12, paddingBottom: 60 }}>
             {requests.map((r, i) => (
