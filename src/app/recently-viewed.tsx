@@ -23,7 +23,7 @@ export default function RecentlyViewedScreen() {
   const ids = useRecentlyViewedIds();
   const CARD_W = gridCardWidth(useContentWidth());
   const visible = ids.slice(0, 20);
-  const { data: meals, isLoading, isError } = useMealsByIds(visible);
+  const { data: meals, isLoading, isError, refetch } = useMealsByIds(visible);
 
   return (
     <View style={{ flex: 1, backgroundColor: Palette.canvas }}>
@@ -80,6 +80,10 @@ export default function RecentlyViewedScreen() {
             </View>
             <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>couldn't load meals</Text>
             <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center', maxWidth: 260, lineHeight: 20 }}>Check your connection and try again.</Text>
+            <PressableScale onPress={() => { feedback.tap(); void refetch(); }} accessibilityRole="button" accessibilityLabel="Retry loading recently viewed"
+              style={{ marginTop: 4, backgroundColor: ORANGE, borderRadius: Radius.pill, paddingHorizontal: 24, paddingVertical: 12 }}>
+              <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: '#fff' }}>retry</Text>
+            </PressableScale>
           </MotiView>
         ) : (
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 60, flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
