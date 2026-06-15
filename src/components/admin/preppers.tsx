@@ -34,12 +34,14 @@ function PrepperCard({ p, earnings }: { p: AdminPrepper; earnings?: PrepperEarni
   function approve() {
     setActionErr(null);
     setStatus.mutate({ prepperId: p.id, status: 'approved' }, {
+      onSuccess: () => feedback.success(),
       onError: () => { feedback.error(); setActionErr('Could not approve. Please try again.'); },
     });
   }
   function suspend() {
     setActionErr(null);
     setStatus.mutate({ prepperId: p.id, status: 'suspended' }, {
+      onSuccess: () => feedback.success(),
       onError: () => { feedback.error(); setActionErr('Could not suspend. Please try again.'); },
     });
   }
@@ -48,7 +50,7 @@ function PrepperCard({ p, earnings }: { p: AdminPrepper; earnings?: PrepperEarni
     setStatus.mutate(
       { prepperId: p.id, status: 'rejected', note: note.trim() || undefined },
       {
-        onSuccess: () => { setRejecting(false); setNote(''); },
+        onSuccess: () => { feedback.success(); setRejecting(false); setNote(''); },
         onError: () => { feedback.error(); setActionErr('Could not reject. Please try again.'); },
       },
     );
@@ -139,6 +141,7 @@ function PrepperCard({ p, earnings }: { p: AdminPrepper; earnings?: PrepperEarni
           onPress={() => {
             setActionErr(null);
             verify.mutate({ prepperId: p.id, verified: !p.verified }, {
+              onSuccess: () => feedback.success(),
               onError: () => { feedback.error(); setActionErr('Could not update verification. Please try again.'); },
             });
           }}

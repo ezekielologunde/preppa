@@ -40,7 +40,10 @@ function RequestCard({ req, prepperId }: { req: OpenRequest; prepperId: string }
     feedback.tap();
     submit.mutate(
       { requestId: req.id, prepperId, amount: amt, message: message.trim() },
-      { onError: (e) => { feedback.error(); setErr(e instanceof Error ? e.message : 'Could not submit bid.'); } },
+      {
+        onSuccess: () => feedback.success(),
+        onError: (e) => { feedback.error(); setErr(e instanceof Error ? e.message : 'Could not submit bid.'); },
+      },
     );
   }
 

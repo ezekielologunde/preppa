@@ -93,6 +93,7 @@ export function AdminCustomers() {
                 onPress={() => {
                   setCustomerErr(null);
                   setUserStatus.mutate({ userId: c.id, status: suspended ? 'active' : 'suspended' }, {
+                    onSuccess: () => feedback.success(),
                     onError: () => { feedback.error(); setCustomerErr('Could not update status. Please try again.'); },
                   });
                 }}
@@ -108,6 +109,7 @@ export function AdminCustomers() {
                 onPress={() => {
                   setCustomerErr(null);
                   grantRole.mutate({ userId: c.id, role: 'admin' }, {
+                    onSuccess: () => feedback.success(),
                     onError: () => { feedback.error(); setCustomerErr('Could not grant admin role. Please try again.'); },
                   });
                 }}

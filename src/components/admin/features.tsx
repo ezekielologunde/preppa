@@ -44,6 +44,7 @@ export function AdminFeatures() {
             onPress={() => {
               setFlagErr(null);
               setFlag.mutate({ key: f.key, enabled: !f.enabled }, {
+                onSuccess: () => feedback.success(),
                 onError: () => { feedback.error(); setFlagErr(`Could not update '${f.label}'. Please try again.`); },
               });
             }}
