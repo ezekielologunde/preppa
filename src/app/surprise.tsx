@@ -79,7 +79,7 @@ export default function SurpriseScreen() {
   function reveal() {
     feedback.tap();
     setRevealed(true);
-    if (revealed) refetch();
+    if (revealed) void refetch();
   }
 
   async function addPick(mealId: string, price: number) {

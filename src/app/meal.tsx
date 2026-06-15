@@ -150,7 +150,7 @@ export default function MealScreen() {
           ) : isError || !meal ? (
             <View style={{ alignItems: 'center', gap: 14, paddingVertical: 24 }}>
               <Text style={{ fontFamily: Font.medium, fontSize: 15, color: Palette.danger, textAlign: 'center' }}>Couldn&apos;t load this meal. Check your connection and try again.</Text>
-              <PressableScale onPress={() => { feedback.tap(); refetchMeal(); }} accessibilityRole="button" accessibilityLabel="Retry loading meal" style={{ flexDirection: 'row', alignItems: 'center', gap: 6, height: 44, paddingHorizontal: 20, borderRadius: Radius.pill, backgroundColor: Palette.ink }}>
+              <PressableScale onPress={() => { feedback.tap(); void refetchMeal(); }} accessibilityRole="button" accessibilityLabel="Retry loading meal" style={{ flexDirection: 'row', alignItems: 'center', gap: 6, height: 44, paddingHorizontal: 20, borderRadius: Radius.pill, backgroundColor: Palette.ink }}>
                 <RefreshCw size={15} color="#fff" />
                 <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: '#fff' }}>Try again</Text>
               </PressableScale>

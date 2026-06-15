@@ -108,7 +108,7 @@ export default function PrepperScreen() {
           </View>
           <Text style={{ fontFamily: Font.display, fontSize: 20, color: Palette.ink, letterSpacing: -0.4, textAlign: 'center' }}>Kitchen not found</Text>
           <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center', lineHeight: 21 }}>We couldn't load this kitchen right now. Check your connection and try again.</Text>
-          <PressableScale onPress={() => { feedback.tap(); refetchProfile(); }} accessibilityRole="button" accessibilityLabel="Retry loading kitchen"
+          <PressableScale onPress={() => { feedback.tap(); void refetchProfile(); }} accessibilityRole="button" accessibilityLabel="Retry loading kitchen"
             style={{ height: 48, paddingHorizontal: 24, borderRadius: Radius.pill, backgroundColor: Palette.ink, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8 }}>
             <RefreshCw size={15} color="#fff" />
             <Text style={{ fontFamily: Font.semibold, fontSize: 15, color: '#fff' }}>Try again</Text>

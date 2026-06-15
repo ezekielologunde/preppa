@@ -183,7 +183,7 @@ export default function RewardsScreen() {
             <Gift size={28} color={Palette.textMuted} />
             <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>couldn't load rewards</Text>
             <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center' }}>Check your connection and try again.</Text>
-            <PressableScale onPress={() => { feedback.tap(); r.refetch(); }} accessibilityRole="button" accessibilityLabel="Retry loading rewards"
+            <PressableScale onPress={() => { feedback.tap(); void r.refetch(); }} accessibilityRole="button" accessibilityLabel="Retry loading rewards"
               style={{ marginTop: 4, paddingHorizontal: 22, height: 48, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
               <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#fff' }}>retry</Text>
             </PressableScale>
