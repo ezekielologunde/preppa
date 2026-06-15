@@ -12,7 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PreppaLogo } from '@/components/preppa-logo';
 import {
-  ActionSplitter, CategoryIconsRow, ExperiencesBar, HomeOnboarding, MyPlansSection,
+  ActionSplitter, CategoryIconsRow, ExperiencesBar, MyPlansSection,
   RewardsBanner, SurpriseMeBanner,
 } from '@/components/home-extras';
 import {
@@ -304,16 +304,15 @@ export default function HomeScreen() {
                 contentContainerStyle={{ paddingTop: 12, paddingBottom: 48 }}>
                 {headerEl}
                 {searchEl}
-                <ActionSplitter planImage={meals[0]?.image} dropImage={meals[1]?.image} />
-                <View style={{ marginTop: 24 }}><ExperiencesBar /></View>
                 <CategoryIconsRow />
+                <View style={{ marginTop: 4 }}><TrendingSection meals={meals} isLoading={mealsLoading} isTablet={false} /></View>
                 {!activeOrder ? <RushBanner /> : null}
                 {activeOrder ? <ActiveOrderBanner order={activeOrder} /> : null}
+                <ActionSplitter planImage={meals[0]?.image} dropImage={meals[1]?.image} />
                 <ChefsInActionFeed />
-                <HomeOnboarding />
-                {uid ? <View style={{ marginTop: 24 }}><FollowingKitchensSection userId={uid} /></View> : null}
                 <View style={{ marginTop: 24 }}><FreshDropsSection /></View>
-                <View style={{ marginTop: 24 }}><TrendingSection meals={meals} isLoading={mealsLoading} isTablet={false} /></View>
+                <View style={{ marginTop: 24 }}><ExperiencesBar /></View>
+                {uid ? <View style={{ marginTop: 24 }}><FollowingKitchensSection userId={uid} /></View> : null}
               </ScrollView>
             </View>
             <View style={{ width: cols.rail }}>
@@ -340,20 +339,19 @@ export default function HomeScreen() {
           contentContainerStyle={{ paddingTop: Platform.OS === 'web' ? 12 : 0, paddingBottom: 40 }}>
           {headerEl}
           {searchEl}
-          <ActionSplitter planImage={meals[0]?.image} dropImage={meals[1]?.image} />
-          <View style={{ marginTop: 24 }}><ExperiencesBar /></View>
           <CategoryIconsRow />
+          <View style={{ marginTop: 4 }}><TrendingSection meals={meals} isLoading={mealsLoading} isTablet={isTablet} /></View>
           {!activeOrder ? <RushBanner /> : null}
           {activeOrder ? <ActiveOrderBanner order={activeOrder} /> : null}
+          <ActionSplitter planImage={meals[0]?.image} dropImage={meals[1]?.image} />
           <ChefsInActionFeed />
-          <HomeOnboarding />
-          {uid ? <View style={{ marginTop: 24 }}><FollowingKitchensSection userId={uid} /></View> : null}
           <View style={{ marginTop: 24 }}><FreshDropsSection /></View>
-          <View style={{ marginTop: 24 }}><TrendingSection meals={meals} isLoading={mealsLoading} isTablet={isTablet} /></View>
+          <View style={{ marginTop: 24 }}><ExperiencesBar /></View>
+          {uid ? <View style={{ marginTop: 24 }}><FollowingKitchensSection userId={uid} /></View> : null}
           {uid ? <View style={{ marginTop: 24 }}><MyPlansSection userId={uid} /></View> : null}
-          <View style={{ marginTop: 16 }}><RewardsBanner /></View>
           <View style={{ marginTop: 24 }}><MealPlansDiscoverySection /></View>
           <View style={{ marginTop: 24 }}><SurpriseMeBanner /></View>
+          <View style={{ marginTop: 16 }}><RewardsBanner /></View>
           <View style={{ marginTop: 16 }}><BecomePrepperNudge /></View>
         </ScrollView>
       </SafeAreaView>

@@ -62,10 +62,10 @@ export function SectionHeader({
   title, linkLabel, onLink, Icon,
 }: { title: string; linkLabel?: string; onLink?: () => void; Icon?: ComponentType<{ size?: number; color?: string }> }) {
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, marginTop: 8, marginBottom: 10 }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
-        {Icon ? <Icon size={18} color={ORANGE} /> : null}
-        <Text style={{ fontFamily: Font.display, fontSize: 18, color: INK, letterSpacing: -0.4 }}>{title}</Text>
+    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, marginTop: 12, marginBottom: 10 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+        {Icon ? <Icon size={17} color={ORANGE} /> : null}
+        <Text style={{ fontFamily: Font.display, fontSize: 17, color: INK, letterSpacing: -0.35 }}>{title}</Text>
       </View>
       {onLink ? (
         <PressableScale onPress={onLink} accessibilityRole="button" accessibilityLabel={linkLabel ?? 'See all'}>
@@ -93,10 +93,10 @@ export function CategoryIconsRow() {
             }}
             accessibilityRole="button" accessibilityLabel={`Browse ${c.label}`}
             style={{ alignItems: 'center', gap: 6 }}>
-            <View style={{ width: 60, height: 60, borderRadius: 22, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center', ...Shadow.card }}>
-              <c.Icon size={26} color={c.color} />
+            <View style={{ width: 52, height: 52, borderRadius: 16, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center', ...Shadow.card }}>
+              <c.Icon size={22} color={c.color} />
             </View>
-            <Text style={{ fontFamily: Font.medium, fontSize: 11, color: Palette.textSecondary }}>{c.label}</Text>
+            <Text style={{ fontFamily: Font.medium, fontSize: 10.5, color: Palette.textSecondary }}>{c.label}</Text>
           </PressableScale>
         </MotiView>
       ))}
@@ -399,11 +399,11 @@ export function ExperiencesBar() {
             <PressableScale
               onPress={() => { feedback.tap(); router.push('/experiences' as never); }}
               accessibilityRole="button" accessibilityLabel={`Browse ${exp.label} experiences`}
-              style={{ alignItems: 'center', gap: 8 }}>
-              <View style={{ width: 68, height: 68, borderRadius: 22, backgroundColor: exp.color + '18', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: exp.color + '28' }}>
-                <exp.Icon size={26} color={exp.color} />
+              style={{ alignItems: 'center', gap: 6 }}>
+              <View style={{ width: 60, height: 60, borderRadius: 18, backgroundColor: exp.color + '18', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: exp.color + '28' }}>
+                <exp.Icon size={24} color={exp.color} />
               </View>
-              <Text style={{ fontFamily: Font.medium, fontSize: 11, color: Palette.textSecondary, textAlign: 'center', maxWidth: 68 }}>{exp.label}</Text>
+              <Text style={{ fontFamily: Font.medium, fontSize: 10.5, color: Palette.textSecondary, textAlign: 'center', maxWidth: 60 }}>{exp.label}</Text>
             </PressableScale>
           </MotiView>
         ))}
