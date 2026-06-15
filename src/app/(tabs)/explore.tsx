@@ -24,6 +24,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { CuisineCard } from '@/components/cuisine-card';
 import { type AdvancedFilters, countActiveFilters, ExploreFilterSheet, FILTER_DEFAULTS } from '@/components/explore-filter-sheet';
+import { QuickAddButton } from '@/components/home-feed';
 import { MealCard } from '@/components/meal-card';
 import { PrepperCard } from '@/components/prepper-card';
 import { PressableScale } from '@/components/ui/pressable-scale';
@@ -299,7 +300,12 @@ export default function ExploreScreen() {
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: pad, gap: 12, paddingBottom: 20 }}>
                 {filteredMeals.map((m, i) => (
                   <MotiView key={m.id} from={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 200, delay: i * 35 }}>
-                    <MealCard meal={m} width={mealCardW} />
+                    <View style={{ position: 'relative' }}>
+                      <MealCard meal={m} width={mealCardW} />
+                      <View style={{ position: 'absolute', bottom: 12, right: 12 }}>
+                        <QuickAddButton meal={m} />
+                      </View>
+                    </View>
                   </MotiView>
                 ))}
               </View>
@@ -314,7 +320,12 @@ export default function ExploreScreen() {
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: pad, gap: 12, paddingBottom: 20 }}>
                   {drops.map((m, i) => (
                     <MotiView key={m.id} from={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 200, delay: i * 35 }}>
-                      <MealCard meal={m} width={mealCardW} />
+                      <View style={{ position: 'relative' }}>
+                        <MealCard meal={m} width={mealCardW} />
+                        <View style={{ position: 'absolute', bottom: 12, right: 12 }}>
+                          <QuickAddButton meal={m} />
+                        </View>
+                      </View>
                     </MotiView>
                   ))}
                 </View>
@@ -322,7 +333,12 @@ export default function ExploreScreen() {
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: pad, gap: 12, paddingBottom: 20 }}>
                   {drops.map((m, i) => (
                     <MotiView key={m.id} from={{ opacity: 0, translateX: 14 }} animate={{ opacity: 1, translateX: 0 }} transition={{ type: 'timing', duration: 220, delay: i * 35 }}>
-                      <MealCard meal={m} width={carouselCardWidth} />
+                      <View style={{ position: 'relative' }}>
+                        <MealCard meal={m} width={carouselCardWidth} />
+                        <View style={{ position: 'absolute', bottom: 12, right: 12 }}>
+                          <QuickAddButton meal={m} />
+                        </View>
+                      </View>
                     </MotiView>
                   ))}
                 </ScrollView>
@@ -347,7 +363,12 @@ export default function ExploreScreen() {
                   {forYou.map((s, i) => (
                     <MotiView key={s.meal.id} from={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 200, delay: i * 35 }}>
                       <View>
-                        <MealCard meal={s.meal} width={mealCardW} />
+                        <View style={{ position: 'relative' }}>
+                          <MealCard meal={s.meal} width={mealCardW} />
+                          <View style={{ position: 'absolute', bottom: 12, right: 12 }}>
+                            <QuickAddButton meal={s.meal} />
+                          </View>
+                        </View>
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6, paddingHorizontal: 2 }}>
                           <Sparkles size={11} color={Palette.brand} />
                           <Text numberOfLines={1} style={{ fontFamily: Font.medium, fontSize: 11, color: Palette.textSecondary, flex: 1 }}>{s.reason}</Text>
@@ -361,7 +382,12 @@ export default function ExploreScreen() {
                   {forYou.map((s, i) => (
                     <MotiView key={s.meal.id} from={{ opacity: 0, translateX: 14 }} animate={{ opacity: 1, translateX: 0 }} transition={{ type: 'timing', duration: 220, delay: i * 35 }}>
                       <View>
-                        <MealCard meal={s.meal} width={carouselCardWidth} />
+                        <View style={{ position: 'relative' }}>
+                          <MealCard meal={s.meal} width={carouselCardWidth} />
+                          <View style={{ position: 'absolute', bottom: 12, right: 12 }}>
+                            <QuickAddButton meal={s.meal} />
+                          </View>
+                        </View>
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6, paddingHorizontal: 2 }}>
                           <Sparkles size={11} color={Palette.brand} />
                           <Text numberOfLines={1} style={{ fontFamily: Font.medium, fontSize: 11, color: Palette.textSecondary, flex: 1 }}>{s.reason}</Text>
