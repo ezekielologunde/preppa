@@ -188,7 +188,7 @@ export default function ProfileScreen() {
   // ─── Rewards ────────────────────────────────────────────────────────────────
   const rewardsEl = (
     <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280, delay: 60 }}>
-      <RewardsCard rewards={rewards} onPress={() => { feedback.tap(); go('/rewards'); }} />
+      <RewardsCard rewards={rewards} isLoading={rewards.isLoading} onPress={() => { feedback.tap(); go('/rewards'); }} />
     </MotiView>
   );
 

@@ -4,6 +4,7 @@ import { MotiView } from 'moti';
 import { ScrollView, Text, View } from 'react-native';
 
 import { PressableScale } from '@/components/ui/pressable-scale';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Font } from '@/constants/fonts';
 import { Palette, Radius } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
@@ -177,7 +178,14 @@ export function MealPlansSection({ subs, onViewAll, onPress }: {
 
 type RewardsData = { points: number; tier: { name: string }; nextTier: unknown; toNext: number; progress: number };
 
-export function RewardsCard({ rewards, onPress }: { rewards: RewardsData; onPress: () => void }) {
+export function RewardsCard({ rewards, isLoading, onPress }: { rewards: RewardsData; isLoading?: boolean; onPress: () => void }) {
+  if (isLoading) {
+    return (
+      <View style={{ marginHorizontal: 20 }}>
+        <Skeleton width="100%" height={120} radius={22} />
+      </View>
+    );
+  }
   return (
     <PressableScale onPress={onPress} accessibilityRole="button" accessibilityLabel="View your rewards"
       style={{ marginHorizontal: 20 }}>
