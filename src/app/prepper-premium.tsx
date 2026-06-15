@@ -137,7 +137,7 @@ export default function PrepperPremiumScreen() {
                 transition={{ type: 'timing', duration: 200 }}
                 style={{ flex: 1, borderRadius: Radius.sm, overflow: 'hidden' }}>
                 <PressableScale onPress={() => { feedback.tap(); setYearly(false); }}
-                  accessibilityRole="button" accessibilityState={{ selected: !yearly }}
+                  accessibilityRole="button" accessibilityLabel="Monthly billing" accessibilityState={{ selected: !yearly }}
                   style={{ flex: 1, height: 44, alignItems: 'center', justifyContent: 'center' }}>
                   <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: !yearly ? '#fff' : MUTED }}>Monthly</Text>
                 </PressableScale>
@@ -147,7 +147,7 @@ export default function PrepperPremiumScreen() {
                 transition={{ type: 'timing', duration: 200 }}
                 style={{ flex: 1, borderRadius: Radius.sm, overflow: 'hidden' }}>
                 <PressableScale onPress={() => { feedback.tap(); setYearly(true); }}
-                  accessibilityRole="button" accessibilityState={{ selected: yearly }}
+                  accessibilityRole="button" accessibilityLabel={`Yearly billing, save ${YEARLY_SAVING}%`} accessibilityState={{ selected: yearly }}
                   style={{ flex: 1, height: 44, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8 }}>
                   <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: yearly ? '#fff' : MUTED }}>Yearly</Text>
                   {!yearly ? (

@@ -138,7 +138,7 @@ export default function PrepPlusScreen() {
                   transition={{ type: 'timing', duration: 200 }}
                   style={{ flex: 1, borderRadius: Radius.sm, overflow: 'hidden' }}>
                   <PressableScale onPress={() => { feedback.tap(); setYearly(false); }}
-                    accessibilityRole="button" accessibilityState={{ selected: !yearly }}
+                    accessibilityRole="button" accessibilityLabel="Monthly billing, $9.99 per month" accessibilityState={{ selected: !yearly }}
                     style={{ flex: 1, height: 44, alignItems: 'center', justifyContent: 'center' }}>
                     <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: !yearly ? '#fff' : Palette.textSecondary }}>Monthly · $9.99</Text>
                   </PressableScale>
@@ -148,7 +148,7 @@ export default function PrepPlusScreen() {
                   transition={{ type: 'timing', duration: 200 }}
                   style={{ flex: 1, borderRadius: Radius.sm, overflow: 'hidden' }}>
                   <PressableScale onPress={() => { feedback.tap(); setYearly(true); }}
-                    accessibilityRole="button" accessibilityState={{ selected: yearly }}
+                    accessibilityRole="button" accessibilityLabel={`Yearly billing, $89 per year, save ${YEARLY_SAVING}%`} accessibilityState={{ selected: yearly }}
                     style={{ flex: 1, height: 44, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 6 }}>
                     <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: yearly ? '#fff' : Palette.textSecondary }}>Yearly · $89</Text>
                     {!yearly ? (
