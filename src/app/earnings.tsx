@@ -88,7 +88,7 @@ export default function EarningsScreen() {
             </View>
             <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>couldn't load earnings</Text>
             <Text style={{ fontFamily: Font.body, fontSize: 14, color: MUTED, textAlign: 'center' }}>Check your connection and try again.</Text>
-            <PressableScale onPress={() => { feedback.tap(); refetch(); }} accessibilityRole="button" accessibilityLabel="Retry loading earnings"
+            <PressableScale onPress={() => { feedback.tap(); void refetch(); }} accessibilityRole="button" accessibilityLabel="Retry loading earnings"
               style={{ marginTop: 6, backgroundColor: ORANGE, borderRadius: Radius.pill, paddingHorizontal: 22, paddingVertical: 12 }}>
               <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: '#fff' }}>retry</Text>
             </PressableScale>
