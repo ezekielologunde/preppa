@@ -65,7 +65,7 @@ export default function PrepperScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const { user } = useAuth();
   const { data: p, isLoading, isError, refetch: refetchProfile } = usePrepperProfile(id);
-  const { data: reviews, refetch: refetchReviews } = usePrepperReviews(id, 6);
+  const { data: reviews, isLoading: reviewsLoading, refetch: refetchReviews } = usePrepperReviews(id, 6);
   const { data: following, refetch: refetchFollowing } = useIsFollowing(id, user?.id);
   const toggleFollow = useToggleFollow(id ?? '', user?.id);
   const { data: plans, refetch: refetchPlans } = useKitchenPlans(id);
@@ -350,7 +350,12 @@ export default function PrepperScreen() {
         )}
 
         {/* Reviews */}
-        {reviews && reviews.length ? (
+        {reviewsLoading ? (
+          <View style={{ marginHorizontal: 16, marginTop: 20, gap: 10 }}>
+            <Skeleton width={80} height={14} radius={6} />
+            {[0, 1].map((i) => <Skeleton key={i} width="100%" height={80} radius={16} />)}
+          </View>
+        ) : reviews && reviews.length ? (
           <>
             <Text style={{ fontFamily: Font.display, fontSize: 15, color: INK, letterSpacing: -0.3, marginHorizontal: 20, marginTop: 20, marginBottom: 10 }}>reviews</Text>
             <View style={{ gap: 10, marginHorizontal: 16 }}>

@@ -99,7 +99,7 @@ export default function SearchScreen() {
   const { data: categories } = useMealCategories();
   const price = PRICES.find((p) => p.key === priceKey);
   const { data: preppers } = usePrepperSearch(debounced);
-  const { data: results, isLoading, isFetching } = useMealSearch(debounced, {
+  const { data: results, isLoading, isFetching, isError } = useMealSearch(debounced, {
     categoryId,
     priceMin: price?.min ?? null,
     priceMax: price?.max ?? null,
@@ -291,6 +291,15 @@ export default function SearchScreen() {
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12, padding: 20 }}>
             {Array.from({ length: 4 }).map((_, i) => <CardSkeleton key={i} width={CARD_W} />)}
           </View>
+        ) : isError ? (
+          <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 240 }}
+            style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 10 }}>
+            <View style={{ width: 56, height: 56, borderRadius: 18, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
+              <Search size={22} color={Palette.textMuted} />
+            </View>
+            <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>search unavailable</Text>
+            <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textMuted, textAlign: 'center', lineHeight: 20 }}>Check your connection and try again.</Text>
+          </MotiView>
         ) : (sortedResults && sortedResults.length > 0) || (preppers && preppers.length > 0) ? (
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
             {preppers && preppers.length > 0 ? (
@@ -355,7 +364,11 @@ export default function SearchScreen() {
               <PressableScale onPress={() => { feedback.tap(); setCategoryId(null); setPriceKey(null); setSortKey('default'); }} accessibilityRole="button" accessibilityLabel="Clear all filters" style={{ marginTop: 6, paddingHorizontal: 18, height: 42, borderRadius: 12, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
                 <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: ORANGE }}>clear filters</Text>
               </PressableScale>
-            ) : null}
+            ) : (
+              <PressableScale onPress={() => { feedback.tap(); router.push('/explore'); }} accessibilityRole="button" accessibilityLabel="Browse all cuisines" style={{ marginTop: 6, paddingHorizontal: 20, height: 44, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
+                <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: '#fff' }}>browse cuisines →</Text>
+              </PressableScale>
+            )}
           </MotiView>
         )}
         </View>
