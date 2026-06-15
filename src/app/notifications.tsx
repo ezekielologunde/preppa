@@ -304,6 +304,13 @@ export default function NotificationsScreen() {
               }}>
               Preorder updates, new meal drops, and messages will appear here.
             </Text>
+            <PressableScale
+              onPress={() => { feedback.tap(); router.push('/'); }}
+              accessibilityRole="button"
+              accessibilityLabel="Browse meals"
+              style={{ marginTop: 4, height: 44, paddingHorizontal: 20, borderRadius: Radius.pill, backgroundColor: Palette.brand, alignItems: 'center', justifyContent: 'center' }}>
+              <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: '#fff' }}>Browse meals</Text>
+            </PressableScale>
           </MotiView>
         ) : (
           <ScrollView

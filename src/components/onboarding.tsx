@@ -1,9 +1,9 @@
 import { BlurView } from 'expo-blur';
-import * as Haptics from 'expo-haptics';
+import { feedback } from '@/lib/feedback';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MotiView } from 'moti';
 import { useEffect, useState } from 'react';
-import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -127,9 +127,7 @@ function Orb({ size, color, left, top, delay = 0, drift = 28 }: {
 
 export function Onboarding({ onGetStarted, onSignIn }: Props) {
   function handleStart() {
-    if (Platform.OS !== 'web') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    }
+    feedback.impact();
     onGetStarted();
   }
 
