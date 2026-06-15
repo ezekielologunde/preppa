@@ -133,8 +133,8 @@ export function ExploreFilterSheet({
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <Pressable onPress={onClose} style={{ flex: 1, backgroundColor: Palette.overlay, justifyContent: 'flex-end' }}>
-        <Pressable onPress={(e) => e.stopPropagation()}
+      <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="Close filters" style={{ flex: 1, backgroundColor: Palette.overlay, justifyContent: 'flex-end' }}>
+        <Pressable onPress={(e) => e.stopPropagation()} accessible={false}
           style={{ backgroundColor: Palette.surface, borderTopLeftRadius: 28, borderTopRightRadius: 28, maxHeight: '90%', ...(isTabletUp ? { maxWidth: 540, alignSelf: 'center', width: '100%' } : {}) }}>
 
           <View style={{ width: 40, height: 4, borderRadius: 2, backgroundColor: Palette.border, alignSelf: 'center', marginTop: 12 }} />

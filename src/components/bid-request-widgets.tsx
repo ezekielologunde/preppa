@@ -21,11 +21,13 @@ export function Stepper({ value, onChange, min = 1, max = 100 }: { value: number
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 18, backgroundColor: Palette.canvas, borderRadius: 14, paddingHorizontal: 16, paddingVertical: 10, borderWidth: 1, borderColor: Palette.border }}>
       <PressableScale onPress={() => { feedback.tap(); onChange(Math.max(min, value - 1)); }} disabled={value <= min}
+        accessibilityRole="button" accessibilityLabel={`Decrease, current value ${value}`}
         style={{ width: 34, height: 34, borderRadius: 10, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center', opacity: value <= min ? 0.35 : 1 }}>
         <Minus size={15} color={INK} />
       </PressableScale>
       <Text style={{ fontFamily: Font.display, fontSize: 22, color: INK, minWidth: 34, textAlign: 'center', fontVariant: ['tabular-nums'] }}>{value}</Text>
       <PressableScale onPress={() => { feedback.tap(); onChange(Math.min(max, value + 1)); }} disabled={value >= max}
+        accessibilityRole="button" accessibilityLabel={`Increase, current value ${value}`}
         style={{ width: 34, height: 34, borderRadius: 10, backgroundColor: ORANGE + '1A', alignItems: 'center', justifyContent: 'center', opacity: value >= max ? 0.35 : 1 }}>
         <Plus size={15} color={ORANGE} />
       </PressableScale>
@@ -43,12 +45,14 @@ export function BudgetPerServingPicker({ value, onChange }: { value: number | nu
           const on = !custom && value === p;
           return (
             <PressableScale key={p} onPress={() => { feedback.tap(); setCustom(false); onChange(p); }}
+              accessibilityRole="button" accessibilityLabel={`Set budget to $${p} per serving`}
               style={{ paddingHorizontal: 14, height: 38, borderRadius: Radius.pill, borderWidth: 1.5, borderColor: on ? ORANGE : Palette.border, backgroundColor: on ? Palette.brandTint : Palette.canvas, alignItems: 'center', justifyContent: 'center' }}>
               <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: on ? ORANGE : INK }}>${p}/serving</Text>
             </PressableScale>
           );
         })}
         <PressableScale onPress={() => { feedback.tap(); setCustom(true); onChange(null); }}
+          accessibilityRole="button" accessibilityLabel="Set custom budget per serving"
           style={{ paddingHorizontal: 14, height: 38, borderRadius: Radius.pill, borderWidth: 1.5, borderColor: custom ? ORANGE : Palette.border, backgroundColor: custom ? Palette.brandTint : Palette.canvas, alignItems: 'center', justifyContent: 'center' }}>
           <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: custom ? ORANGE : INK }}>Custom</Text>
         </PressableScale>
@@ -122,8 +126,8 @@ type ManageModalProps = {
 export function ManageRequestModal({ request, onClose, onReviewBid }: ManageModalProps) {
   return (
     <Modal visible={!!request} transparent animationType="slide" onRequestClose={onClose}>
-      <Pressable onPress={onClose} style={{ flex: 1, backgroundColor: Palette.overlay, justifyContent: 'flex-end' }}>
-        <Pressable onPress={(e) => e.stopPropagation()} style={{ backgroundColor: Palette.surface, borderTopLeftRadius: 28, borderTopRightRadius: 28, maxHeight: '85%' }}>
+      <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="Close" style={{ flex: 1, backgroundColor: Palette.overlay, justifyContent: 'flex-end' }}>
+        <Pressable onPress={(e) => e.stopPropagation()} accessible={false} style={{ backgroundColor: Palette.surface, borderTopLeftRadius: 28, borderTopRightRadius: 28, maxHeight: '85%' }}>
           <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 24, gap: 14 }}>
             <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
               <View style={{ flex: 1, paddingRight: 12 }}>
