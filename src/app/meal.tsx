@@ -3,7 +3,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { BadgeCheck, Check, Clock, MessageCircle, RefreshCw, Star, Zap } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { MotiView } from 'moti';
-import { ActivityIndicator, Platform, ScrollView, Text, useWindowDimensions, View } from 'react-native';
+import { Platform, ScrollView, Text, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { MealGallery } from '@/components/meal-gallery';
