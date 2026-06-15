@@ -242,26 +242,26 @@ export default function HomeScreen() {
       {/* ── Hero section ── */}
       <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }}
         transition={{ type: 'spring', damping: 14, stiffness: 130, delay: 60 }}>
-        <View style={{ flexDirection: 'row', paddingLeft: headerPad, marginTop: 20, alignItems: 'flex-end' }}>
+        <View style={{ flexDirection: 'row', paddingLeft: headerPad, marginTop: 10, alignItems: 'flex-end' }}>
           {/* Left: headline + subtitle */}
-          <View style={{ flex: 1, paddingRight: 10, paddingBottom: 14 }}>
-            <Text style={{ fontFamily: Font.display, fontSize: 30, color: INK, letterSpacing: -0.9, lineHeight: 36 }}>
+          <View style={{ flex: 1, paddingRight: 10, paddingBottom: 6 }}>
+            <Text style={{ fontFamily: Font.display, fontSize: 26, color: INK, letterSpacing: -0.8, lineHeight: 31 }}>
               Real food.
             </Text>
-            <Text style={{ fontFamily: Font.display, fontSize: 30, color: ORANGE, letterSpacing: -0.9, lineHeight: 36 }}>
+            <Text style={{ fontFamily: Font.display, fontSize: 26, color: ORANGE, letterSpacing: -0.8, lineHeight: 31 }}>
               Made by local cooks.
             </Text>
-            <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: Palette.textSecondary, marginTop: 10, lineHeight: 18 }}>
+            <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: Palette.textSecondary, marginTop: 6, lineHeight: 18 }}>
               Skip the chains — order from the best home preppers in your neighborhood.
             </Text>
           </View>
           {/* Right: food photo + rating badge */}
           {heroMeal?.image ? (
-            <View style={{ width: 148 }}>
+            <View style={{ width: 140 }}>
               <Image source={imgUrl(heroMeal.image, 400)}
-                style={{ width: 148, height: 185, borderRadius: 22 }}
+                style={{ width: 140, height: 158, borderRadius: 20 }}
                 contentFit="cover" transition={200} />
-              <View style={{ position: 'absolute', bottom: 14, left: -22, backgroundColor: Palette.surface, borderRadius: 14, paddingHorizontal: 10, paddingVertical: 8, ...Shadow.floating, maxWidth: 148 }}>
+              <View style={{ position: 'absolute', bottom: 10, left: -20, backgroundColor: Palette.surface, borderRadius: 14, paddingHorizontal: 10, paddingVertical: 8, ...Shadow.floating, maxWidth: 140 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
                   {[0, 1, 2, 3].map((i) => <Star key={i} size={11} fill={Palette.amber} color={Palette.amber} />)}
                   <Text style={{ fontFamily: Font.heading, fontSize: 13, color: INK, marginLeft: 3 }}>4.8</Text>
@@ -270,7 +270,7 @@ export default function HomeScreen() {
               </View>
             </View>
           ) : (
-            <View style={{ width: 148, height: 185, borderRadius: 22, backgroundColor: Palette.brandTint }} />
+            <View style={{ width: 140, height: 158, borderRadius: 20, backgroundColor: Palette.brandTint }} />
           )}
         </View>
       </MotiView>
