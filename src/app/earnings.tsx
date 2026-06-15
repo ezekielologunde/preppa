@@ -2,10 +2,11 @@ import { useRouter } from 'expo-router';
 import { ChevronLeft, DollarSign, Lightbulb, Receipt, TrendingUp, Wallet } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useState } from 'react';
-import { ActivityIndicator, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PressableScale } from '@/components/ui/pressable-scale';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Font } from '@/constants/fonts';
 import { feedback } from '@/lib/feedback';
 import { useBreakpoint } from '@/lib/layout';
@@ -79,7 +80,19 @@ export default function EarningsScreen() {
         </View>
 
         {isLoading ? (
-          <ActivityIndicator color={ORANGE} style={{ marginTop: 40 }} />
+          <View style={{ padding: 20, gap: 14 }}>
+            <Skeleton width="100%" height={140} radius={22} style={{ backgroundColor: '#ffffff18' }} />
+            <View style={{ flexDirection: 'row', gap: 14 }}>
+              <Skeleton height={96} radius={18} style={{ flex: 1, backgroundColor: '#ffffff18' }} />
+              <Skeleton height={96} radius={18} style={{ flex: 1, backgroundColor: '#ffffff18' }} />
+            </View>
+            <Skeleton width="100%" height={56} radius={16} style={{ backgroundColor: '#ffffff18' }} />
+            <Skeleton width="100%" height={128} radius={18} style={{ backgroundColor: '#ffffff18' }} />
+            <Skeleton width={80} height={20} radius={6} style={{ backgroundColor: '#ffffff18' }} />
+            {[0, 1, 2].map(i => (
+              <Skeleton key={i} width="100%" height={66} radius={16} style={{ backgroundColor: '#ffffff18' }} />
+            ))}
+          </View>
         ) : isError ? (
           <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }}
             style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>

@@ -1,10 +1,11 @@
 import { useRouter } from 'expo-router';
 import { ChevronLeft, ChevronRight, Clock, Flame, Heart, Leaf, Sparkles, TrendingUp, UtensilsCrossed } from 'lucide-react-native';
 import { MotiView } from 'moti';
-import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PressableScale } from '@/components/ui/pressable-scale';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Font } from '@/constants/fonts';
 import { feedback } from '@/lib/feedback';
 import { useMyOrders } from '@/lib/queries/orders';
@@ -59,7 +60,7 @@ const SAVINGS_TIPS = [
 export default function InsightsScreen() {
   const router = useRouter();
   const { user } = useAuth();
-  const { data: orders, isLoading, isError } = useMyOrders(user?.id);
+  const { data: orders, isLoading, isError, refetch } = useMyOrders(user?.id);
   const completed = (orders ?? []).filter((o) => o.status === 'completed');
   const total = completed.reduce((s, o) => s + o.total, 0);
   const avg = completed.length ? total / completed.length : 0;
@@ -100,16 +101,27 @@ export default function InsightsScreen() {
         </View>
 
         {isLoading ? (
-          <ActivityIndicator color={ORANGE} style={{ marginTop: 48 }} />
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 20, gap: 16, paddingBottom: 32 }}>
+            <Skeleton width="100%" height={168} radius={20} />
+            <View style={{ flexDirection: 'row', gap: 10 }}>
+              {[0, 1, 2].map(i => <Skeleton key={i} height={72} radius={14} style={{ flex: 1 }} />)}
+            </View>
+            <Skeleton width="100%" height={130} radius={20} />
+            <Skeleton width="100%" height={140} radius={20} />
+            <Skeleton width="100%" height={200} radius={20} />
+          </ScrollView>
         ) : isError ? (
           <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }}
             style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
             <TrendingUp size={28} color={Palette.textMuted} />
             <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>couldn't load your stats</Text>
             <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center' }}>Check your connection and try again.</Text>
+            <PressableScale onPress={() => { feedback.tap(); void refetch(); }} accessibilityRole="button" accessibilityLabel="Retry loading stats"
+              style={{ marginTop: 4, backgroundColor: ORANGE, borderRadius: Radius.pill, paddingHorizontal: 22, paddingVertical: 12 }}>
+              <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: '#fff' }}>retry</Text>
+            </PressableScale>
           </MotiView>
-        ) : null}
-        {!isLoading && !isError ? (
+        ) : (
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 20, gap: 16, paddingBottom: 32 }}>
 
           {/* Hero stats */}
@@ -219,7 +231,7 @@ export default function InsightsScreen() {
           </MotiView>
 
         </ScrollView>
-        ) : null}
+        )}
       </SafeAreaView>
     </View>
   );
