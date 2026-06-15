@@ -6,6 +6,7 @@ import { Text, TextInput, View } from 'react-native';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
 import { Radius } from '@/constants/theme';
+import { feedback } from '@/lib/feedback';
 import { useAdminPreppers, usePrepperEarnings, useSetPrepperStatus, useVerifyPrepper } from '@/lib/queries/admin';
 import type { AdminPrepper } from '@/lib/queries/admin';
 import type { PrepperEarningsRow, PrepperStatus } from '@/types/database.types';
@@ -26,15 +27,31 @@ function PrepperCard({ p, earnings }: { p: AdminPrepper; earnings?: PrepperEarni
   const [expanded, setExpanded] = useState(false);
   const [rejecting, setRejecting] = useState(false);
   const [note, setNote] = useState('');
+  const [actionErr, setActionErr] = useState<string | null>(null);
   const setStatus = useSetPrepperStatus();
   const verify = useVerifyPrepper();
 
-  function approve() { setStatus.mutate({ prepperId: p.id, status: 'approved' }); }
-  function suspend() { setStatus.mutate({ prepperId: p.id, status: 'suspended' }); }
+  function approve() {
+    setActionErr(null);
+    setStatus.mutate({ prepperId: p.id, status: 'approved' }, {
+      onError: () => { feedback.error(); setActionErr('Could not approve. Please try again.'); },
+    });
+  }
+  function suspend() {
+    setActionErr(null);
+    setStatus.mutate({ prepperId: p.id, status: 'suspended' }, {
+      onError: () => { feedback.error(); setActionErr('Could not suspend. Please try again.'); },
+    });
+  }
   function confirmReject() {
-    setStatus.mutate({ prepperId: p.id, status: 'rejected', note: note.trim() || undefined });
-    setRejecting(false);
-    setNote('');
+    setActionErr(null);
+    setStatus.mutate(
+      { prepperId: p.id, status: 'rejected', note: note.trim() || undefined },
+      {
+        onSuccess: () => { setRejecting(false); setNote(''); },
+        onError: () => { feedback.error(); setActionErr('Could not reject. Please try again.'); },
+      },
+    );
   }
 
   return (
@@ -119,7 +136,12 @@ function PrepperCard({ p, earnings }: { p: AdminPrepper; earnings?: PrepperEarni
       {/* Identity verification (approved preppers only) */}
       {p.status === 'approved' ? (
         <PressableScale
-          onPress={() => verify.mutate({ prepperId: p.id, verified: !p.verified })}
+          onPress={() => {
+            setActionErr(null);
+            verify.mutate({ prepperId: p.id, verified: !p.verified }, {
+              onError: () => { feedback.error(); setActionErr('Could not update verification. Please try again.'); },
+            });
+          }}
           disabled={verify.isPending}
           accessibilityRole="button"
           accessibilityLabel={p.verified ? 'Remove verification' : `Verify ${p.display_name}`}
@@ -130,6 +152,8 @@ function PrepperCard({ p, earnings }: { p: AdminPrepper; earnings?: PrepperEarni
           </Text>
         </PressableScale>
       ) : null}
+
+      {actionErr ? <Text style={{ fontFamily: Font.medium, fontSize: 12.5, color: Admin.danger, marginTop: 8 }}>{actionErr}</Text> : null}
 
       {/* Rejection form — shown instead of action buttons while rejecting */}
       {rejecting ? (

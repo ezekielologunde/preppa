@@ -41,7 +41,7 @@ function ResolveForm({ dispute, onDone }: { dispute: AdminDisputeRow; onDone: ()
     setErr(null);
     resolve.mutate(
       { disputeId: dispute.id, resolution, note: note.trim() || undefined },
-      { onSuccess: onDone, onError: (e) => setErr(e instanceof Error ? e.message : 'Could not resolve dispute.') },
+      { onSuccess: onDone, onError: (e) => { feedback.error(); setErr(e instanceof Error ? e.message : 'Could not resolve dispute.'); } },
     );
   }
 

@@ -6,6 +6,7 @@ import { Text, TextInput, View } from 'react-native';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
 import { Radius } from '@/constants/theme';
+import { feedback } from '@/lib/feedback';
 import { useAdminCustomerOrderStats, useAdminCustomers, useGrantRole, useSetUserStatus } from '@/lib/queries/admin';
 import { Admin, Avatar, Card, money, Pill, SectionState } from './ui';
 
@@ -16,6 +17,7 @@ function joinLabel(iso: string) {
 export function AdminCustomers() {
   const [query, setQuery] = useState('');
   const [search, setSearch] = useState('');
+  const [customerErr, setCustomerErr] = useState<string | null>(null);
   const { data, isLoading, isError } = useAdminCustomers(search);
   const setUserStatus = useSetUserStatus();
   const grantRole = useGrantRole();
@@ -46,6 +48,7 @@ export function AdminCustomers() {
       {data && data.length > 0 ? (
         <Text style={{ fontFamily: Font.body, fontSize: 12, color: Admin.textDim }}>{data.length} customer{data.length === 1 ? '' : 's'}</Text>
       ) : null}
+      {customerErr ? <Text style={{ fontFamily: Font.medium, fontSize: 12.5, color: Admin.danger, textAlign: 'center' }}>{customerErr}</Text> : null}
       <SectionState loading={isLoading} error={isError} empty={!data?.length} emptyText="No customers found." Icon={Users} />
 
       {(data ?? []).map((c, i) => {
@@ -86,7 +89,12 @@ export function AdminCustomers() {
             ) : null}
             <View style={{ flexDirection: 'row', gap: 10, marginTop: 14 }}>
               <PressableScale
-                onPress={() => setUserStatus.mutate({ userId: c.id, status: suspended ? 'active' : 'suspended' })}
+                onPress={() => {
+                  setCustomerErr(null);
+                  setUserStatus.mutate({ userId: c.id, status: suspended ? 'active' : 'suspended' }, {
+                    onError: () => { feedback.error(); setCustomerErr('Could not update status. Please try again.'); },
+                  });
+                }}
                 disabled={setUserStatus.isPending}
                 accessibilityRole="button"
                 accessibilityLabel={suspended ? `Reactivate ${name}` : `Suspend ${name}`}
@@ -96,7 +104,12 @@ export function AdminCustomers() {
                 </Text>
               </PressableScale>
               <PressableScale
-                onPress={() => grantRole.mutate({ userId: c.id, role: 'admin' })}
+                onPress={() => {
+                  setCustomerErr(null);
+                  grantRole.mutate({ userId: c.id, role: 'admin' }, {
+                    onError: () => { feedback.error(); setCustomerErr('Could not grant admin role. Please try again.'); },
+                  });
+                }}
                 disabled={grantRole.isPending}
                 accessibilityRole="button"
                 accessibilityLabel={`Make ${name} an admin`}
