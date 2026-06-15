@@ -64,7 +64,7 @@ export default function PrepperScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id?: string }>();
   const { user } = useAuth();
-  const { data: p, isLoading, refetch: refetchProfile } = usePrepperProfile(id);
+  const { data: p, isLoading, isError, refetch: refetchProfile } = usePrepperProfile(id);
   const { data: reviews, refetch: refetchReviews } = usePrepperReviews(id, 6);
   const { data: following, refetch: refetchFollowing } = useIsFollowing(id, user?.id);
   const toggleFollow = useToggleFollow(id ?? '', user?.id);
@@ -97,6 +97,28 @@ export default function PrepperScreen() {
       ? `${name} on Preppa — fresh ${specialty} prepped from their local kitchen.`
       : `${name} on Preppa — fresh home-cooked meals from a local kitchen.`;
     try { await Share.share({ message: msg }); } catch {}
+  }
+
+  if (!isLoading && isError) {
+    return (
+      <View style={{ flex: 1, backgroundColor: Palette.canvas }}>
+        <SafeAreaView edges={['top', 'bottom']} style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 28, gap: 16 }}>
+          <View style={{ width: 56, height: 56, borderRadius: 20, backgroundColor: Palette.chip, alignItems: 'center', justifyContent: 'center' }}>
+            <Store size={24} color={Palette.textMuted} />
+          </View>
+          <Text style={{ fontFamily: Font.display, fontSize: 20, color: Palette.ink, letterSpacing: -0.4, textAlign: 'center' }}>Kitchen not found</Text>
+          <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center', lineHeight: 21 }}>We couldn't load this kitchen right now. Check your connection and try again.</Text>
+          <PressableScale onPress={() => { feedback.tap(); refetchProfile(); }} accessibilityRole="button" accessibilityLabel="Retry loading kitchen"
+            style={{ height: 48, paddingHorizontal: 24, borderRadius: Radius.pill, backgroundColor: Palette.ink, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8 }}>
+            <RefreshCw size={15} color="#fff" />
+            <Text style={{ fontFamily: Font.semibold, fontSize: 15, color: '#fff' }}>Try again</Text>
+          </PressableScale>
+          <PressableScale onPress={() => { feedback.tap(); if (router.canGoBack()) { router.back(); } else { router.replace('/'); } }} accessibilityRole="button" accessibilityLabel="Go back">
+            <Text style={{ fontFamily: Font.medium, fontSize: 14, color: Palette.textMuted }}>go back</Text>
+          </PressableScale>
+        </SafeAreaView>
+      </View>
+    );
   }
 
   return (

@@ -293,8 +293,19 @@ export default function ExploreScreen() {
             {mealsLoading ? (
               <View style={{ paddingBottom: 20 }}><CardRowSkeleton count={4} /></View>
             ) : filteredMeals.length === 0 ? (
-              <View style={{ paddingHorizontal: pad, paddingBottom: 20 }}>
-                <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textMuted }}>No meals match this filter.</Text>
+              <View style={{ paddingHorizontal: pad, paddingBottom: 24, alignItems: 'flex-start', gap: 12 }}>
+                <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textMuted }}>
+                  {activeCategory !== 'all' && advFilters.dietary.length === 0
+                    ? `No ${activeCategory} meals available right now.`
+                    : 'No meals match your current filters.'}
+                </Text>
+                <PressableScale
+                  onPress={() => { feedback.tap(); setActiveCategory('all'); setAdvFilters(FILTER_DEFAULTS); }}
+                  accessibilityRole="button"
+                  accessibilityLabel="Clear all filters"
+                  style={{ height: 38, paddingHorizontal: 16, borderRadius: Radius.pill, borderWidth: 1.5, borderColor: Palette.border, alignItems: 'center', justifyContent: 'center' }}>
+                  <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: Palette.textSecondary }}>Reset filters</Text>
+                </PressableScale>
               </View>
             ) : (
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: pad, gap: 12, paddingBottom: 20 }}>
