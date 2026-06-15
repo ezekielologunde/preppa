@@ -193,11 +193,13 @@ export default function AuthScreen() {
             transition={{ type: 'timing', duration: 260, delay: 120 }}
             style={{ gap: 10, marginBottom: 18 }}>
             <PressableScale onPress={() => { feedback.tap(); setMsg({ text: 'Apple Sign In launching soon — use email for now.', ok: true }); }}
+              accessibilityRole="button" accessibilityLabel="Continue with Apple"
               style={{ height: 52, borderRadius: Radius.pill, backgroundColor: '#000', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
               <Text style={{ fontSize: 20, color: '#fff', lineHeight: 24 }}></Text>
               <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#fff' }}>Continue with Apple</Text>
             </PressableScale>
             <PressableScale onPress={() => { feedback.tap(); setMsg({ text: 'Google Sign In launching soon — use email for now.', ok: true }); }}
+              accessibilityRole="button" accessibilityLabel="Continue with Google"
               style={{ height: 52, borderRadius: Radius.pill, backgroundColor: '#fff', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
               <Text style={{ fontSize: 18, lineHeight: 22 }}>G</Text>
               <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#111' }}>Continue with Google</Text>
@@ -230,24 +232,27 @@ export default function AuthScreen() {
               {mode === 'signup' ? (
                 <TextInput style={[input, errorInput]} placeholder="full name" placeholderTextColor="rgba(255,255,255,0.3)"
                   autoCapitalize="words" textContentType="name" maxLength={80} value={name} onChangeText={setName}
-                  editable={!busy} />
+                  editable={!busy} accessibilityLabel="Full name" />
               ) : null}
               <TextInput style={[input, errorInput]} placeholder="you@email.com" placeholderTextColor="rgba(255,255,255,0.3)"
                 autoCapitalize="none" autoComplete="email" textContentType="emailAddress" keyboardType="email-address"
-                maxLength={254} value={email} onChangeText={setEmail} editable={!busy} />
+                maxLength={254} value={email} onChangeText={setEmail} editable={!busy}
+                accessibilityLabel="Email address" />
               <View style={{ justifyContent: 'center' }}>
                 <TextInput style={[input, errorInput, { paddingRight: 52 }]} placeholder="password"
                   placeholderTextColor="rgba(255,255,255,0.3)" autoCapitalize="none" secureTextEntry={!showPw}
                   textContentType={mode === 'signup' ? 'newPassword' : 'password'}
                   maxLength={128} value={password} onChangeText={setPassword} onSubmitEditing={submit}
-                  returnKeyType={mode === 'signup' ? 'next' : 'go'} editable={!busy} />
+                  returnKeyType={mode === 'signup' ? 'next' : 'go'} editable={!busy}
+                  accessibilityLabel="Password" />
                 <Pressable onPress={() => setShowPw((v) => !v)} hitSlop={10} style={{ position: 'absolute', right: 16 }}
                   accessibilityRole="button" accessibilityLabel={showPw ? 'Hide password' : 'Show password'}>
                   {showPw ? <EyeOff size={20} color="rgba(255,255,255,0.4)" /> : <Eye size={20} color="rgba(255,255,255,0.4)" />}
                 </Pressable>
               </View>
               {mode === 'signin' ? (
-                <Pressable onPress={forgot} disabled={busy} style={{ alignSelf: 'flex-end' }}>
+                <Pressable onPress={forgot} disabled={busy} style={{ alignSelf: 'flex-end' }}
+                  accessibilityRole="button" accessibilityLabel="Forgot password">
                   <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: 'rgba(255,255,255,0.45)' }}>Forgot password?</Text>
                 </Pressable>
               ) : null}
@@ -261,7 +266,9 @@ export default function AuthScreen() {
                 style={{ height: 54, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', marginTop: 4, opacity: busy ? 0.7 : 1 }}>
                 {busy ? <ActivityIndicator color="#fff" /> : <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>{mode === 'signup' ? 'Create account' : 'Sign in'}</Text>}
               </PressableScale>
-              <PressableScale onPress={sendOtp} disabled={busy} style={{ alignItems: 'center', paddingVertical: 10 }}>
+              <PressableScale onPress={sendOtp} disabled={busy}
+                accessibilityRole="button" accessibilityLabel="Email me a sign-in code instead"
+                style={{ alignItems: 'center', paddingVertical: 10 }}>
                 <Text style={{ fontFamily: Font.medium, fontSize: 14, color: 'rgba(255,255,255,0.45)' }}>
                   Email me a sign-in code <Text style={{ fontFamily: Font.heading, color: ORANGE }}>instead</Text>
                 </Text>
@@ -274,7 +281,7 @@ export default function AuthScreen() {
                 style={[input, errorInput, { textAlign: 'center', fontSize: 30, letterSpacing: 14, fontFamily: Font.display, height: 64 }]}
                 placeholder="••••••" placeholderTextColor="rgba(255,255,255,0.3)"
                 keyboardType="number-pad" autoComplete="one-time-code" textContentType="oneTimeCode" maxLength={6}
-                editable={!busy} value={code}
+                editable={!busy} value={code} accessibilityLabel="6-digit verification code"
                 onChangeText={(t) => {
                   const digits = t.replace(/\D/g, '').slice(0, 6);
                   setCode(digits);
@@ -285,8 +292,9 @@ export default function AuthScreen() {
                   <TextInput style={[input, errorInput, { paddingRight: 52 }]} placeholder="new password"
                     placeholderTextColor="rgba(255,255,255,0.3)" autoCapitalize="none" secureTextEntry={!showPw}
                     textContentType="newPassword" maxLength={128} value={newPassword} onChangeText={setNewPassword}
-                    editable={!busy} />
-                  <Pressable onPress={() => setShowPw((v) => !v)} hitSlop={10} style={{ position: 'absolute', right: 16 }}>
+                    editable={!busy} accessibilityLabel="New password" />
+                  <Pressable onPress={() => setShowPw((v) => !v)} hitSlop={10} style={{ position: 'absolute', right: 16 }}
+                    accessibilityRole="button" accessibilityLabel={showPw ? 'Hide password' : 'Show password'}>
                     {showPw ? <EyeOff size={20} color="rgba(255,255,255,0.4)" /> : <Eye size={20} color="rgba(255,255,255,0.4)" />}
                   </Pressable>
                 </View>
@@ -297,14 +305,17 @@ export default function AuthScreen() {
                 </MotiView>
               ) : null}
               <PressableScale onPress={() => verify()} disabled={busy} accessibilityRole="button"
+                accessibilityLabel={intent === 'recovery' ? 'Reset and sign in' : 'Verify and continue'}
                 style={{ height: 54, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', marginTop: 4, opacity: busy ? 0.7 : 1 }}>
                 {busy ? <ActivityIndicator color="#fff" /> : <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>{intent === 'recovery' ? 'Reset & sign in' : 'Verify & continue'}</Text>}
               </PressableScale>
               <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 18, marginTop: 8 }}>
-                <Pressable onPress={() => { feedback.tap(); setStep('form'); setCode(''); setMsg(null); }}>
+                <Pressable onPress={() => { feedback.tap(); setStep('form'); setCode(''); setMsg(null); }}
+                  accessibilityRole="button" accessibilityLabel="Back to form">
                   <Text style={{ fontFamily: Font.medium, fontSize: 14, color: 'rgba(255,255,255,0.45)' }}>← back</Text>
                 </Pressable>
-                <Pressable onPress={resend} disabled={busy}>
+                <Pressable onPress={resend} disabled={busy}
+                  accessibilityRole="button" accessibilityLabel="Resend code">
                   <Text style={{ fontFamily: Font.heading, fontSize: 14, color: ORANGE }}>Resend code</Text>
                 </Pressable>
               </View>
@@ -314,7 +325,8 @@ export default function AuthScreen() {
 
         {step === 'form' ? (
           <Pressable onPress={() => { feedback.tap(); setMode(mode === 'signin' ? 'signup' : 'signin'); setMsg(null); }}
-            style={{ alignItems: 'center', marginTop: 20 }}>
+            style={{ alignItems: 'center', marginTop: 20 }}
+            accessibilityRole="button" accessibilityLabel={mode === 'signin' ? 'Create account' : 'Sign in to existing account'}>
             <Text style={{ fontFamily: Font.body, fontSize: 14, color: 'rgba(255,255,255,0.45)' }}>
               {mode === 'signin' ? 'New here? ' : 'Already a member? '}
               <Text style={{ fontFamily: Font.heading, color: ORANGE }}>{mode === 'signin' ? 'Create account' : 'Sign in'}</Text>

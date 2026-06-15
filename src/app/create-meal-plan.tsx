@@ -166,7 +166,7 @@ export default function CreateMealPlanScreen() {
             <View style={{ gap: 8 }}>
               <Text style={{ fontFamily: Font.heading, fontSize: 13, color: Palette.textSecondary }}>plan name</Text>
               <TextInput value={name} onChangeText={setName} placeholder="e.g. My Healthy Week"
-                placeholderTextColor={Palette.textMuted} maxLength={60}
+                placeholderTextColor={Palette.textMuted} maxLength={60} accessibilityLabel="Plan name"
                 style={{ height: 50, backgroundColor: Palette.surface, borderRadius: Radius.sm, paddingHorizontal: 16, fontFamily: Font.body, fontSize: 15, color: INK }} />
             </View>
           </MotiView>
@@ -185,6 +185,7 @@ export default function CreateMealPlanScreen() {
                     <PressableScale
                       onPress={() => { feedback.tap(); setFreq(f); }}
                       accessibilityRole="button"
+                      accessibilityLabel={f.charAt(0).toUpperCase() + f.slice(1)}
                       accessibilityState={{ selected: freq === f }}
                       style={{ height: 44, alignItems: 'center', justifyContent: 'center' }}>
                       <Text style={{ fontFamily: Font.semibold, fontSize: 13, textTransform: 'capitalize', color: freq === f ? '#fff' : Palette.textSecondary }}>{f}</Text>
@@ -212,6 +213,7 @@ export default function CreateMealPlanScreen() {
                     <PressableScale
                       onPress={() => { feedback.tap(); setDay(d); }}
                       accessibilityRole="button"
+                      accessibilityLabel={DAY_LABEL[d]}
                       accessibilityState={{ selected: day === d }}
                       style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
                       <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: day === d ? ORANGE : Palette.textSecondary }}>{DAY_LABEL[d]}</Text>
@@ -229,7 +231,7 @@ export default function CreateMealPlanScreen() {
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, height: 46, backgroundColor: Palette.surface, borderRadius: Radius.sm, paddingHorizontal: 14 }}>
                 <Search size={16} color={Palette.textMuted} />
                 <TextInput value={search} onChangeText={setSearch} placeholder="search any meal…"
-                  placeholderTextColor={Palette.textMuted} maxLength={100}
+                  placeholderTextColor={Palette.textMuted} maxLength={100} accessibilityLabel="Search meals"
                   style={{ flex: 1, fontFamily: Font.body, fontSize: 14, color: INK }} />
                 {searching ? <ActivityIndicator size="small" color={Palette.textMuted} /> : null}
               </View>
