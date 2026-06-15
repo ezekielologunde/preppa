@@ -34,11 +34,13 @@ function Stepper({ label, value, onChange, min = 1, max = 20 }: { label: string;
       <Text style={{ fontFamily: Font.medium, fontSize: 13, color: INK }}>{label}</Text>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16, backgroundColor: Palette.canvas, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 10, borderWidth: 1, borderColor: Palette.border }}>
         <PressableScale onPress={() => { feedback.tap(); onChange(Math.max(min, value - 1)); }} disabled={value <= min}
+          accessibilityRole="button" accessibilityLabel={`Decrease ${label}`}
           style={{ width: 34, height: 34, borderRadius: 10, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center', opacity: value <= min ? 0.35 : 1 }}>
           <Minus size={15} color={INK} />
         </PressableScale>
         <Text style={{ fontFamily: Font.display, fontSize: 22, color: INK, minWidth: 32, textAlign: 'center', fontVariant: ['tabular-nums'] }}>{value}</Text>
         <PressableScale onPress={() => { feedback.tap(); onChange(Math.min(max, value + 1)); }} disabled={value >= max}
+          accessibilityRole="button" accessibilityLabel={`Increase ${label}`}
           style={{ width: 34, height: 34, borderRadius: 10, backgroundColor: ORANGE + '1A', alignItems: 'center', justifyContent: 'center', opacity: value >= max ? 0.35 : 1 }}>
           <Plus size={15} color={ORANGE} />
         </PressableScale>
@@ -252,6 +254,7 @@ export default function PrepperMealPlansScreen() {
                       return (
                         <PressableScale key={f} onPress={() => { feedback.tap(); setPlanFreq(f); }}
                           accessibilityRole="button" accessibilityState={{ selected: on }}
+                          accessibilityLabel={f === 'weekly' ? 'Weekly' : f === 'biweekly' ? 'Biweekly' : 'Monthly'}
                           style={{ flex: 1, height: 42, borderRadius: Radius.sm, backgroundColor: on ? ORANGE : Palette.canvas, borderWidth: 1, borderColor: on ? ORANGE : Palette.border, alignItems: 'center', justifyContent: 'center' }}>
                           <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, textTransform: 'capitalize', color: on ? '#fff' : INK }}>{f}</Text>
                         </PressableScale>

@@ -66,6 +66,9 @@ function CalendarPicker({ value, onChange }: { value: Date | null; onChange: (d:
               const sel = value != null && d.getTime() === value.getTime();
               return (
                 <PressableScale key={col} onPress={() => { if (!past) { feedback.tap(); onChange(d); } }} disabled={past}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${MONTHS[mo]} ${day}`}
+                  accessibilityState={{ disabled: past, selected: sel }}
                   style={{ flex: 1, height: 38, alignItems: 'center', justifyContent: 'center', borderRadius: 9, backgroundColor: sel ? HC : 'transparent' }}>
                   <Text style={{ fontFamily: sel ? Font.heading : Font.body, fontSize: 13.5, color: past ? Palette.border : sel ? '#fff' : INK }}>{day}</Text>
                 </PressableScale>

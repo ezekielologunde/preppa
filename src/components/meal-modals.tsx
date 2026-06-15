@@ -40,12 +40,12 @@ export function MealLightboxModal({ visible, onClose, images, lightboxIdx, onPre
         {images.length > 1 ? (
           <View style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16 }} pointerEvents="box-none">
             {lightboxIdx > 0 ? (
-              <PressableScale onPress={onPrev} style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.18)', alignItems: 'center', justifyContent: 'center' }}>
+              <PressableScale onPress={onPrev} accessibilityRole="button" accessibilityLabel="Previous photo" style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.18)', alignItems: 'center', justifyContent: 'center' }}>
                 <ChevronLeft size={22} color="#fff" />
               </PressableScale>
             ) : <View style={{ width: 44 }} />}
             {lightboxIdx < images.length - 1 ? (
-              <PressableScale onPress={onNext} style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.18)', alignItems: 'center', justifyContent: 'center' }}>
+              <PressableScale onPress={onNext} accessibilityRole="button" accessibilityLabel="Next photo" style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.18)', alignItems: 'center', justifyContent: 'center' }}>
                 <ChevronRight size={22} color="#fff" />
               </PressableScale>
             ) : <View style={{ width: 44 }} />}
