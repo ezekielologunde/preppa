@@ -248,7 +248,7 @@ export default function CartScreen() {
       {noteConfig[method] ? (
         <View style={{ gap: 6 }}>
           <Text style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.textSecondary }}>{noteConfig[method]!.label}</Text>
-          <TextInput value={note} onChangeText={(t) => { setNote(t); setErr(null); }} placeholder={noteConfig[method]!.placeholder} placeholderTextColor={Palette.textMuted} maxLength={300} style={{ minHeight: 48, backgroundColor: Palette.surface, borderRadius: Radius.md, borderWidth: 1, borderColor: Palette.border, paddingHorizontal: 14, paddingVertical: 12, fontFamily: Font.body, fontSize: 15, color: INK }} />
+          <TextInput value={note} onChangeText={(t) => { setNote(t); setErr(null); }} placeholder={noteConfig[method]!.placeholder} placeholderTextColor={Palette.textMuted} maxLength={300} accessibilityLabel={noteConfig[method]!.label} style={{ minHeight: 48, backgroundColor: Palette.surface, borderRadius: Radius.md, borderWidth: 1, borderColor: Palette.border, paddingHorizontal: 14, paddingVertical: 12, fontFamily: Font.body, fontSize: 15, color: INK }} />
         </View>
       ) : null}
 

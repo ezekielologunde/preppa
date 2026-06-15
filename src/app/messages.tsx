@@ -367,7 +367,7 @@ export default function MessagesScreen() {
                   <Text style={{ fontFamily: Font.medium, fontSize: 12, color: Palette.danger, paddingHorizontal: 14, paddingTop: 6, paddingBottom: 2 }}>{sendErr}</Text>
                 ) : null}
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 12, paddingVertical: 8, borderTopWidth: 1, borderTopColor: Palette.border }}>
-                  <TextInput value={chatText} onChangeText={setChatText} placeholder="Message…" placeholderTextColor={Palette.textMuted} onSubmitEditing={submitChat} maxLength={2000}
+                  <TextInput value={chatText} onChangeText={setChatText} placeholder="Message…" placeholderTextColor={Palette.textMuted} onSubmitEditing={submitChat} maxLength={2000} accessibilityLabel="Type a message"
                     style={{ flex: 1, height: 40, borderRadius: 20, backgroundColor: Palette.canvas, paddingHorizontal: 14, fontFamily: Font.body, fontSize: 14, color: INK }} />
                   <PressableScale onPress={submitChat} disabled={!chatText.trim() || sendMsg.isPending} accessibilityRole="button" accessibilityLabel="Send"
                     style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: chatText.trim() ? ORANGE : Palette.border, alignItems: 'center', justifyContent: 'center' }}>
