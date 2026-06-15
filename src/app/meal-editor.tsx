@@ -7,6 +7,7 @@ import { ActivityIndicator, Modal, Pressable, ScrollView, Text, TextInput, View 
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PressableScale } from '@/components/ui/pressable-scale';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Font } from '@/constants/fonts';
 import { Palette, Radius } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
@@ -231,7 +232,11 @@ export default function MealEditorScreen() {
             <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textMuted, textAlign: 'center' }}>Approved preppers manage their menu here.</Text>
           </View>
         ) : isLoading ? (
-          <ActivityIndicator color={ORANGE} style={{ marginTop: 40 }} />
+          <View style={{ padding: 20, gap: 12 }}>
+            {[0, 1, 2, 3].map(i => (
+              <Skeleton key={i} width="100%" height={72} radius={16} style={{ backgroundColor: '#ffffff18' }} />
+            ))}
+          </View>
         ) : isError ? (
           <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }}
             style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
