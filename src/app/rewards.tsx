@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/ui/button';
 import { PressableScale } from '@/components/ui/pressable-scale';
+import { Skeleton } from '@/components/ui/skeleton';
 import { feedback } from '@/lib/feedback';
 import { Font } from '@/constants/fonts';
 import { Palette, Radius } from '@/constants/theme';
@@ -176,6 +177,16 @@ export default function RewardsScreen() {
             <PressableScale onPress={() => { feedback.tap(); router.push('/auth?mode=signin'); }} accessibilityRole="button" accessibilityLabel="Sign in" style={{ marginTop: 4, paddingHorizontal: 22, height: 48, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
               <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#fff' }}>Sign in</Text>
             </PressableScale>
+          </View>
+        ) : r.isLoading ? (
+          <View style={{ padding: 20, gap: 14 }}>
+            <Skeleton width="100%" height={160} radius={20} />
+            <View style={{ flexDirection: 'row', gap: 10 }}>
+              <Skeleton height={72} radius={16} style={{ flex: 1 }} />
+              <Skeleton height={72} radius={16} style={{ flex: 1 }} />
+            </View>
+            <Skeleton width={140} height={18} radius={6} />
+            {[0, 1, 2, 3].map(i => <Skeleton key={i} width="100%" height={64} radius={16} />)}
           </View>
         ) : r.isError ? (
           <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }}
