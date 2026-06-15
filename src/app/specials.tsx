@@ -1,11 +1,13 @@
 import { useRouter } from 'expo-router';
 import { ChevronLeft, ChevronRight, Clock, Flame, Gift, Leaf, Sparkles, Star, Sun, Zap } from 'lucide-react-native';
 import { MotiView } from 'moti';
-import { ScrollView, Text, View } from 'react-native';
+import { useState } from 'react';
+import { RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { QuickAddButton } from '@/components/home-feed';
 import { MealCard } from '@/components/meal-card';
+import { CardSkeleton } from '@/components/ui/skeleton';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
 import { Palette, Radius, Shadow } from '@/constants/theme';
@@ -121,13 +123,21 @@ export default function SpecialsScreen() {
   const fathersDayDaysLeft = Math.round((fdDay.getTime() - today.getTime()) / 86_400_000);
   const isFathersDayWindow = now.getMonth() === 5 && fathersDayDaysLeft >= 0 && fathersDayDaysLeft <= 10;
   const router = useRouter();
-  const { data: featuredMeals = [] } = useFeaturedMeals(8);
-  const { data: limitedDrops = [] } = useLimitedDrops(8);
+  const { data: featuredMeals = [], isLoading: featuredLoading, refetch: refetchFeatured } = useFeaturedMeals(8);
+  const { data: limitedDrops = [], isLoading: dropsLoading, refetch: refetchDrops } = useLimitedDrops(8);
+  const isLoading = featuredLoading || dropsLoading;
+  const [refreshing, setRefreshing] = useState(false);
   const weeklyPicks = featuredMeals.slice(0, 4);
   const freshDrops = limitedDrops.length ? limitedDrops.slice(0, 4) : featuredMeals.slice(4, 8);
   const fathersDayPicks = featuredMeals.slice(4, 8).length ? featuredMeals.slice(4, 8) : featuredMeals.slice(0, 4);
   const carouselCardWidth = useCarouselCardWidth();
   const pad = usePagePadding();
+
+  async function handleRefresh() {
+    setRefreshing(true);
+    await Promise.all([refetchFeatured(), refetchDrops()]);
+    setRefreshing(false);
+  }
 
   return (
     <View style={{ flex: 1, backgroundColor: Palette.canvas }}>
@@ -151,7 +161,8 @@ export default function SpecialsScreen() {
           </View>
         </View>
 
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120, gap: 28 }}>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120, gap: 28 }}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={ORANGE} colors={[ORANGE]} />}>
           {/* Emergency food CTA */}
           <MotiView from={{ opacity: 0, translateY: 6 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260 }}>
           <PressableScale onPress={() => { feedback.tap(); router.push('/emergency-food'); }} accessibilityRole="button" accessibilityLabel="Emergency food mode"
@@ -190,14 +201,16 @@ export default function SpecialsScreen() {
             <SectionBadge label={WEEKLY_BADGE.label} color={WEEKLY_BADGE.color} Icon={WEEKLY_BADGE.icon} />
           </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: pad, gap: 12 }}>
-            {weeklyPicks.map((m) => (
-              <View key={m.id} style={{ position: 'relative' }}>
-                <MealCard meal={m} width={carouselCardWidth} />
-                <View style={{ position: 'absolute', bottom: 12, right: 12 }}>
-                  <QuickAddButton meal={m} />
+            {isLoading
+              ? [0, 1, 2, 3].map((i) => <CardSkeleton key={i} width={carouselCardWidth} />)
+              : weeklyPicks.map((m) => (
+                <View key={m.id} style={{ position: 'relative' }}>
+                  <MealCard meal={m} width={carouselCardWidth} />
+                  <View style={{ position: 'absolute', bottom: 12, right: 12 }}>
+                    <QuickAddButton meal={m} />
+                  </View>
                 </View>
-              </View>
-            ))}
+              ))}
           </ScrollView>
           </MotiView>
 
@@ -236,14 +249,16 @@ export default function SpecialsScreen() {
             <SectionBadge label="fresh drops" color="#059669" Icon={Leaf} />
           </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: pad, gap: 12 }}>
-            {freshDrops.map((m) => (
-              <View key={m.id} style={{ position: 'relative' }}>
-                <MealCard meal={m} width={carouselCardWidth} />
-                <View style={{ position: 'absolute', bottom: 12, right: 12 }}>
-                  <QuickAddButton meal={m} />
+            {isLoading
+              ? [0, 1, 2, 3].map((i) => <CardSkeleton key={i} width={carouselCardWidth} />)
+              : freshDrops.map((m) => (
+                <View key={m.id} style={{ position: 'relative' }}>
+                  <MealCard meal={m} width={carouselCardWidth} />
+                  <View style={{ position: 'absolute', bottom: 12, right: 12 }}>
+                    <QuickAddButton meal={m} />
+                  </View>
                 </View>
-              </View>
-            ))}
+              ))}
           </ScrollView>
           </MotiView>
 
