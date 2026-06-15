@@ -29,7 +29,7 @@ export function BecomePrepperNudge() {
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={{ borderRadius: Radius.lg, padding: 20, flexDirection: 'row', alignItems: 'center', gap: 16, minHeight: 106 }}>
-          <View style={{ width: 52, height: 52, borderRadius: 18, backgroundColor: 'rgba(241,95,34,0.15)', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(241,95,34,0.28)' }}>
+          <View style={{ width: 52, height: 52, borderRadius: 18, backgroundColor: 'rgba(232,97,26,0.15)', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(232,97,26,0.28)' }}>
             <UtensilsCrossed size={24} color={ORANGE} />
           </View>
           <View style={{ flex: 1 }}>

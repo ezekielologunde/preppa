@@ -102,7 +102,17 @@ function TrendingMealCard({
           </View>
         ) : null}
       </View>
-      {tag && !isBig ? (
+      {/* Below-card row: diet tag + QuickAdd for both variants */}
+      {isBig ? (
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: tag ? 'space-between' : 'flex-end', paddingHorizontal: 6, paddingTop: 8, paddingBottom: 2 }}>
+          {tag ? (
+            <View style={{ backgroundColor: tag.color + '1E', borderRadius: Radius.pill, paddingHorizontal: 9, paddingVertical: 3 }}>
+              <Text style={{ fontFamily: Font.semibold, fontSize: 10, color: tag.color }}>{tag.label}</Text>
+            </View>
+          ) : null}
+          <QuickAddButton meal={meal} />
+        </View>
+      ) : tag ? (
         <View style={{ paddingHorizontal: 6, paddingTop: 5 }}>
           <View style={{
             alignSelf: 'flex-start', backgroundColor: tag.color + '1E',
