@@ -236,9 +236,17 @@ export default function CreateMealPlanScreen() {
               {loadingFeatured && search.length < 2 ? (
                 <ListSkeleton count={3} rowHeight={60} />
               ) : displayMeals.length === 0 ? (
-                <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textMuted, textAlign: 'center', paddingVertical: 12 }}>
-                  {search.length >= 2 ? 'No meals found.' : 'No meals available right now.'}
-                </Text>
+                <View style={{ alignItems: 'center', gap: 10, paddingVertical: 16 }}>
+                  <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textMuted, textAlign: 'center' }}>
+                    {search.length >= 2 ? 'No meals match that search.' : 'No meals available right now.'}
+                  </Text>
+                  {search.length < 2 ? (
+                    <PressableScale onPress={() => { feedback.tap(); router.push('/'); }} accessibilityRole="button" accessibilityLabel="Browse all meals"
+                      style={{ paddingHorizontal: 16, height: 36, borderRadius: Radius.pill, borderWidth: 1.5, borderColor: Palette.border, alignItems: 'center', justifyContent: 'center' }}>
+                      <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: Palette.textSecondary }}>Browse all meals</Text>
+                    </PressableScale>
+                  ) : null}
+                </View>
               ) : (
                 <View style={{ gap: 10 }}>
                   {displayMeals.map((m) => (
