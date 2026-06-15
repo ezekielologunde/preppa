@@ -11,6 +11,7 @@ import { PaymentRedirectOverlay } from '@/components/payment-redirect-overlay';
 import { BottomActionBar } from '@/components/ui/bottom-action-bar';
 import { Button } from '@/components/ui/button';
 import { PressableScale } from '@/components/ui/pressable-scale';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Font } from '@/constants/fonts';
 import { Palette, Radius } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
@@ -235,8 +236,16 @@ export default function CustomPlanScreen() {
   if (isLoading) {
     return (
       <View style={{ flex: 1, backgroundColor: Palette.canvas }}>
-        <SafeAreaView edges={['top']} style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          <ActivityIndicator color={ORANGE} size="large" />
+        <SafeAreaView edges={['top']} style={{ flex: 1 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingTop: 8, paddingBottom: 8 }}>
+            <Skeleton width={40} height={40} radius={20} />
+            <Skeleton width={160} height={22} radius={8} />
+          </View>
+          <View style={{ padding: 20, gap: 16 }}>
+            <Skeleton width="100%" height={96} radius={16} />
+            <Skeleton width="100%" height={130} radius={16} />
+            <Skeleton width="100%" height={130} radius={16} />
+          </View>
         </SafeAreaView>
       </View>
     );
