@@ -61,7 +61,7 @@ export default function CustomersScreen() {
   const { user } = useAuth();
   const { data: prepper } = useMyPrepperApplication(user?.id);
   const prepperId = prepper?.id;
-  const { data: orders, isLoading, refetch } = usePrepperOrders(prepperId);
+  const { data: orders, isLoading, isError, refetch } = usePrepperOrders(prepperId);
   const [refreshing, setRefreshing] = useState(false);
   async function handleRefresh() { setRefreshing(true); await refetch(); setRefreshing(false); }
 
@@ -102,6 +102,19 @@ export default function CustomersScreen() {
           </View>
         ) : isLoading ? (
           <ListSkeleton count={5} />
+        ) : isError ? (
+          <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }}
+            style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
+            <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center' }}>
+              <Users size={28} color="#5b6170" />
+            </View>
+            <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>Couldn't load customers</Text>
+            <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textMuted, textAlign: 'center', maxWidth: 280 }}>Check your connection and try again.</Text>
+            <PressableScale onPress={() => { feedback.tap(); void refetch(); }} accessibilityRole="button" accessibilityLabel="Retry loading customers"
+              style={{ marginTop: 4, paddingHorizontal: 22, height: 48, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
+              <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#fff' }}>retry</Text>
+            </PressableScale>
+          </MotiView>
         ) : !rows.length ? (
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 10 }}>
             <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center' }}>

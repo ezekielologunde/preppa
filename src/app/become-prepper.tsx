@@ -122,7 +122,7 @@ export default function BecomePrepperScreen() {
   const router = useRouter();
   const { user } = useAuth();
   const signupsOpen = useFeatureEnabled('prepper_signups');
-  const { data: application, isLoading } = useMyPrepperApplication(user?.id);
+  const { data: application, isLoading, isError } = useMyPrepperApplication(user?.id);
   const apply = useApplyAsPrepper();
 
   const [name, setName] = useState((user?.user_metadata?.full_name as string) ?? '');
@@ -161,6 +161,25 @@ export default function BecomePrepperScreen() {
         <SafeAreaView style={{ flex: 1 }}>
           {Header}
           <ListSkeleton count={4} rowHeight={60} />
+        </SafeAreaView>
+      </View>
+    );
+  }
+
+  if (isError) {
+    return (
+      <View style={{ flex: 1, backgroundColor: Palette.surface }}>
+        <SafeAreaView style={{ flex: 1 }}>
+          {Header}
+          <Centered>
+            <MotiView from={{ opacity: 0, scale: 0.85 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'spring', damping: 20, stiffness: 220 }}>
+              <View style={{ width: 72, height: 72, borderRadius: 22, backgroundColor: Palette.canvas, alignItems: 'center', justifyContent: 'center' }}>
+                <ChefHat size={30} color={Palette.textMuted} />
+              </View>
+            </MotiView>
+            <Text style={{ fontFamily: Font.display, fontSize: 22, color: INK, textAlign: 'center' }}>couldn't load your application</Text>
+            <Text style={{ fontFamily: Font.body, fontSize: 15, color: Palette.textSecondary, textAlign: 'center', lineHeight: 22, maxWidth: 300 }}>Check your connection and try again.</Text>
+          </Centered>
         </SafeAreaView>
       </View>
     );

@@ -153,7 +153,7 @@ export default function NotificationsScreen() {
   const router = useRouter();
   const { user } = useAuth();
   const isDesktop = useBreakpoint() === 'desktop';
-  const { data: notifs, isLoading, refetch } = useNotifications(user?.id);
+  const { data: notifs, isLoading, isError, refetch } = useNotifications(user?.id);
   const markRead = useMarkNotificationsRead(user?.id);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -267,6 +267,19 @@ export default function NotificationsScreen() {
 
         {isLoading ? (
           <ListSkeleton count={5} rowHeight={72} />
+        ) : isError ? (
+          <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }}
+            style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
+            <View style={{ width: 72, height: 72, borderRadius: 24, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
+              <Bell size={30} color={Palette.textMuted} />
+            </View>
+            <Text style={{ fontFamily: Font.heading, fontSize: 18, color: Palette.ink }}>couldn't load notifications</Text>
+            <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center', maxWidth: 260, lineHeight: 20 }}>Check your connection and try again.</Text>
+            <PressableScale onPress={() => { feedback.tap(); void refetch(); }} accessibilityRole="button" accessibilityLabel="Retry loading notifications"
+              style={{ marginTop: 4, height: 44, paddingHorizontal: 20, borderRadius: Radius.pill, backgroundColor: Palette.brand, alignItems: 'center', justifyContent: 'center' }}>
+              <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: '#fff' }}>retry</Text>
+            </PressableScale>
+          </MotiView>
         ) : !notifs?.length ? (
           <MotiView
             from={{ opacity: 0, translateY: 10 }}

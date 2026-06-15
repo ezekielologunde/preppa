@@ -209,7 +209,7 @@ function PaymentCard({
 export default function PaymentMethodsScreen() {
   const router = useRouter();
   const qc = useQueryClient();
-  const { data, isLoading, refetch } = usePaymentMethods();
+  const { data, isLoading, isError, refetch } = usePaymentMethods();
   const detachPM = useDetachPaymentMethod();
   const setDefaultPM = useSetDefaultPaymentMethod();
   const cards = data?.methods ?? [];
@@ -278,6 +278,19 @@ export default function PaymentMethodsScreen() {
 
         {isLoading ? (
           <ListSkeleton count={2} rowHeight={80} />
+        ) : isError ? (
+          <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }}
+            style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
+            <View style={{ width: 72, height: 72, borderRadius: 24, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
+              <Lock size={30} color={Palette.textMuted} />
+            </View>
+            <Text style={{ fontFamily: Font.heading, fontSize: 16, color: Palette.ink }}>couldn't load payment methods</Text>
+            <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center', maxWidth: 280, lineHeight: 20 }}>Check your connection and try again.</Text>
+            <PressableScale onPress={() => { feedback.tap(); void refetch(); }} accessibilityRole="button" accessibilityLabel="Retry loading payment methods"
+              style={{ marginTop: 4, paddingHorizontal: 22, height: 48, borderRadius: Radius.pill, backgroundColor: Palette.brand, alignItems: 'center', justifyContent: 'center' }}>
+              <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#fff' }}>retry</Text>
+            </PressableScale>
+          </MotiView>
         ) : (
           <ScrollView
             contentContainerStyle={{

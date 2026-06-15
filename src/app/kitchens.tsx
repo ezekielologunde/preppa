@@ -41,7 +41,7 @@ export default function KitchensScreen() {
   const { tag } = useLocalSearchParams<{ tag?: string }>();
   const [selected, setSelected] = useState<string | null>(tag || null);
   const { data: tags } = useKitchenTags();
-  const { data: kitchens, isLoading } = useKitchensByTag(selected);
+  const { data: kitchens, isLoading, isError, refetch } = useKitchensByTag(selected);
 
   function pick(next: string | null) {
     feedback.tap();
@@ -74,6 +74,17 @@ export default function KitchensScreen() {
         {/* Results */}
         {isLoading ? (
           <View style={{ paddingTop: 18 }}><CardRowSkeleton count={3} width={210} /></View>
+        ) : isError ? (
+          <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }}
+            style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 10 }}>
+            <Compass size={40} color={Palette.textMuted} />
+            <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>couldn't load kitchens</Text>
+            <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textMuted, textAlign: 'center' }}>Check your connection and try again.</Text>
+            <PressableScale onPress={() => { feedback.tap(); void refetch(); }} accessibilityRole="button" accessibilityLabel="Retry loading kitchens"
+              style={{ marginTop: 8, backgroundColor: Palette.brand, borderRadius: Radius.pill, paddingHorizontal: 20, paddingVertical: 12 }}>
+              <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: '#fff' }}>retry</Text>
+            </PressableScale>
+          </MotiView>
         ) : kitchens && kitchens.length > 0 ? (
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 20, paddingBottom: 60 }}>
             <MotiView

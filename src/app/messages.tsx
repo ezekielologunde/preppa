@@ -177,8 +177,8 @@ export default function MessagesScreen() {
   const { user } = useAuth();
   const { tab: tabParam } = useLocalSearchParams<{ tab?: string }>();
   const [tab, setTab] = useState<'updates' | 'messages'>(tabParam === 'messages' ? 'messages' : 'updates');
-  const { data: conversations, isLoading: convLoading, refetch: refetchConv } = useConversations(user?.id);
-  const { data: orders, isLoading: ordersLoading, refetch: refetchOrders } = useMyOrders(user?.id);
+  const { data: conversations, isLoading: convLoading, isError: convError, refetch: refetchConv } = useConversations(user?.id);
+  const { data: orders, isLoading: ordersLoading, isError: ordersError, refetch: refetchOrders } = useMyOrders(user?.id);
   const { data: notifications, refetch: refetchNotifs } = useNotifications(user?.id);
   const markRead = useMarkNotificationsRead(user?.id);
   const [refreshing, setRefreshing] = useState(false);
@@ -247,6 +247,19 @@ export default function MessagesScreen() {
 
   const updatesEl = ordersLoading ? (
     <ListSkeleton count={5} />
+  ) : ordersError ? (
+    <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }}
+      style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
+      <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: Palette.canvas, alignItems: 'center', justifyContent: 'center' }}>
+        <Bell size={28} color={Palette.textMuted} />
+      </View>
+      <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>couldn't load updates</Text>
+      <Text style={{ fontFamily: Font.body, fontSize: 13.5, color: Palette.textSecondary, textAlign: 'center', maxWidth: 280, lineHeight: 19 }}>Check your connection and try again.</Text>
+      <PressableScale onPress={() => { feedback.tap(); void refetchOrders(); }} accessibilityRole="button" accessibilityLabel="Retry loading updates"
+        style={{ marginTop: 4, paddingHorizontal: 22, height: 44, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
+        <Text style={{ fontFamily: Font.heading, fontSize: 14, color: '#fff' }}>retry</Text>
+      </PressableScale>
+    </MotiView>
   ) : !orders?.length && !notifications?.length ? (
     <Empty Icon={Bell} title="No updates yet" sub="Preorder updates, new bids, reviews and renewals will show up here." />
   ) : (
@@ -284,6 +297,19 @@ export default function MessagesScreen() {
 
   const messagesEl = convLoading ? (
     <ListSkeleton count={5} />
+  ) : convError ? (
+    <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }}
+      style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
+      <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: Palette.canvas, alignItems: 'center', justifyContent: 'center' }}>
+        <MessageCircle size={28} color={Palette.textMuted} />
+      </View>
+      <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>couldn't load messages</Text>
+      <Text style={{ fontFamily: Font.body, fontSize: 13.5, color: Palette.textSecondary, textAlign: 'center', maxWidth: 280, lineHeight: 19 }}>Check your connection and try again.</Text>
+      <PressableScale onPress={() => { feedback.tap(); void refetchConv(); }} accessibilityRole="button" accessibilityLabel="Retry loading messages"
+        style={{ marginTop: 4, paddingHorizontal: 22, height: 44, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
+        <Text style={{ fontFamily: Font.heading, fontSize: 14, color: '#fff' }}>retry</Text>
+      </PressableScale>
+    </MotiView>
   ) : !conversations?.length ? (
     <Empty Icon={MessageCircle} title="No messages yet" sub="Message a prepper from a meal or experience to start a conversation." />
   ) : (

@@ -128,7 +128,7 @@ export default function MealPlansScreen() {
   const router = useRouter();
   const { openPlanId } = useLocalSearchParams<{ openPlanId?: string }>();
   const { user } = useAuth();
-  const { data: livePlans, isLoading, refetch: refetchPlans } = useMealPlans();
+  const { data: livePlans, isLoading, isError: livePlansError, refetch: refetchPlans } = useMealPlans();
   const { data: subs, refetch: refetchSubs } = useMySubscriptions(user?.id);
   const { data: customPlans, refetch: refetchCustom } = useMyCustomPlans(user?.id);
   const updateSub = useUpdateSubscription(user?.id);
@@ -300,6 +300,17 @@ export default function MealPlansScreen() {
           <Text style={{ fontFamily: Font.display, fontSize: 20, color: INK, letterSpacing: -0.5, paddingHorizontal: 20, marginTop: 16, marginBottom: 12 }}>available plans</Text>
           {isLoading ? (
             <View style={{ paddingHorizontal: 20 }}><ListSkeleton count={3} rowHeight={80} /></View>
+          ) : livePlansError ? (
+            <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }}
+              style={{ marginHorizontal: 20, alignItems: 'center', gap: 10, paddingVertical: 24 }}>
+              <ChefHat size={30} color={Palette.textMuted} />
+              <Text style={{ fontFamily: Font.heading, fontSize: 15, color: INK }}>couldn't load plans</Text>
+              <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary, textAlign: 'center' }}>Check your connection and try again.</Text>
+              <PressableScale onPress={() => { feedback.tap(); void refetchPlans(); }} accessibilityRole="button" accessibilityLabel="Retry loading plans"
+                style={{ marginTop: 4, paddingHorizontal: 20, height: 44, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
+                <Text style={{ fontFamily: Font.heading, fontSize: 14, color: '#fff' }}>retry</Text>
+              </PressableScale>
+            </MotiView>
           ) : livePlans && livePlans.length > 0 ? (
             <View style={{ paddingHorizontal: 20, gap: 14 }}>
               {livePlans.map((p, i) => (

@@ -152,7 +152,7 @@ export default function HomeScreen() {
   const defaultAddress = addresses.find((a) => a.isDefault) ?? addresses[0];
   const locationLabel = defaultAddress
     ? [defaultAddress.city, defaultAddress.state].filter(Boolean).join(', ')
-    : 'Set location';
+    : 'near you';
   const { captureLocation, capturing: locCapturing } = useGPSLocation(user?.id, addresses);
 
   const { data: myOrders, refetch: refetchOrders } = useMyOrders(user?.id);
@@ -200,7 +200,7 @@ export default function HomeScreen() {
               {greeting()}{firstName ? `, ${firstName}` : ''}
             </Text>
             <PressableScale onPress={handleLocationTap} accessibilityRole="button"
-              accessibilityLabel={`Delivery location: ${locCapturing ? 'Detecting...' : locationLabel}`}
+              accessibilityLabel={`Find chefs near ${locCapturing ? '...' : locationLabel}`}
               hitSlop={{ top: 8, bottom: 8, left: 4, right: 8 }}
               style={{ flexDirection: 'row', alignItems: 'center', gap: 3, alignSelf: 'flex-start' }}>
               <MapPin size={12} color={locCapturing ? Palette.textMuted : ORANGE} />

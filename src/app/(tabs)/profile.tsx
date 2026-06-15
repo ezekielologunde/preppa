@@ -9,7 +9,6 @@ import {
   Clock,
   Crown,
   Leaf,
-  MapPin,
   Pencil,
   Settings,
   ShieldCheck,
@@ -28,8 +27,6 @@ import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
 import { Palette, Radius, Shadow } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
-import { useAddresses } from '@/lib/queries/addresses';
-import { useGPSLocation } from '@/lib/use-location';
 import { useConversations } from '@/lib/queries/messages';
 import { useCustomerMembership } from '@/lib/queries/memberships';
 import { useMySubscriptions } from '@/lib/queries/meal-plans';
@@ -107,21 +104,6 @@ export default function ProfileScreen() {
   const { data: notifications } = useNotifications(user?.id);
   const { data: conversations } = useConversations(user?.id);
 
-  const { data: addresses = [] } = useAddresses(user?.id);
-  const defaultAddress = addresses.find((a) => a.isDefault) ?? addresses[0];
-  const locationLabel = defaultAddress
-    ? [defaultAddress.city, defaultAddress.state].filter(Boolean).join(', ')
-    : 'Set location';
-  const { captureLocation, capturing: locCapturing } = useGPSLocation(user?.id, addresses);
-
-  async function handleLocationTap() {
-    if (locCapturing) return;
-    feedback.tap();
-    if (!user) { go('/auth?mode=signup'); return; }
-    const result = await captureLocation();
-    if (result !== 'done') go('/addresses');
-  }
-
   const activeSubs = (subs ?? []).filter((s) => s.status === 'active').length;
   const pausedSubs = (subs ?? []).filter((s) => s.status === 'paused').length;
   const followed = followedPreppers?.length ?? 0;
@@ -147,14 +129,6 @@ export default function ProfileScreen() {
     <MotiView from={{ opacity: 0, translateY: -6 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, gap: 10 }}>
         <Text style={{ flex: 1, fontFamily: Font.display, fontSize: 26, color: Palette.ink, letterSpacing: -0.6 }}>profile</Text>
-        <PressableScale onPress={handleLocationTap} accessibilityRole="button"
-          accessibilityLabel={`Delivery location: ${locCapturing ? 'Detecting...' : locationLabel}. Tap to detect.`}
-          style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: Palette.surface, borderRadius: Radius.pill, paddingHorizontal: 11, height: 38, maxWidth: 200, ...Shadow.card }}>
-          <MapPin size={13} color={locCapturing ? Palette.textMuted : Palette.brand} style={{ flexShrink: 0 }} />
-          <Text numberOfLines={1} style={{ fontFamily: Font.medium, fontSize: 13, color: locCapturing ? Palette.textMuted : (defaultAddress ? Palette.inkSoft : Palette.brand), flexShrink: 1 }}>
-            {locCapturing ? 'detecting...' : locationLabel}
-          </Text>
-        </PressableScale>
         <PressableScale onPress={() => { feedback.tap(); go('/messages'); }} accessibilityRole="button"
           accessibilityLabel={`Inbox${totalUnread > 0 ? `, ${totalUnread} unread` : ''}`}
           style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center', ...Shadow.card }}>

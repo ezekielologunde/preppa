@@ -8,7 +8,6 @@ import {
   IceCream,
   LayoutGrid,
   List,
-  MapPin,
   Moon,
   MoreHorizontal,
   QrCode,
@@ -117,7 +116,7 @@ export default function ExploreScreen() {
   const defaultAddress = addresses.find((a) => a.isDefault) ?? addresses[0];
   const locationLabel = defaultAddress
     ? [defaultAddress.city, defaultAddress.state].filter(Boolean).join(', ')
-    : 'Set location';
+    : 'near you';
   const { captureLocation, capturing: locCapturing } = useGPSLocation(user?.id, addresses);
 
   async function handleLocationTap() {
@@ -189,9 +188,9 @@ export default function ExploreScreen() {
           {/* Top row: title | location | filter | [tablet: view toggle] */}
           <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: pad, paddingTop: 10, paddingBottom: 2, gap: 10 }}>
             <Text numberOfLines={1} style={{ flex: 1, fontFamily: Font.display, fontSize: 34, color: Palette.ink, letterSpacing: -1.2 }}>explore</Text>
-            <PressableScale onPress={handleLocationTap} accessibilityRole="button" accessibilityLabel={`Delivery location: ${locCapturing ? 'Detecting...' : locationLabel}. Tap to detect.`}
+            <PressableScale onPress={handleLocationTap} accessibilityRole="button" accessibilityLabel={`Find chefs near ${locCapturing ? '...' : locationLabel}. Tap to detect.`}
               style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: Palette.surface, borderRadius: Radius.pill, paddingHorizontal: 11, height: 40, maxWidth: 200, ...Shadow.card }}>
-              <MapPin size={13} color={locCapturing ? Palette.textMuted : Palette.brand} style={{ flexShrink: 0 }} />
+              <Compass size={13} color={locCapturing ? Palette.textMuted : Palette.brand} style={{ flexShrink: 0 }} />
               <Text numberOfLines={1} style={{ fontFamily: Font.medium, fontSize: 13, color: locCapturing ? Palette.textMuted : (defaultAddress ? Palette.inkSoft : Palette.brand), flexShrink: 1 }}>
                 {locCapturing ? 'detecting...' : locationLabel}
               </Text>
