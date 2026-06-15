@@ -53,7 +53,7 @@ const PERKS: Perk[] = [
   },
 ];
 
-function RedeemSheet({ perk, canRedeem, onClose, onCta }: { perk: Perk | null; canRedeem: boolean; onClose: () => void; onCta: (route: string) => void }) {
+function RedeemSheet({ perk, canRedeem, userPoints, onClose, onCta }: { perk: Perk | null; canRedeem: boolean; userPoints: number; onClose: () => void; onCta: (route: string) => void }) {
   if (!perk) return null;
   const { Icon, color, title, desc, pts, body, cta, ctaRoute } = perk;
   return (
@@ -91,7 +91,7 @@ function RedeemSheet({ perk, canRedeem, onClose, onCta }: { perk: Perk | null; c
             <View style={{ gap: 10 }}>
               <View style={{ height: 54, borderRadius: Radius.pill, backgroundColor: Palette.chip, alignItems: 'center', justifyContent: 'center' }}>
                 <Text style={{ fontFamily: Font.semibold, fontSize: 15, color: Palette.textMuted }}>
-                  Need {(pts - (perk ? 0 : 0)).toLocaleString()} more points
+                  Need {Math.max(0, pts - userPoints).toLocaleString()} more points
                 </Text>
               </View>
               <PressableScale
@@ -326,6 +326,7 @@ export default function RewardsScreen() {
       <RedeemSheet
         perk={selectedPerk}
         canRedeem={selectedPerk ? r.points >= selectedPerk.pts : false}
+        userPoints={r.points}
         onClose={() => setSelectedPerk(null)}
         onCta={handlePerkCta}
       />
