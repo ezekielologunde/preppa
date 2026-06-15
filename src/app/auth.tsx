@@ -168,7 +168,7 @@ export default function AuthScreen() {
         transition={{ type: 'timing', duration: 5000, loop: true, repeatReverse: true }}
         pointerEvents="none"
         style={{ position: 'absolute', top: -140, alignSelf: 'center', width: 440, height: 440, borderRadius: 220,
-          experimental_backgroundImage: 'radial-gradient(circle, rgba(241,95,34,0.2), transparent 70%)' }} />
+          experimental_backgroundImage: 'radial-gradient(circle, rgba(232,97,26,0.2), transparent 70%)' }} />
 
       <SafeAreaView style={{ flex: 1, paddingHorizontal: 24 }}>
         {/* Logo — slides down from splash position */}

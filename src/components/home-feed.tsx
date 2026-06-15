@@ -47,7 +47,7 @@ const DIET_TAG: Record<string, { label: string; color: string }> = {
 
 // ─── QuickAddButton ───────────────────────────────────────────────────────────
 
-function QuickAddButton({ meal }: { meal: Meal }) {
+export function QuickAddButton({ meal }: { meal: Meal }) {
   const router = useRouter();
   const { user } = useAuth();
   const addToCart = useAddToCart();

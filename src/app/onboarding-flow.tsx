@@ -68,7 +68,7 @@ function StepLocation({ onNext }: { onNext: (city: string) => void }) {
       style={{ flex: 1, paddingHorizontal: 24, paddingTop: 32 }}>
       <MotiView from={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
         transition={{ type: 'spring', damping: 12, stiffness: 140, delay: 100 }}
-        style={{ width: 80, height: 80, borderRadius: 40, backgroundColor: 'rgba(241,95,34,0.15)', alignItems: 'center', justifyContent: 'center', marginBottom: 24 }}>
+        style={{ width: 80, height: 80, borderRadius: 40, backgroundColor: 'rgba(232,97,26,0.15)', alignItems: 'center', justifyContent: 'center', marginBottom: 24 }}>
         <Text style={{ fontSize: 36 }}>📍</Text>
       </MotiView>
       <Text style={{ fontFamily: Font.display, fontSize: 26, color: '#fff', letterSpacing: -0.6, marginBottom: 10 }}>
@@ -169,7 +169,7 @@ function StepIntent({ onDone }: { onDone: (intent: string) => void }) {
               transition={{ type: 'spring', damping: 14, stiffness: 260 }}
               style={{ borderWidth: 2, borderRadius: 20, overflow: 'hidden' }}>
               <PressableScale onPress={() => { feedback.tap(); setSelected(opt.key); }}
-                style={{ padding: 20, flexDirection: 'row', alignItems: 'flex-start', gap: 14, backgroundColor: active ? 'rgba(241,95,34,0.12)' : 'rgba(255,255,255,0.04)' }}>
+                style={{ padding: 20, flexDirection: 'row', alignItems: 'flex-start', gap: 14, backgroundColor: active ? 'rgba(232,97,26,0.12)' : 'rgba(255,255,255,0.04)' }}>
                 <Text style={{ fontSize: 32 }}>{opt.emoji}</Text>
                 <View style={{ flex: 1, gap: 4 }}>
                   <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#fff' }}>{opt.title}</Text>
@@ -235,7 +235,7 @@ export default function OnboardingFlow() {
       <MotiView from={{ opacity: 0.5, translateY: -8 }} animate={{ opacity: 0.9, translateY: 12 }}
         transition={{ type: 'timing', duration: 5000, loop: true, repeatReverse: true }} pointerEvents="none"
         style={{ position: 'absolute', top: -120, alignSelf: 'center', width: 400, height: 400, borderRadius: 200,
-          experimental_backgroundImage: 'radial-gradient(circle, rgba(241,95,34,0.18), transparent 70%)' }} />
+          experimental_backgroundImage: 'radial-gradient(circle, rgba(232,97,26,0.18), transparent 70%)' }} />
       <SafeAreaView style={{ flex: 1 }}>
         <StepBar current={step} />
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>

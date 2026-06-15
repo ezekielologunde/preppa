@@ -4,6 +4,7 @@ import { MotiView } from 'moti';
 import { ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { QuickAddButton } from '@/components/home-feed';
 import { MealCard } from '@/components/meal-card';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
@@ -189,7 +190,14 @@ export default function SpecialsScreen() {
             <SectionBadge label={WEEKLY_BADGE.label} color={WEEKLY_BADGE.color} Icon={WEEKLY_BADGE.icon} />
           </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: pad, gap: 12 }}>
-            {weeklyPicks.map((m) => <MealCard key={m.id} meal={m} width={carouselCardWidth} />)}
+            {weeklyPicks.map((m) => (
+              <View key={m.id} style={{ position: 'relative' }}>
+                <MealCard meal={m} width={carouselCardWidth} />
+                <View style={{ position: 'absolute', bottom: 12, right: 12 }}>
+                  <QuickAddButton meal={m} />
+                </View>
+              </View>
+            ))}
           </ScrollView>
           </MotiView>
 
@@ -210,7 +218,14 @@ export default function SpecialsScreen() {
               </View>
             </View>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: pad, gap: 12, marginTop: 14 }}>
-              {fathersDayPicks.map((m) => <MealCard key={m.id} meal={m} width={carouselCardWidth} />)}
+              {fathersDayPicks.map((m) => (
+                <View key={m.id} style={{ position: 'relative' }}>
+                  <MealCard meal={m} width={carouselCardWidth} />
+                  <View style={{ position: 'absolute', bottom: 12, right: 12 }}>
+                    <QuickAddButton meal={m} />
+                  </View>
+                </View>
+              ))}
             </ScrollView>
             </MotiView>
           ) : null}
@@ -221,7 +236,14 @@ export default function SpecialsScreen() {
             <SectionBadge label="fresh drops" color="#059669" Icon={Leaf} />
           </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: pad, gap: 12 }}>
-            {freshDrops.map((m) => <MealCard key={m.id} meal={m} width={carouselCardWidth} />)}
+            {freshDrops.map((m) => (
+              <View key={m.id} style={{ position: 'relative' }}>
+                <MealCard meal={m} width={carouselCardWidth} />
+                <View style={{ position: 'absolute', bottom: 12, right: 12 }}>
+                  <QuickAddButton meal={m} />
+                </View>
+              </View>
+            ))}
           </ScrollView>
           </MotiView>
 

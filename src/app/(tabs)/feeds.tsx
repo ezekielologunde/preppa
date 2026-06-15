@@ -428,7 +428,7 @@ export default function FeedsScreen() {
       <View style={{ flex: 1, backgroundColor: '#0B0B0D', alignItems: 'center', justifyContent: 'center', gap: 16, padding: 32 }}>
         <FeedTabs tab={tab} onTab={(t) => { setTab(t); setPage(0); }} />
         <MotiView from={{ opacity: 0, scale: 0.88 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'spring', damping: 14, stiffness: 180 }}>
-          <View style={{ width: 88, height: 88, borderRadius: 28, backgroundColor: 'rgba(241,95,34,0.16)', alignItems: 'center', justifyContent: 'center' }}>
+          <View style={{ width: 88, height: 88, borderRadius: 28, backgroundColor: 'rgba(232,97,26,0.16)', alignItems: 'center', justifyContent: 'center' }}>
             <MonitorPlay size={40} color={ORANGE} />
           </View>
         </MotiView>

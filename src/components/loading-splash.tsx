@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
     height: 128,
     borderRadius: 64,
     borderWidth: 1.5,
-    borderColor: 'rgba(241,95,34,0.35)',
+    borderColor: 'rgba(232,97,26,0.35)',
   },
   track: {
     width: TRACK_WIDTH,
