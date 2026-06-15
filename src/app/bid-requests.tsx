@@ -245,6 +245,7 @@ export default function BidRequestsScreen() {
                     <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: INK }}>Title <Text style={{ color: Palette.danger }}>*</Text></Text>
                     <TextInput value={reqTitle} onChangeText={(t) => setReqTitle(cleanLine(t))} onBlur={() => setTitleTouched(true)}
                       maxLength={100} placeholder="e.g. Jerk chicken meal prep for 4" placeholderTextColor={Palette.textMuted}
+                      accessibilityLabel="Request title"
                       style={{ height: 50, backgroundColor: Palette.canvas, borderRadius: 14, paddingHorizontal: 14, fontFamily: Font.body, fontSize: 15, color: INK, borderWidth: 1.5, borderColor: titleTouched && reqTitle.trim().length < 3 ? Palette.danger : Palette.border }} />
                     {titleTouched && reqTitle.trim().length < 3
                       ? <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.danger }}>At least 3 characters required</Text>
@@ -254,6 +255,7 @@ export default function BidRequestsScreen() {
                     <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: INK }}>Details <Text style={{ fontFamily: Font.body, color: Palette.textMuted }}>(optional)</Text></Text>
                     <TextInput value={reqDesc} onChangeText={(t) => setReqDesc(cleanBlock(t))} multiline maxLength={500}
                       placeholder="Dietary needs, preferred cuisine, deadline…" placeholderTextColor={Palette.textMuted}
+                      accessibilityLabel="Request details"
                       style={{ minHeight: 80, backgroundColor: Palette.canvas, borderRadius: 14, padding: 14, fontFamily: Font.body, fontSize: 14, color: INK, textAlignVertical: 'top', borderWidth: 1, borderColor: Palette.border }} />
                     <Text style={{ fontFamily: Font.body, fontSize: 11.5, color: Palette.textMuted, textAlign: 'right' }}>{reqDesc.length}/500</Text>
                   </View>
@@ -314,6 +316,7 @@ export default function BidRequestsScreen() {
                 </View>
                 <TextInput value={bidNote} onChangeText={(t) => setBidNote(cleanBlock(t))} multiline maxLength={300}
                   placeholder="Message to the customer (optional)" placeholderTextColor={Palette.textMuted}
+                  accessibilityLabel="Bid note"
                   style={{ minHeight: 70, backgroundColor: Palette.canvas, borderRadius: 14, padding: 14, fontFamily: Font.body, fontSize: 14, color: INK, textAlignVertical: 'top', borderWidth: 1, borderColor: Palette.border }} />
                 {bidErr ? <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.danger, textAlign: 'center' }}>{bidErr}</Text> : null}
                 <PressableScale onPress={submitBid} disabled={placeBid.isPending || !bidPrice} accessibilityRole="button" accessibilityLabel="Submit bid"
