@@ -98,6 +98,7 @@ export default function OrdersScreen() {
     setActionErr(null);
     cancelOrder.mutate(o.id, {
       onSuccess: () => refundOrder.mutate(o.id, {
+        onSuccess: () => feedback.success(),
         onError: () => { feedback.error(); setActionErr('Preorder cancelled but refund failed — contact support if needed.'); },
       }),
       onError: (e) => { feedback.error(); setActionErr(e instanceof Error ? e.message : 'Could not cancel. Try again.'); },

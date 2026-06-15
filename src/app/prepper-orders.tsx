@@ -56,7 +56,7 @@ export default function PrepperOrdersScreen() {
   function doDecline(o: OrderSummary) {
     setDeclineOrder(null);
     setActionErr(null);
-    cancel.mutate(o.id, { onSuccess: () => refund.mutate(o.id, { onError: () => { feedback.error(); setActionErr('Could not issue refund. Contact support if the customer was not refunded.'); } }), onError: onErr });
+    cancel.mutate(o.id, { onSuccess: () => refund.mutate(o.id, { onSuccess: () => feedback.success(), onError: () => { feedback.error(); setActionErr('Could not issue refund. Contact support if the customer was not refunded.'); } }), onError: onErr });
   }
 
   function submitTerms() {
