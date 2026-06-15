@@ -36,6 +36,7 @@ export function AdminCustomers() {
           returnKeyType="search"
           autoCapitalize="none"
           maxLength={100}
+          accessibilityLabel="Search customers"
           style={{ flex: 1, fontFamily: Font.body, fontSize: 14, color: Admin.text }}
         />
         {query ? (

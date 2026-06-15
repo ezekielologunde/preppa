@@ -54,6 +54,7 @@ function ResolveForm({ dispute, onDone }: { dispute: AdminDisputeRow; onDone: ()
         placeholderTextColor={Admin.textDim}
         multiline
         maxLength={500}
+        accessibilityLabel="Admin note"
         style={{ minHeight: 60, backgroundColor: Admin.bg, borderRadius: Radius.sm, borderWidth: 1, borderColor: Admin.border, padding: 10, fontFamily: Font.body, fontSize: 13, color: Admin.text, textAlignVertical: 'top' }}
       />
       {err ? <Text style={{ fontFamily: Font.medium, fontSize: 12.5, color: Admin.danger }}>{err}</Text> : null}
@@ -250,6 +251,7 @@ export function AdminDisputes() {
             return (
               <PressableScale key={s} onPress={() => { feedback.tap(); setSort(s); }}
                 accessibilityRole="button" accessibilityState={{ selected: active }}
+                accessibilityLabel={s === 'recent' ? 'Sort by recent' : 'Sort by highest value'}
                 style={{ paddingHorizontal: 11, paddingVertical: 5, borderRadius: Radius.pill, backgroundColor: active ? Admin.brand : Admin.card, borderWidth: 1, borderColor: active ? Admin.brand : Admin.border }}>
                 <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: active ? '#fff' : Admin.textDim }}>{s === 'recent' ? 'Recent' : 'Highest value'}</Text>
               </PressableScale>

@@ -146,6 +146,7 @@ export function MealCard({ meal, width = 200, variant = 'normal' }: { meal: Meal
       onPress={() => { feedback.tap(); router.push(`/meal?id=${meal.id}`); }}
       onHoverIn={() => setHovered(true)}
       onHoverOut={() => setHovered(false)}
+      accessibilityRole="button"
       style={width === null ? { width: '100%' } : { width }}
       accessibilityLabel={`${meal.title} by ${meal.prepper}, $${meal.price.toFixed(2)}`}>
       <View style={{ borderRadius: big ? 24 : 20, overflow: 'hidden', backgroundColor: Palette.surface, ...Shadow.card }}>

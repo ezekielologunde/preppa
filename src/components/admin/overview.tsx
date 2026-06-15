@@ -93,7 +93,7 @@ export function AdminOverview({ onReviewPreppers, onNavigate, openDisputeCount }
                   <Text style={{ fontFamily: Font.heading, fontSize: 15, color: Admin.text }}>
                     {s.pending_preppers} prepper{s.pending_preppers === 1 ? '' : 's'} awaiting approval
                   </Text>
-                  <Text onPress={onReviewPreppers} style={{ fontFamily: Font.semibold, fontSize: 13, color: Admin.warn, marginTop: 2 }}>
+                  <Text onPress={onReviewPreppers} accessibilityRole="button" style={{ fontFamily: Font.semibold, fontSize: 13, color: Admin.warn, marginTop: 2 }}>
                     Review applications →
                   </Text>
                 </View>
@@ -112,7 +112,7 @@ export function AdminOverview({ onReviewPreppers, onNavigate, openDisputeCount }
                   <Text style={{ fontFamily: Font.heading, fontSize: 15, color: Admin.text }}>
                     {openDisputeCount} open dispute{openDisputeCount === 1 ? '' : 's'} need attention
                   </Text>
-                  <Text onPress={() => onNavigate?.('disputes')} style={{ fontFamily: Font.semibold, fontSize: 13, color: Admin.danger, marginTop: 2 }}>
+                  <Text onPress={() => onNavigate?.('disputes')} accessibilityRole="button" style={{ fontFamily: Font.semibold, fontSize: 13, color: Admin.danger, marginTop: 2 }}>
                     Review disputes →
                   </Text>
                 </View>

@@ -169,6 +169,7 @@ function PrepperCard({ p, earnings }: { p: AdminPrepper; earnings?: PrepperEarni
             placeholderTextColor={Admin.textDim}
             multiline
             maxLength={500}
+            accessibilityLabel="Rejection note"
             style={{ minHeight: 56, backgroundColor: Admin.bg, borderRadius: Radius.sm, borderWidth: 1, borderColor: Admin.border, padding: 10, fontFamily: Font.body, fontSize: 13, color: Admin.text, textAlignVertical: 'top' }}
           />
           <View style={{ flexDirection: 'row', gap: 8 }}>

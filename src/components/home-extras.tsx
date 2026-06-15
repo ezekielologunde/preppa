@@ -282,11 +282,13 @@ export function HomeOnboarding() {
         {page < ONBOARDING_STEPS.length - 1 ? (
           <PressableScale
             onPress={() => { feedback.tap(); scrollRef.current?.scrollTo({ x: (page + 1) * cardWidth, animated: true }); }}
+            accessibilityRole="button" accessibilityLabel="Next step"
             style={{ height: 46, borderRadius: Radius.pill, backgroundColor: INK, alignItems: 'center', justifyContent: 'center' }}>
             <Text style={{ fontFamily: Font.semibold, fontSize: 14.5, color: '#fff' }}>next →</Text>
           </PressableScale>
         ) : (
           <PressableScale onPress={dismiss}
+            accessibilityRole="button" accessibilityLabel="Start exploring"
             style={{ height: 46, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
             <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#fff' }}>let's explore 🚀</Text>
           </PressableScale>
@@ -305,7 +307,9 @@ export function ActionSplitter() {
       transition={{ type: 'spring', damping: 15, stiffness: 120, mass: 0.6, delay: 50 }}
       style={{ marginHorizontal: 20, marginTop: 16, flexDirection: 'row', gap: 10 }}>
       {/* Card A — Build Your Dream Meal Plan */}
-      <PressableScale onPress={() => { feedback.tap(); router.push('/meal-plans'); }} style={{ flex: 1 }}>
+      <PressableScale onPress={() => { feedback.tap(); router.push('/meal-plans'); }}
+        accessibilityRole="button" accessibilityLabel="Build your dream meal plan"
+        style={{ flex: 1 }}>
         <LinearGradient colors={['#1c1108', '#3d2410']}
           style={{ borderRadius: Radius.lg, padding: 16, minHeight: 130, justifyContent: 'space-between' }}>
           <View style={{ width: 38, height: 38, borderRadius: 12, backgroundColor: 'rgba(255,180,60,0.22)', alignItems: 'center', justifyContent: 'center' }}>
@@ -322,7 +326,9 @@ export function ActionSplitter() {
         </LinearGradient>
       </PressableScale>
       {/* Card B — Order an Immediate Drop */}
-      <PressableScale onPress={() => { feedback.tap(); router.push('/search'); }} style={{ flex: 1 }}>
+      <PressableScale onPress={() => { feedback.tap(); router.push('/search'); }}
+        accessibilityRole="button" accessibilityLabel="Order an immediate drop"
+        style={{ flex: 1 }}>
         <LinearGradient colors={['#F26B1D', '#c43c0d']}
           style={{ borderRadius: Radius.lg, padding: 16, minHeight: 130, justifyContent: 'space-between' }}>
           <View style={{ width: 38, height: 38, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center' }}>

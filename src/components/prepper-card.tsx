@@ -64,7 +64,7 @@ export function PrepperCard({ prepper, showRank = false }: { prepper: TopPrepper
   const router = useRouter();
   const ranked = showRank && prepper.rank != null && prepper.rank <= 3;
   return (
-    <PressableScale onPress={() => { feedback.tap(); router.push(`/prepper?id=${prepper.id}`); }} style={{ width: 210 }} accessibilityLabel={`${ranked ? `Ranked number ${prepper.rank}, ` : ''}${prepper.name}, ${prepper.rating.toFixed(1)} stars — view kitchen`}>
+    <PressableScale onPress={() => { feedback.tap(); router.push(`/prepper?id=${prepper.id}`); }} accessibilityRole="button" style={{ width: 210 }} accessibilityLabel={`${ranked ? `Ranked number ${prepper.rank}, ` : ''}${prepper.name}, ${prepper.rating.toFixed(1)} stars — view kitchen`}>
       <View style={{ borderRadius: 20, overflow: 'hidden', backgroundColor: Palette.surface, ...Shadow.card }}>
         <View style={{ height: 130, backgroundColor: Palette.brandTint }}>
           {prepper.image ? <Image source={imgUrl(prepper.image, 420)} style={{ flex: 1 }} contentFit="cover" transition={250} /> : null}
