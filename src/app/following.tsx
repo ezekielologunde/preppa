@@ -20,7 +20,7 @@ const INK = Palette.ink;
 export default function FollowingScreen() {
   const router = useRouter();
   const { user } = useAuth();
-  const { data: preppers, isLoading, refetch } = useFollowedPreppers(user?.id);
+  const { data: preppers, isLoading, isError, refetch } = useFollowedPreppers(user?.id);
   const count = preppers?.length ?? 0;
   const [refreshing, setRefreshing] = useState(false);
   async function handleRefresh() { setRefreshing(true); await refetch(); setRefreshing(false); }
@@ -49,6 +49,21 @@ export default function FollowingScreen() {
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 16, justifyContent: 'center', paddingHorizontal: 20, paddingTop: 4 }}>
             {Array.from({ length: 4 }).map((_, i) => <CardSkeleton key={i} width={210} />)}
           </View>
+        ) : isError ? (
+          <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }}
+            style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
+            <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: '#EDE9FE', alignItems: 'center', justifyContent: 'center' }}>
+              <Users size={28} color="#8b5cf6" />
+            </View>
+            <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>couldn't load kitchens</Text>
+            <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center', maxWidth: 260, lineHeight: 20 }}>
+              Check your connection and try again.
+            </Text>
+            <PressableScale onPress={() => { feedback.tap(); void refetch(); }} accessibilityRole="button" accessibilityLabel="Retry loading kitchens"
+              style={{ marginTop: 6, backgroundColor: ORANGE, borderRadius: Radius.pill, paddingHorizontal: 24, paddingVertical: 12 }}>
+              <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: '#fff' }}>retry</Text>
+            </PressableScale>
+          </MotiView>
         ) : count === 0 ? (
           <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }}
             style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>

@@ -100,7 +100,7 @@ export default function PrepperMealPlansScreen() {
   const { data: application } = useMyPrepperApplication(user?.id);
   const prepperId = application?.status === 'approved' ? application.id : null;
 
-  const { data: plans, isLoading, refetch } = useMyPrepperMealPlans(prepperId);
+  const { data: plans, isLoading, isError, refetch } = useMyPrepperMealPlans(prepperId);
   const createPlan = useCreatePrepperMealPlan(prepperId);
   const updatePlan = useUpdatePrepperMealPlan(prepperId);
 
@@ -176,7 +176,22 @@ export default function PrepperMealPlansScreen() {
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={ORANGE} colors={[ORANGE]} />}
           contentContainerStyle={{ padding: 16, paddingBottom: 40, gap: 12 }}>
 
-          {isLoading ? <ListSkeleton count={3} rowHeight={110} /> : (plans ?? []).length === 0 ? (
+          {isLoading ? <ListSkeleton count={3} rowHeight={110} /> : isError ? (
+            <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }}
+              style={{ flex: 1, alignItems: 'center', paddingTop: 60, gap: 12 }}>
+              <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
+                <RefreshCw size={28} color={Palette.textMuted} strokeWidth={1.5} />
+              </View>
+              <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>couldn't load plans</Text>
+              <Text style={{ fontFamily: Font.body, fontSize: 13.5, color: Palette.textSecondary, textAlign: 'center', maxWidth: 260, lineHeight: 20 }}>
+                Check your connection and try again.
+              </Text>
+              <PressableScale onPress={() => { feedback.tap(); void refetch(); }} accessibilityRole="button" accessibilityLabel="Retry loading plans"
+                style={{ marginTop: 6, backgroundColor: ORANGE, borderRadius: Radius.pill, paddingHorizontal: 24, paddingVertical: 12 }}>
+                <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: '#fff' }}>retry</Text>
+              </PressableScale>
+            </MotiView>
+          ) : (plans ?? []).length === 0 ? (
             <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260 }}
               style={{ alignItems: 'center', paddingTop: 60, gap: 10 }}>
               <RefreshCw size={32} color={Palette.textMuted} strokeWidth={1.5} />
@@ -195,6 +210,7 @@ export default function PrepperMealPlansScreen() {
                 onToggle={() => {
                   setToggleErr(null);
                   updatePlan.mutate({ id: p.id, active: !p.active }, {
+                    onSuccess: () => feedback.success(),
                     onError: () => { feedback.error(); setToggleErr('Could not update plan status. Please try again.'); },
                   });
                 }} />

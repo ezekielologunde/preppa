@@ -195,7 +195,7 @@ export default function CustomPlanScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const paymentsOn = useFeatureEnabled('payments');
-  const { data: plan, isLoading, refetch } = useCustomPlan(id);
+  const { data: plan, isLoading, isError, refetch } = useCustomPlan(id);
   const [refreshing, setRefreshing] = useState(false);
   const [drillItem, setDrillItem] = useState<CustomPlanItem | null>(null);
   const [paying, setPaying] = useState(false);
@@ -232,11 +232,40 @@ export default function CustomPlanScreen() {
 
   function goBack() { feedback.tap(); if (router.canGoBack()) router.back(); else router.replace('/meal-plans'); }
 
-  if (isLoading || !plan) {
+  if (isLoading) {
     return (
       <View style={{ flex: 1, backgroundColor: Palette.canvas }}>
         <SafeAreaView edges={['top']} style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
           <ActivityIndicator color={ORANGE} size="large" />
+        </SafeAreaView>
+      </View>
+    );
+  }
+
+  if (isError || !plan) {
+    return (
+      <View style={{ flex: 1, backgroundColor: Palette.canvas }}>
+        <SafeAreaView edges={['top']} style={{ flex: 1 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingTop: 8, paddingBottom: 8 }}>
+            <PressableScale onPress={goBack} accessibilityRole="button" accessibilityLabel="Go back"
+              style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
+              <ChevronLeft size={22} color={INK} />
+            </PressableScale>
+          </View>
+          <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }}
+            style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
+            <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
+              <ChefHat size={28} color={Palette.textMuted} />
+            </View>
+            <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>couldn't load plan</Text>
+            <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center', maxWidth: 260, lineHeight: 20 }}>
+              Check your connection and try again.
+            </Text>
+            <PressableScale onPress={() => { feedback.tap(); void refetch(); }} accessibilityRole="button" accessibilityLabel="Retry loading plan"
+              style={{ marginTop: 6, backgroundColor: ORANGE, borderRadius: Radius.pill, paddingHorizontal: 24, paddingVertical: 12 }}>
+              <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: '#fff' }}>retry</Text>
+            </PressableScale>
+          </MotiView>
         </SafeAreaView>
       </View>
     );

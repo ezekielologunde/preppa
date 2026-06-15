@@ -51,7 +51,7 @@ export default function FavoritesScreen() {
   const prepperIds = allKeys.filter((k) => k.startsWith('prepper:')).map((k) => k.replace('prepper:', ''));
   const [tab, setTab] = useState<'meals' | 'kitchens'>('meals');
   const CARD_W = gridCardWidth(useContentWidth());
-  const { data: favMeals, isLoading: mealsLoading } = useMealsByIds(mealIds);
+  const { data: favMeals, isLoading: mealsLoading, isError: mealsError, refetch: refetchMeals } = useMealsByIds(mealIds);
 
   return (
     <View style={{ flex: 1, backgroundColor: Palette.canvas }}>
@@ -95,7 +95,22 @@ export default function FavoritesScreen() {
           })}
         </View>
 
-        {tab === 'meals' && mealIds.length === 0 ? (
+        {tab === 'meals' && mealsError ? (
+          <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }}
+            style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
+            <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: Palette.danger + '1A', alignItems: 'center', justifyContent: 'center' }}>
+              <Heart size={28} color={Palette.danger} />
+            </View>
+            <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>couldn't load favorites</Text>
+            <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center', maxWidth: 260, lineHeight: 20 }}>
+              Check your connection and try again.
+            </Text>
+            <PressableScale onPress={() => { feedback.tap(); void refetchMeals(); }} accessibilityRole="button" accessibilityLabel="Retry loading favorites"
+              style={{ marginTop: 6, backgroundColor: ORANGE, borderRadius: Radius.pill, paddingHorizontal: 24, paddingVertical: 12 }}>
+              <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: '#fff' }}>retry</Text>
+            </PressableScale>
+          </MotiView>
+        ) : tab === 'meals' && mealIds.length === 0 ? (
           <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }}
             style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
             <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: Palette.danger + '1A', alignItems: 'center', justifyContent: 'center' }}>
