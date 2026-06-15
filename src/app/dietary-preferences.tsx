@@ -133,6 +133,7 @@ export default function DietaryPreferencesScreen() {
   }
 
   async function handleSave() {
+    feedback.tap();
     setSaving(true);
     setSaveErr(null);
     const { error } = await supabase.auth.updateUser({

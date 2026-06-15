@@ -37,6 +37,7 @@ export default function ChangeEmailScreen() {
   function goBack() { feedback.tap(); if (router.canGoBack()) { router.back(); } else { router.replace('/settings'); } }
 
   async function handleSubmit() {
+    feedback.tap();
     setError(null);
     const trimmed = email.trim().toLowerCase();
     if (!trimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {

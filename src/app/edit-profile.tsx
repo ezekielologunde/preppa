@@ -97,6 +97,7 @@ export default function EditProfileScreen() {
   }, [fields]);
 
   async function handleSave() {
+    feedback.tap();
     const newErrors: Errors = {};
     (Object.keys(fields) as (keyof Fields)[]).forEach((k) => {
       const err = validate(k, fields[k]);
