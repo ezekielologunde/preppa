@@ -2,7 +2,7 @@ import { useRouter } from 'expo-router';
 import { BadgeCheck, ChevronLeft, ChevronRight, Heart, Users } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useState } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Avatar } from '@/components/ui/avatar';
@@ -52,6 +52,8 @@ export default function FavoritesScreen() {
   const [tab, setTab] = useState<'meals' | 'kitchens'>('meals');
   const CARD_W = gridCardWidth(useContentWidth());
   const { data: favMeals, isLoading: mealsLoading, isError: mealsError, refetch: refetchMeals } = useMealsByIds(mealIds);
+  const [refreshing, setRefreshing] = useState(false);
+  async function handleRefreshMeals() { setRefreshing(true); await refetchMeals(); setRefreshing(false); }
 
   return (
     <View style={{ flex: 1, backgroundColor: Palette.canvas }}>
@@ -129,7 +131,7 @@ export default function FavoritesScreen() {
             </PressableScale>
           </MotiView>
         ) : tab === 'meals' ? (
-          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 60, flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
+          <ScrollView showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefreshMeals} tintColor={ORANGE} colors={[ORANGE]} />} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 60, flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
             {mealsLoading
               ? mealIds.map((id) => <CardSkeleton key={id} width={CARD_W} />)
               : (favMeals ?? []).map((meal, i) => (
