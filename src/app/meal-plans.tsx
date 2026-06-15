@@ -272,7 +272,7 @@ export default function MealPlansScreen() {
                         </PressableScale>
                       ) : null}
                       <PressableScale
-                        onPress={() => { feedback.tap(); setActionErr(null); updateSub.mutate({ id: s.id, status: s.status === 'active' ? 'paused' : 'active' }, { onError: (e) => { feedback.error(); setActionErr(e instanceof Error ? e.message : 'Could not update plan. Please try again.'); } }); }}
+                        onPress={() => { feedback.tap(); setActionErr(null); updateSub.mutate({ id: s.id, status: s.status === 'active' ? 'paused' : 'active' }, { onSuccess: () => feedback.success(), onError: (e) => { feedback.error(); setActionErr(e instanceof Error ? e.message : 'Could not update plan. Please try again.'); } }); }}
                         disabled={updateSub.isPending}
                         accessibilityRole="button"
                         accessibilityLabel={s.status === 'active' ? 'Pause plan' : 'Resume plan'}

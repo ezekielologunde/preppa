@@ -232,6 +232,7 @@ export default function AddressesScreen() {
   const confirmDelete = (id: string) => {
     setMutationErr(null);
     deleteAddress.mutate(id, {
+      onSuccess: () => feedback.success(),
       onError: () => { feedback.error(); setMutationErr('Could not delete address. Please try again.'); },
     });
     setPendingDeleteId(null);
@@ -246,7 +247,7 @@ export default function AddressesScreen() {
     upsertAddress.mutate(
       { ...form, label, id: editing?.id },
       {
-        onSuccess: () => setSheetVisible(false),
+        onSuccess: () => { feedback.success(); setSheetVisible(false); },
         onError: () => { feedback.error(); setSheetVisible(false); setMutationErr('Could not save address. Please try again.'); },
       },
     );
@@ -255,6 +256,7 @@ export default function AddressesScreen() {
   const setDefault = (id: string) => {
     setMutationErr(null);
     setDefaultAddress.mutate({ id, allIds: addresses.map((a) => a.id) }, {
+      onSuccess: () => feedback.success(),
       onError: () => { feedback.error(); setMutationErr('Could not update default address.'); },
     });
   };
