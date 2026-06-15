@@ -13,16 +13,18 @@ import {
   MoreHorizontal,
   QrCode,
   Search,
+  Shuffle,
   SlidersHorizontal,
   Sparkles,
   Star,
   UtensilsCrossed,
+  X,
   Zap,
 } from 'lucide-react-native';
 import type { ComponentType } from 'react';
 import { MotiView } from 'moti';
 import { useEffect, useMemo, useState } from 'react';
-import { Platform, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Platform, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { CuisineCard } from '@/components/cuisine-card';
@@ -103,6 +105,33 @@ function CategoryCircles({ active, pad, onSelect }: { active: string; pad: numbe
 }
 
 
+function ActiveFilterBar({
+  activeCategory, dietary, sort, pad, onClearCategory, onClearDietary, onClearSort,
+}: {
+  activeCategory: string; dietary: string[]; sort: string; pad: number;
+  onClearCategory: () => void; onClearDietary: (d: string) => void; onClearSort: () => void;
+}) {
+  const chips: { key: string; label: string; onRemove: () => void }[] = [];
+  if (activeCategory !== 'all') {
+    const cat = CATEGORY_CIRCLES.find((c) => c.key === activeCategory);
+    chips.push({ key: 'cat', label: cat?.label ?? activeCategory, onRemove: onClearCategory });
+  }
+  dietary.forEach((d) => chips.push({ key: `diet-${d}`, label: d, onRemove: () => onClearDietary(d) }));
+  if (sort !== FILTER_DEFAULTS.sort) chips.push({ key: 'sort', label: sort, onRemove: onClearSort });
+  if (chips.length === 0) return null;
+  return (
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: pad, gap: 6, paddingBottom: 6 }}>
+      {chips.map((chip) => (
+        <PressableScale key={chip.key} onPress={() => { feedback.tap(); chip.onRemove(); }} accessibilityRole="button" accessibilityLabel={`Remove filter: ${chip.label}`}
+          style={{ flexDirection: 'row', alignItems: 'center', gap: 4, height: 26, paddingHorizontal: 10, borderRadius: 13, backgroundColor: Palette.brandTint, borderWidth: 1, borderColor: '#F6C6AC' }}>
+          <Text style={{ fontFamily: Font.medium, fontSize: 11.5, color: Palette.brand }}>{chip.label}</Text>
+          <X size={10} color={Palette.brand} />
+        </PressableScale>
+      ))}
+    </ScrollView>
+  );
+}
+
 // ─── Main Screen ───────────────────────────────────────────────────────────────
 
 export default function ExploreScreen() {
@@ -131,12 +160,17 @@ export default function ExploreScreen() {
         return defaultAddress ? [defaultAddress.city, defaultAddress.state].filter(Boolean).join(', ') : 'near you';
       })();
 
-  async function handleLocationTap() {
+  async function handleGpsTap() {
     if (locCapturing) return;
     feedback.tap();
-    if (!user) { router.push('/auth?mode=signup'); return; }
     const result = await requestDeviceLocation();
-    if (result === 'denied') router.push('/addresses');
+    if (result === 'denied' && user && addresses.length > 0) router.push('/addresses');
+  }
+
+  function handleAddressTap() {
+    feedback.tap();
+    if (!user) { router.push('/auth?mode=signin'); return; }
+    router.push('/addresses');
   }
 
   const [refreshing, setRefreshing]     = useState(false);
@@ -204,14 +238,21 @@ export default function ExploreScreen() {
           {/* Top row: title | location | filter | [tablet: view toggle] */}
           <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: pad, paddingTop: 8, paddingBottom: 2, gap: 10 }}>
             <Text numberOfLines={1} style={{ flex: 1, fontFamily: Font.display, fontSize: 26, color: Palette.ink, letterSpacing: -0.9 }}>explore</Text>
-            <PressableScale onPress={handleLocationTap} accessibilityRole="button" accessibilityLabel={`Find chefs near ${locCapturing ? '...' : locationLabel}. Tap to detect.`}
-              style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: Palette.surface, borderRadius: Radius.pill, paddingHorizontal: 11, height: 40, maxWidth: 200, ...Shadow.card }}>
-              <Compass size={13} color={locCapturing ? Palette.textMuted : Palette.brand} style={{ flexShrink: 0 }} />
-              <Text numberOfLines={1} style={{ fontFamily: Font.medium, fontSize: 13, color: locCapturing ? Palette.textMuted : (locationLabel !== 'near you' ? Palette.inkSoft : Palette.brand), flexShrink: 1 }}>
-                {locCapturing ? 'detecting...' : locationLabel}
-              </Text>
-              <ChevronDown size={12} color={locCapturing ? Palette.textMuted : Palette.textSecondary} style={{ flexShrink: 0 }} />
-            </PressableScale>
+            <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: Palette.surface, borderRadius: Radius.pill, height: 40, maxWidth: 200, overflow: 'hidden', ...Shadow.card }}>
+              <PressableScale onPress={handleGpsTap} accessibilityRole="button" accessibilityLabel="Detect my location"
+                style={{ paddingLeft: 11, paddingRight: 7, height: 40, alignItems: 'center', justifyContent: 'center' }}>
+                {locCapturing
+                  ? <ActivityIndicator size="small" color={Palette.brand} />
+                  : <Compass size={13} color={loc.status === 'granted' ? Palette.brand : Palette.textMuted} />}
+              </PressableScale>
+              <PressableScale onPress={handleAddressTap} accessibilityRole="button" accessibilityLabel={`Location: ${locationLabel}. Tap to change.`}
+                style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 3, paddingRight: 10, height: 40, minWidth: 0 }}>
+                <Text numberOfLines={1} style={{ fontFamily: Font.medium, fontSize: 13, color: locationLabel !== 'near you' ? Palette.inkSoft : Palette.textMuted, flexShrink: 1 }}>
+                  {locCapturing ? 'detecting...' : locationLabel}
+                </Text>
+                <ChevronDown size={12} color={Palette.textSecondary} style={{ flexShrink: 0 }} />
+              </PressableScale>
+            </View>
             <PressableScale onPress={() => { feedback.tap(); setFilterOpen(true); }} accessibilityRole="button" accessibilityLabel={activeFilterCount > 0 ? `Filters — ${activeFilterCount} active` : 'Open filters'}
               style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: activeFilterCount > 0 ? Palette.brand : Palette.surface, alignItems: 'center', justifyContent: 'center', ...Shadow.card }}>
               <SlidersHorizontal size={17} color={activeFilterCount > 0 ? '#fff' : Palette.brand} />
@@ -229,27 +270,34 @@ export default function ExploreScreen() {
             ) : null}
           </View>
 
-          {/* Subtitle */}
-          <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary, paddingHorizontal: pad, paddingBottom: 6 }}>
-            meals, kitchens & experiences near you
-          </Text>
-
-          {/* Search bar with QR scan icon */}
-          <View style={{ paddingHorizontal: pad, paddingBottom: 4 }}>
+          {/* Search + QR */}
+          <View style={{ paddingHorizontal: pad, paddingBottom: 4, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <PressableScale onPress={() => { feedback.tap(); router.push('/search'); }} accessibilityRole="search" accessibilityLabel="Search meals or kitchens"
-              style={{ flexDirection: 'row', alignItems: 'center', height: 44, borderRadius: 22, backgroundColor: Palette.surface, paddingHorizontal: 14, gap: 10, overflow: 'hidden', ...Shadow.card }}>
+              style={{ flex: 1, flexDirection: 'row', alignItems: 'center', height: 44, borderRadius: 22, backgroundColor: Palette.surface, paddingHorizontal: 14, gap: 10, overflow: 'hidden', ...Shadow.card }}>
               <Search size={18} color={Palette.textMuted} />
               <MotiView key={placeholderIdx} from={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ type: 'timing', duration: 400 }} style={{ flex: 1 }}>
                 <Text numberOfLines={1} style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textMuted }}>
                   {SEARCH_PLACEHOLDERS[placeholderIdx]}
                 </Text>
               </MotiView>
+            </PressableScale>
+            <PressableScale onPress={() => { feedback.tap(); router.push('/qr-scan' as never); }} accessibilityRole="button" accessibilityLabel="Scan QR code"
+              style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center', ...Shadow.card }}>
               <QrCode size={18} color={Palette.textMuted} />
             </PressableScale>
           </View>
 
           {/* Category icon circles */}
           <CategoryCircles active={activeCategory} pad={pad} onSelect={handleCategorySelect} />
+          <ActiveFilterBar
+            activeCategory={activeCategory}
+            dietary={advFilters.dietary}
+            sort={advFilters.sort}
+            pad={pad}
+            onClearCategory={() => setActiveCategory('all')}
+            onClearDietary={(d) => setAdvFilters((f) => ({ ...f, dietary: f.dietary.filter((x) => x !== d) }))}
+            onClearSort={() => setAdvFilters((f) => ({ ...f, sort: FILTER_DEFAULTS.sort }))}
+          />
         </View>
 
         {/* ── Scrollable content ── */}
@@ -266,20 +314,8 @@ export default function ExploreScreen() {
             </PressableScale>
           ) : null}
 
-          {/* Cuisines */}
+          {/* Top Preppers Near You — dynamic/personalized first */}
           <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260 }}>
-            <SectionHeader title="cuisines" pad={pad} Icon={UtensilsCrossed} onSeeAll={() => router.push('/cuisine-explorer')} />
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: pad, gap: 12, paddingBottom: 20 }}>
-              {CUISINES.map((c, i) => (
-                <MotiView key={c.id} from={{ opacity: 0, translateX: 14 }} animate={{ opacity: 1, translateX: 0 }} transition={{ type: 'timing', duration: 220, delay: i * 35 }}>
-                  <CuisineCard cuisine={c} onPress={() => { feedback.tap(); router.push(`/search?q=${encodeURIComponent(c.name)}`); }} />
-                </MotiView>
-              ))}
-            </ScrollView>
-          </MotiView>
-
-          {/* Top Preppers Near You */}
-          <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 40 }}>
             <SectionHeader title="top kitchens near you" pad={pad} Icon={Star} onSeeAll={() => router.push('/kitchens')} />
             {preppersLoading ? (
               <View style={{ paddingBottom: 20 }}><CardRowSkeleton count={3} width={210} /></View>
@@ -300,6 +336,18 @@ export default function ExploreScreen() {
                 ))}
               </ScrollView>
             )}
+          </MotiView>
+
+          {/* Cuisines */}
+          <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 40 }}>
+            <SectionHeader title="cuisines" pad={pad} Icon={UtensilsCrossed} onSeeAll={() => router.push('/cuisine-explorer')} />
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: pad, gap: 12, paddingBottom: 20 }}>
+              {CUISINES.map((c, i) => (
+                <MotiView key={c.id} from={{ opacity: 0, translateX: 14 }} animate={{ opacity: 1, translateX: 0 }} transition={{ type: 'timing', duration: 220, delay: i * 35 }}>
+                  <CuisineCard cuisine={c} onPress={() => { feedback.tap(); router.push(`/search?q=${encodeURIComponent(c.name)}`); }} />
+                </MotiView>
+              ))}
+            </ScrollView>
           </MotiView>
 
           {/* Meals Grid */}
@@ -408,7 +456,7 @@ export default function ExploreScreen() {
               <View style={{ backgroundColor: Palette.surface, borderRadius: 16, padding: 20, gap: 14, borderWidth: 1, borderColor: Palette.border, ...Shadow.card }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
                   <View style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: Palette.brand + '18', alignItems: 'center', justifyContent: 'center' }}>
-                    <Compass size={22} color={Palette.brand} />
+                    <Shuffle size={22} color={Palette.brand} />
                   </View>
                   <View style={{ flex: 1 }}>
                     <Text style={{ fontFamily: Font.heading, fontSize: 17, color: Palette.ink }}>can't decide?</Text>
