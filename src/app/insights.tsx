@@ -1,7 +1,7 @@
 import { useRouter } from 'expo-router';
 import { ChevronLeft, ChevronRight, Clock, Flame, Heart, Leaf, Sparkles, TrendingUp, UtensilsCrossed } from 'lucide-react-native';
 import { MotiView } from 'moti';
-import { ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PressableScale } from '@/components/ui/pressable-scale';
@@ -59,7 +59,7 @@ const SAVINGS_TIPS = [
 export default function InsightsScreen() {
   const router = useRouter();
   const { user } = useAuth();
-  const { data: orders } = useMyOrders(user?.id);
+  const { data: orders, isLoading, isError } = useMyOrders(user?.id);
   const completed = (orders ?? []).filter((o) => o.status === 'completed');
   const total = completed.reduce((s, o) => s + o.total, 0);
   const avg = completed.length ? total / completed.length : 0;
@@ -99,6 +99,17 @@ export default function InsightsScreen() {
           <Text style={{ fontFamily: Font.display, fontSize: 24, color: INK, letterSpacing: -0.6 }}>my stats</Text>
         </View>
 
+        {isLoading ? (
+          <ActivityIndicator color={ORANGE} style={{ marginTop: 48 }} />
+        ) : isError ? (
+          <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }}
+            style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
+            <TrendingUp size={28} color={Palette.textMuted} />
+            <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>couldn't load your stats</Text>
+            <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center' }}>Check your connection and try again.</Text>
+          </MotiView>
+        ) : null}
+        {!isLoading && !isError ? (
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 20, gap: 16, paddingBottom: 32 }}>
 
           {/* Hero stats */}
@@ -208,6 +219,7 @@ export default function InsightsScreen() {
           </MotiView>
 
         </ScrollView>
+        ) : null}
       </SafeAreaView>
     </View>
   );

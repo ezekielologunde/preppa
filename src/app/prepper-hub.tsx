@@ -50,7 +50,7 @@ export default function PrepperHubScreen() {
   const { user } = useAuth();
   const { data: application } = useMyPrepperApplication(user?.id);
   const isDesktop = useBreakpoint() === 'desktop';
-  const { data: orders, refetch: refetchOrders } = usePrepperOrders(application?.id);
+  const { data: orders, isError: ordersError, refetch: refetchOrders } = usePrepperOrders(application?.id);
   const [refreshing, setRefreshing] = useState(false);
   async function handleRefresh() { setRefreshing(true); await refetchOrders(); setRefreshing(false); }
   const hour = new Date().getHours();
@@ -149,6 +149,12 @@ export default function PrepperHubScreen() {
               <ChevronRight size={16} color={ORANGE} />
             </PressableScale>
             </MotiView>
+          ) : null}
+
+          {ordersError ? (
+            <View style={{ backgroundColor: Palette.danger + '14', borderRadius: Radius.md, padding: 12, flexDirection: 'row', alignItems: 'center', gap: 10, borderWidth: 1, borderColor: Palette.danger + '40' }}>
+              <Text style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.danger, flex: 1 }}>couldn't load order stats — pull down to retry</Text>
+            </View>
           ) : null}
 
           {/* Quick stats */}
