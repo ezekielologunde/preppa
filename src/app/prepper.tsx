@@ -8,6 +8,7 @@ import { RefreshControl, ScrollView, Share, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PrepperBadgeShelf } from '@/components/badge-shelf';
+import { QuickAddButton } from '@/components/home-feed';
 import { MealCard } from '@/components/meal-card';
 import { SubscribePlanSheet } from '@/components/subscribe-sheet';
 import { Avatar } from '@/components/ui/avatar';
@@ -315,7 +316,12 @@ export default function PrepperScreen() {
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12, paddingHorizontal: 16 }}>
             {p.meals.map((m, i) => (
               <MotiView key={m.id} from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 210, delay: i * 40 }}>
-                <MealCard meal={m} width={cardW} />
+                <View style={{ position: 'relative' }}>
+                  <MealCard meal={m} width={cardW} />
+                  <View style={{ position: 'absolute', bottom: 12, right: 12 }}>
+                    <QuickAddButton meal={m} />
+                  </View>
+                </View>
               </MotiView>
             ))}
           </View>

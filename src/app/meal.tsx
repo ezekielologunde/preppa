@@ -16,6 +16,7 @@ import { imgUrl } from '@/lib/img';
 import { recordMealView } from '@/lib/recently-viewed';
 import { useAddToCart, useCart } from '@/lib/queries/cart';
 import { useFeatureEnabled } from '@/lib/queries/feature-flags';
+import { QuickAddButton } from '@/components/home-feed';
 import { MealCard } from '@/components/meal-card';
 import { useMeal, useMealsByPrepper } from '@/lib/queries/meals';
 import { BP } from '@/lib/layout';
@@ -370,7 +371,12 @@ export default function MealScreen() {
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 12, paddingBottom: 8 }}>
                 {moreMeals.map((m, i) => (
                   <MotiView key={m.id} from={{ opacity: 0, translateX: 14 }} animate={{ opacity: 1, translateX: 0 }} transition={{ type: 'timing', duration: 220, delay: i * 35 }}>
-                    <MealCard meal={m} width={160} />
+                    <View style={{ position: 'relative' }}>
+                      <MealCard meal={m} width={160} />
+                      <View style={{ position: 'absolute', bottom: 12, right: 12 }}>
+                        <QuickAddButton meal={m} />
+                      </View>
+                    </View>
                   </MotiView>
                 ))}
               </ScrollView>
