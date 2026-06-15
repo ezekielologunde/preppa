@@ -5,6 +5,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { queryClient } from '@/lib/query-client';
 import { AuthProvider } from '@/providers/auth-provider';
+import { LocationProvider } from '@/providers/location-provider';
 
 /** Composes the cross-cutting providers every screen depends on. */
 export function AppProviders({ children }: { children: ReactNode }) {
@@ -12,7 +13,9 @@ export function AppProviders({ children }: { children: ReactNode }) {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
-          <AuthProvider>{children}</AuthProvider>
+          <AuthProvider>
+            <LocationProvider>{children}</LocationProvider>
+          </AuthProvider>
         </QueryClientProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

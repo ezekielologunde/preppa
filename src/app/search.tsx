@@ -1,3 +1,4 @@
+import { BlurView } from 'expo-blur';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ArrowUpDown, Check, ChevronLeft, Clock, Search, TrendingUp, X } from 'lucide-react-native';
 import { MotiView } from 'moti';
@@ -376,7 +377,8 @@ export default function SearchScreen() {
 
       {/* Sort overlay */}
       <Modal visible={sortOpen} transparent animationType="slide" onRequestClose={() => setSortOpen(false)}>
-        <Pressable onPress={() => setSortOpen(false)} accessibilityRole="button" accessibilityLabel="Close sort options" style={{ flex: 1, backgroundColor: Palette.overlay, justifyContent: 'flex-end' }}>
+        <Pressable onPress={() => setSortOpen(false)} accessibilityRole="button" accessibilityLabel="Close sort options" style={{ flex: 1, justifyContent: 'flex-end' }}>
+          <BlurView intensity={18} tint="dark" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
           <Pressable onPress={(e) => e.stopPropagation()} accessible={false} style={{ backgroundColor: Palette.surface, borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingBottom: 44, ...(bp !== 'mobile' ? { maxWidth: 480, alignSelf: 'center', width: '100%' } : {}) }}>
             <View style={{ width: 40, height: 4, borderRadius: 2, backgroundColor: Palette.border, alignSelf: 'center', marginTop: 12, marginBottom: 6 }} />
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 22, paddingVertical: 14 }}>

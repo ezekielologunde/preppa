@@ -33,17 +33,17 @@ const INK = Palette.ink;
 
 const TYPE_ICONS: Record<string, LucideIcon> = { UtensilsCrossed, ChefHat, GraduationCap, Wine, HandPlatter, Sparkles };
 const EXPERIENCE_TYPES = [
-  { key: 'catering',      label: 'Catering',      icon: 'UtensilsCrossed', blurb: 'Feed your event' },
-  { key: 'private_chef',  label: 'Private chef',  icon: 'ChefHat',         blurb: 'Cooked at home' },
-  { key: 'food_service',  label: 'Food service',  icon: 'HandPlatter',     blurb: 'Servers & staff' },
-  { key: 'cleaning',      label: 'Cleaning',      icon: 'Sparkles',        blurb: 'Before & after' },
-  { key: 'class',         label: 'Cooking class', icon: 'GraduationCap',   blurb: 'Learn hands-on' },
-  { key: 'tasting',       label: 'Tasting menu',  icon: 'Wine',            blurb: "Chef's selection" },
+  { key: 'private_chef',  label: 'Private chef',  icon: 'ChefHat',         color: '#7C3AED', blurb: 'Cooked at home' },
+  { key: 'catering',      label: 'Catering',      icon: 'UtensilsCrossed', color: ORANGE,    blurb: 'Feed your event' },
+  { key: 'class',         label: 'Cooking class', icon: 'GraduationCap',   color: '#22C55E', blurb: 'Learn hands-on' },
+  { key: 'tasting',       label: 'Tasting menu',  icon: 'Wine',            color: '#D97706', blurb: "Chef's selection" },
+  { key: 'food_service',  label: 'Cook at mine',  icon: 'HandPlatter',     color: '#0891B2', blurb: 'Chefs come to you' },
+  { key: 'cleaning',      label: 'Kitchen reset', icon: 'Sparkles',        color: '#64748B', blurb: 'Clean & organised' },
 ] as const;
 
 const KIND_LABEL: Record<string, string> = {
-  catering: 'Catering', private_chef: 'Private chef', food_service: 'Food service',
-  cleaning: 'Cleaning', class: 'Cooking class', tasting: 'Tasting menu',
+  catering: 'Catering', private_chef: 'Private chef', food_service: 'Cook at mine',
+  cleaning: 'Kitchen reset', class: 'Cooking class', tasting: 'Tasting menu',
 };
 
 function RequestCard({ r, onPress }: { r: MyExperienceRequest; onPress: () => void }) {
@@ -107,61 +107,54 @@ export default function ExperiencesScreen() {
 
           {/* Header */}
           <MotiView from={{ opacity: 0, translateY: -6 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280 }}>
-            <View style={{ paddingHorizontal: 20, marginBottom: 4 }}>
+            <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
               <Text style={{ fontFamily: Font.display, fontSize: 26, color: INK, letterSpacing: -0.6 }}>experiences</Text>
-              <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary }}>private chefs, catering, classes & tastings</Text>
+              <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary }}>private chefs, catering, classes & more</Text>
             </View>
           </MotiView>
 
-          {/* Loading state */}
-          {isLoading ? (
-            <View style={{ marginTop: 16, paddingHorizontal: 20, gap: 10 }}>
-              <Skeleton width={130} height={13} radius={6} />
-              {[0, 1].map(i => <Skeleton key={i} width="100%" height={80} radius={16} />)}
-            </View>
-          ) : null}
-
-          {/* Error state */}
-          {!isLoading && isError ? (
-            <MotiView from={{ opacity: 0, translateY: 6 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 240 }}>
-              <View style={{ marginHorizontal: 20, marginTop: 12, marginBottom: 4, backgroundColor: Palette.danger + '12', borderRadius: Radius.md, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                <UtensilsCrossed size={18} color={Palette.danger} />
-                <Text style={{ flex: 1, fontFamily: Font.body, fontSize: 13, color: Palette.danger, lineHeight: 18 }}>
-                  Couldn't load your requests.
-                </Text>
-                <PressableScale onPress={() => { feedback.tap(); void refetch(); }} accessibilityRole="button" accessibilityLabel="Retry loading requests" hitSlop={8}>
-                  <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: Palette.danger }}>retry</Text>
-                </PressableScale>
-              </View>
-            </MotiView>
-          ) : null}
-
-          {/* Confirmed / booked */}
-          {booked.length > 0 ? (
-            <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280, delay: 60 }}>
-              <View style={{ marginTop: 16, paddingHorizontal: 20, gap: 10 }}>
-                <Text style={{ fontFamily: Font.heading, fontSize: 12, color: Palette.textSecondary, textTransform: 'uppercase', letterSpacing: 0.5 }}>Confirmed</Text>
-                {booked.map((r) => (
-                  <RequestCard key={r.id} r={r} onPress={() => { feedback.tap(); setSelected(r); }} />
-                ))}
-              </View>
-            </MotiView>
-          ) : null}
-
-          {/* Active open requests */}
-          {open.length > 0 ? (
-            <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280, delay: 80 }}>
-              <View style={{ marginTop: 16, paddingHorizontal: 20, gap: 10 }}>
-                <Text style={{ fontFamily: Font.heading, fontSize: 12, color: Palette.textSecondary, textTransform: 'uppercase', letterSpacing: 0.5 }}>Active requests</Text>
-                {open.map((r) => (
-                  <RequestCard key={r.id} r={r} onPress={() => { feedback.tap(); setSelected(r); }} />
-                ))}
-              </View>
-            </MotiView>
-          ) : null}
+          {/* Browse by type — discovery first */}
+          <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280, delay: 40 }}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ paddingHorizontal: 20, gap: 16, paddingBottom: 4 }}>
+              {EXPERIENCE_TYPES.map((t, i) => {
+                const Icon = TYPE_ICONS[t.icon] ?? UtensilsCrossed;
+                return (
+                  <MotiView
+                    key={t.key}
+                    from={{ opacity: 0, scale: 0.88 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ type: 'timing', duration: 220, delay: 60 + i * 30 }}>
+                    <PressableScale
+                      onPress={() => { feedback.tap(); router.push(`/experience-request?kind=${t.key}`); }}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Browse ${t.label} experiences`}
+                      style={{ alignItems: 'center', gap: 8, width: 82 }}>
+                      <View style={{
+                        width: 68, height: 68, borderRadius: 22,
+                        backgroundColor: t.color + '18',
+                        borderWidth: 1, borderColor: t.color + '2A',
+                        alignItems: 'center', justifyContent: 'center',
+                      }}>
+                        <Icon size={27} color={t.color} />
+                      </View>
+                      <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: INK, textAlign: 'center', lineHeight: 15 }} numberOfLines={2}>
+                        {t.label}
+                      </Text>
+                      <Text style={{ fontFamily: Font.body, fontSize: 10.5, color: Palette.textSecondary, textAlign: 'center' }} numberOfLines={1}>
+                        {t.blurb}
+                      </Text>
+                    </PressableScale>
+                  </MotiView>
+                );
+              })}
+            </ScrollView>
+          </MotiView>
 
           {/* Premium hero — Chef at Home */}
-          <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 300, delay: 100 }}>
+          <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 300, delay: 80 }}>
             <PressableScale
               onPress={() => { feedback.tap(); router.push('/experience-request?kind=private_chef'); }}
               accessibilityRole="button"
@@ -192,13 +185,60 @@ export default function ExperiencesScreen() {
             </PressableScale>
           </MotiView>
 
+          {/* Loading state */}
+          {isLoading ? (
+            <View style={{ marginTop: 20, paddingHorizontal: 20, gap: 10 }}>
+              <Skeleton width={130} height={13} radius={6} />
+              {[0, 1].map(i => <Skeleton key={i} width="100%" height={80} radius={16} />)}
+            </View>
+          ) : null}
+
+          {/* Error state */}
+          {!isLoading && isError ? (
+            <MotiView from={{ opacity: 0, translateY: 6 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 240 }}>
+              <View style={{ marginHorizontal: 20, marginTop: 16, backgroundColor: Palette.danger + '12', borderRadius: Radius.md, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                <UtensilsCrossed size={18} color={Palette.danger} />
+                <Text style={{ flex: 1, fontFamily: Font.body, fontSize: 13, color: Palette.danger, lineHeight: 18 }}>
+                  Couldn't load your requests.
+                </Text>
+                <PressableScale onPress={() => { feedback.tap(); void refetch(); }} accessibilityRole="button" accessibilityLabel="Retry loading requests" hitSlop={8}>
+                  <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: Palette.danger }}>retry</Text>
+                </PressableScale>
+              </View>
+            </MotiView>
+          ) : null}
+
+          {/* Confirmed / booked */}
+          {booked.length > 0 ? (
+            <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280, delay: 100 }}>
+              <View style={{ marginTop: 20, paddingHorizontal: 20, gap: 10 }}>
+                <Text style={{ fontFamily: Font.heading, fontSize: 12, color: Palette.textSecondary, textTransform: 'uppercase', letterSpacing: 0.5 }}>Confirmed</Text>
+                {booked.map((r) => (
+                  <RequestCard key={r.id} r={r} onPress={() => { feedback.tap(); setSelected(r); }} />
+                ))}
+              </View>
+            </MotiView>
+          ) : null}
+
+          {/* Active open requests */}
+          {open.length > 0 ? (
+            <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280, delay: 120 }}>
+              <View style={{ marginTop: 16, paddingHorizontal: 20, gap: 10 }}>
+                <Text style={{ fontFamily: Font.heading, fontSize: 12, color: Palette.textSecondary, textTransform: 'uppercase', letterSpacing: 0.5 }}>Active requests</Text>
+                {open.map((r) => (
+                  <RequestCard key={r.id} r={r} onPress={() => { feedback.tap(); setSelected(r); }} />
+                ))}
+              </View>
+            </MotiView>
+          ) : null}
+
           {/* Post new request CTA */}
           <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280, delay: 140 }}>
             <PressableScale
               onPress={() => { feedback.tap(); router.push('/experience-request'); }}
               accessibilityRole="button"
               accessibilityLabel="Post a custom experience request"
-              style={{ marginHorizontal: 20, marginTop: 14, backgroundColor: ORANGE, borderRadius: Radius.lg, padding: 18, flexDirection: 'row', alignItems: 'center', gap: 14, ...Shadow.floating, shadowColor: ORANGE, shadowOpacity: 0.35 }}>
+              style={{ marginHorizontal: 20, marginTop: 16, backgroundColor: ORANGE, borderRadius: Radius.lg, padding: 18, flexDirection: 'row', alignItems: 'center', gap: 14, ...Shadow.floating, shadowColor: ORANGE, shadowOpacity: 0.35 }}>
               <View style={{ width: 46, height: 46, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.22)', alignItems: 'center', justifyContent: 'center' }}>
                 <Plus size={24} color="#fff" strokeWidth={2.6} />
               </View>
@@ -225,32 +265,9 @@ export default function ExperiencesScreen() {
             <ChevronRight size={18} color={Palette.textMuted} />
           </PressableScale>
 
-          {/* Browse by type */}
-          <Text style={{ fontFamily: Font.heading, fontSize: 12, color: Palette.textSecondary, textTransform: 'uppercase', letterSpacing: 0.5, paddingHorizontal: 20, marginTop: 22, marginBottom: 10 }}>Browse by type</Text>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 20, gap: 10 }}>
-            {EXPERIENCE_TYPES.map((t, i) => {
-              const Icon = TYPE_ICONS[t.icon] ?? UtensilsCrossed;
-              return (
-                <MotiView key={t.key} from={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 200, delay: 160 + i * 35 }} style={{ flexBasis: '30%', flexGrow: 1 }}>
-                  <PressableScale
-                    onPress={() => { feedback.tap(); router.push(`/experience-request?kind=${t.key}`); }}
-                    accessibilityRole="button"
-                    accessibilityLabel={t.label}
-                    style={{ alignItems: 'center', gap: 8, backgroundColor: Palette.surface, borderRadius: Radius.md, paddingVertical: 14 }}>
-                    <View style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: Palette.brandTint, alignItems: 'center', justifyContent: 'center' }}>
-                      <Icon size={20} color={ORANGE} />
-                    </View>
-                    <Text style={{ fontFamily: Font.semibold, fontSize: 11.5, color: INK, textAlign: 'center' }} numberOfLines={2}>{t.label}</Text>
-                    <Text style={{ fontFamily: Font.body, fontSize: 11, color: Palette.textSecondary, textAlign: 'center' }}>{t.blurb}</Text>
-                  </PressableScale>
-                </MotiView>
-              );
-            })}
-          </View>
-
           {/* How it works — only shown to new users with no requests yet */}
           {!hasAny ? (
-            <MotiView from={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ type: 'timing', duration: 280, delay: 200 }}>
+            <MotiView from={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ type: 'timing', duration: 280, delay: 180 }}>
               <Text style={{ fontFamily: Font.display, fontSize: 15, color: INK, letterSpacing: -0.3, paddingHorizontal: 20, marginTop: 22, marginBottom: 10 }}>how it works</Text>
               <View style={{ marginHorizontal: 20, backgroundColor: Palette.surface, borderRadius: Radius.lg, padding: 16, gap: 4 }}>
                 {[

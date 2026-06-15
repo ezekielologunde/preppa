@@ -7,6 +7,7 @@ import { Modal, Platform, Pressable, RefreshControl, ScrollView, Text, View } fr
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { SubscribePlanSheet } from '@/components/subscribe-sheet';
+import { Button } from '@/components/ui/button';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { ListSkeleton } from '@/components/ui/skeleton';
 import { Font } from '@/constants/fonts';
@@ -54,16 +55,22 @@ function CustomPlanCard({ plan, onView, onUpdate, onCancel, busy }: { plan: Cust
         <ChevronRight size={16} color={Palette.textMuted} />
       </PressableScale>
       <View style={{ flexDirection: 'row', gap: 8, paddingHorizontal: 14, paddingBottom: 12 }}>
-        <PressableScale onPress={() => { feedback.tap(); onUpdate(plan.status === 'active' ? 'paused' : 'active'); }} disabled={busy}
-          accessibilityRole="button" accessibilityLabel={plan.status === 'active' ? 'Pause plan' : 'Resume plan'}
-          style={{ flex: 1, height: 38, borderRadius: Radius.sm, backgroundColor: Palette.canvas, alignItems: 'center', justifyContent: 'center' }}>
-          <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: INK }}>{plan.status === 'active' ? 'Pause' : 'Resume'}</Text>
-        </PressableScale>
-        <PressableScale onPress={() => { feedback.tap(); onCancel(); }} disabled={busy}
-          accessibilityRole="button" accessibilityLabel="Cancel plan"
-          style={{ flex: 1, height: 38, borderRadius: Radius.sm, alignItems: 'center', justifyContent: 'center' }}>
-          <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: Palette.danger }}>Cancel</Text>
-        </PressableScale>
+        <Button
+          title={plan.status === 'active' ? 'Pause' : 'Resume'}
+          onPress={() => onUpdate(plan.status === 'active' ? 'paused' : 'active')}
+          disabled={busy}
+          variant="secondary"
+          size="sm"
+          style={{ flex: 1 }}
+        />
+        <Button
+          title="Cancel"
+          onPress={onCancel}
+          disabled={busy}
+          variant="danger"
+          size="sm"
+          style={{ flex: 1 }}
+        />
       </View>
     </View>
   );
@@ -94,11 +101,15 @@ function LivePlanCard({ plan, onSubscribe, busy, subscribed }: { plan: MealPlan;
           <Text style={{ fontFamily: Font.body, fontSize: 13, color: INK }}>
             <Text style={{ fontFamily: Font.display, fontSize: 22, color: ORANGE }}>{money(plan.price)}</Text> /{plan.frequency}
           </Text>
-          <PressableScale onPress={onSubscribe} disabled={busy || subscribed} accessibilityRole="button" accessibilityLabel={`Subscribe to ${plan.name}`}
-            style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 18, height: 44, borderRadius: Radius.pill, backgroundColor: subscribed ? Palette.success : ORANGE, opacity: busy ? 0.7 : 1 }}>
-            {subscribed ? <Check size={16} color="#fff" strokeWidth={3} /> : null}
-            <Text style={{ fontFamily: Font.heading, fontSize: 14, color: '#fff' }}>{subscribed ? 'Subscribed' : 'Subscribe'}</Text>
-          </PressableScale>
+          <Button
+            title={subscribed ? 'Subscribed' : 'Subscribe'}
+            onPress={onSubscribe}
+            disabled={busy || subscribed}
+            tone={subscribed ? Palette.success : undefined}
+            Icon={subscribed ? Check : undefined}
+            size="md"
+            fullWidth={false}
+          />
         </View>
       </View>
     </View>
@@ -267,26 +278,26 @@ export default function MealPlansScreen() {
                           disabled={skipDelivery.isPending}
                           accessibilityRole="button"
                           accessibilityLabel="Skip next batch"
-                          style={{ flex: 1, height: 38, borderRadius: Radius.sm, backgroundColor: Palette.brandTint, alignItems: 'center', justifyContent: 'center' }}>
+                          style={{ flex: 1, height: 38, borderRadius: Radius.pill, backgroundColor: Palette.brandTint, alignItems: 'center', justifyContent: 'center' }}>
                           <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: Palette.brandPressed }}>Skip next</Text>
                         </PressableScale>
                       ) : null}
-                      <PressableScale
-                        onPress={() => { feedback.tap(); setActionErr(null); updateSub.mutate({ id: s.id, status: s.status === 'active' ? 'paused' : 'active' }, { onSuccess: () => feedback.success(), onError: (e) => { feedback.error(); setActionErr(e instanceof Error ? e.message : 'Could not update plan. Please try again.'); } }); }}
+                      <Button
+                        title={s.status === 'active' ? 'Pause' : 'Resume'}
+                        onPress={() => { setActionErr(null); updateSub.mutate({ id: s.id, status: s.status === 'active' ? 'paused' : 'active' }, { onSuccess: () => feedback.success(), onError: (e) => { feedback.error(); setActionErr(e instanceof Error ? e.message : 'Could not update plan. Please try again.'); } }); }}
                         disabled={updateSub.isPending}
-                        accessibilityRole="button"
-                        accessibilityLabel={s.status === 'active' ? 'Pause plan' : 'Resume plan'}
-                        style={{ flex: 1, height: 38, borderRadius: Radius.sm, backgroundColor: Palette.canvas, alignItems: 'center', justifyContent: 'center' }}>
-                        <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: INK }}>{s.status === 'active' ? 'Pause' : 'Resume'}</Text>
-                      </PressableScale>
-                      <PressableScale
-                        onPress={() => { feedback.tap(); setCancelTarget({ id: s.id, name: s.plan_name }); }}
+                        variant="secondary"
+                        size="sm"
+                        style={{ flex: 1 }}
+                      />
+                      <Button
+                        title="Cancel"
+                        onPress={() => setCancelTarget({ id: s.id, name: s.plan_name })}
                         disabled={updateSub.isPending}
-                        accessibilityRole="button"
-                        accessibilityLabel="Cancel plan"
-                        style={{ flex: 1, height: 38, borderRadius: Radius.sm, alignItems: 'center', justifyContent: 'center' }}>
-                        <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: Palette.danger }}>Cancel</Text>
-                      </PressableScale>
+                        variant="danger"
+                        size="sm"
+                        style={{ flex: 1 }}
+                      />
                     </View>
                   </View>
                   </MotiView>
@@ -364,11 +375,15 @@ export default function MealPlansScreen() {
               </Text>
             </View>
             <View style={{ flexDirection: 'row', gap: 10, width: '100%' }}>
-              <PressableScale onPress={() => setCancelTarget(null)} accessibilityRole="button" accessibilityLabel="Keep plan"
-                style={{ flex: 1, height: 48, borderRadius: Radius.pill, backgroundColor: Palette.canvas, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: Palette.border }}>
-                <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: INK }}>Keep plan</Text>
-              </PressableScale>
-              <PressableScale
+              <Button
+                title="Keep plan"
+                onPress={() => setCancelTarget(null)}
+                variant="secondary"
+                size="md"
+                style={{ flex: 1 }}
+              />
+              <Button
+                title="Yes, cancel"
                 onPress={() => {
                   if (!cancelTarget) return;
                   feedback.warning();
@@ -382,10 +397,10 @@ export default function MealPlansScreen() {
                   setCancelTarget(null);
                 }}
                 disabled={updateSub.isPending || updateCustomPlan.isPending}
-                accessibilityRole="button" accessibilityLabel="Confirm cancel"
-                style={{ flex: 1, height: 48, borderRadius: Radius.pill, backgroundColor: Palette.danger, alignItems: 'center', justifyContent: 'center' }}>
-                <Text style={{ fontFamily: Font.heading, fontSize: 14, color: '#fff' }}>Yes, cancel</Text>
-              </PressableScale>
+                variant="danger"
+                size="md"
+                style={{ flex: 1 }}
+              />
             </View>
           </Pressable>
         </Pressable>

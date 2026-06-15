@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { Check, Plus, Star, UtensilsCrossed, X } from 'lucide-react-native';
+import { CalendarCheck, Check, Flame, Plus, Sparkles, Star, TrendingUp, UtensilsCrossed, X, Zap } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
@@ -47,7 +47,7 @@ const DIET_TAG: Record<string, { label: string; color: string }> = {
 
 // ─── QuickAddButton ───────────────────────────────────────────────────────────
 
-export function QuickAddButton({ meal }: { meal: Meal }) {
+export function QuickAddButton({ meal, pill = false }: { meal: Meal; pill?: boolean }) {
   const router = useRouter();
   const { user } = useAuth();
   const addToCart = useAddToCart();
@@ -75,17 +75,41 @@ export function QuickAddButton({ meal }: { meal: Meal }) {
     );
   }
 
+  const bgColor = done ? Palette.success : failed ? Palette.danger : ORANGE;
+  const label = done ? 'Added to cart' : failed ? 'Failed — tap to retry' : `Add ${meal.title} to cart`;
+
+  if (pill) {
+    return (
+      <MotiView
+        animate={{ backgroundColor: bgColor }}
+        transition={{ type: 'spring', damping: 18, stiffness: 220 }}
+        style={{ height: 38, borderRadius: 19, paddingHorizontal: 16, minWidth: 116, alignItems: 'center', justifyContent: 'center', ...Shadow.card }}>
+        <PressableScale onPress={onAdd} haptic={false} accessibilityLabel={label}
+          style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          {done ? <Check size={14} color="#fff" strokeWidth={2.5} />
+            : failed ? <X size={14} color="#fff" strokeWidth={2.5} />
+            : <Plus size={15} color="#fff" strokeWidth={2.5} />}
+          <Text style={{ fontFamily: Font.heading, fontSize: 13, color: '#fff', letterSpacing: -0.1 }}>
+            {done ? 'added!' : failed ? 'retry' : 'add to cart'}
+          </Text>
+        </PressableScale>
+      </MotiView>
+    );
+  }
+
   return (
     <MotiView
-      animate={{ scale: done ? 1.15 : 1, backgroundColor: done ? Palette.success : failed ? Palette.danger : ORANGE }}
-      transition={{ type: 'spring', damping: 14, stiffness: 180 }}
-      style={{ width: 34, height: 34, borderRadius: 17, overflow: 'hidden', ...Shadow.card }}>
-      <PressableScale onPress={onAdd} accessibilityRole="button"
-        accessibilityLabel={done ? 'Added to cart' : failed ? 'Failed — tap to retry' : `Add ${meal.title} to cart`}
-        style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-        {done ? <Check size={16} color="#fff" strokeWidth={2.5} />
-          : failed ? <X size={16} color="#fff" strokeWidth={2.5} />
-          : <Plus size={16} color="#fff" strokeWidth={2.5} />}
+      animate={{ backgroundColor: bgColor }}
+      transition={{ type: 'spring', damping: 18, stiffness: 220 }}
+      style={{ height: 32, borderRadius: 16, paddingHorizontal: 10, minWidth: 68, alignItems: 'center', justifyContent: 'center' }}>
+      <PressableScale onPress={onAdd} haptic={false} accessibilityLabel={label}
+        style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+        {done ? <Check size={13} color="#fff" strokeWidth={2.5} />
+          : failed ? <X size={13} color="#fff" strokeWidth={2.5} />
+          : <Plus size={13} color="#fff" strokeWidth={2.5} />}
+        <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: '#fff', letterSpacing: -0.1 }}>
+          {done ? 'added' : failed ? 'retry' : 'add'}
+        </Text>
       </PressableScale>
     </MotiView>
   );
@@ -100,14 +124,7 @@ function TrendingMealCard({
   const isBig = variant === 'big';
   return (
     <View style={width !== null ? { width } : undefined}>
-      <View style={{ position: 'relative' }}>
-        <MealCard meal={meal} width={width} variant={variant} />
-        {!isBig ? (
-          <View style={{ position: 'absolute', bottom: 12, right: 12 }}>
-            <QuickAddButton meal={meal} />
-          </View>
-        ) : null}
-      </View>
+      <MealCard meal={meal} width={width} variant={variant} action={!isBig ? <QuickAddButton meal={meal} /> : undefined} />
       {/* Below-card row: diet tag + QuickAdd for both variants */}
       {isBig ? (
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: tag ? 'space-between' : 'flex-end', paddingHorizontal: 6, paddingTop: 8, paddingBottom: 2 }}>
@@ -116,7 +133,7 @@ function TrendingMealCard({
               <Text style={{ fontFamily: Font.semibold, fontSize: 10, color: tag.color }}>{tag.label}</Text>
             </View>
           ) : null}
-          <QuickAddButton meal={meal} />
+          <QuickAddButton meal={meal} pill />
         </View>
       ) : tag ? (
         <View style={{ paddingHorizontal: 6, paddingTop: 5 }}>
@@ -149,7 +166,7 @@ export function TrendingSection({
   return (
     <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }}
       transition={{ type: 'timing', duration: 260, delay: 150 }}>
-      <SectionHeader title="trending meals" linkLabel="see all →"
+      <SectionHeader title="trending meals" linkLabel="see all →" Icon={TrendingUp}
         onLink={() => { feedback.tap(); router.push('/search'); }} />
       {isLoading ? <CardRowSkeleton count={3} /> : isTablet ? (
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12, paddingHorizontal: pad, paddingBottom: 4 }}>
@@ -198,7 +215,7 @@ export function ChefsInActionFeed() {
     <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }}
       transition={{ type: 'spring', damping: 15, stiffness: 120, mass: 0.6, delay: 100 }}
       style={{ marginTop: 24 }}>
-      <SectionHeader title="chefs in action" linkLabel="see all →"
+      <SectionHeader title="chefs in action" linkLabel="see all →" Icon={Flame}
         onLink={() => { feedback.tap(); router.push('/explore'); }} />
       {isLoading ? <CardRowSkeleton count={4} /> : (
         <ScrollView horizontal showsHorizontalScrollIndicator={false}
@@ -251,7 +268,7 @@ export function FollowingKitchensSection({ userId }: { userId: string }) {
   return (
     <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }}
       transition={{ type: 'timing', duration: 260, delay: 100 }}>
-      <SectionHeader title="kitchens you follow" linkLabel="see all →"
+      <SectionHeader title="kitchens you follow" linkLabel="see all →" Icon={Sparkles}
         onLink={() => { feedback.tap(); router.push('/following'); }} />
       <ScrollView horizontal showsHorizontalScrollIndicator={false}
         contentContainerStyle={{ paddingHorizontal: 20, gap: 12, paddingBottom: 4 }}>
@@ -276,7 +293,7 @@ export function FreshDropsSection() {
   return (
     <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }}
       transition={{ type: 'timing', duration: 260, delay: 100 }}>
-      <SectionHeader title="just dropped" linkLabel="see all →"
+      <SectionHeader title="just dropped" linkLabel="see all →" Icon={Zap}
         onLink={() => { feedback.tap(); router.push('/explore'); }} />
       {isLoading ? <CardRowSkeleton count={3} /> : (
         <ScrollView horizontal showsHorizontalScrollIndicator={false}
@@ -302,7 +319,7 @@ export function MealPlansDiscoverySection() {
   return (
     <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }}
       transition={{ type: 'timing', duration: 260, delay: 150 }}>
-      <SectionHeader title="meal plans" linkLabel="explore →"
+      <SectionHeader title="meal plans" linkLabel="explore →" Icon={CalendarCheck}
         onLink={() => { feedback.tap(); router.push('/meal-plans'); }} />
       {isLoading ? <CardRowSkeleton count={3} /> : (
         <ScrollView horizontal showsHorizontalScrollIndicator={false}

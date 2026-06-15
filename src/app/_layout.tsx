@@ -20,8 +20,28 @@ import { FloatingCartBar } from '@/components/floating-cart-bar';
 import { LoadingSplash } from '@/components/loading-splash';
 import { Onboarding } from '@/components/onboarding';
 import { AppProviders } from '@/providers/app-providers';
+import { useAuth } from '@/providers/auth-provider';
 
 const ONBOARDED_KEY = 'preppa.onboarded.v1';
+
+// ─── FTUE helpers ────────────────────────────────────────────────────────────
+
+const FTUE_KEY = (uid: string) => `preppa.ftue.v2.${uid}`;
+
+async function isFirstLogin(uid: string): Promise<boolean> {
+  try {
+    const val = await AsyncStorage.getItem(FTUE_KEY(uid));
+    return val !== '1';
+  } catch {
+    return false; // fail-open: don't trap users in onboarding on storage error
+  }
+}
+
+export async function markFtueComplete(uid: string): Promise<void> {
+  try {
+    await AsyncStorage.setItem(FTUE_KEY(uid), '1');
+  } catch {}
+}
 
 // Screens that are dark by design — inverting them would make them light.
 const DARK_BY_DESIGN = ['/prepper-orders', '/earnings', '/admin', '/prepper', '/meal-editor'];
@@ -162,6 +182,44 @@ function ResponsiveFrame({ children }: { children: ReactNode }) {
   );
 }
 
+// ─── Auth gate ───────────────────────────────────────────────────────────────
+
+function AuthGate({ children }: { children: ReactNode }) {
+  const { session, loading } = useAuth();
+  const router = useRouter();
+  const pathname = usePathname();
+  // Track which uid we've completed the FTUE check for, so a second user
+  // logging in during the same app session gets their own check.
+  const [ftueCheckedFor, setFtueCheckedFor] = useState<string | null>(null);
+
+  const isPublicPath = pathname.startsWith('/auth') || pathname.startsWith('/onboarding');
+  const ftueChecked = !!session && ftueCheckedFor === session.user.id;
+
+  useEffect(() => {
+    if (loading) return;
+
+    if (!session) {
+      if (!isPublicPath) router.replace('/auth?mode=signin');
+      return;
+    }
+
+    const uid = session.user.id;
+    isFirstLogin(uid).then((firstTime) => {
+      if (firstTime && !isPublicPath) {
+        router.replace('/onboarding/step-1');
+      }
+      setFtueCheckedFor(uid);
+    });
+  }, [session, loading, pathname]);
+
+  // Hide children while we determine the correct route.
+  if (loading) return null;
+  if (!session && !isPublicPath) return null;
+  if (session && !ftueChecked && !isPublicPath) return null;
+
+  return <>{children}</>;
+}
+
 // ─── Root layout ──────────────────────────────────────────────────────────────
 
 export default function RootLayout() {
@@ -203,16 +261,19 @@ export default function RootLayout() {
     <AppProviders>
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
         <ResponsiveFrame>
-          <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="change-email" options={{ presentation: 'transparentModal', animation: 'slide_from_bottom' }} />
-            <Stack.Screen name="change-password" options={{ presentation: 'transparentModal', animation: 'slide_from_bottom' }} />
-            <Stack.Screen name="review" options={{ presentation: 'modal' }} />
-            <Stack.Screen name="referral" options={{ presentation: 'modal' }} />
-            <Stack.Screen name="notification-settings" options={{ presentation: 'modal' }} />
-            <Stack.Screen name="dietary-preferences" options={{ presentation: 'modal' }} />
-            <Stack.Screen name="boost" options={{ presentation: 'modal' }} />
-          </Stack>
-          <FloatingCartBar />
+          <AuthGate>
+            <Stack screenOptions={{ headerShown: false }}>
+              <Stack.Screen name="change-email" options={{ presentation: 'transparentModal', animation: 'slide_from_bottom' }} />
+              <Stack.Screen name="change-password" options={{ presentation: 'transparentModal', animation: 'slide_from_bottom' }} />
+              <Stack.Screen name="review" options={{ presentation: 'modal' }} />
+              <Stack.Screen name="referral" options={{ presentation: 'modal' }} />
+              <Stack.Screen name="notification-settings" options={{ presentation: 'modal' }} />
+              <Stack.Screen name="dietary-preferences" options={{ presentation: 'modal' }} />
+              <Stack.Screen name="boost" options={{ presentation: 'modal' }} />
+              <Stack.Screen name="onboarding" options={{ headerShown: false, gestureEnabled: false, animation: 'fade' }} />
+            </Stack>
+            <FloatingCartBar />
+          </AuthGate>
           {ready && !onboarded && (
             <Onboarding onGetStarted={() => goToAuth('signup')} onSignIn={() => goToAuth('signin')} />
           )}

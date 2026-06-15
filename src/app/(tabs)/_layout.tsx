@@ -24,7 +24,7 @@ type TabDef = {
 const BASE_TABS: TabDef[] = [
   { name: 'index',       label: 'Home',        Icon: House },
   { name: 'explore',     label: 'Explore',     Icon: Compass },
-  { name: 'feeds',       label: 'Feeds',       Icon: MonitorPlay },
+  { name: 'feeds',       label: 'Feed',        Icon: MonitorPlay },
   { name: 'experiences', label: 'Experiences', Icon: Ticket },
   { name: 'profile',     label: 'Profile',     Icon: CircleUser },
 ];

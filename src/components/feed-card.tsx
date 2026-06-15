@@ -238,27 +238,37 @@ export function FeedCard({ item, height, bottomInset, followSet }: { item: FeedI
             <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: '#fff' }}>View kitchen</Text>
           </PressableScale>
         ) : (
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
-            <Text style={{ fontFamily: Font.display, fontSize: 22, color: '#fff', fontVariant: ['tabular-nums'], flexShrink: 0 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+            <Text style={{ fontFamily: Font.display, fontSize: 24, color: '#fff', fontVariant: ['tabular-nums'], letterSpacing: -0.4, flexShrink: 0 }}>
               ${item.price.toFixed(2)}
             </Text>
-            <PressableScale
-              onPress={item.isLive ? () => { feedback.tap(); router.push(`/meal?id=${item.id}`); } : handleAddToCart}
-              disabled={addState === 'adding'}
-              accessibilityRole="button"
-              accessibilityLabel={item.isLive ? `View ${item.title} live drop` : addState === 'added' ? 'Added to cart' : addState === 'error' ? 'Failed to add — tap to retry' : `Add ${item.title} to cart`}
-              style={{ flex: 1, height: 50, borderRadius: Radius.pill, backgroundColor: addState === 'added' ? '#16a34a' : addState === 'error' ? Palette.danger : ORANGE, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8 }}>
-              {addState === 'adding' ? (
-                <ActivityIndicator size="small" color="#fff" />
-              ) : addState === 'added' ? (
-                <CheckCircle size={16} color="#fff" />
-              ) : item.isLive ? null : (
-                <ShoppingCart size={16} color="#fff" />
-              )}
-              <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#fff' }}>
-                {addState === 'added' ? 'Added!' : addState === 'adding' ? 'Adding…' : addState === 'error' ? 'Failed — try again' : item.isLive ? 'Join live drop' : 'Add to cart'}
-              </Text>
-            </PressableScale>
+            <MotiView
+              animate={{
+                backgroundColor: addState === 'added' ? '#16a34a' : addState === 'error' ? Palette.danger : 'rgba(0,0,0,0.48)',
+                borderColor: addState === 'added' || addState === 'error' ? 'rgba(255,255,255,0)' : 'rgba(255,255,255,0.22)',
+              }}
+              transition={{ type: 'spring', damping: 20, stiffness: 240 }}
+              style={{ borderRadius: Radius.pill, borderWidth: 1, minWidth: 130 }}>
+              <PressableScale
+                onPress={item.isLive ? () => { feedback.tap(); router.push(`/meal?id=${item.id}`); } : handleAddToCart}
+                disabled={addState === 'adding'}
+                accessibilityRole="button"
+                accessibilityLabel={item.isLive ? `View ${item.title} live drop` : addState === 'added' ? 'Added to cart' : addState === 'error' ? 'Failed to add — tap to retry' : `Add ${item.title} to cart`}
+                style={{ height: 44, paddingHorizontal: 18, flexDirection: 'row', alignItems: 'center', gap: 7 }}>
+                {addState === 'adding' ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : addState === 'added' ? (
+                  <CheckCircle size={15} color="#fff" />
+                ) : addState === 'error' ? null : item.isLive ? (
+                  <Play size={14} color="#fff" fill="#fff" />
+                ) : (
+                  <ShoppingCart size={15} color="#fff" />
+                )}
+                <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: '#fff', letterSpacing: -0.1 }}>
+                  {addState === 'added' ? 'added' : addState === 'adding' ? 'adding…' : addState === 'error' ? 'retry' : item.isLive ? 'join drop' : 'add to cart'}
+                </Text>
+              </PressableScale>
+            </MotiView>
           </View>
         )}
       </View>

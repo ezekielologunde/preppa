@@ -123,7 +123,7 @@ const StyleSheetAbsolute = { position: 'absolute' as const, top: 0, left: 0, rig
  * gallery and gently zooms.
  */
 /** `width: null` makes the card fluid — it fills its container. */
-export function MealCard({ meal, width = 200, variant = 'normal' }: { meal: Meal; width?: number | null; variant?: 'normal' | 'big' }) {
+export function MealCard({ meal, width = 200, variant = 'normal', action }: { meal: Meal; width?: number | null; variant?: 'normal' | 'big'; action?: React.ReactNode }) {
   const router = useRouter();
   const { width: screenWidth } = useWindowDimensions();
   const [hovered, setHovered] = useState(false);
@@ -168,23 +168,24 @@ export function MealCard({ meal, width = 200, variant = 'normal' }: { meal: Meal
             </View>
           ) : null}
         </View>
-        <View style={{ padding: 12, gap: 3 }}>
+        <View style={{ padding: 12, gap: 4 }}>
           {!big ? (
             <>
               <Text numberOfLines={1} style={{ fontFamily: Font.heading, fontSize: 15, color: Palette.ink }}>{meal.title}</Text>
               <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted }}>by {meal.prepper}</Text>
             </>
           ) : null}
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: big ? 0 : 6, justifyContent: big ? undefined : 'space-between' }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-              <Star size={12} color={Palette.amber} fill={Palette.amber} />
-              <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: Palette.inkSoft }}>{meal.rating.toFixed(1)}</Text>
-              <Text style={{ fontFamily: Font.body, fontSize: 11.5, color: Palette.textMuted }}>· {meal.time}</Text>
-            </View>
-            {!big ? (
-              <Text style={{ fontFamily: Font.display, fontSize: 15, color: Palette.brand, letterSpacing: -0.2, fontVariant: ['tabular-nums'] }}>${meal.price.toFixed(2)}</Text>
-            ) : null}
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: big ? 0 : 4 }}>
+            <Star size={12} color={Palette.amber} fill={Palette.amber} />
+            <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: Palette.inkSoft }}>{meal.rating.toFixed(1)}</Text>
+            <Text style={{ fontFamily: Font.body, fontSize: 11.5, color: Palette.textMuted }}>· {meal.time}</Text>
           </View>
+          {!big ? (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 6 }}>
+              <Text numberOfLines={1} style={{ flex: 1, fontFamily: Font.display, fontSize: 15, color: Palette.brand, letterSpacing: -0.2, fontVariant: ['tabular-nums'] }}>${meal.price.toFixed(2)}</Text>
+              {action ? <View style={{ flexShrink: 0 }}>{action}</View> : null}
+            </View>
+          ) : null}
           {big ? (
             <Text style={{ fontFamily: Font.display, fontSize: 14, color: Palette.brand, letterSpacing: -0.2, fontVariant: ['tabular-nums'], marginTop: 2 }}>${meal.price.toFixed(2)}</Text>
           ) : null}

@@ -1,10 +1,12 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import type { ComponentType } from 'react';
 import {
-  ChevronRight, Coffee, Gift, LayoutGrid, Leaf, Moon, Sparkles, Sprout, UtensilsCrossed, Zap,
+  CalendarCheck, ChefHat, ChevronRight, Coffee, Gift, LayoutGrid, Leaf, Moon, Sparkles, Sprout, Ticket, UtensilsCrossed, Zap,
 } from 'lucide-react-native';
+import { imgUrl } from '@/lib/img';
 import { MotiView } from 'moti';
 import { useEffect, useRef, useState } from 'react';
 import { ScrollView, Text, useWindowDimensions, View } from 'react-native';
@@ -57,11 +59,14 @@ const ONBOARDING_STEPS = [
 // ─── SectionHeader ────────────────────────────────────────────────────────────
 
 export function SectionHeader({
-  title, linkLabel, onLink,
-}: { title: string; linkLabel?: string; onLink?: () => void }) {
+  title, linkLabel, onLink, Icon,
+}: { title: string; linkLabel?: string; onLink?: () => void; Icon?: ComponentType<{ size?: number; color?: string }> }) {
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, marginTop: 8, marginBottom: 10 }}>
-      <Text style={{ fontFamily: Font.display, fontSize: 18, color: INK, letterSpacing: -0.4 }}>{title}</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
+        {Icon ? <Icon size={18} color={ORANGE} /> : null}
+        <Text style={{ fontFamily: Font.display, fontSize: 18, color: INK, letterSpacing: -0.4 }}>{title}</Text>
+      </View>
       {onLink ? (
         <PressableScale onPress={onLink} accessibilityRole="button" accessibilityLabel={linkLabel ?? 'See all'}>
           <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: ORANGE }}>{linkLabel ?? 'see all'}</Text>
@@ -132,7 +137,7 @@ export function MyPlansSection({ userId }: { userId: string }) {
     return (
       <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }}
         transition={{ type: 'timing', duration: 260, delay: 100 }}>
-        <SectionHeader title="your plans" />
+        <SectionHeader title="your plans" Icon={CalendarCheck} />
         <PressableScale onPress={() => { feedback.tap(); router.push('/meal-plans'); }}
           accessibilityRole="button" accessibilityLabel="Subscribe to a weekly meal plan"
           style={{ marginHorizontal: 20, backgroundColor: Palette.brandTint, borderRadius: Radius.lg, paddingHorizontal: 18, paddingVertical: 16, flexDirection: 'row', alignItems: 'center', gap: 14 }}>
@@ -152,34 +157,37 @@ export function MyPlansSection({ userId }: { userId: string }) {
   return (
     <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }}
       transition={{ type: 'timing', duration: 260, delay: 100 }}>
-      <SectionHeader title="your plans" linkLabel="manage →"
+      <SectionHeader title="your plans" linkLabel="see all →" Icon={CalendarCheck}
         onLink={() => { feedback.tap(); router.push('/meal-plans'); }} />
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: 20, gap: 12, paddingBottom: 4 }}>
-        {subs.map((sub, i) => {
-          const nextDate = sub.next_billing_at
-            ? new Date(sub.next_billing_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
-            : null;
+      <View style={{ paddingHorizontal: 20, gap: 10 }}>
+        {subs.slice(0, 3).map((sub, i) => {
           const isActive = sub.status === 'active';
           return (
             <MotiView key={sub.id} from={{ opacity: 0, translateY: 6 }} animate={{ opacity: 1, translateY: 0 }}
               transition={{ type: 'timing', duration: 220, delay: i * 50 }}>
               <PressableScale onPress={() => { feedback.tap(); router.push('/meal-plans'); }}
                 accessibilityRole="button" accessibilityLabel={`${sub.plan_name} plan, ${sub.status}`}
-                style={{ width: 200, backgroundColor: Palette.surface, borderRadius: Radius.lg, padding: 14, gap: 6, ...Shadow.card }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <Text numberOfLines={1} style={{ fontFamily: Font.heading, fontSize: 14, color: INK, flex: 1 }}>{sub.plan_name}</Text>
-                  <View style={{ backgroundColor: isActive ? Palette.success + '22' : Palette.surface, borderRadius: Radius.pill, paddingHorizontal: 8, paddingVertical: 3 }}>
-                    <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: isActive ? Palette.success : MUTED }}>{sub.status}</Text>
-                  </View>
+                style={{ backgroundColor: Palette.surface, borderRadius: Radius.md, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12, ...Shadow.card }}>
+                <View style={{ width: 42, height: 42, borderRadius: 12, backgroundColor: Palette.success + '22', alignItems: 'center', justifyContent: 'center' }}>
+                  <CalendarCheck size={19} color={Palette.success} />
                 </View>
-                <Text numberOfLines={1} style={{ fontFamily: Font.body, fontSize: 12, color: MUTED }}>{sub.prepper?.display_name ?? 'kitchen'}</Text>
-                {nextDate ? <Text style={{ fontFamily: Font.medium, fontSize: 12, color: Palette.textSecondary }}>next: {nextDate}</Text> : null}
+                <View style={{ flex: 1 }}>
+                  <Text numberOfLines={1} style={{ fontFamily: Font.heading, fontSize: 14.5, color: INK }}>{sub.plan_name}</Text>
+                  <Text numberOfLines={1} style={{ fontFamily: Font.body, fontSize: 12, color: MUTED, marginTop: 2 }}>
+                    {[sub.prepper?.display_name, sub.frequency].filter(Boolean).join(' · ')}
+                  </Text>
+                </View>
+                <View style={{ alignItems: 'flex-end', gap: 4 }}>
+                  <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: isActive ? Palette.success : MUTED }}>
+                    {isActive ? 'Active' : sub.status}
+                  </Text>
+                  <ChevronRight size={15} color={MUTED} />
+                </View>
               </PressableScale>
             </MotiView>
           );
         })}
-      </ScrollView>
+      </View>
     </MotiView>
   );
 }
@@ -300,50 +308,106 @@ export function HomeOnboarding() {
 
 // ─── ActionSplitter ───────────────────────────────────────────────────────────
 
-export function ActionSplitter() {
+export function ActionSplitter({ planImage, dropImage }: { planImage?: string; dropImage?: string }) {
   const router = useRouter();
+  const ABS = { position: 'absolute' as const, top: 0, left: 0, right: 0, bottom: 0 };
   return (
     <MotiView from={{ opacity: 0, translateY: 14 }} animate={{ opacity: 1, translateY: 0 }}
       transition={{ type: 'spring', damping: 15, stiffness: 120, mass: 0.6, delay: 50 }}
       style={{ marginHorizontal: 20, marginTop: 16, flexDirection: 'row', gap: 10 }}>
-      {/* Card A — Build Your Dream Meal Plan */}
+      {/* Card A — Build your weekly plan */}
       <PressableScale onPress={() => { feedback.tap(); router.push('/meal-plans'); }}
-        accessibilityRole="button" accessibilityLabel="Build your dream meal plan"
+        accessibilityRole="button" accessibilityLabel="Build your weekly plan"
         style={{ flex: 1 }}>
-        <LinearGradient colors={['#1c1108', '#3d2410']}
-          style={{ borderRadius: Radius.lg, padding: 16, minHeight: 130, justifyContent: 'space-between' }}>
-          <View style={{ width: 38, height: 38, borderRadius: 12, backgroundColor: 'rgba(255,180,60,0.22)', alignItems: 'center', justifyContent: 'center' }}>
-            <Sparkles size={18} color={Palette.amber} />
+        <View style={{ borderRadius: Radius.lg, minHeight: 140, overflow: 'hidden' }}>
+          <LinearGradient colors={['#1c1108', '#3d2410']} style={ABS} />
+          {planImage ? (
+            <Image source={imgUrl(planImage, 400)}
+              style={{ position: 'absolute', right: -10, top: 0, bottom: 0, width: '65%', opacity: 0.42 }}
+              contentFit="cover" />
+          ) : null}
+          <LinearGradient colors={['#1c1108', '#1c110800']}
+            start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={ABS} />
+          <View style={{ padding: 16, minHeight: 140, justifyContent: 'space-between' }}>
+            <View style={{ width: 38, height: 38, borderRadius: 12, backgroundColor: 'rgba(255,180,60,0.22)', alignItems: 'center', justifyContent: 'center' }}>
+              <CalendarCheck size={18} color={Palette.amber} />
+            </View>
+            <View style={{ gap: 5 }}>
+              <Text style={{ fontFamily: Font.heading, fontSize: 14, color: '#fff', lineHeight: 20 }}>
+                Build your weekly plan
+              </Text>
+              <Text style={{ fontFamily: Font.body, fontSize: 10.5, color: 'rgba(255,255,255,0.5)', lineHeight: 15 }}>
+                Custom meals • Macros{'\n'}Save time
+              </Text>
+            </View>
           </View>
-          <View style={{ gap: 5 }}>
-            <Text style={{ fontFamily: Font.heading, fontSize: 14, color: '#fff', lineHeight: 20 }}>
-              build your dream meal plan
-            </Text>
-            <Text style={{ fontFamily: Font.body, fontSize: 10.5, color: 'rgba(255,255,255,0.5)', lineHeight: 15 }}>
-              macros tracked · weekly drops
-            </Text>
-          </View>
-        </LinearGradient>
+        </View>
       </PressableScale>
-      {/* Card B — Order an Immediate Drop */}
+      {/* Card B — Order an immediate drop */}
       <PressableScale onPress={() => { feedback.tap(); router.push('/search'); }}
         accessibilityRole="button" accessibilityLabel="Order an immediate drop"
         style={{ flex: 1 }}>
-        <LinearGradient colors={['#F26B1D', '#c43c0d']}
-          style={{ borderRadius: Radius.lg, padding: 16, minHeight: 130, justifyContent: 'space-between' }}>
-          <View style={{ width: 38, height: 38, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center' }}>
-            <Zap size={18} color="#fff" />
+        <View style={{ borderRadius: Radius.lg, minHeight: 140, overflow: 'hidden' }}>
+          <LinearGradient colors={['#F26B1D', '#c43c0d']} style={ABS} />
+          {dropImage ? (
+            <Image source={imgUrl(dropImage, 400)}
+              style={{ position: 'absolute', right: -10, top: 0, bottom: 0, width: '65%', opacity: 0.42 }}
+              contentFit="cover" />
+          ) : null}
+          <LinearGradient colors={['#F26B1D', '#F26B1D00']}
+            start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={ABS} />
+          <View style={{ padding: 16, minHeight: 140, justifyContent: 'space-between' }}>
+            <View style={{ width: 38, height: 38, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center' }}>
+              <Zap size={18} color="#fff" />
+            </View>
+            <View style={{ gap: 5 }}>
+              <Text style={{ fontFamily: Font.heading, fontSize: 14, color: '#fff', lineHeight: 20 }}>
+                Order an immediate drop
+              </Text>
+              <Text style={{ fontFamily: Font.body, fontSize: 10.5, color: 'rgba(255,255,255,0.65)', lineHeight: 15 }}>
+                What's hot • Local{'\n'}kitchens now
+              </Text>
+            </View>
           </View>
-          <View style={{ gap: 5 }}>
-            <Text style={{ fontFamily: Font.heading, fontSize: 14, color: '#fff', lineHeight: 20 }}>
-              order an immediate drop
-            </Text>
-            <Text style={{ fontFamily: Font.body, fontSize: 10.5, color: 'rgba(255,255,255,0.65)', lineHeight: 15 }}>
-              what's hot · local kitchens now
-            </Text>
-          </View>
-        </LinearGradient>
+        </View>
       </PressableScale>
+    </MotiView>
+  );
+}
+
+// ─── ExperiencesBar ───────────────────────────────────────────────────────────
+
+const EXP_TYPES: { key: string; label: string; Icon: React.ComponentType<{ size?: number; color?: string }>; color: string }[] = [
+  { key: 'private-chef', label: 'Private Chef', Icon: ChefHat,         color: '#7C3AED' },
+  { key: 'cook-at-home', label: 'Cook at Mine', Icon: UtensilsCrossed, color: ORANGE    },
+  { key: 'class',        label: 'Classes',      Icon: Zap,             color: '#22C55E' },
+  { key: 'catering',     label: 'Catering',     Icon: CalendarCheck,   color: '#D97706' },
+];
+
+export function ExperiencesBar() {
+  const router = useRouter();
+  return (
+    <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }}
+      transition={{ type: 'timing', duration: 260, delay: 80 }}>
+      <SectionHeader title="experiences" Icon={Ticket} linkLabel="see all →"
+        onLink={() => { feedback.tap(); router.push('/experiences' as never); }} />
+      <ScrollView horizontal showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ paddingHorizontal: 20, gap: 14, paddingBottom: 4 }}>
+        {EXP_TYPES.map((exp, i) => (
+          <MotiView key={exp.key} from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }}
+            transition={{ type: 'timing', duration: 200, delay: 60 + i * 45 }}>
+            <PressableScale
+              onPress={() => { feedback.tap(); router.push('/experiences' as never); }}
+              accessibilityRole="button" accessibilityLabel={`Browse ${exp.label} experiences`}
+              style={{ alignItems: 'center', gap: 8 }}>
+              <View style={{ width: 68, height: 68, borderRadius: 22, backgroundColor: exp.color + '18', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: exp.color + '28' }}>
+                <exp.Icon size={26} color={exp.color} />
+              </View>
+              <Text style={{ fontFamily: Font.medium, fontSize: 11, color: Palette.textSecondary, textAlign: 'center', maxWidth: 68 }}>{exp.label}</Text>
+            </PressableScale>
+          </MotiView>
+        ))}
+      </ScrollView>
     </MotiView>
   );
 }

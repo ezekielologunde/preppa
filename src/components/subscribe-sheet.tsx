@@ -1,3 +1,4 @@
+import { BlurView } from 'expo-blur';
 import { Check, Lock, Minus, Plus, X } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useState } from 'react';
@@ -91,7 +92,8 @@ export function SubscribePlanSheet({ plan, userId, onClose }: { plan: MealPlan |
   return (
     <>
     <Modal visible={!!plan} transparent animationType="slide" onRequestClose={onClose}>
-      <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="Close" style={{ flex: 1, backgroundColor: Palette.overlay, justifyContent: 'flex-end' }}>
+      <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="Close" style={{ flex: 1, justifyContent: 'flex-end' }}>
+        <BlurView intensity={18} tint="dark" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
         <Pressable onPress={(e) => e.stopPropagation()} accessible={false} style={{ backgroundColor: Palette.surface, borderTopLeftRadius: 26, borderTopRightRadius: 26, padding: 22, paddingBottom: 34, gap: 16, alignSelf: 'center', width: '100%', maxWidth: 480 }}>
           <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>

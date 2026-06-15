@@ -18,7 +18,6 @@ export function FavoriteButton({ id, size = 30 }: { id: string; size?: number })
         toggleFavorite(id);
       }}
       hitSlop={12}
-      accessibilityRole="button"
       accessibilityState={{ selected: on }}
       accessibilityLabel={on ? 'Remove from favorites' : 'Add to favorites'}
       style={{

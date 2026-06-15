@@ -1,3 +1,4 @@
+import { BlurView } from 'expo-blur';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ChefHat, ChevronLeft, ChevronRight, CreditCard, X } from 'lucide-react-native';
@@ -69,7 +70,8 @@ function DrillDownModal({ item, deliveryDay, paymentsOn, onPay, paying, onClose 
 
   return (
     <Modal visible={!!item} transparent animationType="slide" onRequestClose={onClose}>
-      <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="Close" style={{ flex: 1, backgroundColor: Palette.overlay, justifyContent: 'flex-end' }}>
+      <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="Close" style={{ flex: 1, justifyContent: 'flex-end' }}>
+        <BlurView intensity={18} tint="dark" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
         <Pressable onPress={(e) => e.stopPropagation()} accessible={false}
           style={{ backgroundColor: Palette.surface, borderTopLeftRadius: 26, borderTopRightRadius: 26, padding: 22, paddingBottom: 40, gap: 16, width: '100%', maxWidth: 480, alignSelf: 'center' }}>
 
@@ -251,16 +253,20 @@ export default function CustomPlanScreen() {
     );
   }
 
-  if (isError || !plan) {
+  const backBtn = (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingTop: 8, paddingBottom: 8 }}>
+      <PressableScale onPress={goBack} accessibilityRole="button" accessibilityLabel="Go back"
+        style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
+        <ChevronLeft size={22} color={INK} />
+      </PressableScale>
+    </View>
+  );
+
+  if (isError) {
     return (
       <View style={{ flex: 1, backgroundColor: Palette.canvas }}>
         <SafeAreaView edges={['top']} style={{ flex: 1 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingTop: 8, paddingBottom: 8 }}>
-            <PressableScale onPress={goBack} accessibilityRole="button" accessibilityLabel="Go back"
-              style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
-              <ChevronLeft size={22} color={INK} />
-            </PressableScale>
-          </View>
+          {backBtn}
           <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }}
             style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
             <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
@@ -273,6 +279,30 @@ export default function CustomPlanScreen() {
             <PressableScale onPress={() => { feedback.tap(); void refetch(); }} accessibilityRole="button" accessibilityLabel="Retry loading plan"
               style={{ marginTop: 6, backgroundColor: ORANGE, borderRadius: Radius.pill, paddingHorizontal: 24, paddingVertical: 12 }}>
               <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: '#fff' }}>retry</Text>
+            </PressableScale>
+          </MotiView>
+        </SafeAreaView>
+      </View>
+    );
+  }
+
+  if (!plan) {
+    return (
+      <View style={{ flex: 1, backgroundColor: Palette.canvas }}>
+        <SafeAreaView edges={['top']} style={{ flex: 1 }}>
+          {backBtn}
+          <MotiView from={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ type: 'timing', duration: 300 }}
+            style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
+            <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: Palette.brandTint, alignItems: 'center', justifyContent: 'center' }}>
+              <ChefHat size={28} color={ORANGE} />
+            </View>
+            <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>setting up your plan…</Text>
+            <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center', maxWidth: 260, lineHeight: 20 }}>
+              This usually takes a moment. Tap below if it doesn't appear.
+            </Text>
+            <PressableScale onPress={() => { feedback.tap(); void refetch(); }} accessibilityRole="button" accessibilityLabel="Refresh plan"
+              style={{ marginTop: 6, backgroundColor: ORANGE, borderRadius: Radius.pill, paddingHorizontal: 24, paddingVertical: 12 }}>
+              <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: '#fff' }}>refresh</Text>
             </PressableScale>
           </MotiView>
         </SafeAreaView>

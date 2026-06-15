@@ -1,3 +1,4 @@
+import { BlurView } from 'expo-blur';
 import { Check, SlidersHorizontal, X } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { Modal, Pressable, ScrollView, Switch, Text, View } from 'react-native';
@@ -133,7 +134,8 @@ export function ExploreFilterSheet({
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="Close filters" style={{ flex: 1, backgroundColor: Palette.overlay, justifyContent: 'flex-end' }}>
+      <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="Close filters" style={{ flex: 1, justifyContent: 'flex-end' }}>
+        <BlurView intensity={18} tint="dark" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
         <Pressable onPress={(e) => e.stopPropagation()} accessible={false}
           style={{ backgroundColor: Palette.surface, borderTopLeftRadius: 28, borderTopRightRadius: 28, maxHeight: '90%', ...(isTabletUp ? { maxWidth: 540, alignSelf: 'center', width: '100%' } : {}) }}>
 

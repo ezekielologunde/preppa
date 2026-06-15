@@ -5,6 +5,7 @@ import {
   Coffee,
   Compass,
   Cookie,
+  Flame,
   IceCream,
   LayoutGrid,
   List,
@@ -14,8 +15,11 @@ import {
   Search,
   SlidersHorizontal,
   Sparkles,
+  Star,
   UtensilsCrossed,
+  Zap,
 } from 'lucide-react-native';
+import type { ComponentType } from 'react';
 import { MotiView } from 'moti';
 import { useEffect, useMemo, useState } from 'react';
 import { Platform, RefreshControl, ScrollView, Text, View } from 'react-native';
@@ -41,7 +45,7 @@ import {
 } from '@/lib/layout';
 import { useRankedPreppers } from '@/lib/match';
 import { useAddresses } from '@/lib/queries/addresses';
-import { useGPSLocation } from '@/lib/use-location';
+import { useDeviceLocation, usePurgeGpsAddresses } from '@/lib/use-location';
 import { useFeaturedMeals, useLimitedDrops } from '@/lib/queries/meals';
 import { useTopPreppers } from '@/lib/queries/preppers';
 import { usePersonalizedMeals } from '@/lib/queries/recommend';
@@ -61,10 +65,13 @@ const CATEGORY_CIRCLES = [
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function SectionHeader({ title, pad, onSeeAll }: { title: string; pad: number; onSeeAll?: () => void }) {
+function SectionHeader({ title, pad, Icon, onSeeAll }: { title: string; pad: number; Icon?: ComponentType<{ size?: number; color?: string }>; onSeeAll?: () => void }) {
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: pad, marginTop: 8, marginBottom: 10 }}>
-      <Text style={{ fontFamily: Font.display, fontSize: 18, color: Palette.ink, letterSpacing: -0.4 }}>{title}</Text>
+    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: pad, marginTop: 16, marginBottom: 10 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
+        {Icon ? <Icon size={17} color={Palette.brand} /> : null}
+        <Text style={{ fontFamily: Font.display, fontSize: 18, color: Palette.ink, letterSpacing: -0.4 }}>{title}</Text>
+      </View>
       {onSeeAll ? (
         <PressableScale onPress={() => { feedback.tap(); onSeeAll(); }} accessibilityRole="button" accessibilityLabel={`See all ${title}`}>
           <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: Palette.brand }}>see all →</Text>
@@ -113,25 +120,34 @@ export default function ExploreScreen() {
   const rankedPreppers = useRankedPreppers(preppers ?? [], user?.id);
 
   const { data: addresses = [] } = useAddresses(user?.id);
-  const defaultAddress = addresses.find((a) => a.isDefault) ?? addresses[0];
-  const locationLabel = defaultAddress
-    ? [defaultAddress.city, defaultAddress.state].filter(Boolean).join(', ')
-    : 'near you';
-  const { captureLocation, capturing: locCapturing } = useGPSLocation(user?.id, addresses);
+  const { loc, requestDeviceLocation } = useDeviceLocation();
+  const locCapturing = loc.status === 'requesting';
+  usePurgeGpsAddresses(user?.id);
+  // Label: prefer live device location, fall back to saved default address, then 'near you'
+  const locationLabel = loc.status === 'granted' && loc.city
+    ? [loc.city, loc.state].filter(Boolean).join(', ')
+    : (() => {
+        const defaultAddress = addresses.find((a) => a.isDefault) ?? addresses[0];
+        return defaultAddress ? [defaultAddress.city, defaultAddress.state].filter(Boolean).join(', ') : 'near you';
+      })();
 
   async function handleLocationTap() {
     if (locCapturing) return;
     feedback.tap();
     if (!user) { router.push('/auth?mode=signup'); return; }
-    const result = await captureLocation();
-    if (result !== 'done') router.push('/addresses');
+    const result = await requestDeviceLocation();
+    if (result === 'denied') router.push('/addresses');
   }
 
   const [refreshing, setRefreshing]     = useState(false);
   const [filterOpen, setFilterOpen]     = useState(false);
   const [activeCategory, setActiveCategory] = useState('all');
   const [viewMode, setViewMode]         = useState<'list' | 'grid'>('grid');
-  const [advFilters, setAdvFilters]     = useState<AdvancedFilters>(FILTER_DEFAULTS);
+  const userDietary = (user?.user_metadata?.dietary as string[] | undefined) ?? [];
+  const [advFilters, setAdvFilters]     = useState<AdvancedFilters>(() => ({
+    ...FILTER_DEFAULTS,
+    dietary: userDietary.map((d: string) => d.toLowerCase()),
+  }));
   const [placeholderIdx, setPlaceholderIdx] = useState(0);
 
   const isTabletUp = bp !== 'mobile';
@@ -191,7 +207,7 @@ export default function ExploreScreen() {
             <PressableScale onPress={handleLocationTap} accessibilityRole="button" accessibilityLabel={`Find chefs near ${locCapturing ? '...' : locationLabel}. Tap to detect.`}
               style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: Palette.surface, borderRadius: Radius.pill, paddingHorizontal: 11, height: 40, maxWidth: 200, ...Shadow.card }}>
               <Compass size={13} color={locCapturing ? Palette.textMuted : Palette.brand} style={{ flexShrink: 0 }} />
-              <Text numberOfLines={1} style={{ fontFamily: Font.medium, fontSize: 13, color: locCapturing ? Palette.textMuted : (defaultAddress ? Palette.inkSoft : Palette.brand), flexShrink: 1 }}>
+              <Text numberOfLines={1} style={{ fontFamily: Font.medium, fontSize: 13, color: locCapturing ? Palette.textMuted : (locationLabel !== 'near you' ? Palette.inkSoft : Palette.brand), flexShrink: 1 }}>
                 {locCapturing ? 'detecting...' : locationLabel}
               </Text>
               <ChevronDown size={12} color={locCapturing ? Palette.textMuted : Palette.textSecondary} style={{ flexShrink: 0 }} />
@@ -214,8 +230,8 @@ export default function ExploreScreen() {
           </View>
 
           {/* Subtitle */}
-          <Text style={{ fontFamily: Font.body, fontSize: 13.5, color: Palette.textSecondary, paddingHorizontal: pad, paddingBottom: 8 }}>
-            discover amazing meals from local preppers 🍳
+          <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, paddingHorizontal: pad, paddingBottom: 8 }}>
+            meals, kitchens & experiences near you
           </Text>
 
           {/* Search bar with QR scan icon */}
@@ -252,7 +268,7 @@ export default function ExploreScreen() {
 
           {/* Cuisines */}
           <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260 }}>
-            <SectionHeader title="cuisines" pad={pad} onSeeAll={() => router.push('/cuisine-explorer')} />
+            <SectionHeader title="cuisines" pad={pad} Icon={UtensilsCrossed} onSeeAll={() => router.push('/cuisine-explorer')} />
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: pad, gap: 12, paddingBottom: 20 }}>
               {CUISINES.map((c, i) => (
                 <MotiView key={c.id} from={{ opacity: 0, translateX: 14 }} animate={{ opacity: 1, translateX: 0 }} transition={{ type: 'timing', duration: 220, delay: i * 35 }}>
@@ -264,7 +280,7 @@ export default function ExploreScreen() {
 
           {/* Top Preppers Near You */}
           <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 40 }}>
-            <SectionHeader title="top preppers near you" pad={pad} onSeeAll={() => router.push('/kitchens')} />
+            <SectionHeader title="top kitchens near you" pad={pad} Icon={Star} onSeeAll={() => router.push('/kitchens')} />
             {preppersLoading ? (
               <View style={{ paddingBottom: 20 }}><CardRowSkeleton count={3} width={210} /></View>
             ) : isTabletUp ? (
@@ -288,7 +304,7 @@ export default function ExploreScreen() {
 
           {/* Meals Grid */}
           <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 60 }}>
-            <SectionHeader title="popular right now 🔥" pad={pad} onSeeAll={() => router.push('/category?key=all&label=all+meals')} />
+            <SectionHeader title="popular right now" pad={pad} Icon={Flame} onSeeAll={() => router.push('/category?key=all&label=all+meals')} />
             {mealsLoading ? (
               <View style={{ paddingBottom: 20 }}><CardRowSkeleton count={4} /></View>
             ) : filteredMeals.length === 0 ? (
@@ -310,12 +326,7 @@ export default function ExploreScreen() {
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: pad, gap: 12, paddingBottom: 20 }}>
                 {filteredMeals.map((m, i) => (
                   <MotiView key={m.id} from={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 200, delay: i * 35 }}>
-                    <View style={{ position: 'relative' }}>
-                      <MealCard meal={m} width={mealCardW} />
-                      <View style={{ position: 'absolute', bottom: 12, right: 12 }}>
-                        <QuickAddButton meal={m} />
-                      </View>
-                    </View>
+                    <MealCard meal={m} width={mealCardW} action={<QuickAddButton meal={m} />} />
                   </MotiView>
                 ))}
               </View>
@@ -325,17 +336,12 @@ export default function ExploreScreen() {
           {/* Limited Drops */}
           {drops && drops.length > 0 ? (
             <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 80 }}>
-              <SectionHeader title="limited drops" pad={pad} onSeeAll={() => router.push('/specials')} />
+              <SectionHeader title="limited drops" pad={pad} Icon={Zap} onSeeAll={() => router.push('/specials')} />
               {isDesktop ? (
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: pad, gap: 12, paddingBottom: 20 }}>
                   {drops.map((m, i) => (
                     <MotiView key={m.id} from={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 200, delay: i * 35 }}>
-                      <View style={{ position: 'relative' }}>
-                        <MealCard meal={m} width={mealCardW} />
-                        <View style={{ position: 'absolute', bottom: 12, right: 12 }}>
-                          <QuickAddButton meal={m} />
-                        </View>
-                      </View>
+                      <MealCard meal={m} width={mealCardW} action={<QuickAddButton meal={m} />} />
                     </MotiView>
                   ))}
                 </View>
@@ -343,12 +349,7 @@ export default function ExploreScreen() {
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: pad, gap: 12, paddingBottom: 20 }}>
                   {drops.map((m, i) => (
                     <MotiView key={m.id} from={{ opacity: 0, translateX: 14 }} animate={{ opacity: 1, translateX: 0 }} transition={{ type: 'timing', duration: 220, delay: i * 35 }}>
-                      <View style={{ position: 'relative' }}>
-                        <MealCard meal={m} width={carouselCardWidth} />
-                        <View style={{ position: 'absolute', bottom: 12, right: 12 }}>
-                          <QuickAddButton meal={m} />
-                        </View>
-                      </View>
+                      <MealCard meal={m} width={carouselCardWidth} action={<QuickAddButton meal={m} />} />
                     </MotiView>
                   ))}
                 </ScrollView>
@@ -359,7 +360,7 @@ export default function ExploreScreen() {
           {/* For You */}
           {!mealsLoading && forYou.length === 0 && !!user ? (
             <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 100 }}>
-              <SectionHeader title="for you" pad={pad} />
+              <SectionHeader title="for you" pad={pad} Icon={Sparkles} />
               <View style={{ marginHorizontal: pad, marginBottom: 20, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                 <Sparkles size={13} color={Palette.brand} />
                 <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary }}>Preorder from a few kitchens to unlock personalized picks.</Text>
@@ -367,18 +368,13 @@ export default function ExploreScreen() {
             </MotiView>
           ) : forYou.length > 0 ? (
             <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 100 }}>
-              <SectionHeader title="for you" pad={pad} onSeeAll={() => router.push('/category?key=all&label=for+you')} />
+              <SectionHeader title="for you" pad={pad} Icon={Sparkles} onSeeAll={() => router.push('/category?key=all&label=for+you')} />
               {isDesktop ? (
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: pad, gap: 12, paddingBottom: 20 }}>
                   {forYou.map((s, i) => (
                     <MotiView key={s.meal.id} from={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 200, delay: i * 35 }}>
                       <View>
-                        <View style={{ position: 'relative' }}>
-                          <MealCard meal={s.meal} width={mealCardW} />
-                          <View style={{ position: 'absolute', bottom: 12, right: 12 }}>
-                            <QuickAddButton meal={s.meal} />
-                          </View>
-                        </View>
+                        <MealCard meal={s.meal} width={mealCardW} action={<QuickAddButton meal={s.meal} />} />
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6, paddingHorizontal: 2 }}>
                           <Sparkles size={11} color={Palette.brand} />
                           <Text numberOfLines={1} style={{ fontFamily: Font.medium, fontSize: 11, color: Palette.textSecondary, flex: 1 }}>{s.reason}</Text>
@@ -392,12 +388,7 @@ export default function ExploreScreen() {
                   {forYou.map((s, i) => (
                     <MotiView key={s.meal.id} from={{ opacity: 0, translateX: 14 }} animate={{ opacity: 1, translateX: 0 }} transition={{ type: 'timing', duration: 220, delay: i * 35 }}>
                       <View>
-                        <View style={{ position: 'relative' }}>
-                          <MealCard meal={s.meal} width={carouselCardWidth} />
-                          <View style={{ position: 'absolute', bottom: 12, right: 12 }}>
-                            <QuickAddButton meal={s.meal} />
-                          </View>
-                        </View>
+                        <MealCard meal={s.meal} width={carouselCardWidth} action={<QuickAddButton meal={s.meal} />} />
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6, paddingHorizontal: 2 }}>
                           <Sparkles size={11} color={Palette.brand} />
                           <Text numberOfLines={1} style={{ fontFamily: Font.medium, fontSize: 11, color: Palette.textSecondary, flex: 1 }}>{s.reason}</Text>

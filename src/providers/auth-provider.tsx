@@ -7,6 +7,8 @@ import { supabase } from '@/lib/supabase';
 /** Which app the user is currently in. Customer and Prepper are two distinct navigators. */
 export type ActiveRole = 'customer' | 'prepper';
 const ROLE_KEY = 'preppa.activeRole.v1';
+const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+const SESSION_START_KEY = 'preppa.sessionStart.v1';
 
 type AuthState = {
   session: Session | null;
@@ -54,14 +56,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [statusBlock, setStatusBlock] = useState<'deleted' | 'suspended' | null>(null);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
+    async function boot() {
+      const { data } = await supabase.auth.getSession();
+      if (data.session) {
+        const raw = await AsyncStorage.getItem(SESSION_START_KEY);
+        const start = raw ? parseInt(raw, 10) : null;
+        if (!start || Date.now() - start > SESSION_TTL_MS) {
+          await supabase.auth.signOut();
+          await AsyncStorage.removeItem(SESSION_START_KEY);
+          setSession(null);
+          setLoading(false);
+          return;
+        }
+      }
       setSession(data.session);
       setLoading(false);
+    }
+    boot();
+
+    const { data: sub } = supabase.auth.onAuthStateChange((event, next) => {
+      if (event === 'SIGNED_IN') {
+        AsyncStorage.getItem(SESSION_START_KEY).then((existing) => {
+          if (!existing) AsyncStorage.setItem(SESSION_START_KEY, String(Date.now())).catch(() => {});
+        }).catch(() => {});
+      }
+      if (event === 'SIGNED_OUT') {
+        AsyncStorage.removeItem(SESSION_START_KEY).catch(() => {});
+      }
+      setSession(next);
     });
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, next) => setSession(next));
+
     AsyncStorage.getItem(ROLE_KEY)
       .then((v) => v === 'prepper' && setActiveRoleState('prepper'))
       .catch(() => {});
+
     return () => sub.subscription.unsubscribe();
   }, []);
 

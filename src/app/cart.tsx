@@ -99,7 +99,6 @@ export default function CartScreen() {
   function checkout() {
     if (busy) return;
     if (!user) return router.push('/auth?mode=signin');
-    if (mixed) { feedback.warning(); return setErr('Pick one kitchen to preorder from above.'); }
     if (method === 'in_home') { feedback.tap(); router.push('/experience-request?kind=private_chef'); return; }
     if (method === 'delivery' && note.trim().length < 5) { feedback.warning(); return setErr('Add a delivery address.'); }
     if (method === 'meetup' && note.trim().length < 3) { feedback.warning(); return setErr('Where should you meet?'); }
@@ -169,14 +168,25 @@ export default function CartScreen() {
   const cartScrollInner = (
     <>
       {mixed ? (
-        <View style={{ backgroundColor: Palette.brandTint, borderRadius: Radius.md, padding: 14, gap: 10 }}>
-          <Text style={{ fontFamily: Font.heading, fontSize: 14.5, color: Palette.brandPressed }}>Items from {kitchens.length} kitchens</Text>
-          <Text style={{ fontFamily: Font.body, fontSize: 13, lineHeight: 19, color: Palette.brandPressed }}>You can preorder from one kitchen at a time. Keep one to check out — the other items will be removed.</Text>
-          <View style={{ gap: 8, marginTop: 2 }}>
+        <View style={{ backgroundColor: Palette.surface, borderRadius: Radius.md, padding: 14, gap: 12 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <View style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: Palette.brandTint, alignItems: 'center', justifyContent: 'center' }}>
+              <ChefHat size={18} color={ORANGE} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontFamily: Font.heading, fontSize: 14, color: INK }}>{kitchens.length} kitchens</Text>
+              <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary }}>Each prepper confirms separately</Text>
+            </View>
+          </View>
+          <View style={{ gap: 6 }}>
             {kitchens.map((k) => (
-              <PressableScale key={k.id} onPress={() => keepOnly(k.id)} disabled={removeItems.isPending} accessibilityRole="button" accessibilityLabel={`Keep only ${k.name}`} style={{ height: 44, borderRadius: Radius.sm, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center', opacity: removeItems.isPending ? 0.6 : 1 }}>
-                <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: INK }}>Keep {k.name}</Text>
-              </PressableScale>
+              <View key={k.id} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: Palette.canvas, borderRadius: Radius.sm, paddingHorizontal: 12, paddingVertical: 10 }}>
+                <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: INK }}>{k.name}</Text>
+                <PressableScale onPress={() => keepOnly(k.id)} disabled={removeItems.isPending} accessibilityRole="button" accessibilityLabel={`Order only from ${k.name}`}
+                  style={{ paddingHorizontal: 10, height: 28, borderRadius: Radius.pill, borderWidth: 1, borderColor: Palette.border, alignItems: 'center', justifyContent: 'center', opacity: removeItems.isPending ? 0.5 : 1 }}>
+                  <Text style={{ fontFamily: Font.medium, fontSize: 11.5, color: Palette.textSecondary }}>order only this</Text>
+                </PressableScale>
+              </View>
             ))}
           </View>
         </View>
@@ -326,26 +336,24 @@ export default function CartScreen() {
       <MotiView from={{ scale: 0.97, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', damping: 16, stiffness: 200, delay: 80 }}>
         <PressableScale
           onPress={checkout}
-          disabled={busy || mixed}
+          disabled={busy}
           accessibilityRole="button"
-          accessibilityLabel={mixed ? 'Pick one kitchen to continue' : paymentsOn ? `Pay ${money(total)} securely` : `Place preorder for ${money(total)}`}
+          accessibilityLabel={paymentsOn ? `Pay ${money(total)} securely` : `Place preorder for ${money(total)}`}
           style={{
             minHeight: 62, borderRadius: Radius.lg, paddingVertical: 12, paddingHorizontal: 20,
-            backgroundColor: mixed ? Palette.chip : ORANGE,
+            backgroundColor: ORANGE,
             flexDirection: 'row', gap: 10, alignItems: 'center', justifyContent: 'center',
             opacity: busy ? 0.72 : 1,
-            ...(mixed ? {} : { shadowColor: ORANGE, shadowOpacity: 0.28, shadowRadius: 14, shadowOffset: { width: 0, height: 6 }, elevation: 8 }),
+            shadowColor: ORANGE, shadowOpacity: 0.28, shadowRadius: 14, shadowOffset: { width: 0, height: 6 }, elevation: 8,
           }}>
           {busy ? (
             <ActivityIndicator color="#fff" size="small" />
-          ) : mixed ? (
-            <Text style={{ fontFamily: Font.heading, fontSize: 15, color: Palette.textSecondary, textAlign: 'center' }}>Pick one kitchen above ↑</Text>
           ) : (
             <>
               {paymentsOn ? <Lock size={18} color="rgba(255,255,255,0.88)" /> : <ShoppingBag size={18} color="rgba(255,255,255,0.88)" />}
               <View style={{ alignItems: 'center', flex: 1 }}>
                 <Text style={{ fontFamily: Font.heading, fontSize: 17, color: '#fff', letterSpacing: -0.2 }}>
-                  {method === 'in_home' ? 'Request in-home prep' : paymentsOn ? 'Pay securely' : 'Place preorder'}
+                  {method === 'in_home' ? 'Request in-home prep' : mixed ? `Preorder from ${kitchens.length} kitchens` : paymentsOn ? 'Pay securely' : 'Place preorder'}
                 </Text>
                 {method !== 'in_home' ? (
                   <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: 'rgba(255,255,255,0.7)', marginTop: 2 }}>
