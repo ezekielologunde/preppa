@@ -144,6 +144,8 @@ export function TrendingSection({
   const list = meals ?? [];
   const [hero, ...rest] = list;
 
+  if (!isLoading && list.length === 0) return null;
+
   return (
     <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }}
       transition={{ type: 'timing', duration: 260, delay: 150 }}>
@@ -189,6 +191,9 @@ export function TrendingSection({
 export function ChefsInActionFeed() {
   const router = useRouter();
   const { data: preppers, isLoading } = useTopPreppers(6);
+
+  if (!isLoading && (!preppers || preppers.length === 0)) return null;
+
   return (
     <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }}
       transition={{ type: 'spring', damping: 15, stiffness: 120, mass: 0.6, delay: 100 }}
