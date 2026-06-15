@@ -8,6 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { feedback } from '@/lib/feedback';
 import { useBreakpoint } from '@/lib/layout';
 
+import { QuickAddButton } from '@/components/home-feed';
 import { MealCard } from '@/components/meal-card';
 import { PrepperCard } from '@/components/prepper-card';
 import { PressableScale } from '@/components/ui/pressable-scale';
@@ -255,7 +256,12 @@ export default function SearchScreen() {
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 12, paddingBottom: 4 }}>
                   {recentMeals.map((m, i) => (
                     <MotiView key={m.id} from={{ opacity: 0, translateX: 12 }} animate={{ opacity: 1, translateX: 0 }} transition={{ type: 'timing', duration: 200, delay: i * 35 }}>
-                      <MealCard meal={m} width={160} />
+                      <View style={{ position: 'relative' }}>
+                        <MealCard meal={m} width={160} />
+                        <View style={{ position: 'absolute', bottom: 12, right: 12 }}>
+                          <QuickAddButton meal={m} />
+                        </View>
+                      </View>
                     </MotiView>
                   ))}
                 </ScrollView>
@@ -322,7 +328,12 @@ export default function SearchScreen() {
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
                   {sortedResults.map((m, i) => (
                     <MotiView key={m.id} from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 200, delay: i * 28 }}>
-                      <MealCard meal={m} width={CARD_W} />
+                      <View style={{ position: 'relative' }}>
+                        <MealCard meal={m} width={CARD_W} />
+                        <View style={{ position: 'absolute', bottom: 12, right: 12 }}>
+                          <QuickAddButton meal={m} />
+                        </View>
+                      </View>
                     </MotiView>
                   ))}
                 </View>

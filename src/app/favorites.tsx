@@ -6,6 +6,7 @@ import { ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Avatar } from '@/components/ui/avatar';
+import { QuickAddButton } from '@/components/home-feed';
 import { MealCard } from '@/components/meal-card';
 import { CardSkeleton, Skeleton } from '@/components/ui/skeleton';
 import { PressableScale } from '@/components/ui/pressable-scale';
@@ -118,7 +119,12 @@ export default function FavoritesScreen() {
               ? mealIds.map((id) => <CardSkeleton key={id} width={CARD_W} />)
               : (favMeals ?? []).map((meal, i) => (
                   <MotiView key={meal.id} from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 210, delay: i * 25 }}>
-                    <MealCard meal={{ ...meal, image: meal.images?.[0] ?? '' }} width={CARD_W} />
+                    <View style={{ position: 'relative' }}>
+                      <MealCard meal={{ ...meal, image: meal.images?.[0] ?? '' }} width={CARD_W} />
+                      <View style={{ position: 'absolute', bottom: 12, right: 12 }}>
+                        <QuickAddButton meal={{ ...meal, image: meal.images?.[0] ?? '' }} />
+                      </View>
+                    </View>
                   </MotiView>
                 ))}
           </ScrollView>

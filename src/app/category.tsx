@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { QuickAddButton } from '@/components/home-feed';
 import { MealCard } from '@/components/meal-card';
 import { gridCardWidth, useContentWidth } from '@/lib/layout';
 import { PressableScale } from '@/components/ui/pressable-scale';
@@ -49,7 +50,12 @@ export default function CategoryScreen() {
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
               {meals.map((m, i) => (
                 <MotiView key={m.id} from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 210, delay: i * 30 }}>
-                  <MealCard meal={m} width={CARD_W} />
+                  <View style={{ position: 'relative' }}>
+                    <MealCard meal={m} width={CARD_W} />
+                    <View style={{ position: 'absolute', bottom: 12, right: 12 }}>
+                      <QuickAddButton meal={m} />
+                    </View>
+                  </View>
                 </MotiView>
               ))}
             </View>
