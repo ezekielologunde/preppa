@@ -125,6 +125,12 @@ export default function ProfileScreen() {
   const activeSubs = (subs ?? []).filter((s) => s.status === 'active').length;
   const pausedSubs = (subs ?? []).filter((s) => s.status === 'paused').length;
   const followed = followedPreppers?.length ?? 0;
+  const _dm = user?.user_metadata ?? {};
+  const dietaryCount =
+    ((_dm.dietary as string[] | undefined) ?? []).length +
+    ((_dm.allergies as string[] | undefined) ?? []).length +
+    ((_dm.cuisines as string[] | undefined) ?? []).length;
+  const dietaryMeta = dietaryCount > 0 ? String(dietaryCount) + ' set' : undefined;
   const totalUnread = (notifications ?? []).filter((n) => !n.read).length + (conversations ?? []).filter((c) => c.unread).length;
   const displayName = (user?.user_metadata?.full_name as string | undefined) ?? user?.email?.split('@')[0] ?? 'guest';
   const tierName = rewards.tier.name.toLowerCase();
@@ -230,6 +236,7 @@ export default function ProfileScreen() {
         Icon={Leaf}
         tint="#16A34A"
         title="Dietary & Allergen Profile"
+        meta={dietaryMeta}
         sub="Updates your curated ‘Recommended for You’ engine"
         onPress={() => go('/dietary-preferences')}
         delay={170}
