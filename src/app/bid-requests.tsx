@@ -30,8 +30,8 @@ export default function BidRequestsScreen() {
   const paymentsOn = useFeatureEnabled('payments');
 
   const [activeTab, setActiveTab] = useState<'browse' | 'mine'>('browse');
-  const { data: requests = [], isLoading, refetch } = useMealRequests();
-  const { data: myRequests = [], isLoading: myLoading, refetch: refetchMine } = useMyRequestsWithBids(user?.id);
+  const { data: requests = [], isLoading, isError, refetch } = useMealRequests();
+  const { data: myRequests = [], isLoading: myLoading, isError: myError, refetch: refetchMine } = useMyRequestsWithBids(user?.id);
   const postRequest = usePostMealRequest();
   const placeBid = usePlaceBid();
   const acceptBid = useAcceptMealBid();
@@ -132,7 +132,20 @@ export default function BidRequestsScreen() {
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={ORANGE} colors={[ORANGE]} />}
           contentContainerStyle={{ padding: 16, paddingBottom: 60 }}>
           {(isPrepper || activeTab === 'browse') ? (
-            isLoading ? <ListSkeleton count={4} /> : requests.length === 0 ? (
+            isLoading ? <ListSkeleton count={4} /> : isError ? (
+              <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }}
+                style={{ alignItems: 'center', paddingTop: 60, gap: 12 }}>
+                <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
+                  <ShoppingBag size={28} color={Palette.textMuted} />
+                </View>
+                <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>couldn't load requests</Text>
+                <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center' }}>Check your connection and try again.</Text>
+                <PressableScale onPress={() => { feedback.tap(); void refetch(); }} accessibilityRole="button" accessibilityLabel="Retry loading requests"
+                  style={{ marginTop: 6, backgroundColor: ORANGE, borderRadius: Radius.pill, paddingHorizontal: 24, paddingVertical: 12 }}>
+                  <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: '#fff' }}>retry</Text>
+                </PressableScale>
+              </MotiView>
+            ) : requests.length === 0 ? (
               <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 240 }}
                 style={{ alignItems: 'center', paddingTop: 60, gap: 10 }}>
                 <Text style={{ fontFamily: Font.heading, fontSize: 18, color: INK }}>no open requests</Text>
@@ -148,7 +161,20 @@ export default function BidRequestsScreen() {
           ) : null}
 
           {!isPrepper && activeTab === 'mine' ? (
-            myLoading ? <ListSkeleton count={3} /> : myRequests.length === 0 ? (
+            myLoading ? <ListSkeleton count={3} /> : myError ? (
+              <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }}
+                style={{ alignItems: 'center', paddingTop: 60, gap: 12 }}>
+                <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
+                  <ShoppingBag size={28} color={Palette.textMuted} />
+                </View>
+                <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>couldn't load your requests</Text>
+                <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center' }}>Check your connection and try again.</Text>
+                <PressableScale onPress={() => { feedback.tap(); void refetchMine(); }} accessibilityRole="button" accessibilityLabel="Retry loading your requests"
+                  style={{ marginTop: 6, backgroundColor: ORANGE, borderRadius: Radius.pill, paddingHorizontal: 24, paddingVertical: 12 }}>
+                  <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: '#fff' }}>retry</Text>
+                </PressableScale>
+              </MotiView>
+            ) : myRequests.length === 0 ? (
               <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 240 }}
                 style={{ alignItems: 'center', paddingTop: 60, gap: 10 }}>
                 <Text style={{ fontFamily: Font.heading, fontSize: 18, color: INK }}>no requests yet</Text>

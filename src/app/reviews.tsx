@@ -59,7 +59,7 @@ export default function ReviewsScreen() {
   const { data: application } = useMyPrepperApplication(user?.id);
   const prepperId = application?.id;
   const { data: profile } = usePrepperProfile(prepperId);
-  const { data: reviews, isLoading, refetch } = usePrepperReviews(prepperId, 50);
+  const { data: reviews, isLoading, isError, refetch } = usePrepperReviews(prepperId, 50);
   const [refreshing, setRefreshing] = useState(false);
   const [starFilter, setStarFilter] = useState<StarFilter>('all');
   async function handleRefresh() { setRefreshing(true); await refetch(); setRefreshing(false); }
@@ -92,6 +92,19 @@ export default function ReviewsScreen() {
 
         {isLoading ? (
           <ListSkeleton count={4} rowHeight={80} />
+        ) : isError ? (
+          <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }}
+            style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
+            <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
+              <Star size={28} color={Palette.textMuted} />
+            </View>
+            <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>couldn't load reviews</Text>
+            <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center' }}>Check your connection and try again.</Text>
+            <PressableScale onPress={() => { feedback.tap(); void refetch(); }} accessibilityRole="button" accessibilityLabel="Retry loading reviews"
+              style={{ marginTop: 6, backgroundColor: ORANGE, borderRadius: Radius.pill, paddingHorizontal: 24, paddingVertical: 12 }}>
+              <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: '#fff' }}>retry</Text>
+            </PressableScale>
+          </MotiView>
         ) : (
           <ScrollView showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={ORANGE} colors={[ORANGE]} />} contentContainerStyle={{ padding: 20, gap: 16, paddingBottom: 32 }}>
 

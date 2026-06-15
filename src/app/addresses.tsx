@@ -213,7 +213,7 @@ function AddressCard({
 export default function AddressesScreen() {
   const router = useRouter();
   const { user } = useAuth();
-  const { data: addresses = [], isLoading, refetch } = useAddresses(user?.id);
+  const { data: addresses = [], isLoading, isError, refetch } = useAddresses(user?.id);
   const upsertAddress = useUpsertAddress(user?.id);
   const deleteAddress = useDeleteAddress(user?.id);
   const setDefaultAddress = useSetDefaultAddress(user?.id);
@@ -323,6 +323,19 @@ export default function AddressesScreen() {
         {/* Content */}
         {isLoading ? (
           <ListSkeleton count={3} />
+        ) : isError ? (
+          <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }}
+            style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: Spacing.four, gap: 12 }}>
+            <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: Palette.danger + '14', alignItems: 'center', justifyContent: 'center' }}>
+              <MapPin size={28} color={Palette.danger} />
+            </View>
+            <Text style={{ fontFamily: Font.heading, fontSize: 16, color: Palette.ink }}>couldn't load addresses</Text>
+            <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center' }}>Check your connection and try again.</Text>
+            <PressableScale onPress={() => { feedback.tap(); void refetch(); }} accessibilityRole="button" accessibilityLabel="Retry loading addresses"
+              style={{ marginTop: 6, backgroundColor: Palette.brand, borderRadius: Radius.pill, paddingHorizontal: 24, paddingVertical: 12 }}>
+              <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: '#fff' }}>retry</Text>
+            </PressableScale>
+          </MotiView>
         ) : addresses.length === 0 ? (
           /* Empty state */
           <MotiView
