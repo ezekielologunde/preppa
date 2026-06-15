@@ -74,7 +74,7 @@ export default function SurpriseScreen() {
     categoryKey: vibe?.category ?? null,
   };
 
-  const { data: picks, isLoading, refetch } = useSurpriseMeals(filters, revealed);
+  const { data: picks, isLoading, isError, refetch } = useSurpriseMeals(filters, revealed);
 
   function reveal() {
     feedback.tap();
@@ -173,6 +173,20 @@ export default function SurpriseScreen() {
                 <ActivityIndicator color={ORANGE} size="large" />
                 <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, marginTop: 12 }}>finding your perfect meal…</Text>
               </View>
+            ) : isError ? (
+              <MotiView
+                from={{ opacity: 0, translateY: 10 }}
+                animate={{ opacity: 1, translateY: 0 }}
+                transition={{ type: 'timing', duration: 260 }}
+                style={{ alignItems: 'center', paddingVertical: 32, paddingHorizontal: 32, gap: 12 }}>
+                <Compass size={32} color={Palette.textMuted} />
+                <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>Couldn't fetch picks</Text>
+                <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center', lineHeight: 20 }}>Check your connection and tap retry.</Text>
+                <PressableScale onPress={() => { feedback.tap(); void refetch(); }} accessibilityRole="button" accessibilityLabel="Retry"
+                  style={{ backgroundColor: ORANGE, borderRadius: Radius.pill, paddingHorizontal: 24, paddingVertical: 12 }}>
+                  <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: '#fff' }}>retry</Text>
+                </PressableScale>
+              </MotiView>
             ) : !picks?.length ? (
               <MotiView
                 from={{ opacity: 0, translateY: 10 }}

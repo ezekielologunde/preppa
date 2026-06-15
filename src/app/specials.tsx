@@ -123,9 +123,10 @@ export default function SpecialsScreen() {
   const fathersDayDaysLeft = Math.round((fdDay.getTime() - today.getTime()) / 86_400_000);
   const isFathersDayWindow = now.getMonth() === 5 && fathersDayDaysLeft >= 0 && fathersDayDaysLeft <= 10;
   const router = useRouter();
-  const { data: featuredMeals = [], isLoading: featuredLoading, refetch: refetchFeatured } = useFeaturedMeals(8);
-  const { data: limitedDrops = [], isLoading: dropsLoading, refetch: refetchDrops } = useLimitedDrops(8);
+  const { data: featuredMeals = [], isLoading: featuredLoading, isError: featuredError, refetch: refetchFeatured } = useFeaturedMeals(8);
+  const { data: limitedDrops = [], isLoading: dropsLoading, isError: dropsError, refetch: refetchDrops } = useLimitedDrops(8);
   const isLoading = featuredLoading || dropsLoading;
+  const isError = featuredError || dropsError;
   const [refreshing, setRefreshing] = useState(false);
   const weeklyPicks = featuredMeals.slice(0, 4);
   const freshDrops = limitedDrops.length ? limitedDrops.slice(0, 4) : featuredMeals.slice(4, 8);
@@ -203,6 +204,16 @@ export default function SpecialsScreen() {
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: pad, gap: 12 }}>
             {isLoading
               ? [0, 1, 2, 3].map((i) => <CardSkeleton key={i} width={carouselCardWidth} />)
+              : isError
+              ? (
+                <View style={{ paddingVertical: 16, paddingHorizontal: 4, gap: 10 }}>
+                  <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary }}>Couldn't load meals.</Text>
+                  <PressableScale onPress={() => { feedback.tap(); void handleRefresh(); }} accessibilityRole="button" accessibilityLabel="Retry loading meals"
+                    style={{ backgroundColor: ORANGE, borderRadius: Radius.pill, paddingHorizontal: 20, paddingVertical: 10 }}>
+                    <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: '#fff' }}>retry</Text>
+                  </PressableScale>
+                </View>
+              )
               : weeklyPicks.map((m) => (
                 <View key={m.id} style={{ position: 'relative' }}>
                   <MealCard meal={m} width={carouselCardWidth} />
@@ -251,6 +262,16 @@ export default function SpecialsScreen() {
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: pad, gap: 12 }}>
             {isLoading
               ? [0, 1, 2, 3].map((i) => <CardSkeleton key={i} width={carouselCardWidth} />)
+              : isError
+              ? (
+                <View style={{ paddingVertical: 16, paddingHorizontal: 4, gap: 10 }}>
+                  <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary }}>Couldn't load meals.</Text>
+                  <PressableScale onPress={() => { feedback.tap(); void handleRefresh(); }} accessibilityRole="button" accessibilityLabel="Retry loading fresh drops"
+                    style={{ backgroundColor: ORANGE, borderRadius: Radius.pill, paddingHorizontal: 20, paddingVertical: 10 }}>
+                    <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: '#fff' }}>retry</Text>
+                  </PressableScale>
+                </View>
+              )
               : freshDrops.map((m) => (
                 <View key={m.id} style={{ position: 'relative' }}>
                   <MealCard meal={m} width={carouselCardWidth} />

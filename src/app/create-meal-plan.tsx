@@ -80,7 +80,7 @@ export default function CreateMealPlanScreen() {
   const [err, setErr] = useState<string | null>(null);
   const [paying, setPaying] = useState(false);
 
-  const { data: featured, isLoading: loadingFeatured } = useFeaturedMeals(40);
+  const { data: featured, isLoading: loadingFeatured, isError: featuredError, refetch: refetchFeatured } = useFeaturedMeals(40);
   const { data: searchResults, isFetching: searching } = useMealSearch(search);
   const displayMeals = search.length >= 2 ? (searchResults ?? []) : (featured ?? []);
 
@@ -237,6 +237,14 @@ export default function CreateMealPlanScreen() {
               </View>
               {loadingFeatured && search.length < 2 ? (
                 <ListSkeleton count={3} rowHeight={60} />
+              ) : featuredError && search.length < 2 ? (
+                <View style={{ alignItems: 'center', gap: 10, paddingVertical: 16 }}>
+                  <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textMuted, textAlign: 'center' }}>Couldn't load meals. Check your connection.</Text>
+                  <PressableScale onPress={() => { feedback.tap(); void refetchFeatured(); }} accessibilityRole="button" accessibilityLabel="Retry loading meals"
+                    style={{ paddingHorizontal: 16, height: 36, borderRadius: Radius.pill, borderWidth: 1.5, borderColor: Palette.border, alignItems: 'center', justifyContent: 'center' }}>
+                    <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: Palette.textSecondary }}>retry</Text>
+                  </PressableScale>
+                </View>
               ) : displayMeals.length === 0 ? (
                 <View style={{ alignItems: 'center', gap: 10, paddingVertical: 16 }}>
                   <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textMuted, textAlign: 'center' }}>
