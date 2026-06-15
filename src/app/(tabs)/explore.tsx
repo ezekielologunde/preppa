@@ -67,10 +67,10 @@ const CATEGORY_CIRCLES = [
 
 function SectionHeader({ title, pad, Icon, onSeeAll }: { title: string; pad: number; Icon?: ComponentType<{ size?: number; color?: string }>; onSeeAll?: () => void }) {
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: pad, marginTop: 16, marginBottom: 10 }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
-        {Icon ? <Icon size={17} color={Palette.brand} /> : null}
-        <Text style={{ fontFamily: Font.display, fontSize: 18, color: Palette.ink, letterSpacing: -0.4 }}>{title}</Text>
+    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: pad, marginTop: 12, marginBottom: 10 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+        {Icon ? <Icon size={16} color={Palette.brand} /> : null}
+        <Text style={{ fontFamily: Font.display, fontSize: 17, color: Palette.ink, letterSpacing: -0.35 }}>{title}</Text>
       </View>
       {onSeeAll ? (
         <PressableScale onPress={() => { feedback.tap(); onSeeAll(); }} accessibilityRole="button" accessibilityLabel={`See all ${title}`}>
@@ -83,7 +83,7 @@ function SectionHeader({ title, pad, Icon, onSeeAll }: { title: string; pad: num
 
 function CategoryCircles({ active, pad, onSelect }: { active: string; pad: number; onSelect: (key: string) => void }) {
   return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: pad, gap: 12, paddingVertical: 10 }}>
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: pad, gap: 12, paddingVertical: 8 }}>
       {CATEGORY_CIRCLES.map((c) => {
         const isActive = c.key === active;
         return (
@@ -91,10 +91,10 @@ function CategoryCircles({ active, pad, onSelect }: { active: string; pad: numbe
             <MotiView
               animate={{ backgroundColor: isActive ? Palette.brandTint : Palette.surface, borderColor: isActive ? '#F6C6AC' : 'transparent' }}
               transition={{ type: 'timing', duration: 180 }}
-              style={{ width: 58, height: 58, borderRadius: 20, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, ...(!isActive ? Shadow.card : {}) }}>
-              <c.Icon size={24} color={isActive ? Palette.brand : c.color} />
+              style={{ width: 52, height: 52, borderRadius: 16, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, ...(!isActive ? Shadow.card : {}) }}>
+              <c.Icon size={22} color={isActive ? Palette.brand : c.color} />
             </MotiView>
-            <Text style={{ fontFamily: Font.medium, fontSize: 11, color: isActive ? Palette.brand : Palette.textSecondary }}>{c.label}</Text>
+            <Text style={{ fontFamily: Font.medium, fontSize: 10.5, color: isActive ? Palette.brand : Palette.textSecondary }}>{c.label}</Text>
           </PressableScale>
         );
       })}
@@ -202,8 +202,8 @@ export default function ExploreScreen() {
         <View style={stickyStyle}>
 
           {/* Top row: title | location | filter | [tablet: view toggle] */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: pad, paddingTop: 10, paddingBottom: 2, gap: 10 }}>
-            <Text numberOfLines={1} style={{ flex: 1, fontFamily: Font.display, fontSize: 34, color: Palette.ink, letterSpacing: -1.2 }}>explore</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: pad, paddingTop: 8, paddingBottom: 2, gap: 10 }}>
+            <Text numberOfLines={1} style={{ flex: 1, fontFamily: Font.display, fontSize: 26, color: Palette.ink, letterSpacing: -0.9 }}>explore</Text>
             <PressableScale onPress={handleLocationTap} accessibilityRole="button" accessibilityLabel={`Find chefs near ${locCapturing ? '...' : locationLabel}. Tap to detect.`}
               style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: Palette.surface, borderRadius: Radius.pill, paddingHorizontal: 11, height: 40, maxWidth: 200, ...Shadow.card }}>
               <Compass size={13} color={locCapturing ? Palette.textMuted : Palette.brand} style={{ flexShrink: 0 }} />
@@ -230,14 +230,14 @@ export default function ExploreScreen() {
           </View>
 
           {/* Subtitle */}
-          <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, paddingHorizontal: pad, paddingBottom: 8 }}>
+          <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary, paddingHorizontal: pad, paddingBottom: 6 }}>
             meals, kitchens & experiences near you
           </Text>
 
           {/* Search bar with QR scan icon */}
-          <View style={{ paddingHorizontal: pad, paddingBottom: 8 }}>
+          <View style={{ paddingHorizontal: pad, paddingBottom: 4 }}>
             <PressableScale onPress={() => { feedback.tap(); router.push('/search'); }} accessibilityRole="search" accessibilityLabel="Search meals or kitchens"
-              style={{ flexDirection: 'row', alignItems: 'center', height: 48, borderRadius: 24, backgroundColor: Palette.surface, paddingHorizontal: 16, gap: 10, overflow: 'hidden', ...Shadow.card }}>
+              style={{ flexDirection: 'row', alignItems: 'center', height: 44, borderRadius: 22, backgroundColor: Palette.surface, paddingHorizontal: 14, gap: 10, overflow: 'hidden', ...Shadow.card }}>
               <Search size={18} color={Palette.textMuted} />
               <MotiView key={placeholderIdx} from={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ type: 'timing', duration: 400 }} style={{ flex: 1 }}>
                 <Text numberOfLines={1} style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textMuted }}>
