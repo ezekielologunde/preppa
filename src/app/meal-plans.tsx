@@ -200,20 +200,33 @@ export default function MealPlansScreen() {
           </MotiView>
 
           {/* My custom plans */}
-          {customPlans && customPlans.filter((p) => p.status !== 'cancelled').length > 0 ? (
-            <View style={{ marginBottom: 8 }}>
-              <Text style={{ fontFamily: Font.display, fontSize: 20, color: INK, letterSpacing: -0.5, paddingHorizontal: 20, marginBottom: 12 }}>your custom plans</Text>
-              <View style={{ paddingHorizontal: 20, gap: 10 }}>
-                {customPlans.filter((p) => p.status !== 'cancelled').map((p, i) => (
-                  <MotiView key={p.id} from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 240, delay: i * 45 }}>
-                    <CustomPlanCard plan={p} busy={updateCustomPlan.isPending}
-                      onView={() => { feedback.tap(); router.push(`/custom-plan?id=${p.id}` as never); }}
-                      onUpdate={(status) => { setActionErr(null); updateCustomPlan.mutate({ id: p.id, status }, { onError: (e) => { feedback.error(); setActionErr(e instanceof Error ? e.message : 'Could not update plan. Please try again.'); } }); }}
-                      onCancel={() => setCancelTarget({ id: p.id, name: p.name, isCustom: true })} />
-                  </MotiView>
-                ))}
+          {customPlans !== undefined ? (
+            customPlans.filter((p) => p.status !== 'cancelled').length > 0 ? (
+              <View style={{ marginBottom: 8 }}>
+                <Text style={{ fontFamily: Font.display, fontSize: 20, color: INK, letterSpacing: -0.5, paddingHorizontal: 20, marginBottom: 12 }}>your custom plans</Text>
+                <View style={{ paddingHorizontal: 20, gap: 10 }}>
+                  {customPlans.filter((p) => p.status !== 'cancelled').map((p, i) => (
+                    <MotiView key={p.id} from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 240, delay: i * 45 }}>
+                      <CustomPlanCard plan={p} busy={updateCustomPlan.isPending}
+                        onView={() => { feedback.tap(); router.push(`/custom-plan?id=${p.id}` as never); }}
+                        onUpdate={(status) => { setActionErr(null); updateCustomPlan.mutate({ id: p.id, status }, { onError: (e) => { feedback.error(); setActionErr(e instanceof Error ? e.message : 'Could not update plan. Please try again.'); } }); }}
+                        onCancel={() => setCancelTarget({ id: p.id, name: p.name, isCustom: true })} />
+                    </MotiView>
+                  ))}
+                </View>
               </View>
-            </View>
+            ) : (
+              <MotiView from={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ type: 'timing', duration: 220 }}
+                style={{ marginHorizontal: 20, marginBottom: 16, backgroundColor: Palette.surface, borderRadius: Radius.md, padding: 16, flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+                <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: Palette.chip, alignItems: 'center', justifyContent: 'center' }}>
+                  <ChefHat size={19} color={Palette.textMuted} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontFamily: Font.heading, fontSize: 14.5, color: INK }}>No active custom plans</Text>
+                  <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: Palette.textSecondary }}>Use the button above to build your first plan.</Text>
+                </View>
+              </MotiView>
+            )
           ) : null}
 
           {/* My subscriptions */}
