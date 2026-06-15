@@ -21,6 +21,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { RequestDetailSheet } from '@/components/request-detail-sheet';
 import { PressableScale } from '@/components/ui/pressable-scale';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Font } from '@/constants/fonts';
 import { Palette, Radius, Shadow } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
@@ -111,6 +112,14 @@ export default function ExperiencesScreen() {
               <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary }}>private chefs, catering, classes & tastings</Text>
             </View>
           </MotiView>
+
+          {/* Loading state */}
+          {isLoading ? (
+            <View style={{ marginTop: 16, paddingHorizontal: 20, gap: 10 }}>
+              <Skeleton width={130} height={13} radius={6} />
+              {[0, 1].map(i => <Skeleton key={i} width="100%" height={80} radius={16} />)}
+            </View>
+          ) : null}
 
           {/* Error state */}
           {!isLoading && isError ? (
