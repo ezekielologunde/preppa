@@ -6,6 +6,7 @@ import { RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PressableScale } from '@/components/ui/pressable-scale';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Font } from '@/constants/fonts';
 import { feedback } from '@/lib/feedback';
 import { useBreakpoint } from '@/lib/layout';
@@ -92,8 +93,8 @@ const PERIODS = [
 export default function PrepperAnalyticsScreen() {
   const router = useRouter();
   const { user } = useAuth();
-  const { data: application } = useMyPrepperApplication(user?.id);
-  const { data: orders, isError: ordersError, refetch } = usePrepperOrders(application?.id);
+  const { data: application, isLoading: appLoading } = useMyPrepperApplication(user?.id);
+  const { data: orders, isLoading: ordersLoading, isError: ordersError, refetch } = usePrepperOrders(application?.id);
   const { data: prepperProfile } = usePrepperProfile(application?.id);
   const isDesktop = useBreakpoint() === 'desktop';
   const [period, setPeriod] = useState<'week' | 'month' | 'all'>('week');
@@ -160,7 +161,21 @@ export default function PrepperAnalyticsScreen() {
           </View>
         </View>
 
-        {ordersError ? (
+        {(appLoading || (application?.id != null && ordersLoading)) ? (
+          <View style={{ padding: 20, gap: 14 }}>
+            <View style={{ flexDirection: 'row', gap: 10 }}>
+              <Skeleton height={72} radius={14} style={{ flex: 1 }} />
+              <Skeleton height={72} radius={14} style={{ flex: 1 }} />
+              <Skeleton height={72} radius={14} style={{ flex: 1 }} />
+            </View>
+            <Skeleton width="100%" height={140} radius={16} />
+            <Skeleton width="100%" height={110} radius={16} />
+            <Skeleton width={120} height={18} radius={6} />
+            {[0, 1, 2, 3].map(i => (
+              <Skeleton key={i} width="100%" height={56} radius={14} />
+            ))}
+          </View>
+        ) : ordersError ? (
           <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }}
             style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
             <TrendingUp size={32} color={Palette.textMuted} />
