@@ -230,7 +230,7 @@ export default function NotificationsScreen() {
             <PressableScale
               onPress={() => {
                 feedback.tap();
-                markRead.mutate(undefined, { onError: () => feedback.error() });
+                markRead.mutate(undefined, { onSuccess: () => feedback.success(), onError: () => feedback.error() });
               }}
               accessibilityRole="button"
               accessibilityLabel="Mark all as read"

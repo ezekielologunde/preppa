@@ -328,7 +328,7 @@ export default function PrepperOrdersScreen() {
                     <OrderCard
                       order={o}
                       busy={busyId === o.id}
-                      onAdvance={(next) => { setActionErr(null); advance.mutate({ orderId: o.id, next }, { onError: onErr }); }}
+                      onAdvance={(next) => { setActionErr(null); advance.mutate({ orderId: o.id, next }, { onSuccess: () => feedback.success(), onError: onErr }); }}
                       onCancel={() => { feedback.warning(); setDeclineOrder(o); }}
                       onVerify={() => openVerify(o)}
                     />

@@ -81,7 +81,7 @@ export default function PrepperScreen() {
   const onToggleFollow = () => {
     if (!user?.id) { router.push('/auth'); return; }
     feedback.tap();
-    toggleFollow.mutate(!!following, { onError: () => feedback.error() });
+    toggleFollow.mutate(!!following, { onSuccess: () => feedback.success(), onError: () => feedback.error() });
   };
   const onSubscribe = (plan: MealPlan) => {
     if (!user?.id) { router.push('/auth?mode=signup'); return; }

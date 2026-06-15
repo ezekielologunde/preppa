@@ -122,6 +122,7 @@ export function RequestDetailSheet({
                     placeholderTextColor={Palette.textMuted}
                     maxLength={500}
                     textAlignVertical="top"
+                    accessibilityLabel="Cuisine preferences"
                     style={{ minHeight: 88, backgroundColor: Palette.surface, borderRadius: 12, borderWidth: 1, borderColor: Palette.border, padding: 12, fontFamily: Font.body, fontSize: 14, color: INK }}
                   />
                   <View style={{ flexDirection: 'row', gap: 8 }}>

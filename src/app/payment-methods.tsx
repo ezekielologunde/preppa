@@ -295,7 +295,7 @@ export default function PaymentMethodsScreen() {
                 card={card}
                 index={index}
                 pendingDelete={pendingDeleteId === card.id}
-                onSetDefault={() => { setMutationErr(null); setDefaultPM.mutate(card.id, { onError: () => { feedback.error(); setMutationErr('Could not update default card.'); } }); }}
+                onSetDefault={() => { setMutationErr(null); setDefaultPM.mutate(card.id, { onSuccess: () => feedback.success(), onError: () => { feedback.error(); setMutationErr('Could not update default card.'); } }); }}
                 onDelete={() => triggerDelete(card.id)}
                 onConfirmDelete={() => confirmDelete(card.id)}
                 onCancelDelete={() => setPendingDeleteId(null)}

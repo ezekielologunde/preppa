@@ -95,7 +95,7 @@ export default function MealScreen() {
     feedback.tap();
     if (!user) return router.push('/auth?mode=signin');
     if (!meal?.prepperId) return;
-    toggleFollow.mutate(isFollowing ?? false, { onError: () => feedback.error() });
+    toggleFollow.mutate(isFollowing ?? false, { onSuccess: () => feedback.success(), onError: () => feedback.error() });
   }
 
   // A cart holds one prepper at a time (each prepper cooks & fulfils its own order).

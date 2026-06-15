@@ -199,7 +199,7 @@ export default function DashboardScreen() {
                       feedback.tap();
                       const next = !isOpen;
                       setAccepting(next);
-                      toggleAvailability.mutate(next, { onError: () => { feedback.error(); setAccepting(!next); } });
+                      toggleAvailability.mutate(next, { onSuccess: () => feedback.success(), onError: () => { feedback.error(); setAccepting(!next); } });
                     }}
                     accessibilityRole="switch"
                     accessibilityState={{ checked: isOpen }}
@@ -221,7 +221,7 @@ export default function DashboardScreen() {
                       feedback.tap();
                       const next = !isHomeCookAvailable;
                       setHomeCook(next);
-                      toggleHomeCook.mutate(next, { onError: () => { feedback.error(); setHomeCook(!next); } });
+                      toggleHomeCook.mutate(next, { onSuccess: () => feedback.success(), onError: () => { feedback.error(); setHomeCook(!next); } });
                     }}
                     accessibilityRole="switch"
                     accessibilityState={{ checked: isHomeCookAvailable }}
@@ -287,7 +287,7 @@ export default function DashboardScreen() {
               {step ? (
                 <>
                   <PressableScale
-                    onPress={() => { feedback.tap(); setAdvanceErr(null); advance.mutate({ orderId: next.id, next: step.next }, { onError: () => { feedback.error(); setAdvanceErr('Could not update order status. Please try again.'); } }); }}
+                    onPress={() => { feedback.tap(); setAdvanceErr(null); advance.mutate({ orderId: next.id, next: step.next }, { onSuccess: () => feedback.success(), onError: () => { feedback.error(); setAdvanceErr('Could not update order status. Please try again.'); } }); }}
                     disabled={advance.isPending}
                     accessibilityRole="button"
                     accessibilityLabel={step.cta}
