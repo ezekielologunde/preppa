@@ -71,7 +71,7 @@ export default function CategoryScreen() {
             <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textMuted, textAlign: 'center' }}>
               fresh {title} meals from local preppas are coming soon
             </Text>
-            <PressableScale onPress={() => { feedback.tap(); router.push('/explore'); }} style={{ marginTop: 8, backgroundColor: ORANGE, borderRadius: Radius.pill, paddingHorizontal: 20, paddingVertical: 12 }}>
+            <PressableScale onPress={() => { feedback.tap(); router.push('/explore'); }} accessibilityRole="button" accessibilityLabel="Browse all meals" style={{ marginTop: 8, backgroundColor: ORANGE, borderRadius: Radius.pill, paddingHorizontal: 20, paddingVertical: 12 }}>
               <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: '#fff' }}>browse all meals</Text>
             </PressableScale>
           </MotiView>

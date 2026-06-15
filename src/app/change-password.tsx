@@ -15,7 +15,7 @@ export default function ChangePasswordScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.45)' }}>
-      <Pressable style={{ flex: 1 }} onPress={goBack} accessibilityLabel="Dismiss" />
+      <Pressable style={{ flex: 1 }} onPress={goBack} accessibilityRole="button" accessibilityLabel="Dismiss" />
       <MotiView
         from={{ translateY: 400 }}
         animate={{ translateY: 0 }}
