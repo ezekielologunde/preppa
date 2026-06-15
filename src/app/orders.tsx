@@ -260,7 +260,7 @@ export default function OrdersScreen() {
               Tell us what went wrong with your preorder from {reportModal?.prepper ?? ''}. Our team will review it.
             </Text>
             <TextInput value={reportReason} onChangeText={setReportReason} placeholder="Describe the issue…" placeholderTextColor={Palette.textMuted}
-              multiline maxLength={1000}
+              multiline maxLength={1000} accessibilityLabel="Describe the issue"
               style={{ minHeight: 100, backgroundColor: Palette.canvas, borderRadius: 12, borderWidth: 1, borderColor: Palette.border, padding: 12, fontFamily: Font.body, fontSize: 14, color: INK, textAlignVertical: 'top' }} />
             {reportErr ? <Text style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.danger }}>{reportErr}</Text> : null}
             <PressableScale onPress={submitReport} disabled={reportDispute.isPending} accessibilityRole="button" accessibilityLabel="Submit report"

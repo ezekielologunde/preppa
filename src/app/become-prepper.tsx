@@ -95,6 +95,7 @@ function DocSection({
               </View>
             )}
             <PressableScale onPress={() => { feedback.tap(); setItems((p) => p.filter((_, i) => i !== idx)); }}
+              accessibilityRole="button" accessibilityLabel={`Remove ${label} photo`}
               style={{ position: 'absolute', top: 4, right: 4, width: 22, height: 22, borderRadius: 11, backgroundColor: 'rgba(0,0,0,0.55)', alignItems: 'center', justifyContent: 'center' }}>
               <X size={12} color="#fff" />
             </PressableScale>
@@ -102,6 +103,7 @@ function DocSection({
         ))}
         {items.length < max && (
           <PressableScale onPress={() => { feedback.tap(); void pick(); }}
+            accessibilityRole="button" accessibilityLabel={`Add ${label} photo`}
             style={{ width: 88, height: 88, borderRadius: 14, borderWidth: 1.5, borderColor: Palette.border, alignItems: 'center', justifyContent: 'center', backgroundColor: Palette.canvas, gap: 4 }}>
             <Plus size={20} color={Palette.textSecondary} />
             <Text style={{ fontFamily: Font.medium, fontSize: 11, color: Palette.textSecondary }}>Add photo</Text>

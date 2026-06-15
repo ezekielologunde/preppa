@@ -69,8 +69,10 @@ function RequestCard({ req, prepperId }: { req: OpenRequest; prepperId: string }
         <View style={{ marginTop: 14, paddingTop: 12, borderTopWidth: 1, borderTopColor: Palette.border, gap: 10 }}>
           <View style={{ flexDirection: 'row', gap: 10 }}>
             <TextInput value={amount} onChangeText={setAmount} placeholder="Your quote $" placeholderTextColor={Palette.textMuted} keyboardType="decimal-pad" maxLength={8}
+              accessibilityLabel="Your quote amount"
               style={{ width: 120, height: 46, borderRadius: 12, backgroundColor: Palette.canvas, paddingHorizontal: 14, fontFamily: Font.body, fontSize: 15, color: INK }} />
             <TextInput value={message} onChangeText={setMessage} placeholder="Short note (optional)" placeholderTextColor={Palette.textMuted} maxLength={300}
+              accessibilityLabel="Optional note"
               style={{ flex: 1, height: 46, borderRadius: 12, backgroundColor: Palette.canvas, paddingHorizontal: 14, fontFamily: Font.body, fontSize: 15, color: INK }} />
           </View>
           {err ? <Text style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.danger }}>{err}</Text> : null}

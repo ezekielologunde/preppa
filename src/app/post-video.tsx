@@ -157,6 +157,7 @@ export default function PostVideoScreen() {
               placeholderTextColor="#4b5563"
               multiline
               maxLength={300}
+              accessibilityLabel="Video caption"
               style={{ minHeight: 90, backgroundColor: CARD, borderRadius: 16, padding: 14, fontSize: 15, fontFamily: Font.body, color: '#fff', textAlignVertical: 'top' }}
             />
             <Text style={{ fontFamily: Font.body, fontSize: 11, color: '#4b5563', textAlign: 'right', marginTop: 4 }}>{caption.length}/300</Text>

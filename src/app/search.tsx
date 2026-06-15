@@ -156,6 +156,7 @@ export default function SearchScreen() {
               autoCapitalize="none"
               autoCorrect={false}
               maxLength={200}
+              accessibilityLabel="Search meals, cuisines, preppers"
               style={{ flex: 1, fontFamily: Font.body, fontSize: 15, color: INK }}
             />
             {text.length > 0 ? (

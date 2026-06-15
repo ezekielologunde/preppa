@@ -172,6 +172,7 @@ export default function ReviewScreen() {
               placeholderTextColor={Palette.textMuted}
               multiline
               maxLength={1000}
+              accessibilityLabel="Write your review"
               style={{ minHeight: 120, borderRadius: Radius.md, backgroundColor: Palette.canvas, padding: 16, fontFamily: Font.body, fontSize: 15, color: INK, textAlignVertical: 'top' }}
             />
           </MotiView>
@@ -190,6 +191,7 @@ export default function ReviewScreen() {
                       </View>
                     )}
                     <PressableScale onPress={() => { feedback.tap(); setPhotos((prev) => prev.filter((_, i) => i !== idx)); }}
+                      accessibilityRole="button" accessibilityLabel="Remove photo"
                       style={{ position: 'absolute', top: 4, right: 4, width: 20, height: 20, borderRadius: 10, backgroundColor: 'rgba(0,0,0,0.55)', alignItems: 'center', justifyContent: 'center' }}>
                       <X size={11} color="#fff" />
                     </PressableScale>
@@ -197,6 +199,7 @@ export default function ReviewScreen() {
                 ))}
                 {photos.length < 5 && (
                   <PressableScale onPress={() => { feedback.tap(); void pickPhoto(); }}
+                    accessibilityRole="button" accessibilityLabel="Add photo"
                     style={{ width: 80, height: 80, borderRadius: 12, borderWidth: 1.5, borderColor: Palette.border, alignItems: 'center', justifyContent: 'center', backgroundColor: Palette.canvas, gap: 4 }}>
                     <Camera size={18} color={Palette.textSecondary} />
                     <Text style={{ fontFamily: Font.medium, fontSize: 10, color: Palette.textSecondary }}>Add photo</Text>

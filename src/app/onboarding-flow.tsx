@@ -83,11 +83,13 @@ function StepLocation({ onNext }: { onNext: (city: string) => void }) {
         placeholder="City or zip code"
         placeholderTextColor="rgba(255,255,255,0.3)"
         maxLength={100}
+        accessibilityLabel="City or zip code"
         style={{ height: 54, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.07)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)', paddingHorizontal: 16, fontSize: 16, fontFamily: Font.body, color: '#fff', marginBottom: 16 }}
         returnKeyType="done"
         onSubmitEditing={() => onNext(city.trim())}
       />
       <PressableScale onPress={() => { feedback.tap(); onNext(city.trim()); }}
+        accessibilityRole="button" accessibilityLabel={city.trim() ? 'Continue' : 'Skip location'}
         style={{ height: 54, borderRadius: Radius.pill, backgroundColor: Palette.brand, alignItems: 'center', justifyContent: 'center' }}>
         <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>
           {city.trim() ? 'continue →' : 'skip for now →'}
@@ -126,6 +128,7 @@ function StepDietary({ onNext }: { onNext: (selected: string[]) => void }) {
               animate={{ scale: active ? 1.06 : 1, backgroundColor: active ? Palette.brand : 'rgba(255,255,255,0.08)' }}
               transition={{ type: 'spring', damping: 12, stiffness: 260, delay: i * 30 }}>
               <PressableScale onPress={() => toggle(opt.key)}
+                accessibilityRole="checkbox" accessibilityLabel={opt.key} accessibilityState={{ checked: active }}
                 style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 14, height: 40, borderRadius: Radius.pill, borderWidth: 1.5, borderColor: active ? Palette.brand : 'rgba(255,255,255,0.15)' }}>
                 <Text style={{ fontSize: 16 }}>{opt.emoji}</Text>
                 <Text style={{ fontFamily: Font.semibold, fontSize: 13.5, color: active ? '#fff' : 'rgba(255,255,255,0.75)' }}>{opt.key}</Text>
@@ -136,6 +139,7 @@ function StepDietary({ onNext }: { onNext: (selected: string[]) => void }) {
         })}
       </ScrollView>
       <PressableScale onPress={() => { feedback.success(); onNext(selected); }}
+        accessibilityRole="button" accessibilityLabel={selected.length ? `Confirm ${selected.length} dietary preference${selected.length > 1 ? 's' : ''}` : 'Skip dietary preferences'}
         style={{ height: 54, borderRadius: Radius.pill, backgroundColor: Palette.brand, alignItems: 'center', justifyContent: 'center' }}>
         <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>
           {selected.length ? `looks good (${selected.length} selected)` : 'skip for now →'}
@@ -169,6 +173,7 @@ function StepIntent({ onDone }: { onDone: (intent: string) => void }) {
               transition={{ type: 'spring', damping: 14, stiffness: 260 }}
               style={{ borderWidth: 2, borderRadius: 20, overflow: 'hidden' }}>
               <PressableScale onPress={() => { feedback.tap(); setSelected(opt.key); }}
+                accessibilityRole="radio" accessibilityLabel={opt.title} accessibilityState={{ checked: active }}
                 style={{ padding: 20, flexDirection: 'row', alignItems: 'flex-start', gap: 14, backgroundColor: active ? 'rgba(232,97,26,0.12)' : 'rgba(255,255,255,0.04)' }}>
                 <Text style={{ fontSize: 32 }}>{opt.emoji}</Text>
                 <View style={{ flex: 1, gap: 4 }}>
@@ -186,6 +191,7 @@ function StepIntent({ onDone }: { onDone: (intent: string) => void }) {
         })}
       </View>
       <PressableScale onPress={() => { feedback.success(); onDone(selected ?? 'drops'); }}
+        accessibilityRole="button" accessibilityLabel={selected ? 'Build my feed' : 'Skip and explore'}
         style={{ height: 54, borderRadius: Radius.pill, backgroundColor: selected ? Palette.brand : 'rgba(255,255,255,0.15)', alignItems: 'center', justifyContent: 'center', marginTop: 20, marginBottom: 4 }}>
         <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>
           {selected ? 'build my feed →' : 'skip and explore →'}

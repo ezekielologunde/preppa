@@ -32,11 +32,13 @@ function GuestStepper({ value, onChange }: { value: number; onChange: (n: number
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 18, backgroundColor: Palette.canvas, borderRadius: 14, paddingHorizontal: 16, paddingVertical: 10, borderWidth: 1, borderColor: Palette.border }}>
       <PressableScale onPress={() => { feedback.tap(); onChange(Math.max(1, value - 1)); }} disabled={value <= 1}
+        accessibilityRole="button" accessibilityLabel="Decrease guests"
         style={{ width: 34, height: 34, borderRadius: 10, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center', opacity: value <= 1 ? 0.35 : 1 }}>
         <Minus size={15} color={INK} />
       </PressableScale>
-      <Text style={{ fontFamily: Font.display, fontSize: 22, color: INK, minWidth: 34, textAlign: 'center', fontVariant: ['tabular-nums'] }}>{value}</Text>
+      <Text style={{ fontFamily: Font.display, fontSize: 22, color: INK, minWidth: 34, textAlign: 'center', fontVariant: ['tabular-nums'] }} accessibilityLabel={`${value} guests`}>{value}</Text>
       <PressableScale onPress={() => { feedback.tap(); onChange(Math.min(500, value + 1)); }} disabled={value >= 500}
+        accessibilityRole="button" accessibilityLabel="Increase guests"
         style={{ width: 34, height: 34, borderRadius: 10, backgroundColor: ORANGE + '1A', alignItems: 'center', justifyContent: 'center', opacity: value >= 500 ? 0.35 : 1 }}>
         <Plus size={15} color={ORANGE} />
       </PressableScale>
@@ -54,12 +56,14 @@ function BudgetPicker({ value, onChange }: { value: number | null; onChange: (n:
           const on = !custom && value === p;
           return (
             <PressableScale key={p} onPress={() => { feedback.tap(); setCustom(false); onChange(p); }}
+              accessibilityRole="button" accessibilityLabel={`$${p.toLocaleString('en-US')} budget`} accessibilityState={{ selected: on }}
               style={{ paddingHorizontal: 14, height: 40, borderRadius: Radius.pill, borderWidth: 1.5, borderColor: on ? ORANGE : Palette.border, backgroundColor: on ? Palette.brandTint : Palette.canvas, alignItems: 'center', justifyContent: 'center' }}>
               <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: on ? ORANGE : INK }}>${(p / 1000).toFixed(p < 1000 ? 0 : 1)}k</Text>
             </PressableScale>
           );
         })}
         <PressableScale onPress={() => { feedback.tap(); setCustom(true); onChange(null); }}
+          accessibilityRole="button" accessibilityLabel="Custom budget" accessibilityState={{ selected: custom }}
           style={{ paddingHorizontal: 14, height: 40, borderRadius: Radius.pill, borderWidth: 1.5, borderColor: custom ? ORANGE : Palette.border, backgroundColor: custom ? Palette.brandTint : Palette.canvas, alignItems: 'center', justifyContent: 'center' }}>
           <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: custom ? ORANGE : INK }}>Custom</Text>
         </PressableScale>
@@ -197,7 +201,8 @@ export default function ExperienceRequestScreen() {
                   <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: INK }}>Title <Text style={{ color: Palette.danger }}>*</Text></Text>
                   <TextInput style={[inputStyle, { borderColor: titleTouched && title.trim().length < 3 ? Palette.danger : Palette.border, borderWidth: 1.5 }]}
                     placeholder="e.g. Birthday dinner for 8" placeholderTextColor={Palette.textMuted}
-                    value={title} onChangeText={(t) => setTitle(cleanLine(t))} onBlur={() => setTitleTouched(true)} maxLength={100} />
+                    value={title} onChangeText={(t) => setTitle(cleanLine(t))} onBlur={() => setTitleTouched(true)} maxLength={100}
+                    accessibilityLabel="Request title" />
                   {titleTouched && title.trim().length < 3
                     ? <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.danger }}>At least 3 characters required</Text>
                     : <Text style={{ fontFamily: Font.body, fontSize: 11.5, color: Palette.textMuted, textAlign: 'right' }}>{title.length}/100</Text>}
@@ -207,7 +212,8 @@ export default function ExperienceRequestScreen() {
                   <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: INK }}>Details <Text style={{ fontFamily: Font.body, color: Palette.textMuted }}>(optional)</Text></Text>
                   <TextInput style={[inputStyle, { height: 90, paddingTop: 14, textAlignVertical: 'top' }]}
                     placeholder="Cuisine preferences, dietary needs, vibe…" placeholderTextColor={Palette.textMuted}
-                    value={details} onChangeText={(t) => setDetails(cleanBlock(t))} multiline maxLength={500} />
+                    value={details} onChangeText={(t) => setDetails(cleanBlock(t))} multiline maxLength={500}
+                    accessibilityLabel="Request details" />
                   <Text style={{ fontFamily: Font.body, fontSize: 11.5, color: Palette.textMuted, textAlign: 'right' }}>{details.length}/500</Text>
                 </View>
 
@@ -224,7 +230,8 @@ export default function ExperienceRequestScreen() {
                 <View style={{ gap: 4 }}>
                   <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: INK }}>Location <Text style={{ fontFamily: Font.body, color: Palette.textMuted }}>(optional)</Text></Text>
                   <TextInput style={inputStyle} placeholder="Neighbourhood or address" placeholderTextColor={Palette.textMuted}
-                    value={location} onChangeText={(t) => setLocation(cleanLine(t))} maxLength={200} />
+                    value={location} onChangeText={(t) => setLocation(cleanLine(t))} maxLength={200}
+                    accessibilityLabel="Location" />
                 </View>
               </View>
 
