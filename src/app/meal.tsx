@@ -6,6 +6,7 @@ import { MotiView } from 'moti';
 import { ActivityIndicator, Modal, Platform, Pressable, ScrollView, Share, Text, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { MealConfirmSheet, MealLightboxModal, MealSwitchPrompt } from '@/components/meal-modals';
 import { FavoriteButton } from '@/components/ui/favorite-button';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -460,128 +461,32 @@ export default function MealScreen() {
         </>
       )}
 
-      {/* Fullscreen image lightbox — shows all gallery images with prev/next navigation */}
-      <Modal visible={lightboxOpen} transparent animationType="fade" onRequestClose={() => setLightboxOpen(false)}>
-        <View style={{ flex: 1, backgroundColor: '#000', alignItems: 'center', justifyContent: 'center' }}>
-          {meal?.images[lightboxIdx] ? (
-            <Image source={imgUrl(meal.images[lightboxIdx], 1400)} style={{ width: '100%', height: '80%' }} contentFit="contain" />
-          ) : null}
-          {/* Close */}
-          <PressableScale
-            onPress={() => { feedback.tap(); setLightboxOpen(false); }}
-            accessibilityRole="button"
-            accessibilityLabel="Close photo"
-            style={{ position: 'absolute', top: 60, right: 20, width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.18)', alignItems: 'center', justifyContent: 'center' }}>
-            <X size={22} color="#fff" />
-          </PressableScale>
-          {/* Prev/next navigation */}
-          {(meal?.images.length ?? 0) > 1 ? (
-            <View style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16 }} pointerEvents="box-none">
-              {lightboxIdx > 0 ? (
-                <PressableScale onPress={() => setLightboxIdx(i => i - 1)} style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.18)', alignItems: 'center', justifyContent: 'center' }}>
-                  <ChevronLeft size={22} color="#fff" />
-                </PressableScale>
-              ) : <View style={{ width: 44 }} />}
-              {lightboxIdx < (meal?.images.length ?? 1) - 1 ? (
-                <PressableScale onPress={() => setLightboxIdx(i => i + 1)} style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.18)', alignItems: 'center', justifyContent: 'center' }}>
-                  <ChevronRight size={22} color="#fff" />
-                </PressableScale>
-              ) : <View style={{ width: 44 }} />}
-            </View>
-          ) : null}
-          {/* Dots */}
-          {(meal?.images.length ?? 0) > 1 ? (
-            <View style={{ position: 'absolute', bottom: 100, alignSelf: 'center', flexDirection: 'row', gap: 6 }}>
-              {meal?.images.map((_, i) => (
-                <MotiView key={i} animate={{ width: i === lightboxIdx ? 16 : 6, backgroundColor: i === lightboxIdx ? '#fff' : 'rgba(255,255,255,0.4)' }} transition={{ type: 'timing', duration: 200 }} style={{ height: 6, borderRadius: 3 }} />
-              ))}
-            </View>
-          ) : null}
-          {/* Caption */}
-          {meal?.title ? (
-            <View style={{ position: 'absolute', bottom: 56, left: 24, right: 24 }}>
-              <Text style={{ fontFamily: Font.display, fontSize: 20, color: '#fff', textAlign: 'center', letterSpacing: -0.4 }}>{meal.title}</Text>
-              <Text style={{ fontFamily: Font.body, fontSize: 13, color: 'rgba(255,255,255,0.7)', textAlign: 'center', marginTop: 4 }}>by {meal.prepper}</Text>
-            </View>
-          ) : null}
-        </View>
-      </Modal>
-
-      {/* Add-to-cart confirmation bottom sheet */}
-      <Modal visible={showConfirm} transparent animationType="none" onRequestClose={() => setShowConfirm(false)}>
-        <MotiView from={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ type: 'timing', duration: 180 }} style={{ flex: 1 }}>
-          <Pressable onPress={() => setShowConfirm(false)} style={{ flex: 1, backgroundColor: Palette.overlay }} accessibilityLabel="Dismiss" />
-          <MotiView
-            from={{ translateY: 340 }}
-            animate={{ translateY: 0 }}
-            transition={{ type: 'spring', damping: 26, stiffness: 260 }}
-            style={{ backgroundColor: Palette.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingTop: 8, paddingHorizontal: 20, paddingBottom: insets.bottom + 24, gap: 14 }}>
-            <View style={{ width: 40, height: 4, borderRadius: 2, backgroundColor: Palette.border, alignSelf: 'center', marginBottom: 4 }} />
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <MotiView from={{ scale: 0.88, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', stiffness: 280, damping: 16 }}>
-                <View style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: Palette.success, alignItems: 'center', justifyContent: 'center' }}>
-                  <Check size={17} color="#fff" strokeWidth={3} />
-                </View>
-              </MotiView>
-              <Text style={{ fontFamily: Font.display, fontSize: 20, color: INK, letterSpacing: -0.4 }}>Added to cart!</Text>
-            </View>
-            {meal ? (
-              <View style={{ flexDirection: 'row', gap: 12, alignItems: 'center', backgroundColor: Palette.canvas, borderRadius: 14, padding: 12 }}>
-                {meal.images[0] ? (
-                  <Image source={imgUrl(meal.images[0], 200)} style={{ width: 72, height: 72, borderRadius: 12 }} contentFit="cover" transition={150} />
-                ) : null}
-                <View style={{ flex: 1, gap: 3 }}>
-                  <Text style={{ fontFamily: Font.heading, fontSize: 14.5, color: INK, lineHeight: 20 }} numberOfLines={2}>{meal.title}</Text>
-                  <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: Palette.textSecondary }}>by {meal.prepper}</Text>
-                  <Text style={{ fontFamily: Font.display, fontSize: 17, color: ORANGE, marginTop: 2 }}>${meal.price.toFixed(2)}</Text>
-                </View>
-              </View>
-            ) : null}
-            {cart && cart.count > 0 ? (
-              <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary, textAlign: 'center' }}>
-                {cart.count} item{cart.count !== 1 ? 's' : ''} in your cart
-              </Text>
-            ) : null}
-            <PressableScale
-              onPress={() => { feedback.tap(); setShowConfirm(false); router.push('/cart'); }}
-              accessibilityRole="button"
-              accessibilityLabel="View cart"
-              style={{ height: 52, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
-              <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>View Cart</Text>
-            </PressableScale>
-            <PressableScale
-              onPress={() => { feedback.tap(); setShowConfirm(false); }}
-              accessibilityRole="button"
-              accessibilityLabel="Keep browsing"
-              style={{ height: 46, borderRadius: 14, borderWidth: 1, borderColor: Palette.border, alignItems: 'center', justifyContent: 'center' }}>
-              <Text style={{ fontFamily: Font.semibold, fontSize: 15, color: Palette.textSecondary }}>Keep browsing</Text>
-            </PressableScale>
-          </MotiView>
-        </MotiView>
-      </Modal>
-
-      {/* Switching kitchens — one prepper per cart */}
-      <Modal visible={switchPrompt} transparent animationType="fade" onRequestClose={() => setSwitchPrompt(false)}>
-        <Pressable onPress={() => setSwitchPrompt(false)} style={{ flex: 1, backgroundColor: Palette.overlay, alignItems: 'center', justifyContent: 'center', padding: 28 }}>
-          <Pressable onPress={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 360, backgroundColor: Palette.surface, borderRadius: 22, padding: 22, gap: 10 }}>
-            <View style={{ width: 48, height: 48, borderRadius: 16, backgroundColor: Palette.brandTint, alignItems: 'center', justifyContent: 'center' }}>
-              <ShoppingBag size={22} color={ORANGE} />
-            </View>
-            <Text style={{ fontFamily: Font.display, fontSize: 21, color: INK, letterSpacing: -0.4 }}>Start a new cart?</Text>
-            <Text style={{ fontFamily: Font.body, fontSize: 14.5, lineHeight: 21, color: Palette.textSecondary }}>
-              Your cart has items from {cartPrepperName}. Each preorder is from one kitchen, so adding {meal?.prepper} will clear your current cart.
-            </Text>
-            <View style={{ flexDirection: 'row', gap: 10, marginTop: 8 }}>
-              <PressableScale onPress={() => { feedback.tap(); setSwitchPrompt(false); }} accessibilityRole="button" accessibilityLabel="Keep current cart" style={{ flex: 1, height: 50, borderRadius: 14, borderWidth: 1, borderColor: Palette.border, alignItems: 'center', justifyContent: 'center' }}>
-                <Text style={{ fontFamily: Font.semibold, fontSize: 15, color: Palette.textSecondary }}>Keep cart</Text>
-              </PressableScale>
-              <PressableScale onPress={() => { feedback.tap(); doAdd(true); }} disabled={addToCart.isPending} accessibilityRole="button" accessibilityLabel="Start a new cart" style={{ flex: 1, height: 50, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', opacity: addToCart.isPending ? 0.7 : 1 }}>
-                {addToCart.isPending ? <ActivityIndicator color="#fff" /> : <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#fff' }}>New cart</Text>}
-              </PressableScale>
-            </View>
-          </Pressable>
-        </Pressable>
-      </Modal>
+      <MealLightboxModal
+        visible={lightboxOpen}
+        onClose={() => setLightboxOpen(false)}
+        images={meal?.images ?? []}
+        lightboxIdx={lightboxIdx}
+        onPrev={() => setLightboxIdx(i => i - 1)}
+        onNext={() => setLightboxIdx(i => i + 1)}
+        title={meal?.title}
+        prepper={meal?.prepper}
+      />
+      <MealConfirmSheet
+        visible={showConfirm}
+        onClose={() => setShowConfirm(false)}
+        onGoToCart={() => { feedback.tap(); setShowConfirm(false); router.push('/cart'); }}
+        meal={meal ? { title: meal.title, prepper: meal.prepper, price: meal.price, images: meal.images } : null}
+        cartCount={cart?.count ?? 0}
+        insetsBottom={insets.bottom}
+      />
+      <MealSwitchPrompt
+        visible={switchPrompt}
+        onClose={() => setSwitchPrompt(false)}
+        cartPrepperName={cartPrepperName}
+        mealPrepper={meal?.prepper}
+        isPending={addToCart.isPending}
+        onSwitch={() => doAdd(true)}
+      />
     </View>
   );
 }
