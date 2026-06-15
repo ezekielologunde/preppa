@@ -199,6 +199,12 @@ export default function PrepperAnalyticsScreen() {
                 ? 'Your prepper application is being reviewed. Analytics will appear once you\'re approved.'
                 : 'Your kitchen application was not approved. Contact support if you think this is a mistake.'}
             </Text>
+            <PressableScale onPress={() => { feedback.tap(); router.push('/profile'); }} accessibilityRole="button" accessibilityLabel="Go to profile"
+              style={{ marginTop: 4, backgroundColor: ORANGE, borderRadius: Radius.pill, paddingHorizontal: 22, paddingVertical: 11 }}>
+              <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: '#fff' }}>
+                {application.status === 'pending' ? 'view application status' : 'go to profile'}
+              </Text>
+            </PressableScale>
           </MotiView>
         ) : (
         <ScrollView showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={ORANGE} colors={[ORANGE]} />} contentContainerStyle={{ paddingBottom: 120 }}>
