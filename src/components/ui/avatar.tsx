@@ -17,7 +17,7 @@ export function Avatar({ name, url, size = 48 }: { name: string; url?: string | 
     .join('')
     .toUpperCase() || '?';
   if (url) {
-    return <Image source={url} style={{ width: size, height: size, borderRadius: size / 2 }} contentFit="cover" transition={200} />;
+    return <Image source={url} style={{ width: size, height: size, borderRadius: size / 2 }} contentFit="cover" transition={200} accessibilityLabel={name} />;
   }
   return (
     <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: Palette.brandTint, alignItems: 'center', justifyContent: 'center' }}>

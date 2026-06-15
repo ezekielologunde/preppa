@@ -28,7 +28,7 @@ export function MealLightboxModal({ visible, onClose, images, lightboxIdx, onPre
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <View style={{ flex: 1, backgroundColor: '#000', alignItems: 'center', justifyContent: 'center' }}>
         {images[lightboxIdx] ? (
-          <Image source={imgUrl(images[lightboxIdx], 1400)} style={{ width: '100%', height: '80%' }} contentFit="contain" />
+          <Image source={imgUrl(images[lightboxIdx], 1400)} style={{ width: '100%', height: '80%' }} contentFit="contain" accessibilityLabel={title ?? 'Meal photo'} />
         ) : null}
         <PressableScale
           onPress={() => { feedback.tap(); onClose(); }}
@@ -100,7 +100,7 @@ export function MealConfirmSheet({ visible, onClose, onGoToCart, meal, cartCount
           {meal ? (
             <View style={{ flexDirection: 'row', gap: 12, alignItems: 'center', backgroundColor: Palette.canvas, borderRadius: 14, padding: 12 }}>
               {meal.images[0] ? (
-                <Image source={imgUrl(meal.images[0], 200)} style={{ width: 72, height: 72, borderRadius: 12 }} contentFit="cover" transition={150} />
+                <Image source={imgUrl(meal.images[0], 200)} style={{ width: 72, height: 72, borderRadius: 12 }} contentFit="cover" transition={150} accessibilityLabel={meal.title} />
               ) : null}
               <View style={{ flex: 1, gap: 3 }}>
                 <Text style={{ fontFamily: Font.heading, fontSize: 14.5, color: INK, lineHeight: 20 }} numberOfLines={2}>{meal.title}</Text>

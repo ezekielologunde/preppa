@@ -263,7 +263,7 @@ export default function DashboardScreen() {
             <View style={{ marginHorizontal: 20, backgroundColor: CARD, borderRadius: 22, padding: 16, gap: 14 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
                 {next.items[0]?.image ? (
-                  <Image source={next.items[0].image} style={{ width: 76, height: 76, borderRadius: 18 }} contentFit="cover" />
+                  <Image source={next.items[0].image} style={{ width: 76, height: 76, borderRadius: 18 }} contentFit="cover" accessibilityLabel={next.items[0].title} />
                 ) : (
                   <View style={{ width: 76, height: 76, borderRadius: 18, backgroundColor: Palette.canvas, alignItems: 'center', justifyContent: 'center' }}>
                     <UtensilsCrossed size={26} color={MUTED} />

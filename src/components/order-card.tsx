@@ -129,7 +129,7 @@ export function OrderCard({ order, onCancel, onReview, onPay, onReorder, onRepor
       <View style={{ gap: 8 }}>
         {order.items.map((it) => (
           <View key={it.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-            {it.image ? <Image source={it.image} style={{ width: 40, height: 40, borderRadius: 10 }} contentFit="cover" /> : <View style={{ width: 40, height: 40, borderRadius: 10, backgroundColor: Palette.canvas }} />}
+            {it.image ? <Image source={it.image} style={{ width: 40, height: 40, borderRadius: 10 }} contentFit="cover" accessibilityLabel={it.title} /> : <View style={{ width: 40, height: 40, borderRadius: 10, backgroundColor: Palette.canvas }} />}
             <Text style={{ flex: 1, fontFamily: Font.body, fontSize: 13.5, color: Palette.inkSoft }} numberOfLines={1}>{it.quantity}× {it.title}</Text>
             <Text style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.ink, fontVariant: ['tabular-nums'] }}>{money(it.total)}</Text>
           </View>

@@ -81,7 +81,7 @@ function Meta({ Icon, text }: { Icon: typeof Users; text: string }) {
 function LivePlanCard({ plan, onSubscribe, busy, subscribed }: { plan: MealPlan; onSubscribe: () => void; busy: boolean; subscribed: boolean }) {
   return (
     <View style={{ backgroundColor: Palette.surface, borderRadius: Radius.lg, overflow: 'hidden', ...Shadow.card }}>
-      {plan.image_url ? <Image source={plan.image_url} style={{ width: '100%', height: 140 }} contentFit="cover" transition={200} /> : null}
+      {plan.image_url ? <Image source={plan.image_url} style={{ width: '100%', height: 140 }} contentFit="cover" transition={200} accessibilityLabel={plan.name} /> : null}
       <View style={{ padding: 16 }}>
         <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>{plan.name}</Text>
         <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: Palette.textSecondary, marginTop: 2 }}>by {plan.prepper}</Text>
