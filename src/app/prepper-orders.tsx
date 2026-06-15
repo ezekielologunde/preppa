@@ -342,8 +342,8 @@ export default function PrepperOrdersScreen() {
 
       {/* Decline confirmation */}
       <Modal visible={!!declineOrder} transparent animationType="fade" onRequestClose={() => setDeclineOrder(null)}>
-        <Pressable onPress={() => setDeclineOrder(null)} style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center', padding: 28 }}>
-          <Pressable onPress={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 360, backgroundColor: CARD, borderRadius: 22, padding: 22, gap: 14 }}>
+        <Pressable onPress={() => setDeclineOrder(null)} accessibilityRole="button" accessibilityLabel="Keep the preorder" style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center', padding: 28 }}>
+          <Pressable onPress={(e) => e.stopPropagation()} accessible={false} style={{ width: '100%', maxWidth: 360, backgroundColor: CARD, borderRadius: 22, padding: 22, gap: 14 }}>
             <View style={{ width: 50, height: 50, borderRadius: 15, backgroundColor: '#7f1d1d', alignItems: 'center', justifyContent: 'center' }}>
               <X size={24} color="#fca5a5" strokeWidth={2.6} />
             </View>
@@ -363,8 +363,8 @@ export default function PrepperOrdersScreen() {
 
       {/* Verify handoff — cook keys the customer's pickup/meetup PIN */}
       <Modal visible={!!verifyOrder} transparent animationType="fade" onRequestClose={() => setVerifyOrder(null)}>
-        <Pressable onPress={() => setVerifyOrder(null)} style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center', padding: 28 }}>
-          <Pressable onPress={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 360, backgroundColor: CARD, borderRadius: 22, padding: 22, gap: 14 }}>
+        <Pressable onPress={() => setVerifyOrder(null)} accessibilityRole="button" accessibilityLabel="Close" style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center', padding: 28 }}>
+          <Pressable onPress={(e) => e.stopPropagation()} accessible={false} style={{ width: '100%', maxWidth: 360, backgroundColor: CARD, borderRadius: 22, padding: 22, gap: 14 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
               <View style={{ width: 46, height: 46, borderRadius: 14, backgroundColor: ORANGE + '26', alignItems: 'center', justifyContent: 'center' }}>
                 <QrCode size={22} color={ORANGE} />
@@ -385,6 +385,7 @@ export default function PrepperOrdersScreen() {
               keyboardType="number-pad"
               maxLength={3}
               autoFocus
+              accessibilityLabel="Enter 3-digit pickup code"
               style={{ height: 64, borderRadius: 16, backgroundColor: '#1d2129', textAlign: 'center', fontSize: 30, letterSpacing: 16, fontFamily: Font.display, color: '#fff' }}
             />
             {verifyMsg ? <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: '#fca5a5', textAlign: 'center' }}>{verifyMsg}</Text> : null}
@@ -397,8 +398,8 @@ export default function PrepperOrdersScreen() {
 
       {/* Propose Terms modal — home cook jobs */}
       <Modal visible={!!proposeTarget} transparent animationType="fade" onRequestClose={() => setProposeTarget(null)}>
-        <Pressable onPress={() => setProposeTarget(null)} style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center', padding: 28 }}>
-          <Pressable onPress={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 360, backgroundColor: CARD, borderRadius: 22, padding: 22, gap: 14 }}>
+        <Pressable onPress={() => setProposeTarget(null)} accessibilityRole="button" accessibilityLabel="Close" style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center', padding: 28 }}>
+          <Pressable onPress={(e) => e.stopPropagation()} accessible={false} style={{ width: '100%', maxWidth: 360, backgroundColor: CARD, borderRadius: 22, padding: 22, gap: 14 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
               <View style={{ width: 44, height: 44, borderRadius: 13, backgroundColor: HC + '26', alignItems: 'center', justifyContent: 'center' }}>
                 <ChefHat size={20} color={HC_TINT} />
