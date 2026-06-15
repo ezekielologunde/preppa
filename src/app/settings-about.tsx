@@ -179,7 +179,7 @@ export default function AboutAppScreen() {
 
           {/* App version */}
           <SettingsGroup title="the app" delay={60}>
-            <SettingsRow Icon={Info} label="App version" right={{ type: 'value', label: APP_VERSION }} onPress={() => {}} isLast />
+            <SettingsRow Icon={Info} label="App version" right={{ type: 'value', label: APP_VERSION }} isLast />
           </SettingsGroup>
 
           {/* Legal — tap opens an in-app overlay with a summary + link to full doc at preppa.live */}
