@@ -32,18 +32,20 @@ export function SubscribePlanSheet({ plan, userId, onClose }: { plan: MealPlan |
   const [day, setDay] = useState<DeliveryDay>('mon');
   const [loading, setLoading] = useState(false);
   const [freeSubscribed, setFreeSubscribed] = useState(false);
+  const [subErr, setSubErr] = useState<string | null>(null);
   const subscribeToPlan = useSubscribeToPlan();
 
   // Reset form each time a new plan opens the sheet.
   const [prevPlanId, setPrevPlanId] = useState<string | null>(plan?.id ?? null);
   if ((plan?.id ?? null) !== prevPlanId) {
     setPrevPlanId(plan?.id ?? null);
-    if (plan) { setQty(1); setDay('mon'); setFreeSubscribed(false); }
+    if (plan) { setQty(1); setDay('mon'); setFreeSubscribed(false); setSubErr(null); }
   }
 
   async function confirmFree() {
     if (!plan || loading || subscribeToPlan.isPending) return;
     feedback.tap();
+    setSubErr(null);
     try {
       await subscribeToPlan.mutateAsync({
         userId,
@@ -58,12 +60,14 @@ export function SubscribePlanSheet({ plan, userId, onClose }: { plan: MealPlan |
       setFreeSubscribed(true);
     } catch {
       feedback.error();
+      setSubErr('Could not join the waitlist. Please try again.');
     }
   }
 
   async function confirm() {
     if (!plan || loading) return;
     feedback.tap();
+    setSubErr(null);
     setLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('stripe-subscribe', {
@@ -78,7 +82,7 @@ export function SubscribePlanSheet({ plan, userId, onClose }: { plan: MealPlan |
       }
     } catch (e) {
       feedback.error();
-      console.error('subscribe-sheet stripe error', e);
+      setSubErr(e instanceof Error ? e.message : 'Could not start checkout. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -163,6 +167,9 @@ export function SubscribePlanSheet({ plan, userId, onClose }: { plan: MealPlan |
 
           {/* Confirm */}
           <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 260 }}>
+          {subErr ? (
+            <Text style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.danger, textAlign: 'center', marginBottom: 8 }}>{subErr}</Text>
+          ) : null}
           {freeSubscribed ? (
             <View style={{ height: 54, borderRadius: Radius.pill, backgroundColor: Palette.success, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
               <Check size={18} color="#fff" strokeWidth={3} />

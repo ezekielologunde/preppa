@@ -108,7 +108,7 @@ export function FeedCard({ item, height, bottomInset, followSet }: { item: FeedI
   const router = useRouter();
   const { user } = useAuth();
   const isSaved = useFavorite(`meal:${item.id}`);
-  const [addState, setAddState] = useState<'idle' | 'adding' | 'added'>('idle');
+  const [addState, setAddState] = useState<'idle' | 'adding' | 'added' | 'error'>('idle');
   const addToCart = useAddToCart();
   const source = item.thumbnail ?? item.image;
   const countdown = useCountdownLabel(item.isLimited && !item.isPost ? (item.expiresAt ?? null) : null);
@@ -123,8 +123,9 @@ export function FeedCard({ item, height, bottomInset, followSet }: { item: FeedI
       setAddState('added');
       setTimeout(() => setAddState('idle'), 1800);
     } catch {
-      setAddState('idle');
       feedback.error();
+      setAddState('error');
+      setTimeout(() => setAddState('idle'), 1800);
     }
   }
 
@@ -245,8 +246,8 @@ export function FeedCard({ item, height, bottomInset, followSet }: { item: FeedI
               onPress={item.isLive ? () => { feedback.tap(); router.push(`/meal?id=${item.id}`); } : handleAddToCart}
               disabled={addState === 'adding'}
               accessibilityRole="button"
-              accessibilityLabel={item.isLive ? `View ${item.title} live drop` : addState === 'added' ? 'Added to cart' : `Add ${item.title} to cart`}
-              style={{ flex: 1, height: 50, borderRadius: Radius.pill, backgroundColor: addState === 'added' ? '#16a34a' : ORANGE, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8 }}>
+              accessibilityLabel={item.isLive ? `View ${item.title} live drop` : addState === 'added' ? 'Added to cart' : addState === 'error' ? 'Failed to add — tap to retry' : `Add ${item.title} to cart`}
+              style={{ flex: 1, height: 50, borderRadius: Radius.pill, backgroundColor: addState === 'added' ? '#16a34a' : addState === 'error' ? Palette.danger : ORANGE, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8 }}>
               {addState === 'adding' ? (
                 <ActivityIndicator size="small" color="#fff" />
               ) : addState === 'added' ? (
@@ -255,7 +256,7 @@ export function FeedCard({ item, height, bottomInset, followSet }: { item: FeedI
                 <ShoppingCart size={16} color="#fff" />
               )}
               <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#fff' }}>
-                {addState === 'added' ? 'Added!' : addState === 'adding' ? 'Adding…' : item.isLive ? 'Join live drop' : 'Add to cart'}
+                {addState === 'added' ? 'Added!' : addState === 'adding' ? 'Adding…' : addState === 'error' ? 'Failed — try again' : item.isLive ? 'Join live drop' : 'Add to cart'}
               </Text>
             </PressableScale>
           </View>
