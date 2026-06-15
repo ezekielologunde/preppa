@@ -31,6 +31,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { Ring, Sparkline, StatCard } from '@/components/dashboard-widgets';
 import { PrepperBadgeShelf } from '@/components/badge-shelf';
+import { Skeleton } from '@/components/ui/skeleton';
 import { ProfileHealthCard } from '@/components/profile-health-card';
 import { Avatar } from '@/components/ui/avatar';
 import { PressableScale } from '@/components/ui/pressable-scale';
@@ -88,12 +89,13 @@ export default function DashboardScreen() {
   const desktop = useBreakpoint() === 'desktop';
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
-  const { data: prepper, refetch: refetchPrepper } = useMyPrepperApplication(user?.id);
+  const { data: prepper, isLoading: appLoading, refetch: refetchPrepper } = useMyPrepperApplication(user?.id);
   const { data: prepperProfile } = usePrepperProfile(prepper?.id);
   const { data: prepperMembership, refetch: refetchMembership } = usePrepperMembership(prepper?.id);
   const isPro = prepperMembership?.isPro === true;
   const { data: prepperBadges, refetch: refetchBadges } = usePrepperBadges(prepper?.id);
-  const { data: orders, refetch: refetchOrders } = usePrepperOrders(prepper?.id);
+  const { data: orders, isLoading: ordersLoading, refetch: refetchOrders } = usePrepperOrders(prepper?.id);
+  const statsLoading = appLoading || (prepper?.id != null && ordersLoading);
   const { data: reviews, refetch: refetchReviews } = usePrepperReviews(prepper?.id);
   const advance = useAdvanceOrder();
   const toggleAvailability = useToggleAvailability(prepper?.id);
@@ -306,6 +308,10 @@ export default function DashboardScreen() {
                 </PressableScale>
               ) : null}
             </View>
+          ) : statsLoading ? (
+            <View style={{ marginHorizontal: 20 }}>
+              <Skeleton width="100%" height={108} radius={22} />
+            </View>
           ) : (
             <View style={{ marginHorizontal: 20, backgroundColor: CARD, borderRadius: 22, padding: 24, alignItems: 'center', gap: 8 }}>
               <ShoppingBag size={26} color={Palette.textSecondary} />
@@ -317,7 +323,14 @@ export default function DashboardScreen() {
           {/* Stat cards — KPI row on desktop, 2x2 grid on mobile */}
           <MotiView from={{ opacity: 0, translateY: 12 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 320, delay: 140 }}>
           <Text style={{ fontFamily: Font.display, fontSize: 15, color: INK, paddingHorizontal: 20, marginTop: 16, marginBottom: 8, letterSpacing: -0.3 }}>your stats</Text>
-          {desktop ? (
+          {statsLoading ? (
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 20, gap: 10, paddingTop: 8, paddingBottom: 6 }}>
+              <Skeleton height={88} radius={16} style={{ flex: 1, minWidth: '40%' }} />
+              <Skeleton height={88} radius={16} style={{ flex: 1, minWidth: '40%' }} />
+              <Skeleton height={88} radius={16} style={{ flex: 1, minWidth: '40%' }} />
+              <Skeleton height={88} radius={16} style={{ flex: 1, minWidth: '40%' }} />
+            </View>
+          ) : desktop ? (
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 10, gap: 10 }}>
               <StatCard Icon={ShoppingBag} value={money(revenue)} label="total sales" trend={revenue > 0 ? 'earned' : '—'} color={ORANGE} spark={revenueSpark} onPress={() => router.push('/earnings')} />
               <StatCard Icon={Boxes} value={String(list.length)} label="preorders" trend={`${newCount} new`} color={GREEN} spark={ordersSpark} onPress={() => router.push('/prepper-orders')} />
@@ -337,32 +350,38 @@ export default function DashboardScreen() {
           {/* Goal + this week */}
           <MotiView from={{ opacity: 0, translateY: 12 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 320, delay: 180 }}>
           <Text style={{ fontFamily: Font.display, fontSize: 15, color: INK, paddingHorizontal: 20, marginTop: 16, marginBottom: 6, letterSpacing: -0.3 }}>today's progress</Text>
-          <View style={{ marginHorizontal: 20, marginBottom: 8, backgroundColor: CARD, borderRadius: 20, padding: 16, gap: 14 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
-              <View style={{ position: 'relative', alignItems: 'center', justifyContent: 'center', width: 68, height: 68, flexShrink: 0 }}>
-                <Ring pct={goalPct} color={ORANGE} size={68} stroke={7} />
-                <View style={{ position: 'absolute', alignItems: 'center' }}>
-                  <Text style={{ fontFamily: Font.display, fontSize: 14, color: INK }}>{goalPct}%</Text>
+          {statsLoading ? (
+            <View style={{ marginHorizontal: 20, marginBottom: 8 }}>
+              <Skeleton width="100%" height={100} radius={20} />
+            </View>
+          ) : (
+            <View style={{ marginHorizontal: 20, marginBottom: 8, backgroundColor: CARD, borderRadius: 20, padding: 16, gap: 14 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
+                <View style={{ position: 'relative', alignItems: 'center', justifyContent: 'center', width: 68, height: 68, flexShrink: 0 }}>
+                  <Ring pct={goalPct} color={ORANGE} size={68} stroke={7} />
+                  <View style={{ position: 'absolute', alignItems: 'center' }}>
+                    <Text style={{ fontFamily: Font.display, fontSize: 14, color: INK }}>{goalPct}%</Text>
+                  </View>
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontFamily: Font.body, fontSize: 12, color: MUTED }}>today's goal</Text>
+                  <Text style={{ fontFamily: Font.display, fontSize: 20, color: INK, letterSpacing: -0.4, fontVariant: ['tabular-nums'] }}>{money(todayRevenue)}</Text>
+                  <Text style={{ fontFamily: Font.body, fontSize: 11.5, color: MUTED }}>of {money(dailyGoal)}</Text>
+                </View>
+                <View style={{ alignItems: 'center', gap: 2 }}>
+                  <Text style={{ fontFamily: Font.display, fontSize: 26, color: ORANGE, letterSpacing: -0.5, fontVariant: ['tabular-nums'] }}>{weekCount}</Text>
+                  <Text style={{ fontFamily: Font.semibold, fontSize: 10.5, color: MUTED }}>this week</Text>
                 </View>
               </View>
-              <View style={{ flex: 1 }}>
-                <Text style={{ fontFamily: Font.body, fontSize: 12, color: MUTED }}>today's goal</Text>
-                <Text style={{ fontFamily: Font.display, fontSize: 20, color: INK, letterSpacing: -0.4, fontVariant: ['tabular-nums'] }}>{money(todayRevenue)}</Text>
-                <Text style={{ fontFamily: Font.body, fontSize: 11.5, color: MUTED }}>of {money(dailyGoal)}</Text>
-              </View>
-              <View style={{ alignItems: 'center', gap: 2 }}>
-                <Text style={{ fontFamily: Font.display, fontSize: 26, color: ORANGE, letterSpacing: -0.5, fontVariant: ['tabular-nums'] }}>{weekCount}</Text>
-                <Text style={{ fontFamily: Font.semibold, fontSize: 10.5, color: MUTED }}>this week</Text>
+              <View style={{ flexDirection: 'row', gap: 6, paddingTop: 12, borderTopWidth: 1, borderTopColor: Palette.chip }}>
+                {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => (
+                  <View key={i} style={{ flex: 1, height: 24, borderRadius: 6, backgroundColor: weekDays[i] ? ORANGE + '22' : Palette.chip, alignItems: 'center', justifyContent: 'center' }}>
+                    <Text style={{ fontFamily: Font.semibold, fontSize: 10, color: weekDays[i] ? ORANGE : MUTED }}>{d}</Text>
+                  </View>
+                ))}
               </View>
             </View>
-            <View style={{ flexDirection: 'row', gap: 6, paddingTop: 12, borderTopWidth: 1, borderTopColor: Palette.chip }}>
-              {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => (
-                <View key={i} style={{ flex: 1, height: 24, borderRadius: 6, backgroundColor: weekDays[i] ? ORANGE + '22' : Palette.chip, alignItems: 'center', justifyContent: 'center' }}>
-                  <Text style={{ fontFamily: Font.semibold, fontSize: 10, color: weekDays[i] ? ORANGE : MUTED }}>{d}</Text>
-                </View>
-              ))}
-            </View>
-          </View>
+          )}
           </MotiView>
 
           {/* Badges earned */}
