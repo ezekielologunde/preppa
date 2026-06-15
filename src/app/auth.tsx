@@ -229,17 +229,18 @@ export default function AuthScreen() {
               ) : null}
               {mode === 'signup' ? (
                 <TextInput style={[input, errorInput]} placeholder="full name" placeholderTextColor="rgba(255,255,255,0.3)"
-                  autoCapitalize="words" textContentType="name" maxLength={80} value={name} onChangeText={setName} />
+                  autoCapitalize="words" textContentType="name" maxLength={80} value={name} onChangeText={setName}
+                  editable={!busy} />
               ) : null}
               <TextInput style={[input, errorInput]} placeholder="you@email.com" placeholderTextColor="rgba(255,255,255,0.3)"
                 autoCapitalize="none" autoComplete="email" textContentType="emailAddress" keyboardType="email-address"
-                maxLength={254} value={email} onChangeText={setEmail} />
+                maxLength={254} value={email} onChangeText={setEmail} editable={!busy} />
               <View style={{ justifyContent: 'center' }}>
                 <TextInput style={[input, errorInput, { paddingRight: 52 }]} placeholder="password"
                   placeholderTextColor="rgba(255,255,255,0.3)" autoCapitalize="none" secureTextEntry={!showPw}
                   textContentType={mode === 'signup' ? 'newPassword' : 'password'}
                   maxLength={128} value={password} onChangeText={setPassword} onSubmitEditing={submit}
-                  returnKeyType={mode === 'signup' ? 'next' : 'go'} />
+                  returnKeyType={mode === 'signup' ? 'next' : 'go'} editable={!busy} />
                 <Pressable onPress={() => setShowPw((v) => !v)} hitSlop={10} style={{ position: 'absolute', right: 16 }}
                   accessibilityRole="button" accessibilityLabel={showPw ? 'Hide password' : 'Show password'}>
                   {showPw ? <EyeOff size={20} color="rgba(255,255,255,0.4)" /> : <Eye size={20} color="rgba(255,255,255,0.4)" />}
@@ -273,7 +274,7 @@ export default function AuthScreen() {
                 style={[input, errorInput, { textAlign: 'center', fontSize: 30, letterSpacing: 14, fontFamily: Font.display, height: 64 }]}
                 placeholder="••••••" placeholderTextColor="rgba(255,255,255,0.3)"
                 keyboardType="number-pad" autoComplete="one-time-code" textContentType="oneTimeCode" maxLength={6}
-                value={code}
+                editable={!busy} value={code}
                 onChangeText={(t) => {
                   const digits = t.replace(/\D/g, '').slice(0, 6);
                   setCode(digits);
@@ -283,7 +284,8 @@ export default function AuthScreen() {
                 <View style={{ justifyContent: 'center' }}>
                   <TextInput style={[input, errorInput, { paddingRight: 52 }]} placeholder="new password"
                     placeholderTextColor="rgba(255,255,255,0.3)" autoCapitalize="none" secureTextEntry={!showPw}
-                    textContentType="newPassword" maxLength={128} value={newPassword} onChangeText={setNewPassword} />
+                    textContentType="newPassword" maxLength={128} value={newPassword} onChangeText={setNewPassword}
+                    editable={!busy} />
                   <Pressable onPress={() => setShowPw((v) => !v)} hitSlop={10} style={{ position: 'absolute', right: 16 }}>
                     {showPw ? <EyeOff size={20} color="rgba(255,255,255,0.4)" /> : <Eye size={20} color="rgba(255,255,255,0.4)" />}
                   </Pressable>
