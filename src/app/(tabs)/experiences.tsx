@@ -85,7 +85,7 @@ function RequestCard({ r, onPress }: { r: MyExperienceRequest; onPress: () => vo
 export default function ExperiencesScreen() {
   const router = useRouter();
   const { user } = useAuth();
-  const { data: myRequests, refetch } = useMyExperienceRequests(user?.id);
+  const { data: myRequests, isLoading, isError, refetch } = useMyExperienceRequests(user?.id);
   const [refreshing, setRefreshing] = useState(false);
   const [selected, setSelected] = useState<MyExperienceRequest | null>(null);
 
@@ -111,6 +111,18 @@ export default function ExperiencesScreen() {
               <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary }}>private chefs, catering, classes & tastings</Text>
             </View>
           </MotiView>
+
+          {/* Error state */}
+          {!isLoading && isError ? (
+            <MotiView from={{ opacity: 0, translateY: 6 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 240 }}>
+              <View style={{ marginHorizontal: 20, marginTop: 12, marginBottom: 4, backgroundColor: Palette.danger + '12', borderRadius: Radius.md, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                <UtensilsCrossed size={18} color={Palette.danger} />
+                <Text style={{ flex: 1, fontFamily: Font.body, fontSize: 13, color: Palette.danger, lineHeight: 18 }}>
+                  Couldn't load your requests. Pull down to retry.
+                </Text>
+              </View>
+            </MotiView>
+          ) : null}
 
           {/* Confirmed / booked */}
           {booked.length > 0 ? (

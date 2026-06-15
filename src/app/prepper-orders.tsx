@@ -318,7 +318,7 @@ export default function PrepperOrdersScreen() {
               {filteredOrders.length === 0 ? (
                 <View style={{ alignItems: 'center', paddingVertical: 32, gap: 8 }}>
                   <ShoppingBag size={24} color="#5b6170" />
-                  <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textMuted }}>{orderFilter === 'active' ? 'No active preorders right now.' : 'No completed preorders yet.'}</Text>
+                  <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textMuted, textAlign: 'center' }}>{orderFilter === 'active' ? 'No active preorders right now. New orders will appear here.' : 'No completed preorders yet — history builds as you fulfil orders.'}</Text>
                 </View>
               ) : null}
               <View style={[isDesktop ? { flexDirection: 'row', flexWrap: 'wrap', gap: 14 } : { gap: 12 }, { paddingHorizontal: 20, paddingBottom: 0 }]}>
