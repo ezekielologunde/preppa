@@ -1,7 +1,8 @@
 import { useRouter } from 'expo-router';
 import { ChevronLeft, Clock } from 'lucide-react-native';
 import { MotiView } from 'moti';
-import { ScrollView, Text, View } from 'react-native';
+import { useState } from 'react';
+import { RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { QuickAddButton } from '@/components/home-feed';
@@ -24,6 +25,8 @@ export default function RecentlyViewedScreen() {
   const CARD_W = gridCardWidth(useContentWidth());
   const visible = ids.slice(0, 20);
   const { data: meals, isLoading, isError, refetch } = useMealsByIds(visible);
+  const [refreshing, setRefreshing] = useState(false);
+  async function handleRefresh() { setRefreshing(true); await refetch(); setRefreshing(false); }
 
   return (
     <View style={{ flex: 1, backgroundColor: Palette.canvas }}>
@@ -86,7 +89,7 @@ export default function RecentlyViewedScreen() {
             </PressableScale>
           </MotiView>
         ) : (
-          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 60, flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
+          <ScrollView showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={ORANGE} colors={[ORANGE]} />} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 60, flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
             {(meals ?? []).map((meal, i) => (
               <MotiView key={meal.id} from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 210, delay: i * 25 }}>
                 <View style={{ position: 'relative' }}>

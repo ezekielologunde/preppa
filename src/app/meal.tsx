@@ -3,7 +3,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { BadgeCheck, Check, Clock, MessageCircle, RefreshCw, Star, Zap } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { MotiView } from 'moti';
-import { Platform, ScrollView, Text, useWindowDimensions, View } from 'react-native';
+import { Platform, RefreshControl, ScrollView, Text, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { MealGallery } from '@/components/meal-gallery';
@@ -61,7 +61,9 @@ export default function MealScreen() {
   const [switchPrompt, setSwitchPrompt] = useState(false);
   const [allReviews, setAllReviews] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const insets = useSafeAreaInsets();
+  async function handleRefresh() { setRefreshing(true); await refetchMeal(); setRefreshing(false); }
   const { width } = useWindowDimensions();
   // Desktop web: gallery on the left, scrollable details + pinned CTA on the right.
   const twoCol = Platform.OS === 'web' && width >= BP.desktop;
@@ -377,7 +379,7 @@ export default function MealScreen() {
         </SafeAreaView>
       ) : (
         <>
-          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
+          <ScrollView showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={Palette.brand} colors={[Palette.brand]} />} contentContainerStyle={{ paddingBottom: 120 }}>
             <MealGallery meal={meal} isLoading={isLoading} cart={cart} id={id} />
             {bodyEl}
           </ScrollView>
