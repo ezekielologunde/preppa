@@ -2,7 +2,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ChevronLeft, Compass } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useState } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PrepperCard } from '@/components/prepper-card';
@@ -42,6 +42,8 @@ export default function KitchensScreen() {
   const [selected, setSelected] = useState<string | null>(tag || null);
   const { data: tags } = useKitchenTags();
   const { data: kitchens, isLoading, isError, refetch } = useKitchensByTag(selected);
+  const [refreshing, setRefreshing] = useState(false);
+  async function handleRefresh() { setRefreshing(true); await refetch(); setRefreshing(false); }
 
   function pick(next: string | null) {
     feedback.tap();
@@ -86,7 +88,7 @@ export default function KitchensScreen() {
             </PressableScale>
           </MotiView>
         ) : kitchens && kitchens.length > 0 ? (
-          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 20, paddingBottom: 60 }}>
+          <ScrollView showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={Palette.brand} colors={[Palette.brand]} />} contentContainerStyle={{ padding: 20, paddingBottom: 60 }}>
             <MotiView
               key={selected ?? 'all'}
               from={{ opacity: 0, translateY: 8 }}

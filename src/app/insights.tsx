@@ -1,7 +1,8 @@
 import { useRouter } from 'expo-router';
 import { ChevronLeft, ChevronRight, Clock, Flame, Heart, Leaf, Sparkles, TrendingUp, UtensilsCrossed } from 'lucide-react-native';
 import { MotiView } from 'moti';
-import { ScrollView, Text, View } from 'react-native';
+import { useState } from 'react';
+import { RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PressableScale } from '@/components/ui/pressable-scale';
@@ -61,6 +62,8 @@ export default function InsightsScreen() {
   const router = useRouter();
   const { user } = useAuth();
   const { data: orders, isLoading, isError, refetch } = useMyOrders(user?.id);
+  const [refreshing, setRefreshing] = useState(false);
+  async function handleRefresh() { setRefreshing(true); await refetch(); setRefreshing(false); }
   const completed = (orders ?? []).filter((o) => o.status === 'completed');
   const total = completed.reduce((s, o) => s + o.total, 0);
   const avg = completed.length ? total / completed.length : 0;
@@ -122,7 +125,7 @@ export default function InsightsScreen() {
             </PressableScale>
           </MotiView>
         ) : (
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 20, gap: 16, paddingBottom: 32 }}>
+        <ScrollView showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={ORANGE} colors={[ORANGE]} />} contentContainerStyle={{ padding: 20, gap: 16, paddingBottom: 32 }}>
 
           {/* Hero stats */}
           <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280 }}>
