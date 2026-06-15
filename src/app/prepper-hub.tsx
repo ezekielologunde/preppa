@@ -6,6 +6,7 @@ import { RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PressableScale } from '@/components/ui/pressable-scale';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Font } from '@/constants/fonts';
 import { feedback } from '@/lib/feedback';
 import { useBreakpoint } from '@/lib/layout';
@@ -48,9 +49,10 @@ const TIPS = [
 export default function PrepperHubScreen() {
   const router = useRouter();
   const { user } = useAuth();
-  const { data: application } = useMyPrepperApplication(user?.id);
+  const { data: application, isLoading: appLoading } = useMyPrepperApplication(user?.id);
   const isDesktop = useBreakpoint() === 'desktop';
-  const { data: orders, isError: ordersError, refetch: refetchOrders } = usePrepperOrders(application?.id);
+  const { data: orders, isLoading: ordersLoading, isError: ordersError, refetch: refetchOrders } = usePrepperOrders(application?.id);
+  const statsLoading = appLoading || (application?.id != null && ordersLoading);
   const [refreshing, setRefreshing] = useState(false);
   async function handleRefresh() { setRefreshing(true); await refetchOrders(); setRefreshing(false); }
   const hour = new Date().getHours();
@@ -158,6 +160,13 @@ export default function PrepperHubScreen() {
           ) : null}
 
           {/* Quick stats */}
+          {statsLoading ? (
+            <View style={{ flexDirection: 'row', gap: 10 }}>
+              <Skeleton height={96} radius={14} style={{ flex: 1 }} />
+              <Skeleton height={96} radius={14} style={{ flex: 1 }} />
+              <Skeleton height={96} radius={14} style={{ flex: 1 }} />
+            </View>
+          ) : (
           <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 80 }}>
           <View style={{ flexDirection: 'row', gap: 10 }}>
             {[
@@ -178,6 +187,7 @@ export default function PrepperHubScreen() {
             ))}
           </View>
           </MotiView>
+          )}
 
           {/* Market insights */}
           <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 140 }}>
