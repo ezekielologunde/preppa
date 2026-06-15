@@ -6,6 +6,7 @@ import { ActivityIndicator, KeyboardAvoidingView, Linking, Modal, Platform, Pres
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PressableScale } from '@/components/ui/pressable-scale';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Font } from '@/constants/fonts';
 import { feedback } from '@/lib/feedback';
 import { BP } from '@/lib/layout';
@@ -48,7 +49,7 @@ export default function ChatScreen() {
   const { width } = useWindowDimensions();
   const isDesktop = width >= BP.desktop;
   const { id, name } = useLocalSearchParams<{ id?: string; name?: string }>();
-  const { data: messages, isLoading, isError: messagesError } = useMessages(id, user?.id);
+  const { data: messages, isLoading, isError: messagesError, refetch: refetchMessages } = useMessages(id, user?.id);
   const { data: ctx } = useChatContext(id, user?.id);
   const send = useSendMessage();
   const proposeTerms = useProposeHomeCookTerms();
@@ -241,13 +242,23 @@ export default function ChatScreen() {
 
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={8}>
           {isLoading ? (
-            <ActivityIndicator color={ORANGE} style={{ marginTop: 40 }} />
+            <View style={{ flex: 1, padding: 16, gap: 12, justifyContent: 'flex-end' }}>
+              {[['55%', false], ['40%', true], ['65%', false], ['45%', true], ['70%', false]].map(([w, right], i) => (
+                <View key={i} style={{ alignSelf: right ? 'flex-end' : 'flex-start' }}>
+                  <Skeleton width={w as `${number}%`} height={44} radius={14} />
+                </View>
+              ))}
+            </View>
           ) : messagesError ? (
             <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }}
               style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 10 }}>
               <MessageCircle size={32} color={Palette.textMuted} />
               <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>couldn't load messages</Text>
               <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center', maxWidth: 280, lineHeight: 20 }}>Check your connection and try again.</Text>
+              <PressableScale onPress={() => { feedback.tap(); void refetchMessages(); }} accessibilityRole="button" accessibilityLabel="Retry loading messages"
+                style={{ marginTop: 4, backgroundColor: ORANGE, borderRadius: Radius.pill, paddingHorizontal: 22, paddingVertical: 12 }}>
+                <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: '#fff' }}>retry</Text>
+              </PressableScale>
             </MotiView>
           ) : (
             <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 16, gap: 8, flexGrow: 1, justifyContent: (messages?.length ?? 0) ? 'flex-end' : 'center' }}>

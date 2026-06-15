@@ -122,7 +122,7 @@ export default function BecomePrepperScreen() {
   const router = useRouter();
   const { user } = useAuth();
   const signupsOpen = useFeatureEnabled('prepper_signups');
-  const { data: application, isLoading, isError } = useMyPrepperApplication(user?.id);
+  const { data: application, isLoading, isError, refetch } = useMyPrepperApplication(user?.id);
   const apply = useApplyAsPrepper();
 
   const [name, setName] = useState((user?.user_metadata?.full_name as string) ?? '');
@@ -179,6 +179,10 @@ export default function BecomePrepperScreen() {
             </MotiView>
             <Text style={{ fontFamily: Font.display, fontSize: 22, color: INK, textAlign: 'center' }}>couldn't load your application</Text>
             <Text style={{ fontFamily: Font.body, fontSize: 15, color: Palette.textSecondary, textAlign: 'center', lineHeight: 22, maxWidth: 300 }}>Check your connection and try again.</Text>
+            <PressableScale onPress={() => { feedback.tap(); void refetch(); }} accessibilityRole="button" accessibilityLabel="Retry loading application"
+              style={{ marginTop: 4, backgroundColor: ORANGE, borderRadius: Radius.pill, paddingHorizontal: 24, paddingVertical: 12 }}>
+              <Text style={{ fontFamily: Font.semibold, fontSize: 15, color: '#fff' }}>retry</Text>
+            </PressableScale>
           </Centered>
         </SafeAreaView>
       </View>
