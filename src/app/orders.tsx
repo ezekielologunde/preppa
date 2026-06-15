@@ -1,15 +1,13 @@
-import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
-import { AlertTriangle, Check, ChevronLeft, Lock, MessageCircle, Receipt, RotateCcw, Star, X } from 'lucide-react-native';
+import { AlertTriangle, Check, ChevronLeft, Receipt, X } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useState } from 'react';
 import { ActivityIndicator, Modal, Platform, Pressable, RefreshControl, ScrollView, Text, TextInput, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { HandoffCard } from '@/components/handoff-card';
+import { OrderCard, money } from '@/components/order-card';
 import { StripeEmbeddedSheet } from '@/components/stripe-embedded';
-import { Button } from '@/components/ui/button';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { ListSkeleton } from '@/components/ui/skeleton';
 import { Font } from '@/constants/fonts';
@@ -21,243 +19,9 @@ import { useStartConversation } from '@/lib/queries/messages';
 import { useCancelOrder, useMyOrders, useOrdersRealtime, useReportDispute, type OrderSummary } from '@/lib/queries/orders';
 import { BP } from '@/lib/layout';
 import { useAuth } from '@/providers/auth-provider';
-import type { OrderStatus } from '@/types/database.types';
 
 const ORANGE = Palette.brand;
 const INK = Palette.ink;
-const money = (n: number) => `$${n.toFixed(2)}`;
-
-const STATUS_LABEL: Record<OrderStatus, string> = {
-  pending: 'Pending',
-  confirmed: 'Confirmed',
-  preparing: 'Prepping',
-  ready: 'Ready',
-  out_for_delivery: 'On the way',
-  completed: 'Complete',
-  cancelled: 'Cancelled',
-};
-
-const TIMELINE_STEPS = [
-  { key: 'pending',   label: 'Received' },
-  { key: 'confirmed', label: 'Confirmed' },
-  { key: 'preparing', label: 'Cooking' },
-  { key: 'ready',     label: 'Ready' },
-  { key: 'completed', label: 'Done' },
-];
-
-function timelineIdx(status: OrderStatus): number {
-  if (status === 'pending') return 0;
-  if (status === 'confirmed') return 1;
-  if (status === 'preparing') return 2;
-  if (status === 'ready' || status === 'out_for_delivery') return 3;
-  if (status === 'completed') return 4;
-  return 0;
-}
-
-function OrderTimeline({ status }: { status: OrderStatus }) {
-  if (status === 'cancelled') return null;
-  const curr = timelineIdx(status);
-  const inFlight = status !== 'completed';
-  return (
-    <View style={{ marginTop: 4, marginBottom: 2 }}>
-      {/* Progress track */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', height: 18 }}>
-        {TIMELINE_STEPS.map((step, i) => {
-          const done = i <= curr;
-          const active = i === curr;
-          const nodeStyle = {
-            width: active ? 11 : 8,
-            height: active ? 11 : 8,
-            borderRadius: 6,
-            backgroundColor: done ? Palette.brand : Palette.border,
-            ...(active ? { shadowColor: Palette.brand, shadowRadius: 5, shadowOpacity: 0.55, elevation: 3 } : {}),
-          };
-          return (
-            <View key={step.key} style={{ flexDirection: 'row', alignItems: 'center', flex: i < TIMELINE_STEPS.length - 1 ? 1 : 0 }}>
-              {/* Node — pulses while this step is the active in-flight step */}
-              {active && inFlight ? (
-                <MotiView
-                  from={{ opacity: 0.55, scale: 0.85 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ type: 'timing', duration: 950, loop: true, repeatReverse: true }}>
-                  <View style={nodeStyle} />
-                </MotiView>
-              ) : (
-                <View style={nodeStyle} />
-              )}
-              {/* Connector */}
-              {i < TIMELINE_STEPS.length - 1 ? (
-                <View style={{ flex: 1, height: 2, backgroundColor: i < curr ? Palette.brand : Palette.border, marginHorizontal: 2, borderRadius: 1 }} />
-              ) : null}
-            </View>
-          );
-        })}
-      </View>
-      {/* Step labels */}
-      <View style={{ flexDirection: 'row', marginTop: 4 }}>
-        {TIMELINE_STEPS.map((step, i) => {
-          const active = i === curr;
-          const done = i < curr;
-          return (
-            <View key={step.key} style={{ flex: i < TIMELINE_STEPS.length - 1 ? 1 : 0, minWidth: 32, alignItems: i === 0 ? 'flex-start' : i === TIMELINE_STEPS.length - 1 ? 'flex-end' : 'center' }}>
-              <Text style={{ fontFamily: active ? Font.semibold : Font.body, fontSize: 9.5, color: active ? Palette.brand : done ? Palette.inkSoft : Palette.textMuted }}>
-                {step.label}
-              </Text>
-            </View>
-          );
-        })}
-      </View>
-    </View>
-  );
-}
-
-function statusStyle(s: OrderStatus): { bg: string; fg: string } {
-  if (s === 'completed') return { bg: Palette.success + '1A', fg: Palette.success };
-  if (s === 'cancelled') return { bg: Palette.canvas, fg: Palette.textSecondary };
-  return { bg: Palette.brandTint, fg: Palette.brandPressed };
-}
-
-function dateLabel(iso: string): string {
-  const d = new Date(iso);
-  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-}
-
-function OrderCard({ order, onCancel, onReview, onPay, onReorder, onReport, onMessage, onChat, cancelling, needsPayment, paying, reordering }: { order: OrderSummary; onCancel: () => void; onReview: () => void; onPay: () => void; onReorder: () => void; onReport: () => void; onMessage: () => void; onChat: () => void; cancelling: boolean; needsPayment: boolean; paying: boolean; reordering: boolean }) {
-  const st = statusStyle(order.status);
-  return (
-    <View style={{ backgroundColor: Palette.surface, borderRadius: Radius.md, padding: 14, gap: 12 }}>
-      {/* Header: prepper + status pill */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-        <PressableScale onPress={onMessage} accessibilityRole="button" accessibilityLabel={`View ${order.prepper}'s kitchen`} style={{ flex: 1, minWidth: 0 }}>
-          <Text style={{ fontFamily: Font.heading, fontSize: 15, color: INK }} numberOfLines={1}>{order.prepper}</Text>
-          <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary, marginTop: 1, textTransform: 'capitalize' }}>{dateLabel(order.created_at)} · {order.fulfillment === 'meetup' ? 'meet up' : order.fulfillment === 'home_cook' ? 'home cook' : order.fulfillment}</Text>
-        </PressableScale>
-        <View style={{ paddingHorizontal: 11, height: 26, borderRadius: Radius.pill, backgroundColor: st.bg, alignItems: 'center', justifyContent: 'center' }}>
-          <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: st.fg }}>{STATUS_LABEL[order.status]}</Text>
-        </View>
-      </View>
-
-      {/* Order progress timeline */}
-      {order.status !== 'cancelled' ? (
-        <View style={{ backgroundColor: Palette.canvas, borderRadius: Radius.sm, paddingHorizontal: 12, paddingVertical: 10 }}>
-          <OrderTimeline status={order.status} />
-        </View>
-      ) : null}
-
-      {/* Line items */}
-      <View style={{ gap: 8 }}>
-        {order.items.map((it) => (
-          <View key={it.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-            {it.image ? <Image source={it.image} style={{ width: 40, height: 40, borderRadius: 10 }} contentFit="cover" /> : <View style={{ width: 40, height: 40, borderRadius: 10, backgroundColor: Palette.canvas }} />}
-            <Text style={{ flex: 1, fontFamily: Font.body, fontSize: 13.5, color: Palette.inkSoft }} numberOfLines={1}>{it.quantity}× {it.title}</Text>
-            <Text style={{ fontFamily: Font.medium, fontSize: 13, color: INK, fontVariant: ['tabular-nums'] }}>{money(it.total)}</Text>
-          </View>
-        ))}
-      </View>
-
-      {/* Pickup/meetup handoff code — shown to the customer until completed */}
-      {order.handoff && (order.fulfillment === 'pickup' || order.fulfillment === 'meetup' || order.fulfillment === 'home_cook') && order.status !== 'completed' && order.status !== 'cancelled' ? (
-        <HandoffCard
-          pin={order.handoff.pin}
-          token={order.handoff.token}
-          verified={order.handoff.verified}
-          label={order.fulfillment === 'pickup' ? 'Pickup code' : order.fulfillment === 'home_cook' ? 'Home cook code' : 'Meet-up code'}
-        />
-      ) : null}
-
-      {/* Footer: total + cancel */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderTopWidth: 1, borderTopColor: Palette.chip, paddingTop: 11 }}>
-        <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary }}>Total</Text>
-        <Text style={{ fontFamily: Font.display, fontSize: 18, color: INK, fontVariant: ['tabular-nums'] }}>{money(order.total)}</Text>
-      </View>
-      {needsPayment ? (
-        <View style={{ gap: 8 }}>
-          <PressableScale
-            onPress={onPay}
-            disabled={paying}
-            accessibilityRole="button"
-            accessibilityLabel={`Complete payment, ${money(order.total)}`}
-            style={{ height: 46, borderRadius: Radius.pill, backgroundColor: ORANGE, flexDirection: 'row', gap: 7, alignItems: 'center', justifyContent: 'center', opacity: paying ? 0.7 : 1 }}>
-            {paying ? <ActivityIndicator color="#fff" /> : (
-              <>
-                <Lock size={15} color="#fff" />
-                <Text style={{ fontFamily: Font.heading, fontSize: 14.5, color: '#fff' }}>Complete payment · {money(order.total)}</Text>
-              </>
-            )}
-          </PressableScale>
-          <PressableScale
-            onPress={onCancel}
-            disabled={cancelling}
-            accessibilityRole="button"
-            accessibilityLabel="Cancel preorder"
-            style={{ height: 40, borderRadius: Radius.sm, alignItems: 'center', justifyContent: 'center', opacity: cancelling ? 0.6 : 1 }}>
-            <Text style={{ fontFamily: Font.semibold, fontSize: 13.5, color: Palette.textSecondary }}>Cancel preorder</Text>
-          </PressableScale>
-        </View>
-      ) : order.status === 'pending' ? (
-        <PressableScale
-          onPress={onCancel}
-          disabled={cancelling}
-          accessibilityRole="button"
-          accessibilityLabel="Cancel preorder"
-          style={{ height: 42, borderRadius: Radius.sm, borderWidth: 1, borderColor: Palette.border, alignItems: 'center', justifyContent: 'center', opacity: cancelling ? 0.6 : 1 }}>
-          <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: Palette.textSecondary }}>Cancel preorder</Text>
-        </PressableScale>
-      ) : order.status === 'completed' ? (
-        <View style={{ flexDirection: 'row', gap: 10 }}>
-          {!order.reviewed ? (
-            <PressableScale
-              onPress={onReview}
-              accessibilityRole="button"
-              accessibilityLabel="Leave a review"
-              style={{ flex: 1, height: 44, borderRadius: Radius.sm, backgroundColor: Palette.brandTint, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 6 }}>
-              <Star size={15} color={Palette.brandPressed} fill={Palette.brandPressed} />
-              <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: Palette.brandPressed }}>Leave a review</Text>
-            </PressableScale>
-          ) : null}
-          <Button
-            title="Preorder again"
-            Icon={RotateCcw}
-            variant="primary"
-            size="md"
-            loading={reordering}
-            onPress={onReorder}
-            style={{ flex: 1 }}
-            accessibilityLabel="Preorder these meals again"
-          />
-        </View>
-      ) : ['confirmed', 'preparing', 'ready', 'out_for_delivery'].includes(order.status) ? (
-        <PressableScale
-          onPress={onChat}
-          accessibilityRole="button"
-          accessibilityLabel="Message your kitchen"
-          style={{ height: 44, borderRadius: Radius.sm, backgroundColor: Palette.brandTint, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
-          <MessageCircle size={15} color={ORANGE} />
-          <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: ORANGE }}>Message kitchen</Text>
-        </PressableScale>
-      ) : null}
-
-      {/* Report / disputed indicator — completed and cancelled orders */}
-      {(order.status === 'completed' || order.status === 'cancelled') ? (
-        order.disputed ? (
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 2 }}>
-            <AlertTriangle size={13} color={Palette.textMuted} />
-            <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted }}>Issue reported — we&apos;re looking into it.</Text>
-          </View>
-        ) : (
-          <PressableScale
-            onPress={onReport}
-            accessibilityRole="button"
-            accessibilityLabel="Report an issue with this preorder"
-            style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5, height: 36, borderRadius: Radius.sm, borderWidth: 1, borderColor: Palette.border }}>
-            <AlertTriangle size={13} color={Palette.textSecondary} />
-            <Text style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.textSecondary }}>Report an issue</Text>
-          </PressableScale>
-        )
-      ) : null}
-    </View>
-  );
-}
 
 export default function OrdersScreen() {
   const router = useRouter();
@@ -290,6 +54,7 @@ export default function OrdersScreen() {
       },
     );
   }
+
   const checkoutStripe = useStripeCheckout();
   const embeddedCheckout = useEmbeddedCheckout();
   const [paySheet, setPaySheet] = useState<Extract<EmbeddedPay, { clientSecret: string }> | null>(null);
@@ -298,9 +63,9 @@ export default function OrdersScreen() {
   const [actionErr, setActionErr] = useState<string | null>(null);
   const [showPaid, setShowPaid] = useState(!!paid);
   const [payingId, setPayingId] = useState<string | null>(null);
-  // Reorder: refill the cart with this order's items and jump to checkout.
   const addToCart = useAddToCart();
   const [reorderingId, setReorderingId] = useState<string | null>(null);
+
   async function reorder(o: OrderSummary) {
     if (!user) return;
     feedback.tap();
@@ -310,11 +75,10 @@ export default function OrdersScreen() {
       for (let i = 0; i < o.items.length; i++) {
         const it = o.items[i];
         await addToCart.mutateAsync({
-          userId: user.id,
-          mealId: it.mealId,
+          userId: user.id, mealId: it.mealId,
           price: it.quantity ? it.total / it.quantity : it.total,
           quantity: it.quantity,
-          replace: i === 0, // start a fresh cart so kitchens never mix
+          replace: i === 0,
         });
       }
       feedback.success();
@@ -327,7 +91,6 @@ export default function OrdersScreen() {
     }
   }
 
-  // Cancelling is destructive → confirm in an overlay first.
   const [confirmCancel, setConfirmCancel] = useState<OrderSummary | null>(null);
 
   function doCancel(o: OrderSummary) {
@@ -341,8 +104,6 @@ export default function OrdersScreen() {
     });
   }
 
-  // Finish paying an order whose checkout was canceled/declined (the order is
-  // saved but unpaid). Web pays in-app via the embedded sheet.
   async function payOrder(orderId: string) {
     feedback.tap();
     setActionErr(null);
@@ -356,10 +117,8 @@ export default function OrdersScreen() {
         return;
       }
       const url = await checkoutStripe.mutateAsync(orderId);
-      {
-        await WebBrowser.openBrowserAsync(url);
-        setPayingId(null);
-      }
+      await WebBrowser.openBrowserAsync(url);
+      setPayingId(null);
     } catch (e) {
       feedback.error();
       setPayingId(null);
@@ -384,15 +143,18 @@ export default function OrdersScreen() {
 
         {showPaid ? (
           <MotiView from={{ opacity: 0, translateY: -8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 220 }}>
-            <PressableScale onPress={() => { feedback.tap(); setShowPaid(false); }} accessibilityRole="button" accessibilityLabel="Dismiss" style={{ marginHorizontal: 16, marginBottom: 8, backgroundColor: Palette.success + '14', borderWidth: 1, borderColor: Palette.success + '55', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 11, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <PressableScale onPress={() => { feedback.tap(); setShowPaid(false); }} accessibilityRole="button" accessibilityLabel="Dismiss"
+              style={{ marginHorizontal: 16, marginBottom: 8, backgroundColor: Palette.success + '14', borderWidth: 1, borderColor: Palette.success + '55', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 11, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               <Check size={16} color={Palette.success} strokeWidth={3} />
               <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: Palette.ink, flex: 1 }}>Payment received — your preorder is in. The prepper will confirm shortly.</Text>
             </PressableScale>
           </MotiView>
         ) : null}
+
         {actionErr ? (
           <MotiView from={{ opacity: 0, translateY: -4 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 200 }}>
-            <PressableScale onPress={() => { feedback.tap(); setActionErr(null); }} accessibilityRole="button" accessibilityLabel="Dismiss error" style={{ marginHorizontal: 16, marginBottom: 8, backgroundColor: Palette.danger + '14', borderWidth: 1, borderColor: Palette.danger + '40', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10 }}>
+            <PressableScale onPress={() => { feedback.tap(); setActionErr(null); }} accessibilityRole="button" accessibilityLabel="Dismiss error"
+              style={{ marginHorizontal: 16, marginBottom: 8, backgroundColor: Palette.danger + '14', borderWidth: 1, borderColor: Palette.danger + '40', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10 }}>
               <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: Palette.danger }}>{actionErr} (tap to dismiss)</Text>
             </PressableScale>
           </MotiView>
@@ -402,26 +164,30 @@ export default function OrdersScreen() {
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
             <Receipt size={28} color={Palette.textMuted} />
             <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center' }}>Sign in to see your preorders.</Text>
-            <PressableScale onPress={() => { feedback.tap(); router.push('/auth?mode=signin'); }} accessibilityRole="button" accessibilityLabel="Sign in" style={{ marginTop: 4, paddingHorizontal: 22, height: 48, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
+            <PressableScale onPress={() => { feedback.tap(); router.push('/auth?mode=signin'); }} accessibilityRole="button" accessibilityLabel="Sign in"
+              style={{ marginTop: 4, paddingHorizontal: 22, height: 48, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
               <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#fff' }}>Sign in</Text>
             </PressableScale>
           </View>
         ) : isLoading ? (
           <ListSkeleton count={3} rowHeight={120} />
         ) : !orders?.length ? (
-          <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280 }} style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 10 }}>
+          <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280 }}
+            style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 10 }}>
             <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
               <Receipt size={28} color={Palette.textMuted} />
             </View>
             <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>No preorders yet</Text>
             <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center' }}>When you preorder a meal it&apos;ll show up here.</Text>
-            <PressableScale onPress={() => { feedback.tap(); router.replace('/explore'); }} accessibilityRole="button" accessibilityLabel="Browse meals" style={{ marginTop: 4, paddingHorizontal: 22, height: 48, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
+            <PressableScale onPress={() => { feedback.tap(); router.replace('/explore'); }} accessibilityRole="button" accessibilityLabel="Browse meals"
+              style={{ marginTop: 4, paddingHorizontal: 22, height: 48, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
               <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#fff' }}>Browse meals</Text>
             </PressableScale>
           </MotiView>
         ) : (
-          <ScrollView showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={ORANGE} colors={[ORANGE]} />} contentContainerStyle={{ padding: 20, gap: 12, paddingBottom: 40 }}>
-            {/* Order stats summary */}
+          <ScrollView showsVerticalScrollIndicator={false}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={ORANGE} colors={[ORANGE]} />}
+            contentContainerStyle={{ padding: 20, gap: 12, paddingBottom: 40 }}>
             {(() => {
               const done = orders.filter((o) => o.status === 'completed');
               if (!done.length) return null;
@@ -448,7 +214,8 @@ export default function OrdersScreen() {
             })()}
             <View style={twoCol ? { flexDirection: 'row', flexWrap: 'wrap', gap: 12 } : { gap: 12 }}>
               {orders.map((o, i) => (
-                <MotiView key={o.id} from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 220, delay: i * 50 }}
+                <MotiView key={o.id} from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }}
+                  transition={{ type: 'timing', duration: 220, delay: i * 50 }}
                   style={twoCol ? { width: '48.5%' } : undefined}>
                   <OrderCard
                     order={o}
@@ -482,7 +249,6 @@ export default function OrdersScreen() {
         <StripeEmbeddedSheet clientSecret={paySheet.clientSecret} pk={paySheet.pk} onClose={() => setPaySheet(null)} />
       ) : null}
 
-      {/* Report an issue modal */}
       <Modal visible={!!reportModal} transparent animationType="fade" onRequestClose={() => setReportModal(null)}>
         <Pressable onPress={() => setReportModal(null)} style={{ flex: 1, backgroundColor: Palette.overlay, alignItems: 'center', justifyContent: 'center', padding: 28 }}>
           <Pressable onPress={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 360, backgroundColor: Palette.surface, borderRadius: 24, padding: 22, gap: 14 }}>
@@ -493,32 +259,22 @@ export default function OrdersScreen() {
             <Text style={{ fontFamily: Font.body, fontSize: 13.5, color: Palette.textSecondary, lineHeight: 20 }}>
               Tell us what went wrong with your preorder from {reportModal?.prepper ?? ''}. Our team will review it.
             </Text>
-            <TextInput
-              value={reportReason}
-              onChangeText={setReportReason}
-              placeholder="Describe the issue…"
-              placeholderTextColor={Palette.textMuted}
-              multiline
-              maxLength={1000}
-              style={{ minHeight: 100, backgroundColor: Palette.canvas, borderRadius: 12, borderWidth: 1, borderColor: Palette.border, padding: 12, fontFamily: Font.body, fontSize: 14, color: INK, textAlignVertical: 'top' }}
-            />
+            <TextInput value={reportReason} onChangeText={setReportReason} placeholder="Describe the issue…" placeholderTextColor={Palette.textMuted}
+              multiline maxLength={1000}
+              style={{ minHeight: 100, backgroundColor: Palette.canvas, borderRadius: 12, borderWidth: 1, borderColor: Palette.border, padding: 12, fontFamily: Font.body, fontSize: 14, color: INK, textAlignVertical: 'top' }} />
             {reportErr ? <Text style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.danger }}>{reportErr}</Text> : null}
-            <PressableScale
-              onPress={submitReport}
-              disabled={reportDispute.isPending}
-              accessibilityRole="button"
-              accessibilityLabel="Submit report"
+            <PressableScale onPress={submitReport} disabled={reportDispute.isPending} accessibilityRole="button" accessibilityLabel="Submit report"
               style={{ height: 50, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', opacity: reportDispute.isPending ? 0.7 : 1 }}>
               {reportDispute.isPending ? <ActivityIndicator color="#fff" /> : <Text style={{ fontFamily: Font.heading, fontSize: 15.5, color: '#fff' }}>Submit report</Text>}
             </PressableScale>
-            <PressableScale onPress={() => { feedback.tap(); setReportModal(null); }} accessibilityRole="button" accessibilityLabel="Cancel" style={{ height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center' }}>
+            <PressableScale onPress={() => { feedback.tap(); setReportModal(null); }} accessibilityRole="button" accessibilityLabel="Cancel"
+              style={{ height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center' }}>
               <Text style={{ fontFamily: Font.heading, fontSize: 15, color: Palette.textSecondary }}>Cancel</Text>
             </PressableScale>
           </Pressable>
         </Pressable>
       </Modal>
 
-      {/* Cancel confirmation overlay */}
       <Modal visible={!!confirmCancel} transparent animationType="fade" onRequestClose={() => setConfirmCancel(null)}>
         <Pressable onPress={() => setConfirmCancel(null)} style={{ flex: 1, backgroundColor: Palette.overlay, alignItems: 'center', justifyContent: 'center', padding: 28 }}>
           <Pressable onPress={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 360, backgroundColor: Palette.surface, borderRadius: 24, padding: 22, gap: 14 }}>
@@ -528,12 +284,14 @@ export default function OrdersScreen() {
             <Text style={{ fontFamily: Font.display, fontSize: 21, color: INK, letterSpacing: -0.4 }}>Cancel this preorder?</Text>
             <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, lineHeight: 20 }}>
               {confirmCancel ? `Your preorder from ${confirmCancel.prepper} (${money(confirmCancel.total)}) will be cancelled.` : ''}
-              {confirmCancel?.paymentStatus === 'succeeded' ? ' You’ll be refunded automatically.' : ''}
+              {confirmCancel?.paymentStatus === 'succeeded' ? " You'll be refunded automatically." : ''}
             </Text>
-            <PressableScale onPress={() => { feedback.tap(); if (confirmCancel) doCancel(confirmCancel); }} accessibilityRole="button" accessibilityLabel="Yes, cancel the preorder" style={{ height: 50, borderRadius: 14, backgroundColor: Palette.danger, alignItems: 'center', justifyContent: 'center' }}>
+            <PressableScale onPress={() => { feedback.tap(); if (confirmCancel) doCancel(confirmCancel); }} accessibilityRole="button" accessibilityLabel="Yes, cancel the preorder"
+              style={{ height: 50, borderRadius: 14, backgroundColor: Palette.danger, alignItems: 'center', justifyContent: 'center' }}>
               <Text style={{ fontFamily: Font.heading, fontSize: 15.5, color: '#fff' }}>Yes, cancel preorder</Text>
             </PressableScale>
-            <PressableScale onPress={() => { feedback.tap(); setConfirmCancel(null); }} accessibilityRole="button" accessibilityLabel="Keep my preorder" style={{ height: 48, borderRadius: 14, alignItems: 'center', justifyContent: 'center' }}>
+            <PressableScale onPress={() => { feedback.tap(); setConfirmCancel(null); }} accessibilityRole="button" accessibilityLabel="Keep my preorder"
+              style={{ height: 48, borderRadius: 14, alignItems: 'center', justifyContent: 'center' }}>
               <Text style={{ fontFamily: Font.heading, fontSize: 15, color: Palette.textSecondary }}>Keep my preorder</Text>
             </PressableScale>
           </Pressable>
