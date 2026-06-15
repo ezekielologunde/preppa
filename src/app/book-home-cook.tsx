@@ -87,13 +87,13 @@ function BudgetPicker({ value, onChange }: { value: number | null; onChange: (n:
         {BUDGETS.map((p) => {
           const on = !custom && value === p;
           return (
-            <PressableScale key={p} onPress={() => { feedback.tap(); setCustom(false); onChange(p); }}
+            <PressableScale key={p} onPress={() => { feedback.tap(); setCustom(false); onChange(p); }} accessibilityRole="button" accessibilityLabel={'$' + p + ' budget'} accessibilityState={{ selected: on }}
               style={{ paddingHorizontal: 18, height: 42, borderRadius: Radius.pill, borderWidth: 1.5, borderColor: on ? HC : Palette.border, backgroundColor: on ? HC_TINT : Palette.canvas, alignItems: 'center', justifyContent: 'center' }}>
               <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: on ? HC : INK }}>${p}</Text>
             </PressableScale>
           );
         })}
-        <PressableScale onPress={() => { feedback.tap(); setCustom(true); }}
+        <PressableScale onPress={() => { feedback.tap(); setCustom(true); }} accessibilityRole="button" accessibilityLabel="Custom budget" accessibilityState={{ selected: custom }}
           style={{ paddingHorizontal: 18, height: 42, borderRadius: Radius.pill, borderWidth: 1.5, borderColor: custom ? HC : Palette.border, backgroundColor: custom ? HC_TINT : Palette.canvas, alignItems: 'center', justifyContent: 'center' }}>
           <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: custom ? HC : INK }}>Other</Text>
         </PressableScale>
@@ -284,12 +284,12 @@ export default function BookHomeCookScreen() {
                   <Text style={{ fontFamily: Font.heading, fontSize: 14, color: INK }}>Guests</Text>
                 </View>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 20, backgroundColor: Palette.surface, borderRadius: 14, paddingHorizontal: 16, paddingVertical: 12, borderWidth: 1, borderColor: Palette.border, alignSelf: 'flex-start' }}>
-                  <PressableScale onPress={() => { feedback.tap(); setGuests(Math.max(1, guests - 1)); }} disabled={guests <= 1}
+                  <PressableScale onPress={() => { feedback.tap(); setGuests(Math.max(1, guests - 1)); }} disabled={guests <= 1} accessibilityRole="button" accessibilityLabel="Decrease guests"
                     style={{ width: 36, height: 36, borderRadius: 11, backgroundColor: Palette.canvas, alignItems: 'center', justifyContent: 'center', opacity: guests <= 1 ? 0.35 : 1 }}>
                     <Minus size={16} color={INK} />
                   </PressableScale>
-                  <Text style={{ fontFamily: Font.display, fontSize: 24, color: INK, minWidth: 36, textAlign: 'center', fontVariant: ['tabular-nums'] }}>{guests}</Text>
-                  <PressableScale onPress={() => { feedback.tap(); setGuests(Math.min(20, guests + 1)); }} disabled={guests >= 20}
+                  <Text style={{ fontFamily: Font.display, fontSize: 24, color: INK, minWidth: 36, textAlign: 'center', fontVariant: ['tabular-nums'] }} accessibilityLabel={guests + ' guests'}>{guests}</Text>
+                  <PressableScale onPress={() => { feedback.tap(); setGuests(Math.min(20, guests + 1)); }} disabled={guests >= 20} accessibilityRole="button" accessibilityLabel="Increase guests"
                     style={{ width: 36, height: 36, borderRadius: 11, backgroundColor: HC_TINT, alignItems: 'center', justifyContent: 'center', opacity: guests >= 20 ? 0.35 : 1 }}>
                     <Plus size={16} color={HC} />
                   </PressableScale>
