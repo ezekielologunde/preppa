@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { Check, Plus, Star, UtensilsCrossed } from 'lucide-react-native';
+import { Check, Plus, Star, UtensilsCrossed, X } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
@@ -52,6 +52,7 @@ export function QuickAddButton({ meal }: { meal: Meal }) {
   const { user } = useAuth();
   const addToCart = useAddToCart();
   const [done, setDone] = useState(false);
+  const [failed, setFailed] = useState(false);
 
   function onAdd() {
     feedback.tap();
@@ -65,20 +66,25 @@ export function QuickAddButton({ meal }: { meal: Meal }) {
           setDone(true);
           setTimeout(() => setDone(false), 1800);
         },
+        onError: () => {
+          feedback.error();
+          setFailed(true);
+          setTimeout(() => setFailed(false), 1800);
+        },
       },
     );
   }
 
   return (
     <MotiView
-      animate={{ scale: done ? 1.15 : 1, backgroundColor: done ? Palette.success : ORANGE }}
+      animate={{ scale: done ? 1.15 : 1, backgroundColor: done ? Palette.success : failed ? Palette.danger : ORANGE }}
       transition={{ type: 'spring', damping: 14, stiffness: 180 }}
       style={{ width: 34, height: 34, borderRadius: 17, overflow: 'hidden', ...Shadow.card }}>
       <PressableScale onPress={onAdd} accessibilityRole="button"
-        accessibilityLabel={done ? 'Added to cart' : `Add ${meal.title} to cart`}
+        accessibilityLabel={done ? 'Added to cart' : failed ? 'Failed — tap to retry' : `Add ${meal.title} to cart`}
         style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-        {done
-          ? <Check size={16} color="#fff" strokeWidth={2.5} />
+        {done ? <Check size={16} color="#fff" strokeWidth={2.5} />
+          : failed ? <X size={16} color="#fff" strokeWidth={2.5} />
           : <Plus size={16} color="#fff" strokeWidth={2.5} />}
       </PressableScale>
     </MotiView>
