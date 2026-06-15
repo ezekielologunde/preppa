@@ -250,8 +250,8 @@ export default function OrdersScreen() {
       ) : null}
 
       <Modal visible={!!reportModal} transparent animationType="fade" onRequestClose={() => setReportModal(null)}>
-        <Pressable onPress={() => setReportModal(null)} style={{ flex: 1, backgroundColor: Palette.overlay, alignItems: 'center', justifyContent: 'center', padding: 28 }}>
-          <Pressable onPress={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 360, backgroundColor: Palette.surface, borderRadius: 24, padding: 22, gap: 14 }}>
+        <Pressable onPress={() => setReportModal(null)} accessibilityRole="button" accessibilityLabel="Close report form" style={{ flex: 1, backgroundColor: Palette.overlay, alignItems: 'center', justifyContent: 'center', padding: 28 }}>
+          <Pressable onPress={(e) => e.stopPropagation()} accessible={false} style={{ width: '100%', maxWidth: 360, backgroundColor: Palette.surface, borderRadius: 24, padding: 22, gap: 14 }}>
             <View style={{ width: 52, height: 52, borderRadius: 16, backgroundColor: Palette.canvas, alignItems: 'center', justifyContent: 'center' }}>
               <AlertTriangle size={26} color={Palette.textSecondary} />
             </View>
@@ -276,8 +276,8 @@ export default function OrdersScreen() {
       </Modal>
 
       <Modal visible={!!confirmCancel} transparent animationType="fade" onRequestClose={() => setConfirmCancel(null)}>
-        <Pressable onPress={() => setConfirmCancel(null)} style={{ flex: 1, backgroundColor: Palette.overlay, alignItems: 'center', justifyContent: 'center', padding: 28 }}>
-          <Pressable onPress={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 360, backgroundColor: Palette.surface, borderRadius: 24, padding: 22, gap: 14 }}>
+        <Pressable onPress={() => setConfirmCancel(null)} accessibilityRole="button" accessibilityLabel="Keep my preorder" style={{ flex: 1, backgroundColor: Palette.overlay, alignItems: 'center', justifyContent: 'center', padding: 28 }}>
+          <Pressable onPress={(e) => e.stopPropagation()} accessible={false} style={{ width: '100%', maxWidth: 360, backgroundColor: Palette.surface, borderRadius: 24, padding: 22, gap: 14 }}>
             <View style={{ width: 52, height: 52, borderRadius: 16, backgroundColor: Palette.danger + '1A', alignItems: 'center', justifyContent: 'center' }}>
               <X size={26} color={Palette.danger} strokeWidth={2.6} />
             </View>
