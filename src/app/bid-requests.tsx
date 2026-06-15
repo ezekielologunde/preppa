@@ -202,8 +202,8 @@ export default function BidRequestsScreen() {
 
         {/* Post request modal */}
         <Modal visible={showPost} transparent animationType="slide" onRequestClose={closePostModal}>
-          <Pressable onPress={closePostModal} style={{ flex: 1, backgroundColor: Palette.overlay, justifyContent: 'flex-end' }}>
-            <Pressable onPress={(e) => e.stopPropagation()} style={{ backgroundColor: Palette.surface, borderTopLeftRadius: 28, borderTopRightRadius: 28, maxHeight: '90%' }}>
+          <Pressable onPress={closePostModal} accessibilityRole="button" accessibilityLabel="Close" style={{ flex: 1, backgroundColor: Palette.overlay, justifyContent: 'flex-end' }}>
+            <Pressable onPress={(e) => e.stopPropagation()} accessible={false} style={{ backgroundColor: Palette.surface, borderTopLeftRadius: 28, borderTopRightRadius: 28, maxHeight: '90%' }}>
               {postSuccess ? (
                 <MotiView from={{ opacity: 0, translateY: 12 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 300 }}
                   style={{ padding: 28, gap: 20, alignItems: 'center' }}>
@@ -282,8 +282,8 @@ export default function BidRequestsScreen() {
 
         {/* Bid modal */}
         <Modal visible={!!bidTarget} transparent animationType="slide" onRequestClose={closeBidModal}>
-          <Pressable onPress={closeBidModal} style={{ flex: 1, backgroundColor: Palette.overlay, justifyContent: 'flex-end' }}>
-            <Pressable onPress={(e) => e.stopPropagation()} style={{ backgroundColor: Palette.surface, borderTopLeftRadius: 28, borderTopRightRadius: 28, maxHeight: '80%' }}>
+          <Pressable onPress={closeBidModal} accessibilityRole="button" accessibilityLabel="Close" style={{ flex: 1, backgroundColor: Palette.overlay, justifyContent: 'flex-end' }}>
+            <Pressable onPress={(e) => e.stopPropagation()} accessible={false} style={{ backgroundColor: Palette.surface, borderTopLeftRadius: 28, borderTopRightRadius: 28, maxHeight: '80%' }}>
               <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 24, gap: 14 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                   <Text style={{ fontFamily: Font.display, fontSize: 20, color: INK, letterSpacing: -0.4, flex: 1 }} numberOfLines={1}>{bidTarget?.title}</Text>
@@ -333,8 +333,8 @@ export default function BidRequestsScreen() {
 
         {/* Agreement modal */}
         <Modal visible={!!agreementTarget} transparent animationType="slide" onRequestClose={() => { setAgreementTarget(null); setAgreementError(null); }}>
-          <Pressable onPress={() => { setAgreementTarget(null); setAgreementError(null); }} style={{ flex: 1, backgroundColor: Palette.overlay, justifyContent: 'flex-end' }}>
-            <Pressable onPress={(e) => e.stopPropagation()} style={{ backgroundColor: Palette.surface, borderTopLeftRadius: 28, borderTopRightRadius: 28, maxHeight: '85%' }}>
+          <Pressable onPress={() => { setAgreementTarget(null); setAgreementError(null); }} accessibilityRole="button" accessibilityLabel="Close" style={{ flex: 1, backgroundColor: Palette.overlay, justifyContent: 'flex-end' }}>
+            <Pressable onPress={(e) => e.stopPropagation()} accessible={false} style={{ backgroundColor: Palette.surface, borderTopLeftRadius: 28, borderTopRightRadius: 28, maxHeight: '85%' }}>
               <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 24, gap: 16 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                   <View>
