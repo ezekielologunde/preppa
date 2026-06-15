@@ -130,6 +130,7 @@ export default function EditProfileScreen() {
       const url = await pickAndUploadImage('avatars', user?.id ?? 'anon');
       if (url) setAvatarUrl(url);
     } catch (e) {
+      feedback.error();
       setUploadError(e instanceof Error ? e.message : 'Upload failed');
     }
   }

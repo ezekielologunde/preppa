@@ -140,6 +140,7 @@ export default function AuthScreen() {
           : sendCode(email.trim().toLowerCase());
     const { error } = await send;
     setBusy(false);
+    if (error) feedback.error();
     setMsg(error ? { text: error, ok: false } : { text: 'New code sent.', ok: true });
   }
 
