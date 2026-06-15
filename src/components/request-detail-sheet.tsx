@@ -50,9 +50,9 @@ export function RequestDetailSheet({
 
   return (
     <Modal visible animationType="slide" transparent onRequestClose={handleClose}>
-      <Pressable onPress={handleClose}
+      <Pressable onPress={handleClose} accessibilityRole="button" accessibilityLabel="Close"
         style={{ flex: 1, backgroundColor: Palette.overlay, justifyContent: 'flex-end' }}>
-        <Pressable onPress={(e) => e.stopPropagation()}
+        <Pressable onPress={(e) => e.stopPropagation()} accessible={false}
           style={{ backgroundColor: Palette.surface, borderTopLeftRadius: 28, borderTopRightRadius: 28, maxHeight: '92%' }}>
           <ScrollView keyboardShouldPersistTaps="handled"
             contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 24, paddingBottom: 40, gap: 16 }}>

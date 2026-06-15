@@ -58,7 +58,7 @@ function RedeemSheet({ perk, canRedeem, onClose, onCta }: { perk: Perk | null; c
   return (
     <Modal visible={!!perk} transparent animationType="none" onRequestClose={onClose}>
       <MotiView from={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ type: 'timing', duration: 180 }} style={{ flex: 1 }}>
-        <Pressable onPress={onClose} style={{ flex: 1, backgroundColor: Palette.overlay }} accessibilityLabel="Dismiss" />
+        <Pressable onPress={onClose} accessibilityRole="button" style={{ flex: 1, backgroundColor: Palette.overlay }} accessibilityLabel="Dismiss" />
         <MotiView
           from={{ translateY: 320 }}
           animate={{ translateY: 0 }}

@@ -318,8 +318,8 @@ export default function ChatScreen() {
 
       {/* Propose terms modal — prepper sets cooking fee + travel fee */}
       <Modal visible={showTermsModal} transparent animationType="fade" onRequestClose={() => setShowTermsModal(false)}>
-        <Pressable onPress={() => setShowTermsModal(false)} style={{ flex: 1, backgroundColor: Palette.overlay, alignItems: 'center', justifyContent: 'center', padding: 28 }}>
-          <Pressable onPress={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 360, backgroundColor: Palette.surface, borderRadius: 22, padding: 22, gap: 14 }}>
+        <Pressable onPress={() => setShowTermsModal(false)} accessibilityRole="button" accessibilityLabel="Close terms" style={{ flex: 1, backgroundColor: Palette.overlay, alignItems: 'center', justifyContent: 'center', padding: 28 }}>
+          <Pressable onPress={(e) => e.stopPropagation()} accessible={false} style={{ width: '100%', maxWidth: 360, backgroundColor: Palette.surface, borderRadius: 22, padding: 22, gap: 14 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
               <View style={{ width: 44, height: 44, borderRadius: 13, backgroundColor: HC_TINT, alignItems: 'center', justifyContent: 'center' }}>
                 <ChefHat size={20} color={HC} />

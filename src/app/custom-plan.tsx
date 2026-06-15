@@ -68,8 +68,8 @@ function DrillDownModal({ item, deliveryDay, paymentsOn, onPay, paying, onClose 
 
   return (
     <Modal visible={!!item} transparent animationType="slide" onRequestClose={onClose}>
-      <Pressable onPress={onClose} style={{ flex: 1, backgroundColor: Palette.overlay, justifyContent: 'flex-end' }}>
-        <Pressable onPress={(e) => e.stopPropagation()}
+      <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="Close" style={{ flex: 1, backgroundColor: Palette.overlay, justifyContent: 'flex-end' }}>
+        <Pressable onPress={(e) => e.stopPropagation()} accessible={false}
           style={{ backgroundColor: Palette.surface, borderTopLeftRadius: 26, borderTopRightRadius: 26, padding: 22, paddingBottom: 40, gap: 16, width: '100%', maxWidth: 480, alignSelf: 'center' }}>
 
           <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>

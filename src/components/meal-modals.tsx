@@ -82,7 +82,7 @@ export function MealConfirmSheet({ visible, onClose, onGoToCart, meal, cartCount
   return (
     <Modal visible={visible} transparent animationType="none" onRequestClose={onClose}>
       <MotiView from={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ type: 'timing', duration: 180 }} style={{ flex: 1 }}>
-        <Pressable onPress={onClose} style={{ flex: 1, backgroundColor: Palette.overlay }} accessibilityLabel="Dismiss" />
+        <Pressable onPress={onClose} accessibilityRole="button" style={{ flex: 1, backgroundColor: Palette.overlay }} accessibilityLabel="Dismiss" />
         <MotiView
           from={{ translateY: 340 }}
           animate={{ translateY: 0 }}
@@ -146,8 +146,8 @@ type SwitchPromptProps = {
 export function MealSwitchPrompt({ visible, onClose, cartPrepperName, mealPrepper, isPending, onSwitch }: SwitchPromptProps) {
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <Pressable onPress={onClose} style={{ flex: 1, backgroundColor: Palette.overlay, alignItems: 'center', justifyContent: 'center', padding: 28 }}>
-        <Pressable onPress={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 360, backgroundColor: Palette.surface, borderRadius: 22, padding: 22, gap: 10 }}>
+      <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="Cancel" style={{ flex: 1, backgroundColor: Palette.overlay, alignItems: 'center', justifyContent: 'center', padding: 28 }}>
+        <Pressable onPress={(e) => e.stopPropagation()} accessible={false} style={{ width: '100%', maxWidth: 360, backgroundColor: Palette.surface, borderRadius: 22, padding: 22, gap: 10 }}>
           <View style={{ width: 48, height: 48, borderRadius: 16, backgroundColor: Palette.brandTint, alignItems: 'center', justifyContent: 'center' }}>
             <ShoppingBag size={22} color={ORANGE} />
           </View>

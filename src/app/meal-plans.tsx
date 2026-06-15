@@ -340,8 +340,8 @@ export default function MealPlansScreen() {
 
       {/* Cancel confirmation modal */}
       <Modal visible={!!cancelTarget} transparent animationType="fade" onRequestClose={() => setCancelTarget(null)}>
-        <Pressable onPress={() => setCancelTarget(null)} style={{ flex: 1, backgroundColor: Palette.overlay, alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-          <Pressable onPress={(e) => e.stopPropagation()}
+        <Pressable onPress={() => setCancelTarget(null)} accessibilityRole="button" accessibilityLabel="Keep plan" style={{ flex: 1, backgroundColor: Palette.overlay, alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+          <Pressable onPress={(e) => e.stopPropagation()} accessible={false}
             style={{ backgroundColor: Palette.surface, borderRadius: 24, padding: 24, width: '100%', maxWidth: 360, gap: 16, alignItems: 'center' }}>
             <View style={{ width: 52, height: 52, borderRadius: 26, backgroundColor: '#FEF2F2', alignItems: 'center', justifyContent: 'center' }}>
               <AlertTriangle size={24} color={Palette.danger} />
