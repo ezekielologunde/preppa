@@ -60,6 +60,7 @@ export default function ChatScreen() {
   const [cookingFeeInput, setCookingFeeInput] = useState('');
   const [travelFeeInput, setTravelFeeInput] = useState('');
   const [termsErr, setTermsErr] = useState<string | null>(null);
+  const [confirmErr, setConfirmErr] = useState<string | null>(null);
 
   function call() {
     if (!ctx?.otherPhone) {
@@ -101,7 +102,7 @@ export default function ChatScreen() {
       { requestId: ctx.homeCookRequest.id, cookingFee: cooking, travelFee: travel || 0 },
       {
         onSuccess: () => { feedback.success(); setShowTermsModal(false); setCookingFeeInput(''); setTravelFeeInput(''); },
-        onError: (e) => setTermsErr(e instanceof Error ? e.message : 'Could not send proposal.'),
+        onError: (e) => { feedback.error(); setTermsErr(e instanceof Error ? e.message : 'Could not send proposal.'); },
       },
     );
   }
@@ -109,9 +110,10 @@ export default function ChatScreen() {
   function handleConfirmBooking() {
     if (!ctx?.homeCookRequest) return;
     feedback.tap();
+    setConfirmErr(null);
     confirmBooking.mutate(ctx.homeCookRequest.id, {
       onSuccess: () => { feedback.success(); },
-      onError: () => feedback.error(),
+      onError: () => { feedback.error(); setConfirmErr('Could not confirm booking. Please try again.'); },
     });
   }
 
@@ -201,12 +203,15 @@ export default function ChatScreen() {
                   <Text style={{ fontFamily: Font.semibold, fontSize: 13.5, color: '#fff' }}>Propose terms</Text>
                 </PressableScale>
               ) : !hc.iAmPrepper && termsReady ? (
-                <PressableScale onPress={handleConfirmBooking} disabled={confirmBooking.isPending} accessibilityRole="button" accessibilityLabel="Accept terms and confirm booking"
-                  style={{ marginHorizontal: 12, marginBottom: 12, height: 40, borderRadius: 11, backgroundColor: HC, alignItems: 'center', justifyContent: 'center', opacity: confirmBooking.isPending ? 0.7 : 1 }}>
-                  {confirmBooking.isPending ? <ActivityIndicator color="#fff" size="small" /> : (
-                    <Text style={{ fontFamily: Font.semibold, fontSize: 13.5, color: '#fff' }}>Accept & confirm booking</Text>
-                  )}
-                </PressableScale>
+                <View style={{ marginHorizontal: 12, marginBottom: 12, gap: 6 }}>
+                  {confirmErr ? <Text style={{ fontFamily: Font.medium, fontSize: 12, color: Palette.danger, textAlign: 'center' }}>{confirmErr}</Text> : null}
+                  <PressableScale onPress={handleConfirmBooking} disabled={confirmBooking.isPending} accessibilityRole="button" accessibilityLabel="Accept terms and confirm booking"
+                    style={{ height: 40, borderRadius: 11, backgroundColor: HC, alignItems: 'center', justifyContent: 'center', opacity: confirmBooking.isPending ? 0.7 : 1 }}>
+                    {confirmBooking.isPending ? <ActivityIndicator color="#fff" size="small" /> : (
+                      <Text style={{ fontFamily: Font.semibold, fontSize: 13.5, color: '#fff' }}>Accept & confirm booking</Text>
+                    )}
+                  </PressableScale>
+                </View>
               ) : null}
             </MotiView>
           );
