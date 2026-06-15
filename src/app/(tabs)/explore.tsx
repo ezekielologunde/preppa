@@ -302,8 +302,8 @@ export default function ExploreScreen() {
                   onPress={() => { feedback.tap(); setActiveCategory('all'); setAdvFilters(FILTER_DEFAULTS); }}
                   accessibilityRole="button"
                   accessibilityLabel="Clear all filters"
-                  style={{ height: 38, paddingHorizontal: 16, borderRadius: Radius.pill, borderWidth: 1.5, borderColor: Palette.border, alignItems: 'center', justifyContent: 'center' }}>
-                  <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: Palette.textSecondary }}>Reset filters</Text>
+                  style={{ height: 40, paddingHorizontal: 20, borderRadius: Radius.pill, backgroundColor: Palette.brand, alignItems: 'center', justifyContent: 'center' }}>
+                  <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: '#fff' }}>reset filters</Text>
                 </PressableScale>
               </View>
             ) : (
