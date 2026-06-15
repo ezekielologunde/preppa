@@ -110,7 +110,7 @@ export default function OpportunitiesScreen() {
   const { user } = useAuth();
   const { data: application, isLoading: appLoading } = useMyPrepperApplication(user?.id);
   const approved = application?.status === 'approved';
-  const { data: requests, isLoading, refetch } = useOpenRequests(approved ? application?.id : null);
+  const { data: requests, isLoading, isError, refetch } = useOpenRequests(approved ? application?.id : null);
   const [refreshing, setRefreshing] = useState(false);
   async function handleRefresh() { setRefreshing(true); await refetch(); setRefreshing(false); }
 
@@ -143,6 +143,17 @@ export default function OpportunitiesScreen() {
           <Gate title="Approval pending" body="Once your prepper application is approved, customer requests will appear here for you to bid on." />
         ) : isLoading ? (
           <ListSkeleton count={4} />
+        ) : isError ? (
+          <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }}
+            style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
+            <Inbox size={28} color={Palette.textMuted} />
+            <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>couldn't load requests</Text>
+            <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center' }}>Check your connection and try again.</Text>
+            <PressableScale onPress={() => { feedback.tap(); refetch(); }} accessibilityRole="button" accessibilityLabel="Retry"
+              style={{ marginTop: 4, backgroundColor: ORANGE, borderRadius: Radius.pill, paddingHorizontal: 22, paddingVertical: 12 }}>
+              <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: '#fff' }}>retry</Text>
+            </PressableScale>
+          </MotiView>
         ) : !requests?.length ? (
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 10 }}>
             <Inbox size={28} color={Palette.textMuted} />

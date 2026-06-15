@@ -64,7 +64,7 @@ function EarningRow({ item }: { item: EarningsRecent }) {
 export default function EarningsScreen() {
   const router = useRouter();
   const isDesktop = useBreakpoint() === 'desktop';
-  const { data, isLoading, refetch } = useMyEarnings();
+  const { data, isLoading, isError, refetch } = useMyEarnings();
   const [refreshing, setRefreshing] = useState(false);
   async function handleRefresh() { setRefreshing(true); await refetch(); setRefreshing(false); }
 
@@ -80,6 +80,19 @@ export default function EarningsScreen() {
 
         {isLoading ? (
           <ActivityIndicator color={ORANGE} style={{ marginTop: 40 }} />
+        ) : isError ? (
+          <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }}
+            style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
+            <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center' }}>
+              <TrendingUp size={28} color={MUTED} />
+            </View>
+            <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>couldn't load earnings</Text>
+            <Text style={{ fontFamily: Font.body, fontSize: 14, color: MUTED, textAlign: 'center' }}>Check your connection and try again.</Text>
+            <PressableScale onPress={() => { feedback.tap(); refetch(); }} accessibilityRole="button" accessibilityLabel="Retry loading earnings"
+              style={{ marginTop: 6, backgroundColor: ORANGE, borderRadius: Radius.pill, paddingHorizontal: 22, paddingVertical: 12 }}>
+              <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: '#fff' }}>retry</Text>
+            </PressableScale>
+          </MotiView>
         ) : !data?.is_prepper ? (
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
             <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center' }}>

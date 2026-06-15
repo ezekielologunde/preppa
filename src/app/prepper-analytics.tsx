@@ -93,7 +93,7 @@ export default function PrepperAnalyticsScreen() {
   const router = useRouter();
   const { user } = useAuth();
   const { data: application } = useMyPrepperApplication(user?.id);
-  const { data: orders, refetch } = usePrepperOrders(application?.id);
+  const { data: orders, isError: ordersError, refetch } = usePrepperOrders(application?.id);
   const { data: prepperProfile } = usePrepperProfile(application?.id);
   const isDesktop = useBreakpoint() === 'desktop';
   const [period, setPeriod] = useState<'week' | 'month' | 'all'>('week');
@@ -160,7 +160,20 @@ export default function PrepperAnalyticsScreen() {
           </View>
         </View>
 
-        {application && application.status !== 'approved' ? (
+        {ordersError ? (
+          <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }}
+            style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
+            <TrendingUp size={32} color={Palette.textMuted} />
+            <Text style={{ fontFamily: Font.heading, fontSize: 17, color: INK }}>couldn't load analytics</Text>
+            <Text style={{ fontFamily: Font.body, fontSize: 13.5, color: Palette.textSecondary, textAlign: 'center', lineHeight: 20 }}>
+              Check your connection and try again.
+            </Text>
+            <PressableScale onPress={() => { feedback.tap(); refetch(); }} accessibilityRole="button" accessibilityLabel="Retry loading analytics"
+              style={{ marginTop: 4, backgroundColor: ORANGE, borderRadius: Radius.pill, paddingHorizontal: 22, paddingVertical: 12 }}>
+              <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: '#fff' }}>retry</Text>
+            </PressableScale>
+          </MotiView>
+        ) : application && application.status !== 'approved' ? (
           <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260 }} style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
             <Package size={32} color={Palette.textMuted} />
             <Text style={{ fontFamily: Font.heading, fontSize: 17, color: INK, textAlign: 'center' }}>
