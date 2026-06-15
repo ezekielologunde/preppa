@@ -127,8 +127,11 @@ export default function ExperiencesScreen() {
               <View style={{ marginHorizontal: 20, marginTop: 12, marginBottom: 4, backgroundColor: Palette.danger + '12', borderRadius: Radius.md, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
                 <UtensilsCrossed size={18} color={Palette.danger} />
                 <Text style={{ flex: 1, fontFamily: Font.body, fontSize: 13, color: Palette.danger, lineHeight: 18 }}>
-                  Couldn't load your requests. Pull down to retry.
+                  Couldn't load your requests.
                 </Text>
+                <PressableScale onPress={() => { feedback.tap(); void refetch(); }} accessibilityRole="button" accessibilityLabel="Retry loading requests" hitSlop={8}>
+                  <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: Palette.danger }}>retry</Text>
+                </PressableScale>
               </View>
             </MotiView>
           ) : null}

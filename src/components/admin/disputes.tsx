@@ -41,7 +41,7 @@ function ResolveForm({ dispute, onDone }: { dispute: AdminDisputeRow; onDone: ()
     setErr(null);
     resolve.mutate(
       { disputeId: dispute.id, resolution, note: note.trim() || undefined },
-      { onSuccess: onDone, onError: (e) => { feedback.error(); setErr(e instanceof Error ? e.message : 'Could not resolve dispute.'); } },
+      { onSuccess: () => { feedback.success(); onDone(); }, onError: (e) => { feedback.error(); setErr(e instanceof Error ? e.message : 'Could not resolve dispute.'); } },
     );
   }
 
@@ -164,7 +164,7 @@ function DisputeCard({ d }: { d: AdminDisputeRow }) {
 
       {d.status === 'open' ? (
         <PressableScale
-          onPress={() => setExpanded((x) => !x)}
+          onPress={() => { feedback.tap(); setExpanded((x) => !x); }}
           accessibilityRole="button"
           accessibilityLabel={expanded ? 'Collapse resolution form' : 'Resolve this dispute'}
           style={{ marginTop: 12, height: 38, borderRadius: Radius.sm, borderWidth: 1, borderColor: Admin.border, alignItems: 'center', justifyContent: 'center' }}>
