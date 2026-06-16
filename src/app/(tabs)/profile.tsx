@@ -134,10 +134,14 @@ export default function ProfileScreen() {
   const statsEl = (
     <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280, delay: 40 }}>
       <View style={{ marginHorizontal: 20, flexDirection: 'row', gap: 10 }}>
-        <StatChip value={totalOrders} label="orders"    onPress={() => go('/orders')}    />
-        <StatChip value={activeSubs}  label="plans"     onPress={() => go('/meal-plans')} />
-        <StatChip value={savedCount}  label="saved"     onPress={() => go('/favorites')} />
-        <StatChip value={followed}    label="following" onPress={() => go('/following')} />
+        <View style={{ flex: 1, gap: 10 }}>
+          <StatChip value={totalOrders} label="orders"    Icon={Package}      color={Palette.brand}   onPress={() => go('/orders')}    />
+          <StatChip value={savedCount}  label="saved"     Icon={Heart}        color="#EF4444"         onPress={() => go('/favorites')} />
+        </View>
+        <View style={{ flex: 1, gap: 10 }}>
+          <StatChip value={activeSubs}  label="plans"     Icon={CalendarCheck} color="#8B5CF6"        onPress={() => go('/meal-plans')} />
+          <StatChip value={followed}    label="following" Icon={Users}         color={Palette.success} onPress={() => go('/following')} />
+        </View>
       </View>
     </MotiView>
   );

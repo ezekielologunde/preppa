@@ -28,6 +28,10 @@ export type Meal = {
   badge?: { label: string; color: string };
   /** ISO timestamp — limited drops only. Drives live countdown badge. */
   expiresAt?: string | null;
+  /** False when limited_qty has been exhausted — disables add-to-cart. */
+  inStock?: boolean;
+  /** Prepper's city — used for local feed filtering. */
+  prepperCity?: string | null;
 };
 
 function computeCountdown(expiresAt: string | null | undefined): string | null {
@@ -153,17 +157,22 @@ export function MealCard({ meal, width = 200, variant = 'normal', action }: { me
         <View style={{ position: 'relative' }}>
           <CardGallery images={images} hovered={hovered} height={imgHeight} />
           {displayBadge ? (
-            <View style={{ position: 'absolute', top: 10, left: 10, backgroundColor: displayBadge.solid ? displayBadge.color : '#fff', borderRadius: Radius.pill, paddingHorizontal: 9, paddingVertical: 4, flexDirection: 'row', alignItems: 'center' }}>
+            <MotiView
+              key={displayBadge.label}
+              from={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ type: 'timing', duration: 200 }}
+              style={{ position: 'absolute', top: 10, left: 10, backgroundColor: displayBadge.solid ? displayBadge.color : '#fff', borderRadius: Radius.pill, paddingHorizontal: 9, paddingVertical: 4, flexDirection: 'row', alignItems: 'center' }}>
               {!displayBadge.solid ? <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: displayBadge.color, marginRight: 5 }} /> : null}
               <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: displayBadge.solid ? '#fff' : Palette.ink }}>{displayBadge.label}</Text>
-            </View>
+            </MotiView>
           ) : null}
           <View style={{ position: 'absolute', top: 10, right: 10 }}>
             <FavoriteButton id={`meal:${meal.id}`} />
           </View>
           {big ? (
             <View style={{ position: 'absolute', bottom: 12, left: 14, right: 14 }}>
-              <Text numberOfLines={1} style={{ fontFamily: Font.heading, fontSize: 18, color: '#fff', textShadowColor: 'rgba(0,0,0,0.5)', textShadowRadius: 8 }}>{meal.title}</Text>
+              <Text numberOfLines={2} style={{ fontFamily: Font.heading, fontSize: 17, color: '#fff', textShadowColor: 'rgba(0,0,0,0.5)', textShadowRadius: 8 }}>{meal.title}</Text>
               <Text style={{ fontFamily: Font.medium, fontSize: 12.5, color: 'rgba(255,255,255,0.92)', textShadowColor: 'rgba(0,0,0,0.5)', textShadowRadius: 6 }}>by {meal.prepper}</Text>
             </View>
           ) : null}
@@ -171,7 +180,7 @@ export function MealCard({ meal, width = 200, variant = 'normal', action }: { me
         <View style={{ padding: 12, gap: 4 }}>
           {!big ? (
             <>
-              <Text numberOfLines={1} style={{ fontFamily: Font.heading, fontSize: 15, color: Palette.ink }}>{meal.title}</Text>
+              <Text numberOfLines={2} style={{ fontFamily: Font.heading, fontSize: 14, color: Palette.ink, lineHeight: 19 }}>{meal.title}</Text>
               <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted }}>by {meal.prepper}</Text>
             </>
           ) : null}

@@ -11,19 +11,33 @@ type MealRow = {
   prep_time_min: number | null;
   created_at: string | null;
   is_limited: boolean;
+  limited_qty: number | null;
   expires_at: string | null;
+  /** Computed by meal_remaining_qty(meals): null = unlimited, 0 = sold out, n = remaining. */
+  remaining_qty: number | null;
   prepper: {
     display_name: string;
     verified: boolean;
+    city: string | null;
     rating: { average_rating: number; total_reviews: number } | { average_rating: number; total_reviews: number }[] | null;
-  } | { display_name: string; verified: boolean; rating: unknown }[] | null;
+  } | { display_name: string; verified: boolean; city: string | null; rating: unknown }[] | null;
   images: { url: string }[];
   category: { key: string } | { key: string }[] | null;
 };
 
 const SELECT =
-  'id,title,base_price,prep_time_min,created_at,is_limited,expires_at,' +
-  'prepper:prepper_profiles(display_name,verified,rating:prepper_rating_summary(average_rating,total_reviews)),' +
+  'id,title,base_price,prep_time_min,created_at,is_limited,limited_qty,expires_at,' +
+  'remaining_qty:meal_remaining_qty,' +
+  'prepper:prepper_profiles(display_name,verified,city,rating:prepper_rating_summary(average_rating,total_reviews)),' +
+  'images:meal_images(url),' +
+  'category:meal_categories(key)';
+
+// Inner join variant — used when filtering by city so only meals from preppers
+// in that city are returned. Falls back to SELECT (outer join) when < 3 results.
+const SELECT_CITY_INNER =
+  'id,title,base_price,prep_time_min,created_at,is_limited,limited_qty,expires_at,' +
+  'remaining_qty:meal_remaining_qty,' +
+  'prepper:prepper_profiles!inner(display_name,verified,city,rating:prepper_rating_summary(average_rating,total_reviews)),' +
   'images:meal_images(url),' +
   'category:meal_categories(key)';
 
@@ -68,14 +82,30 @@ function mapMeal(row: MealRow): Meal {
     category: cat?.key ?? null,
     badge: deriveBadge(row, rating),
     expiresAt: row.expires_at ?? null,
+    inStock: row.remaining_qty !== null && row.remaining_qty <= 0 ? false : undefined,
+    prepperCity: (prepper as { city?: string | null } | undefined)?.city ?? null,
   };
 }
 
-/** Live published meals for the Home/Explore carousels (RLS: public read). */
-export function useFeaturedMeals(limit = 10) {
+/** Live published meals for the Home/Explore carousels (RLS: public read).
+ *  Pass `city` to prioritise local kitchens — falls back to global feed when
+ *  fewer than 3 local results exist (empty-city guard for new markets). */
+export function useFeaturedMeals(limit = 10, city?: string | null) {
   return useQuery({
-    queryKey: ['meals', 'featured', limit],
+    queryKey: ['meals', 'featured', limit, city ?? 'all'],
+    staleTime: 2 * 60_000,
     queryFn: async (): Promise<Meal[]> => {
+      if (city) {
+        const { data: local, error: localErr } = await supabase
+          .from('meals')
+          .select(SELECT_CITY_INNER)
+          .eq('status', 'published')
+          .eq('prepper.city', city)
+          .limit(limit);
+        if (!localErr && (local?.length ?? 0) >= 3) {
+          return (local as unknown as MealRow[]).map(mapMeal);
+        }
+      }
       const { data, error } = await supabase
         .from('meals')
         .select(SELECT)
@@ -124,6 +154,7 @@ export function useMealsByCategory(categoryKey?: string, limit = 40) {
   const key = categoryKey && categoryKey !== 'all' ? categoryKey : undefined;
   return useQuery({
     queryKey: ['meals', 'category', key ?? 'all', limit],
+    staleTime: 2 * 60_000,
     queryFn: async (): Promise<Meal[]> => {
       // Inner-join meal_categories so we can filter on its key; falls back to all when no key.
       const select = key
@@ -195,6 +226,7 @@ export function useMeal(id?: string) {
   return useQuery({
     queryKey: ['meal', id],
     enabled: !!id,
+    staleTime: 5 * 60_000,
     queryFn: async (): Promise<MealDetail> => {
       const { data, error } = await supabase.from('meals').select(DETAIL_SELECT).eq('id', id!).single();
       if (error) throw error;
@@ -281,10 +313,23 @@ export function useSurpriseMeals(filters: SurpriseFilters, enabled = true) {
 }
 
 /** Newest published meals sorted by creation date — powers the "just dropped" feed section. */
-export function useNewestMeals(limit = 8) {
+export function useNewestMeals(limit = 8, city?: string | null) {
   return useQuery({
-    queryKey: ['meals', 'newest', limit],
+    queryKey: ['meals', 'newest', limit, city ?? 'all'],
+    staleTime: 2 * 60_000,
     queryFn: async (): Promise<Meal[]> => {
+      if (city) {
+        const { data: local, error: localErr } = await supabase
+          .from('meals')
+          .select(SELECT_CITY_INNER)
+          .eq('status', 'published')
+          .eq('prepper.city', city)
+          .order('created_at', { ascending: false })
+          .limit(limit);
+        if (!localErr && (local?.length ?? 0) >= 3) {
+          return (local as unknown as MealRow[]).map(mapMeal);
+        }
+      }
       const { data, error } = await supabase
         .from('meals')
         .select(SELECT)
@@ -302,6 +347,7 @@ export function useMealsByPrepper(prepperId?: string | null, excludeId?: string 
   return useQuery({
     queryKey: ['meals', 'by-prepper', prepperId ?? 'none', excludeId ?? '', limit],
     enabled: !!prepperId,
+    staleTime: 2 * 60_000,
     queryFn: async (): Promise<Meal[]> => {
       let q = supabase
         .from('meals')

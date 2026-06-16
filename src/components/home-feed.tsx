@@ -56,6 +56,7 @@ export function QuickAddButton({ meal, pill = false }: { meal: Meal; pill?: bool
 
   function onAdd() {
     feedback.tap();
+    if (meal.inStock === false) return;
     if (!user) { router.push('/auth?mode=signup'); return; }
     if (addToCart.isPending || done) return;
     addToCart.mutate(
@@ -75,8 +76,9 @@ export function QuickAddButton({ meal, pill = false }: { meal: Meal; pill?: bool
     );
   }
 
-  const bgColor = done ? Palette.success : failed ? Palette.danger : ORANGE;
-  const label = done ? 'Added to cart' : failed ? 'Failed — tap to retry' : `Add ${meal.title} to cart`;
+  const soldOut = meal.inStock === false;
+  const bgColor = soldOut ? Palette.border : done ? Palette.success : failed ? Palette.danger : ORANGE;
+  const label = soldOut ? `${meal.title} is sold out` : done ? 'Added to cart' : failed ? 'Failed — tap to retry' : `Add ${meal.title} to cart`;
 
   if (pill) {
     return (
@@ -88,9 +90,10 @@ export function QuickAddButton({ meal, pill = false }: { meal: Meal; pill?: bool
           style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
           {done ? <Check size={14} color="#fff" strokeWidth={2.5} />
             : failed ? <X size={14} color="#fff" strokeWidth={2.5} />
+            : soldOut ? null
             : <Plus size={15} color="#fff" strokeWidth={2.5} />}
-          <Text style={{ fontFamily: Font.heading, fontSize: 13, color: '#fff', letterSpacing: -0.1 }}>
-            {done ? 'added!' : failed ? 'retry' : 'add to cart'}
+          <Text style={{ fontFamily: Font.heading, fontSize: 13, color: soldOut ? Palette.textMuted : '#fff', letterSpacing: -0.1 }}>
+            {soldOut ? 'sold out' : done ? 'added!' : failed ? 'retry' : 'add to cart'}
           </Text>
         </PressableScale>
       </MotiView>
@@ -106,9 +109,10 @@ export function QuickAddButton({ meal, pill = false }: { meal: Meal; pill?: bool
         style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
         {done ? <Check size={13} color="#fff" strokeWidth={2.5} />
           : failed ? <X size={13} color="#fff" strokeWidth={2.5} />
+          : soldOut ? null
           : <Plus size={13} color="#fff" strokeWidth={2.5} />}
-        <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: '#fff', letterSpacing: -0.1 }}>
-          {done ? 'added' : failed ? 'retry' : 'add'}
+        <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: soldOut ? Palette.textMuted : '#fff', letterSpacing: -0.1 }}>
+          {soldOut ? 'sold out' : done ? 'added' : failed ? 'retry' : 'add'}
         </Text>
       </PressableScale>
     </MotiView>
@@ -235,7 +239,7 @@ export function ChefsInActionFeed() {
                   <LinearGradient colors={['transparent', 'rgba(0,0,0,0.82)']}
                     style={{ ...ABS, justifyContent: 'flex-end', padding: 10 }}>
                     <Text numberOfLines={1} style={{ fontFamily: Font.heading, fontSize: 13, color: '#fff' }}>
-                      {prepper.name}
+                      {prepper.name.split(' ')[0]}
                     </Text>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 3 }}>
                       <Star size={11} color="#FFD24A" fill="#FFD24A" />

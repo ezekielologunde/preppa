@@ -12,12 +12,17 @@ import { toggleDarkMode } from '@/lib/theme-mode';
 
 // ─── StatChip ────────────────────────────────────────────────────────────────
 
-export function StatChip({ value, label, onPress }: { value: number; label: string; onPress: () => void }) {
+export function StatChip({ value, label, Icon, color, onPress }: {
+  value: number; label: string; Icon: LucideIcon; color: string; onPress: () => void;
+}) {
   return (
     <PressableScale onPress={onPress} accessibilityRole="button" accessibilityLabel={`${value} ${label}`}
-      style={{ flex: 1, alignItems: 'center', paddingVertical: 12, backgroundColor: Palette.surface, borderRadius: 16, gap: 2 }}>
-      <Text style={{ fontFamily: Font.display, fontSize: 20, color: Palette.ink, letterSpacing: -0.4 }}>{value}</Text>
-      <Text style={{ fontFamily: Font.body, fontSize: 11, color: Palette.textMuted }}>{label}</Text>
+      style={{ flex: 1, backgroundColor: Palette.surface, borderRadius: 18, padding: 14, gap: 8 }}>
+      <View style={{ width: 36, height: 36, borderRadius: 11, backgroundColor: color + '20', alignItems: 'center', justifyContent: 'center' }}>
+        <Icon size={18} color={color} />
+      </View>
+      <Text style={{ fontFamily: Font.display, fontSize: 24, color: Palette.ink, letterSpacing: -0.5 }}>{value}</Text>
+      <Text style={{ fontFamily: Font.body, fontSize: 11.5, color: Palette.textMuted }}>{label}</Text>
     </PressableScale>
   );
 }

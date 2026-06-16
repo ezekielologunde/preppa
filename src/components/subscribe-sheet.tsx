@@ -1,8 +1,9 @@
 import { BlurView } from 'expo-blur';
+import * as WebBrowser from 'expo-web-browser';
 import { Check, Lock, Minus, Plus, X } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useState } from 'react';
-import { ActivityIndicator, Linking, Modal, Platform, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Modal, Platform, Pressable, Text, View } from 'react-native';
 
 import { PaymentRedirectOverlay } from '@/components/payment-redirect-overlay';
 import { PressableScale } from '@/components/ui/pressable-scale';
@@ -79,7 +80,7 @@ export function SubscribePlanSheet({ plan, userId, onClose }: { plan: MealPlan |
       if (Platform.OS === 'web' && typeof window !== 'undefined') {
         window.location.href = data.url;
       } else {
-        Linking.openURL(data.url);
+        await WebBrowser.openBrowserAsync(data.url);
       }
     } catch (e) {
       feedback.error();

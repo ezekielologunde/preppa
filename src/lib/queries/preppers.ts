@@ -376,6 +376,80 @@ export function useCustomerBadges(userId?: string | null) {
   });
 }
 
+export type DeliverySettings = {
+  delivers: boolean;
+  pickup: boolean;
+  fee: number;
+  minOrder: number;
+  radius: number | null;
+  days: number[] | null;
+  windowStart: string | null;
+  windowEnd: string | null;
+  city: string | null;
+  state: string | null;
+};
+
+/** Lightweight query for a prepper's delivery configuration — used in cart checkout. */
+export function useDeliverySettings(prepperId?: string | null) {
+  return useQuery({
+    queryKey: ['prepper', 'delivery-settings', prepperId ?? 'none'],
+    enabled: !!prepperId,
+    queryFn: async (): Promise<DeliverySettings> => {
+      const { data, error } = await supabase
+        .from('prepper_profiles')
+        .select('delivers,pickup,delivery_fee,delivery_min_order,delivery_radius_km,delivery_days,delivery_window_start,delivery_window_end,city,state')
+        .eq('id', prepperId!)
+        .single();
+      if (error) throw error;
+      const r = data as Record<string, unknown>;
+      return {
+        delivers: r.delivers !== false,
+        pickup: r.pickup !== false,
+        fee: Number(r.delivery_fee ?? 3.99),
+        minOrder: Number(r.delivery_min_order ?? 0),
+        radius: r.delivery_radius_km != null ? Number(r.delivery_radius_km) : null,
+        days: (r.delivery_days as number[] | null) ?? null,
+        windowStart: (r.delivery_window_start as string | null) ?? null,
+        windowEnd: (r.delivery_window_end as string | null) ?? null,
+        city: (r.city as string | null) ?? null,
+        state: (r.state as string | null) ?? null,
+      };
+    },
+  });
+}
+
+/** Save a prepper's fulfillment configuration (full replace — pass all fields). */
+export function useUpdateDeliverySettings() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (v: {
+      delivers: boolean; pickup: boolean; fee: number; minOrder: number;
+      radius: number | null; days: number[] | null;
+      windowStart: string | null; windowEnd: string | null;
+      city?: string | null; state?: string | null;
+    }) => {
+      const { error } = await supabase.rpc('update_delivery_settings', {
+        p_delivers: v.delivers,
+        p_pickup: v.pickup,
+        p_delivery_fee: v.fee,
+        p_delivery_min_order: v.minOrder,
+        p_delivery_radius_km: v.radius,
+        p_delivery_days: v.days,
+        p_delivery_window_start: v.windowStart,
+        p_delivery_window_end: v.windowEnd,
+        p_city: v.city ?? null,
+        p_state: v.state ?? null,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['prepper', 'delivery-settings'] });
+      qc.invalidateQueries({ queryKey: ['prepper', 'profile'] });
+      qc.invalidateQueries({ queryKey: ['preppers'] });
+    },
+  });
+}
+
 /** Toggle whether the signed-in prepper's kitchen is open for orders. */
 export function useToggleAvailability(prepperId?: string | null) {
   const qc = useQueryClient();

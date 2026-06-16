@@ -146,25 +146,27 @@ export default function HomeScreen() {
   const rawFirst = (user?.user_metadata?.full_name as string | undefined)?.trim().split(/\s+/)[0];
   const firstName = rawFirst ? rawFirst.toLowerCase() : null;
 
-  const { data: liveMeals, isLoading: mealsLoading, refetch: refetchMeals } = useFeaturedMeals();
-  // usePersonalizedMeals already reads user?.user_metadata (which includes dietary prefs)
-  // so personalization here picks up 'Vegan', 'Keto', etc. automatically via user_metadata.
-  // TODO: if a dedicated dietary filter UI is added to Home, pre-populate from:
-  //   (user?.user_metadata?.dietary as string[] | undefined)?.map((d) => d.toLowerCase()) ?? []
-  const rankedMeals = usePersonalizedMeals(liveMeals ?? [], user?.id, user?.user_metadata ?? null).map((s) => s.meal);
-  const meals = rankedMeals.length > 0 ? rankedMeals : (liveMeals ?? []);
-
   const { data: addresses = [] } = useAddresses(user?.id);
   const { loc, requestDeviceLocation } = useDeviceLocation();
   const locCapturing = loc.status === 'requesting';
   usePurgeGpsAddresses(user?.id);
-  // Label: prefer live device location, fall back to saved default address, then 'near you'
+
+  // Location: city for discovery feed filtering + display label
+  const filterCity = loc.status === 'granted' && loc.city
+    ? loc.city
+    : (addresses.find((a) => a.isDefault) ?? addresses[0])?.city ?? null;
   const locationLabel = loc.status === 'granted' && loc.city
     ? [loc.city, loc.state].filter(Boolean).join(', ')
     : (() => {
         const defaultAddress = addresses.find((a) => a.isDefault) ?? addresses[0];
         return defaultAddress ? [defaultAddress.city, defaultAddress.state].filter(Boolean).join(', ') : 'near you';
       })();
+
+  const { data: liveMeals, isLoading: mealsLoading, refetch: refetchMeals } = useFeaturedMeals(10, filterCity);
+  // usePersonalizedMeals already reads user?.user_metadata (which includes dietary prefs)
+  // so personalization here picks up 'Vegan', 'Keto', etc. automatically via user_metadata.
+  const rankedMeals = usePersonalizedMeals(liveMeals ?? [], user?.id, user?.user_metadata ?? null).map((s) => s.meal);
+  const meals = rankedMeals.length > 0 ? rankedMeals : (liveMeals ?? []);
 
   const { data: myOrders, refetch: refetchOrders } = useMyOrders(user?.id);
   const activeOrder = (myOrders ?? []).find((o) => o.status !== 'completed' && o.status !== 'cancelled');
@@ -308,6 +310,7 @@ export default function HomeScreen() {
                 <View style={{ marginTop: 4 }}><TrendingSection meals={meals} isLoading={mealsLoading} isTablet={false} /></View>
                 {!activeOrder ? <RushBanner /> : null}
                 {activeOrder ? <ActiveOrderBanner order={activeOrder} /> : null}
+                {activeOrder ? <View style={{ height: 8 }} /> : null}
                 <ActionSplitter planImage={meals[0]?.image} dropImage={meals[1]?.image} />
                 <ChefsInActionFeed />
                 <View style={{ marginTop: 24 }}><FreshDropsSection /></View>
@@ -343,6 +346,7 @@ export default function HomeScreen() {
           <View style={{ marginTop: 4 }}><TrendingSection meals={meals} isLoading={mealsLoading} isTablet={isTablet} /></View>
           {!activeOrder ? <RushBanner /> : null}
           {activeOrder ? <ActiveOrderBanner order={activeOrder} /> : null}
+          {activeOrder ? <View style={{ height: 8 }} /> : null}
           <ActionSplitter planImage={meals[0]?.image} dropImage={meals[1]?.image} />
           <ChefsInActionFeed />
           <View style={{ marginTop: 24 }}><FreshDropsSection /></View>

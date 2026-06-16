@@ -1,9 +1,10 @@
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
+import * as WebBrowser from 'expo-web-browser';
 import { Check, ChevronLeft, ChevronRight, Plus, Search, X } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useState } from 'react';
-import { ActivityIndicator, Linking, Platform, ScrollView, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Platform, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import type { Meal } from '@/components/meal-card';
@@ -127,7 +128,7 @@ export default function CreateMealPlanScreen() {
           window.location.href = data.url;
           return;
         } else {
-          Linking.openURL(data.url);
+          await WebBrowser.openBrowserAsync(data.url);
         }
       }
     } catch {

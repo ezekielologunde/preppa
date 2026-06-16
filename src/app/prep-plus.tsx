@@ -1,12 +1,13 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
+import * as WebBrowser from 'expo-web-browser';
 import {
   Bell, ChevronLeft, Crown, Gift, Star, Ticket, Truck, Tv2, Zap,
   type LucideIcon,
 } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useState } from 'react';
-import { ActivityIndicator, Linking, Platform, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Platform, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PaymentRedirectOverlay } from '@/components/payment-redirect-overlay';
@@ -78,7 +79,7 @@ export default function PrepPlusScreen() {
       if (Platform.OS === 'web' && typeof window !== 'undefined') {
         window.location.href = data.url;
       } else {
-        Linking.openURL(data.url);
+        await WebBrowser.openBrowserAsync(data.url);
       }
     } catch {
       feedback.error();

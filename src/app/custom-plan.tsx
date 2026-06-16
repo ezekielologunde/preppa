@@ -1,10 +1,11 @@
 import { BlurView } from 'expo-blur';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import * as WebBrowser from 'expo-web-browser';
 import { ChefHat, ChevronLeft, ChevronRight, CreditCard, X } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useMemo, useState } from 'react';
-import { ActivityIndicator, Linking, Modal, Platform, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Modal, Platform, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Avatar } from '@/components/ui/avatar';
@@ -223,7 +224,7 @@ export default function CustomPlanScreen() {
       if (Platform.OS === 'web' && typeof window !== 'undefined') {
         window.location.href = data.url;
       } else {
-        await Linking.openURL(data.url);
+        await WebBrowser.openBrowserAsync(data.url);
       }
     } catch {
       feedback.error();

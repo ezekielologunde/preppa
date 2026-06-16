@@ -84,17 +84,17 @@ Deno.serve(async (req) => {
 
     } else if (type === 'custom_plan') {
       if (!planId) return json({ error: 'Missing planId' }, 400);
-      type PItem = { qty: number; meal: { price: number } | { price: number }[] | null };
+      type PItem = { qty: number; meal: { base_price: number } | { base_price: number }[] | null };
       const { data: plan } = await supabase
         .from('customer_meal_plans')
-        .select('id,name,frequency,delivery_day,customer_id,items:customer_meal_plan_items(qty,meal:meals(price))')
+        .select('id,name,frequency,delivery_day,customer_id,items:customer_meal_plan_items(qty,meal:meals(base_price))')
         .eq('id', planId).eq('customer_id', user.id).single();
       if (!plan) return json({ error: 'Plan not found' }, 404);
       const planAny = plan as unknown as { name: string; frequency: string; items: PItem[] };
       let total = 0;
       for (const it of planAny.items ?? []) {
         const m = Array.isArray(it.meal) ? it.meal[0] : it.meal;
-        total += (m?.price ?? 0) * it.qty;
+        total += (m?.base_price ?? 0) * it.qty;
       }
       if (total <= 0) return json({ error: 'Plan has no priced meals' }, 400);
       rec         = FREQ[planAny.frequency] ?? FREQ.weekly;

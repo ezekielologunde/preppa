@@ -127,9 +127,9 @@ export interface Database {
         Relationships: [];
       };
       prepper_profiles: {
-        Row: { id: string; user_id: string; display_name: string; bio: string | null; verified: boolean; status: PrepperStatus; reviewed_by: string | null; reviewed_at: string | null; rejection_note: string | null; delivery_radius_km: number | null; specialties: string[] | null; certifications: string[]; accepting_orders: boolean; home_cook_available: boolean; application_documents: string[] } & Timestamps;
+        Row: { id: string; user_id: string; display_name: string; bio: string | null; verified: boolean; status: PrepperStatus; reviewed_by: string | null; reviewed_at: string | null; rejection_note: string | null; delivery_radius_km: number | null; specialties: string[] | null; certifications: string[]; accepting_orders: boolean; home_cook_available: boolean; application_documents: string[]; delivers: boolean; pickup: boolean; delivery_fee: number; delivery_min_order: number; delivery_days: number[] | null; delivery_window_start: string | null; delivery_window_end: string | null; city: string | null; state: string | null } & Timestamps;
         Insert: { user_id: string; display_name: string; bio?: string | null; specialties?: string[] | null; certifications?: string[]; accepting_orders?: boolean; application_documents?: string[] };
-        Update: Partial<{ display_name: string; bio: string | null; specialties: string[] | null; certifications: string[]; accepting_orders: boolean; home_cook_available: boolean }>;
+        Update: Partial<{ display_name: string; bio: string | null; specialties: string[] | null; certifications: string[]; accepting_orders: boolean; home_cook_available: boolean; delivers: boolean; pickup: boolean; delivery_fee: number; delivery_min_order: number; delivery_radius_km: number | null; delivery_days: number[] | null; delivery_window_start: string | null; delivery_window_end: string | null; city: string | null; state: string | null }>;
         Relationships: [];
       };
       order_disputes: {
@@ -298,6 +298,7 @@ export interface Database {
     Views: Record<string, never>;
     Functions: {
       create_order: { Args: { p_fulfillment?: FulfillmentType; p_address_id?: string | null; p_note?: string | null; p_tip?: number }; Returns: string };
+      update_delivery_settings: { Args: { p_delivers: boolean; p_pickup: boolean; p_delivery_fee: number; p_delivery_min_order: number; p_delivery_radius_km: number | null; p_delivery_days: number[] | null; p_delivery_window_start: string | null; p_delivery_window_end: string | null }; Returns: undefined };
       advance_order: { Args: { p_order_id: string; p_next: OrderStatus }; Returns: undefined };
       cancel_order: { Args: { p_order_id: string }; Returns: undefined };
       verify_handoff: { Args: { p_order_id: string; p_pin: string }; Returns: Json };
