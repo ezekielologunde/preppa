@@ -364,7 +364,8 @@ export function useMealsByPrepper(prepperId?: string | null, excludeId?: string 
   });
 }
 
-/** Fetch a specific set of published meals by their IDs, preserving input order (recently-viewed, etc). */
+/** Fetch a specific set of meals by their IDs, preserving input order (favorites, recently-viewed, etc).
+ *  No status filter — saved/viewed meals should appear even if later unpublished. */
 export function useMealsByIds(ids: string[]) {
   return useQuery({
     queryKey: ['meals', 'by-ids', ids.join(',')],
@@ -373,8 +374,7 @@ export function useMealsByIds(ids: string[]) {
       const { data, error } = await supabase
         .from('meals')
         .select(SELECT)
-        .in('id', ids)
-        .eq('status', 'published');
+        .in('id', ids);
       if (error) throw error;
       const mapped = ((data ?? []) as unknown as MealRow[]).map(mapMeal);
       const byId = new Map(mapped.map((m) => [m.id, m]));

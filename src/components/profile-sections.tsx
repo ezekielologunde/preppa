@@ -17,12 +17,14 @@ export function StatChip({ value, label, Icon, color, onPress }: {
 }) {
   return (
     <PressableScale onPress={onPress} accessibilityRole="button" accessibilityLabel={`${value} ${label}`}
-      style={{ flex: 1, backgroundColor: Palette.surface, borderRadius: 18, padding: 14, gap: 8 }}>
-      <View style={{ width: 36, height: 36, borderRadius: 11, backgroundColor: color + '20', alignItems: 'center', justifyContent: 'center' }}>
-        <Icon size={18} color={color} />
+      style={{ flex: 1, backgroundColor: Palette.surface, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 11, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+      <View style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: color + '20', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        <Icon size={15} color={color} />
       </View>
-      <Text style={{ fontFamily: Font.display, fontSize: 24, color: Palette.ink, letterSpacing: -0.5 }}>{value}</Text>
-      <Text style={{ fontFamily: Font.body, fontSize: 11.5, color: Palette.textMuted }}>{label}</Text>
+      <View>
+        <Text style={{ fontFamily: Font.display, fontSize: 18, color: Palette.ink, letterSpacing: -0.4 }}>{value}</Text>
+        <Text style={{ fontFamily: Font.body, fontSize: 11, color: Palette.textMuted }}>{label}</Text>
+      </View>
     </PressableScale>
   );
 }

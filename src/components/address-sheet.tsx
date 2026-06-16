@@ -72,17 +72,20 @@ export const EMPTY_FORM: FormState = {
 
 function validate(form: FormState): FormErrors {
   const errors: FormErrors = {};
-  if (!form.street1.trim() || form.street1.trim().length < 5) {
-    errors.street1 = 'Street address must be at least 5 characters';
+  const street = form.street1.trim();
+  if (!street || street.length < 5) {
+    errors.street1 = 'Enter your full street address including door number';
+  } else if (!/\d/.test(street)) {
+    errors.street1 = 'Include your door or building number — e.g. 14 Oak Street';
   }
   if (!form.city.trim() || form.city.trim().length < 2) {
-    errors.city = 'City is required';
+    errors.city = 'Enter the city or town name';
   }
   if (!form.state.trim()) {
     errors.state = 'State / Province is required';
   }
   if (!form.postalCode.trim() || form.postalCode.trim().length < 3) {
-    errors.postalCode = 'Postal code must be at least 3 characters';
+    errors.postalCode = 'Postal / ZIP code must be at least 3 characters';
   }
   return errors;
 }
@@ -112,6 +115,7 @@ function FormField({
   onChangeText,
   placeholder,
   error,
+  hint,
   optional,
   autoCapitalize,
   keyboardType,
@@ -122,6 +126,7 @@ function FormField({
   onChangeText: (v: string) => void;
   placeholder?: string;
   error?: string;
+  hint?: string;
   optional?: boolean;
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
   keyboardType?: 'default' | 'numeric';
@@ -163,7 +168,11 @@ function FormField({
           minHeight: 44,
         }}
       />
-      <FieldError msg={error} />
+      {error ? (
+        <FieldError msg={error} />
+      ) : hint ? (
+        <Text style={{ fontFamily: Font.body, fontSize: Type.micro, color: Palette.textMuted, marginTop: 4 }}>{hint}</Text>
+      ) : null}
     </View>
   );
 }
@@ -328,16 +337,17 @@ export function AddressSheet({
                 set('street1')(v);
                 if (errors.street1) setErrors((e) => ({ ...e, street1: undefined }));
               }}
-              placeholder="123 Main Street"
+              placeholder="e.g. 14 Oak Street"
+              hint="Start with your door or building number so we can find you"
               error={errors.street1}
               maxLength={100}
             />
 
             <FormField
-              label="apt / unit"
+              label="apt / unit / floor"
               value={form.street2}
               onChangeText={set('street2')}
-              placeholder="Apt 4B"
+              placeholder="e.g. Apt 4B, Floor 2"
               optional
               maxLength={50}
             />
@@ -349,6 +359,8 @@ export function AddressSheet({
                 set('city')(v);
                 if (errors.city) setErrors((e) => ({ ...e, city: undefined }));
               }}
+              placeholder="e.g. Chicago"
+              hint="The city or town your post is delivered to"
               error={errors.city}
               maxLength={80}
             />

@@ -149,7 +149,7 @@ export default function AboutAppScreen() {
         <SettingsHeader title="about preppa" subtitle="Real food from real local Preppas near you." />
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 8, paddingBottom: 40, gap: 20 }}>
 
-          {/* Mission hero */}
+          {/* Mission hero — logo + text only */}
           <MotiView from={{ opacity: 0, translateY: 12 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 300 }}
             style={{ marginHorizontal: 20 }}>
             <LinearGradient colors={['#FFE9D6', '#FFDABE']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
@@ -166,28 +166,52 @@ export default function AboutAppScreen() {
                 by a Prepper near you — supporting independent culinary creators, shortening the distance
                 from kitchen to table, and keeping food spending in the community.
               </Text>
-              <View style={{ flexDirection: 'row', gap: 10 }}>
-                {IMPACT.map((s) => (
-                  <View key={s.label} style={{ flex: 1, backgroundColor: 'rgba(255,255,255,0.55)', borderRadius: 14, paddingVertical: 12, alignItems: 'center', gap: 2 }}>
-                    <Text style={{ fontFamily: Font.display, fontSize: 18, color: Palette.brand, letterSpacing: -0.4 }}>{s.value}</Text>
-                    <Text numberOfLines={1} style={{ fontFamily: Font.medium, fontSize: 10.5, color: '#7C5A42' }}>{s.label}</Text>
-                  </View>
-                ))}
-              </View>
             </LinearGradient>
           </MotiView>
 
+          {/* Impact stats row — outside the hero card */}
+          <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280, delay: 60 }}
+            style={{ marginHorizontal: 20, flexDirection: 'row', gap: 10 }}>
+            {IMPACT.map((s) => (
+              <View key={s.label} style={{ flex: 1, backgroundColor: Palette.surface, borderRadius: 16, paddingVertical: 16, paddingHorizontal: 10, alignItems: 'center', gap: 4 }}>
+                <Text style={{ fontFamily: Font.display, fontSize: 22, color: Palette.brand, letterSpacing: -0.5 }}>{s.value}</Text>
+                <Text numberOfLines={2} style={{ fontFamily: Font.medium, fontSize: 10.5, color: Palette.textSecondary, textAlign: 'center', lineHeight: 14 }}>{s.label}</Text>
+              </View>
+            ))}
+          </MotiView>
+
           {/* App version */}
-          <SettingsGroup title="the app" delay={60}>
+          <SettingsGroup title="the app" delay={100}>
             <SettingsRow Icon={Info} label="App version" right={{ type: 'value', label: APP_VERSION }} isLast />
           </SettingsGroup>
 
-          {/* Legal — tap opens an in-app overlay with a summary + link to full doc at preppa.live */}
-          <SettingsGroup title="legal & attributions" delay={120}>
-            <SettingsRow Icon={ScrollText} label="Terms of service" sub="How Preppa works and what you agree to" onPress={() => setOpenDoc('terms')} />
-            <SettingsRow Icon={FileText} label="Privacy policy" sub="What we collect, how we use it, and your rights" onPress={() => setOpenDoc('privacy')} />
-            <SettingsRow Icon={Heart} label="Open source" sub="The libraries that power Preppa" onPress={() => setOpenDoc('licenses')} isLast />
-          </SettingsGroup>
+          {/* Legal — each row has a colour-matched icon badge */}
+          <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 140 }}>
+            <View style={{ marginHorizontal: 20, gap: 12 }}>
+              <Text style={{ fontFamily: Font.semibold, fontSize: 11.5, color: Palette.textMuted, textTransform: 'uppercase', letterSpacing: 0.7, paddingHorizontal: 4 }}>legal & attributions</Text>
+              <View style={{ backgroundColor: Palette.surface, borderRadius: 20, overflow: 'hidden' }}>
+                {(Object.keys(DOCS) as DocKey[]).map((key, i) => {
+                  const doc = DOCS[key];
+                  return (
+                    <PressableScale key={key} onPress={() => { feedback.tap(); setOpenDoc(key); }}
+                      accessibilityRole="button" accessibilityLabel={doc.title}
+                      style={{ flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 16, paddingVertical: 14, borderTopWidth: i === 0 ? 0 : 1, borderTopColor: Palette.chip }}>
+                      <View style={{ width: 38, height: 38, borderRadius: 12, backgroundColor: doc.color + '1A', alignItems: 'center', justifyContent: 'center' }}>
+                        <doc.Icon size={18} color={doc.color} />
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={{ fontFamily: Font.heading, fontSize: 14, color: Palette.ink }}>{doc.title}</Text>
+                        <Text numberOfLines={1} style={{ fontFamily: Font.body, fontSize: 11.5, color: Palette.textMuted, marginTop: 1 }}>
+                          {key === 'terms' ? 'How Preppa works and what you agree to' : key === 'privacy' ? 'What we collect, how we use it, and your rights' : 'The libraries that power Preppa'}
+                        </Text>
+                      </View>
+                      <ExternalLink size={14} color={Palette.textMuted} />
+                    </PressableScale>
+                  );
+                })}
+              </View>
+            </View>
+          </MotiView>
 
         </ScrollView>
 
