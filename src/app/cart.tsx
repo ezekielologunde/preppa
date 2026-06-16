@@ -3,10 +3,12 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { Bike, Check, ChefHat, ChevronLeft, ChevronRight, Clock, Lock, MapPin, Minus, Plus, ShoppingBag, Store, Trash2, Heart } from 'lucide-react-native';
 import { MotiView } from 'moti';
-import { useState, type ComponentType } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useEffect, useMemo, useState, type ComponentType } from 'react';
 import { ActivityIndicator, Platform, RefreshControl, ScrollView, Text, TextInput, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { DeliveryAddressPicker } from '@/components/delivery-address-picker';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { StripeEmbeddedSheet } from '@/components/stripe-embedded';
 import { ListSkeleton } from '@/components/ui/skeleton';
@@ -21,15 +23,11 @@ import type { FulfillmentType } from '@/types/database.types';
 
 const ORANGE = Palette.brand;
 const INK = Palette.ink;
-const DELIVERY_FEE = 3.99;
+const DELIVERY_FEE_FALLBACK = 3.99;
 const money = (n: number) => `$${n.toFixed(2)}`;
 
 type IconType = ComponentType<{ size?: number; color?: string }>;
-const METHODS: { key: FulfillmentType; label: string; Icon: IconType; fee: string; eta: string }[] = [
-  { key: 'delivery', label: 'Delivery', Icon: Bike, fee: money(DELIVERY_FEE), eta: 'drop-off scheduled' },
-  { key: 'pickup', label: 'Pickup', Icon: Store, fee: 'Free', eta: 'pickup window' },
-  { key: 'meetup', label: 'Meet up', Icon: MapPin, fee: 'Free', eta: 'you pick a spot' },
-];
+type Method = { key: FulfillmentType; label: string; Icon: IconType; fee: string; eta: string };
 const TIPS = [0, 1, 2, 5];
 
 export default function CartScreen() {
@@ -47,6 +45,34 @@ export default function CartScreen() {
   const [placed, setPlaced] = useState(false);
   const [err, setErr] = useState<string | null>(canceled ? 'Payment canceled — your cart is still here.' : null);
   const [method, setMethod] = useState<FulfillmentType | 'in_home'>('delivery');
+  const [addressId, setAddressId] = useState<string | null>(null);
+
+  // Persist + restore the last chosen fulfillment method per user, validated
+  // against what the current prepper actually supports.
+  const storageKey = user?.id ? `preppa:last_method:${user.id}` : null;
+  const prepperId = cart?.items[0]?.prepperId ?? null;
+  useEffect(() => {
+    if (!cart || !storageKey) return;
+    let active = true;
+    AsyncStorage.getItem(storageKey).then((saved) => {
+      if (!active) return;
+      if (saved === 'delivery' && cart.delivers) { setMethod('delivery'); return; }
+      if (saved === 'pickup' && cart.pickup) { setMethod('pickup'); return; }
+      if (saved === 'meetup' || saved === 'in_home') { setMethod(saved as FulfillmentType | 'in_home'); return; }
+      // No usable saved preference — context-aware default
+      if (cart.delivers) setMethod('delivery');
+      else if (cart.pickup) setMethod('pickup');
+      else setMethod('meetup');
+    });
+    return () => { active = false; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prepperId, storageKey]);
+
+  function selectMethod(m: FulfillmentType | 'in_home') {
+    setMethod(m);
+    setErr(null);
+    if (storageKey) AsyncStorage.setItem(storageKey, m).catch(() => {});
+  }
   const [note, setNote] = useState('');
   const [tip, setTip] = useState(0);
   const [customTip, setCustomTip] = useState(false);
@@ -56,6 +82,20 @@ export default function CartScreen() {
   const isDesktop = width >= BP.desktop;
 
   async function handleRefresh() { setRefreshing(true); await refetch(); setRefreshing(false); }
+
+  const deliveryFeeAmt = cart?.deliveryFee ?? DELIVERY_FEE_FALLBACK;
+  const methods = useMemo<Method[]>(() => {
+    const all: Method[] = [
+      { key: 'delivery', label: 'Delivery', Icon: Bike, fee: money(deliveryFeeAmt), eta: 'drop-off scheduled' },
+      { key: 'pickup', label: 'Pickup', Icon: Store, fee: 'Free', eta: 'pickup window' },
+      { key: 'meetup', label: 'Meet up', Icon: MapPin, fee: 'Free', eta: 'you pick a spot' },
+    ];
+    return all.filter((m) =>
+      m.key === 'meetup' ||
+      (m.key === 'delivery' && (cart?.delivers ?? true)) ||
+      (m.key === 'pickup' && (cart?.pickup ?? true))
+    );
+  }, [deliveryFeeAmt, cart?.delivers, cart?.pickup]);
 
   const prepper = cart?.items[0]?.prepper ?? 'the prepper';
   const kitchens = (() => {
@@ -100,12 +140,12 @@ export default function CartScreen() {
     if (busy) return;
     if (!user) return router.push('/auth?mode=signin');
     if (method === 'in_home') { feedback.tap(); router.push('/experience-request?kind=private_chef'); return; }
-    if (method === 'delivery' && note.trim().length < 5) { feedback.warning(); return setErr('Add a delivery address.'); }
+    if (method === 'delivery' && !addressId) { feedback.warning(); return setErr('Select a delivery address.'); }
     if (method === 'meetup' && note.trim().length < 3) { feedback.warning(); return setErr('Where should you meet?'); }
     feedback.tap();
     setErr(null);
     placeOrder.mutate(
-      { userId: user.id, fulfillment: method, note: note.trim() || null, tip },
+      { userId: user.id, fulfillment: method, addressId: method === 'delivery' ? addressId : null, note: note.trim() || null, tip },
       {
         onSuccess: (orderId) => { if (paymentsOn) startPayment(orderId); else setPlaced(true); },
         onError: (e) => { feedback.error(); setErr(e instanceof Error ? e.message : 'Could not place preorder.'); },
@@ -114,18 +154,22 @@ export default function CartScreen() {
   }
 
   const subtotal = cart?.subtotal ?? 0;
-  const deliveryFee = method === 'delivery' ? DELIVERY_FEE : 0;
+  const deliveryFee = method === 'delivery' ? deliveryFeeAmt : 0;
+  const deliveryMinOrder = cart?.deliveryMinOrder ?? 0;
+  const minOrderWarn = method === 'delivery' && deliveryMinOrder > 0 && subtotal < deliveryMinOrder
+    ? `${prepper} requires a ${money(deliveryMinOrder)} minimum for delivery`
+    : null;
   const total = subtotal + deliveryFee + tip;
   const maxPrepTime = (cart?.items ?? []).reduce<number | null>((acc, it) => {
     if (it.prepTime == null) return acc;
     return acc == null ? it.prepTime : Math.max(acc, it.prepTime);
   }, null);
   const noteConfig: Record<FulfillmentType | 'in_home', { label: string; placeholder: string } | null> = {
-    delivery: { label: 'Delivery address', placeholder: 'Street, apt, city' },
+    delivery: { label: 'Delivery instructions (optional)', placeholder: 'e.g. Leave at door, ring doorbell' },
     meetup: { label: 'Where & when to meet', placeholder: 'e.g. Park gate, today 6pm' },
     pickup: { label: 'Pickup note (optional)', placeholder: 'Any pickup details?' },
     in_home: null,
-    home_cook: null, // booked via the separate home-cook flow, not cart checkout
+    home_cook: null,
   };
 
   const paymentSheet = paySheet ? (
@@ -226,11 +270,11 @@ export default function CartScreen() {
 
       <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK, marginTop: 8 }}>How do you want it?</Text>
       <View style={{ flexDirection: 'row', gap: 10 }}>
-        {METHODS.map((m) => {
+        {methods.map((m) => {
           const on = method === m.key;
           return (
             <MotiView key={m.key} animate={{ backgroundColor: on ? Palette.brandTint : Palette.surface, borderColor: on ? ORANGE : Palette.border }} transition={{ type: 'timing', duration: 180 }} style={{ flex: 1, borderWidth: 1.5, borderRadius: Radius.md, overflow: 'hidden' }}>
-              <PressableScale onPress={() => { feedback.tap(); setMethod(m.key); setErr(null); }} accessibilityRole="button" accessibilityState={{ selected: on }} accessibilityLabel={`${m.label}, ${m.fee}, ${m.eta}`} style={{ flex: 1, paddingTop: 16, paddingBottom: 12, alignItems: 'center', gap: 7 }}>
+              <PressableScale onPress={() => { feedback.tap(); selectMethod(m.key); }} accessibilityRole="button" accessibilityState={{ selected: on }} accessibilityLabel={`${m.label}, ${m.fee}, ${m.eta}`} style={{ flex: 1, paddingTop: 16, paddingBottom: 12, alignItems: 'center', gap: 7 }}>
                 {on ? <View style={{ position: 'absolute', top: 7, right: 7, width: 18, height: 18, borderRadius: 9, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}><Check size={11} color="#fff" strokeWidth={3.5} /></View> : null}
                 <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: on ? ORANGE : Palette.chip, alignItems: 'center', justifyContent: 'center' }}><m.Icon size={20} color={on ? '#fff' : Palette.textSecondary} /></View>
                 <Text style={{ fontFamily: Font.heading, fontSize: 13.5, color: on ? Palette.brandPressed : INK }}>{m.label}</Text>
@@ -243,7 +287,7 @@ export default function CartScreen() {
       </View>
 
       <MotiView animate={{ backgroundColor: method === 'in_home' ? INK : Palette.surface, borderColor: method === 'in_home' ? INK : Palette.border }} transition={{ type: 'timing', duration: 200 }} style={{ borderWidth: 1.5, borderRadius: Radius.md, overflow: 'hidden' }}>
-        <PressableScale onPress={() => { feedback.tap(); setMethod('in_home'); setErr(null); }} accessibilityRole="button" accessibilityState={{ selected: method === 'in_home' }} accessibilityLabel="Cooked in my kitchen — a prepper visits your home" style={{ paddingHorizontal: 16, paddingVertical: 14, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+        <PressableScale onPress={() => { feedback.tap(); selectMethod('in_home'); }} accessibilityRole="button" accessibilityState={{ selected: method === 'in_home' }} accessibilityLabel="Cooked in my kitchen — a prepper visits your home" style={{ paddingHorizontal: 16, paddingVertical: 14, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
           {method === 'in_home' ? <View style={{ position: 'absolute', top: 10, right: 12, width: 18, height: 18, borderRadius: 9, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}><Check size={11} color="#fff" strokeWidth={3.5} /></View> : null}
           <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: method === 'in_home' ? ORANGE : Palette.chip, alignItems: 'center', justifyContent: 'center' }}><ChefHat size={22} color={method === 'in_home' ? '#fff' : Palette.textSecondary} /></View>
           <View style={{ flex: 1 }}>
@@ -255,6 +299,17 @@ export default function CartScreen() {
 
       {method === 'pickup' ? <View style={{ backgroundColor: Palette.surface, borderRadius: Radius.md, padding: 12, flexDirection: 'row', alignItems: 'center', gap: 8 }}><Store size={16} color={ORANGE} /><Text style={{ flex: 1, fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary }}>Pick up from {prepper}. They&apos;ll share the spot when they confirm.</Text></View> : null}
       {method === 'in_home' ? <View style={{ backgroundColor: Palette.canvas, borderRadius: Radius.md, padding: 12, flexDirection: 'row', alignItems: 'flex-start', gap: 8 }}><ChefHat size={15} color={Palette.textMuted} style={{ marginTop: 1 }} /><Text style={{ flex: 1, fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary, lineHeight: 19 }}>You&apos;ll post a request and receive quotes from available preppers. Tapping below takes you to the request form.</Text></View> : null}
+      {method === 'delivery' && user ? (
+        <View style={{ gap: 6 }}>
+          <Text style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.textSecondary }}>Delivery address</Text>
+          <DeliveryAddressPicker userId={user.id} selectedId={addressId} onSelect={(id) => { setAddressId(id); setErr(null); }} />
+        </View>
+      ) : null}
+      {minOrderWarn ? (
+        <View style={{ backgroundColor: Palette.amber + '18', borderRadius: Radius.md, paddingHorizontal: 12, paddingVertical: 10 }}>
+          <Text style={{ fontFamily: Font.medium, fontSize: 12.5, color: Palette.amber }}>{minOrderWarn}</Text>
+        </View>
+      ) : null}
       {noteConfig[method] ? (
         <View style={{ gap: 6 }}>
           <Text style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.textSecondary }}>{noteConfig[method]!.label}</Text>

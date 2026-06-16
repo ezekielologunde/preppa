@@ -1,4 +1,4 @@
-import { Check, Clock, Edit3, MessageCircle, Save, X, XCircle } from 'lucide-react-native';
+import { Check, Clock, Edit3, Lock, MessageCircle, Save, X, XCircle } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useState } from 'react';
 import { ActivityIndicator, Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
@@ -24,10 +24,12 @@ const KIND_LABEL: Record<string, string> = {
 };
 
 export function RequestDetailSheet({
-  request, onClose,
+  request, onClose, isUnlocked = false, onConnectPress,
 }: {
   request: MyExperienceRequest | null;
   onClose: () => void;
+  isUnlocked?: boolean;
+  onConnectPress?: () => void;
 }) {
   const accept = useAcceptBid();
   const cancel = useCancelExperienceRequest();
@@ -172,25 +174,50 @@ export function RequestDetailSheet({
               </Text>
 
               {isBooked && acceptedBid ? (
-                <View style={{ backgroundColor: Palette.success + '0D', borderRadius: 16, padding: 16, gap: 12, borderWidth: 1, borderColor: Palette.success + '33' }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                    <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: Palette.success + '1A', alignItems: 'center', justifyContent: 'center' }}>
-                      <Check size={20} color={Palette.success} strokeWidth={2.5} />
+                isUnlocked ? (
+                  <View style={{ backgroundColor: Palette.success + '0D', borderRadius: 16, padding: 16, gap: 12, borderWidth: 1, borderColor: Palette.success + '33' }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                      <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: Palette.success + '1A', alignItems: 'center', justifyContent: 'center' }}>
+                        <Check size={20} color={Palette.success} strokeWidth={2.5} />
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={{ fontFamily: Font.heading, fontSize: 15, color: INK }}>{acceptedBid.prepper?.display_name ?? 'Your chef'}</Text>
+                        <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.success }}>{money(acceptedBid.amount)} · Confirmed</Text>
+                      </View>
                     </View>
-                    <View style={{ flex: 1 }}>
-                      <Text style={{ fontFamily: Font.heading, fontSize: 15, color: INK }}>{acceptedBid.prepper?.display_name ?? 'Your chef'}</Text>
-                      <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.success }}>{money(acceptedBid.amount)} · Confirmed</Text>
-                    </View>
+                    {acceptedBid.message ? (
+                      <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary, lineHeight: 19 }}>{acceptedBid.message}</Text>
+                    ) : null}
+                    <PressableScale onPress={() => { feedback.tap(); handleClose(); }} accessibilityRole="button" accessibilityLabel="Message your chef"
+                      style={{ height: 44, borderRadius: Radius.pill, backgroundColor: INK, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8 }}>
+                      <MessageCircle size={16} color="#fff" />
+                      <Text style={{ fontFamily: Font.heading, fontSize: 14, color: '#fff' }}>Message your chef</Text>
+                    </PressableScale>
                   </View>
-                  {acceptedBid.message ? (
-                    <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary, lineHeight: 19 }}>{acceptedBid.message}</Text>
-                  ) : null}
-                  <PressableScale onPress={() => { feedback.tap(); handleClose(); }} accessibilityRole="button" accessibilityLabel="Message your chef"
-                    style={{ height: 44, borderRadius: Radius.pill, backgroundColor: INK, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8 }}>
-                    <MessageCircle size={16} color="#fff" />
-                    <Text style={{ fontFamily: Font.heading, fontSize: 14, color: '#fff' }}>Message your chef</Text>
-                  </PressableScale>
-                </View>
+                ) : (
+                  <View style={{ backgroundColor: '#F5F3FF', borderRadius: 16, padding: 20, gap: 16, borderWidth: 1, borderColor: '#DDD6FE', alignItems: 'center' }}>
+                    <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: '#7C3AED1A', alignItems: 'center', justifyContent: 'center' }}>
+                      <Lock size={24} color="#7C3AED" />
+                    </View>
+                    <View style={{ alignItems: 'center', gap: 6 }}>
+                      <Text style={{ fontFamily: Font.display, fontSize: 20, color: INK, letterSpacing: -0.4 }}>Bid accepted! 🎉</Text>
+                      <Text style={{ fontFamily: Font.body, fontSize: 13.5, color: Palette.textSecondary, textAlign: 'center', lineHeight: 20 }}>
+                        A chef quoted{' '}
+                        <Text style={{ fontFamily: Font.heading, color: INK }}>{money(acceptedBid.amount)}</Text>
+                        {'. '}Subscribe to Connect to see who it is and start chatting.
+                      </Text>
+                    </View>
+                    <PressableScale onPress={() => { feedback.tap(); onConnectPress?.(); }}
+                      accessibilityRole="button" accessibilityLabel="Subscribe to Connect to reveal your chef"
+                      style={{ width: '100%', height: 50, borderRadius: Radius.pill, backgroundColor: '#7C3AED', alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8 }}>
+                      <Lock size={15} color="#fff" />
+                      <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#fff' }}>Unlock · $4.99/mo</Text>
+                    </PressableScale>
+                    <Text style={{ fontFamily: Font.body, fontSize: 11.5, color: Palette.textMuted, textAlign: 'center' }}>
+                      Cancel anytime · Reveals chef name, message & chat
+                    </Text>
+                  </View>
+                )
               ) : pendingBids.length === 0 ? (
                 <MotiView from={{ opacity: 0 }} animate={{ opacity: 1 }}
                   style={{ backgroundColor: Palette.canvas, borderRadius: 16, padding: 24, alignItems: 'center', gap: 10 }}>

@@ -185,6 +185,13 @@ export function OrderCard({ order, onCancel, onReview, onPay, onReorder, onRepor
         </PressableScale>
       ) : null}
 
+      {order.disputed && order.status !== 'completed' && order.status !== 'cancelled' ? (
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 2 }}>
+          <AlertTriangle size={13} color={Palette.amber} />
+          <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted }}>Dispute filed — under review</Text>
+        </View>
+      ) : null}
+
       {(order.status === 'completed' || order.status === 'cancelled') ? (
         order.disputed ? (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 2 }}>

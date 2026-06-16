@@ -20,6 +20,7 @@ import {
   ShoppingBag,
   Star,
   TrendingUp,
+  Truck,
   User,
   Users,
   UtensilsCrossed,
@@ -418,6 +419,18 @@ export default function DashboardScreen() {
                 style={{ marginHorizontal: 20, marginBottom: 10, backgroundColor: CARD, borderRadius: 14, paddingVertical: 10, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 10, borderWidth: 1, borderColor: ORANGE + '28' }}>
                 <Share2 size={15} color={ORANGE} />
                 <Text style={{ flex: 1, fontFamily: Font.medium, fontSize: 13, color: MUTED }}>Share your kitchen with friends & followers</Text>
+                <ChevronRight size={14} color={ORANGE} />
+              </PressableScale>
+            </MotiView>
+          ) : null}
+
+          {/* Delivery & pickup settings */}
+          {prepper?.id ? (
+            <MotiView from={{ opacity: 0, translateY: 6 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 240, delay: 240 }}>
+              <PressableScale onPress={() => { feedback.tap(); router.push('/delivery-settings'); }} accessibilityRole="button" accessibilityLabel="Delivery and pickup settings"
+                style={{ marginHorizontal: 20, marginBottom: 10, backgroundColor: CARD, borderRadius: 14, paddingVertical: 10, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 10, borderWidth: 1, borderColor: ORANGE + '28' }}>
+                <Truck size={15} color={ORANGE} />
+                <Text style={{ flex: 1, fontFamily: Font.medium, fontSize: 13, color: MUTED }}>Delivery & pickup settings</Text>
                 <ChevronRight size={14} color={ORANGE} />
               </PressableScale>
             </MotiView>

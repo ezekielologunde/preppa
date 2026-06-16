@@ -63,6 +63,14 @@ Deno.serve(async (req) => {
       meta.user_id = user.id;
       meta.period  = period ?? 'monthly';
 
+    } else if (type === 'customer_connect') {
+      const yearly = period === 'yearly';
+      amount      = yearly ? 3900 : 499;
+      productName = `Preppa Connect (${yearly ? 'Yearly' : 'Monthly'})`;
+      rec         = { interval: yearly ? 'year' : 'month', interval_count: 1 };
+      meta.user_id = user.id;
+      meta.period  = period ?? 'monthly';
+
     } else if (type === 'meal_plan') {
       if (!planId) return json({ error: 'Missing planId' }, 400);
       const { data: plan } = await supabase

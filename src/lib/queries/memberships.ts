@@ -16,6 +16,8 @@ type CustomerMembership = {
   status: string;
   current_period_end: string | null;
   isPlus: boolean;
+  isConnect: boolean;
+  isUnlocked: boolean;
 };
 
 /** Active Pro membership for a prepper. Returns null when on free tier (no row). */
@@ -53,7 +55,7 @@ export function useCustomerMembership(userId?: string | null) {
       if (error) throw error;
       if (!data) return null;
       const row = data as { tier: string; billing_period: string; status: string; current_period_end: string | null };
-      return { ...row, isPlus: row.tier === 'plus' };
+      return { ...row, isPlus: row.tier === 'plus', isConnect: row.tier === 'connect', isUnlocked: row.tier === 'plus' || row.tier === 'connect' };
     },
   });
 }

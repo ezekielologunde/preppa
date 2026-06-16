@@ -9,9 +9,11 @@ import { Palette } from '@/constants/theme';
  * initials on brand tint. Never someone else's stock photo.
  */
 export function Avatar({ name, url, size = 48 }: { name: string; url?: string | null; size?: number }) {
+  const HONORIFIC = /^(dr|mr|mrs|ms|prof|rev)\./i;
   const initials = name
     .trim()
     .split(/\s+/)
+    .filter((w) => !HONORIFIC.test(w))
     .map((w) => w[0])
     .slice(0, 2)
     .join('')

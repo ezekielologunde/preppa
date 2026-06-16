@@ -14,44 +14,49 @@ export type CartItem = {
   prepTime: number | null;
 };
 
-type Row = {
+type PrepperCol = { id: string; display_name: string; delivery_fee: number | null; delivery_min_order: number | null; delivers: boolean; pickup: boolean };
+type CartItemRow = {
   id: string;
   meal_id: string;
   quantity: number;
   price_snapshot: number;
+  created_at: string;
   meal: {
     title: string;
     prep_time_min: number | null;
     images: { url: string }[] | null;
-    prepper: { id: string; display_name: string } | { id: string; display_name: string }[] | null;
+    prepper: PrepperCol | PrepperCol[] | null;
   } | null;
 };
+type CartRootRow = { id: string; cart_items: CartItemRow[] };
 
 const one = <T,>(v: T | T[] | null | undefined): T | undefined => (Array.isArray(v) ? v[0] : v ?? undefined);
 
-/** Get (or look up) the signed-in user's cart id. */
+/** Fallback lookup — only used by useAddToCart when the cart isn't yet cached. */
 async function getCartId(userId: string): Promise<string | null> {
   const { data } = await supabase.from('carts').select('id').eq('user_id', userId).maybeSingle();
   return data?.id ?? null;
 }
 
-export type Cart = { items: CartItem[]; subtotal: number; count: number };
+export type Cart = { id: string | null; items: CartItem[]; subtotal: number; count: number; deliveryFee: number; deliveryMinOrder: number; delivers: boolean; pickup: boolean };
 
 /** The user's cart with line items + computed subtotal. */
 export function useCart(userId?: string | null) {
   return useQuery({
     queryKey: ['cart', userId ?? 'anon'],
     enabled: !!userId,
+    staleTime: 30_000,
     queryFn: async (): Promise<Cart> => {
-      const cartId = await getCartId(userId!);
-      if (!cartId) return { items: [], subtotal: 0, count: 0 };
       const { data, error } = await supabase
-        .from('cart_items')
-        .select('id,meal_id,quantity,price_snapshot,meal:meals(title,prep_time_min,images:meal_images(url),prepper:prepper_profiles(id,display_name))')
-        .eq('cart_id', cartId)
-        .order('created_at', { ascending: true });
+        .from('carts')
+        .select('id,cart_items(id,created_at,meal_id,quantity,price_snapshot,meal:meals(title,prep_time_min,images:meal_images(url),prepper:prepper_profiles(id,display_name,delivery_fee,delivery_min_order,delivers,pickup)))')
+        .eq('user_id', userId!)
+        .maybeSingle();
       if (error) throw error;
-      const items: CartItem[] = ((data ?? []) as unknown as Row[]).map((r) => {
+      const root = data as unknown as CartRootRow | null;
+      if (!root) return { id: null, items: [], subtotal: 0, count: 0, deliveryFee: 3.99, deliveryMinOrder: 0, delivers: true, pickup: true };
+      const rows = (root.cart_items ?? []).slice().sort((a, b) => (a.created_at < b.created_at ? -1 : 1));
+      const items: CartItem[] = rows.map((r) => {
         const prepper = one(r.meal?.prepper);
         return {
           id: r.id,
@@ -67,7 +72,8 @@ export function useCart(userId?: string | null) {
       });
       const subtotal = items.reduce((s, i) => s + i.price_snapshot * i.quantity, 0);
       const count = items.reduce((s, i) => s + i.quantity, 0);
-      return { items, subtotal, count };
+      const firstPrepper = one(rows[0]?.meal?.prepper);
+      return { id: root.id, items, subtotal, count, deliveryFee: firstPrepper?.delivery_fee ?? 3.99, deliveryMinOrder: firstPrepper?.delivery_min_order ?? 0, delivers: firstPrepper?.delivers ?? true, pickup: firstPrepper?.pickup ?? true };
     },
   });
 }
@@ -78,7 +84,7 @@ export function useAddToCart() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (v: { userId: string; mealId: string; price: number; quantity?: number; replace?: boolean }) => {
-      const cartId = await getCartId(v.userId);
+      const cartId = qc.getQueryData<Cart>(['cart', v.userId])?.id ?? await getCartId(v.userId);
       if (!cartId) throw new Error('No cart found for this account.');
       if (v.replace) {
         const { error } = await supabase.from('cart_items').delete().eq('cart_id', cartId);
@@ -131,7 +137,7 @@ export function useUpdateCartItem(userId?: string | null) {
           .filter((it) => it.quantity > 0);
         const subtotal = items.reduce((s, i) => s + i.price_snapshot * i.quantity, 0);
         const count = items.reduce((s, i) => s + i.quantity, 0);
-        qc.setQueryData<Cart>(key, { items, subtotal, count });
+        qc.setQueryData<Cart>(key, { id: prev.id, items, subtotal, count, deliveryFee: prev.deliveryFee, deliveryMinOrder: prev.deliveryMinOrder, delivers: prev.delivers, pickup: prev.pickup });
       }
       return { prev };
     },
@@ -200,11 +206,13 @@ export function usePlaceOrder() {
     mutationFn: async (v: {
       userId: string;
       fulfillment: import('@/types/database.types').FulfillmentType;
+      addressId?: string | null;
       note?: string | null;
       tip?: number;
     }): Promise<string> => {
       const { data, error } = await supabase.rpc('create_order', {
         p_fulfillment: v.fulfillment,
+        p_address_id: v.addressId ?? null,
         p_note: v.note ?? null,
         p_tip: v.tip ?? 0,
       });
@@ -216,6 +224,7 @@ export function usePlaceOrder() {
     onSuccess: (_d, v) => {
       qc.invalidateQueries({ queryKey: ['cart', v.userId] });
       qc.invalidateQueries({ queryKey: ['orders'] });
+      qc.invalidateQueries({ queryKey: ['meals'] });
     },
   });
 }

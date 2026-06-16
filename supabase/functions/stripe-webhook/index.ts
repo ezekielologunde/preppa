@@ -157,6 +157,15 @@ async function provisionSubscription(
       status: 'active',
     }, { onConflict: 'customer_id' });
 
+  } else if (meta.type === 'customer_connect' && meta.user_id) {
+    await supabase.from('customer_memberships').upsert({
+      customer_id: meta.user_id,
+      tier: 'connect',
+      billing_period: meta.period ?? 'monthly',
+      stripe_subscription_id: subId,
+      status: 'active',
+    }, { onConflict: 'customer_id' });
+
   } else if (meta.type === 'meal_plan' && meta.plan_id && meta.customer_id) {
     // Idempotent: skip if already provisioned with this Stripe subscription
     const { data: dup } = await supabase.from('subscriptions')
@@ -195,7 +204,7 @@ async function syncSubscriptionStatus(supabase: SupabaseClient, sub: Stripe.Subs
     await supabase.from('prepper_memberships')
       .update({ status: memberStatus, current_period_end: periodEnd })
       .eq('stripe_subscription_id', sub.id);
-  } else if (meta.type === 'customer_plus') {
+  } else if (meta.type === 'customer_plus' || meta.type === 'customer_connect') {
     await supabase.from('customer_memberships')
       .update({ status: memberStatus, current_period_end: periodEnd })
       .eq('stripe_subscription_id', sub.id);
@@ -215,7 +224,7 @@ async function cancelSubscription(supabase: SupabaseClient, sub: Stripe.Subscrip
   const meta = sub.metadata ?? {};
   if (meta.type === 'prepper_pro') {
     await supabase.from('prepper_memberships').update({ status: 'cancelled' }).eq('stripe_subscription_id', sub.id);
-  } else if (meta.type === 'customer_plus') {
+  } else if (meta.type === 'customer_plus' || meta.type === 'customer_connect') {
     await supabase.from('customer_memberships').update({ status: 'cancelled' }).eq('stripe_subscription_id', sub.id);
   } else if (meta.type === 'meal_plan') {
     await supabase.from('subscriptions').update({ status: 'cancelled' }).eq('stripe_subscription_id', sub.id);
