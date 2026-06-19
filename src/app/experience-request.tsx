@@ -15,31 +15,124 @@ import type { ExperienceKind } from '@/types/database.types';
 
 const ORANGE = Palette.brand;
 const INK = Palette.ink;
+
 const KINDS: { key: ExperienceKind; label: string }[] = [
   { key: 'catering',      label: 'Catering' },
   { key: 'private_chef',  label: 'Private chef' },
-  { key: 'food_service',  label: 'Food service' },
-  { key: 'cleaning',      label: 'Cleaning' },
+  { key: 'food_service',  label: 'Cook at mine' },
+  { key: 'cleaning',      label: 'Kitchen reset' },
   { key: 'class',         label: 'Cooking class' },
   { key: 'tasting',       label: 'Tasting menu' },
 ];
+
+type KindConfig = {
+  titlePlaceholder: string;
+  detailsPlaceholder: string;
+  guestLabel: string;
+  guestMax: number;
+  locationLabel: string;
+  locationPlaceholder: string;
+  showGuests: boolean;
+  showSkillLevel: boolean;
+};
+
+const KIND_CONFIG: Record<ExperienceKind, KindConfig> = {
+  catering: {
+    titlePlaceholder: 'e.g. Wedding reception for 80, Nigerian buffet',
+    detailsPlaceholder: 'Cuisine style, dietary needs, event vibe, service style…',
+    guestLabel: 'Number of guests',
+    guestMax: 500,
+    locationLabel: 'Event venue or address',
+    locationPlaceholder: 'Venue name or street address',
+    showGuests: true,
+    showSkillLevel: false,
+  },
+  private_chef: {
+    titlePlaceholder: 'e.g. Dinner party for 6, Mediterranean theme',
+    detailsPlaceholder: 'Cuisine preferences, dietary restrictions, number of courses…',
+    guestLabel: 'Number of diners',
+    guestMax: 50,
+    locationLabel: 'Your home address',
+    locationPlaceholder: 'Street address where the chef will cook',
+    showGuests: true,
+    showSkillLevel: false,
+  },
+  food_service: {
+    titlePlaceholder: 'e.g. Weekly family meal prep — 4 people, healthy meals',
+    detailsPlaceholder: 'Dietary needs, meal types, how often, any restrictions…',
+    guestLabel: 'People to feed',
+    guestMax: 20,
+    locationLabel: 'Your address',
+    locationPlaceholder: 'Street address where the chef will cook',
+    showGuests: true,
+    showSkillLevel: false,
+  },
+  cleaning: {
+    titlePlaceholder: 'e.g. Post-event kitchen deep clean',
+    detailsPlaceholder: 'Kitchen size, equipment to clean, any special requirements…',
+    guestLabel: '',
+    guestMax: 1,
+    locationLabel: 'Kitchen address',
+    locationPlaceholder: 'Street address of the kitchen',
+    showGuests: false,
+    showSkillLevel: false,
+  },
+  class: {
+    titlePlaceholder: 'e.g. Learn to make Nigerian jollof rice from scratch',
+    detailsPlaceholder: 'What you want to learn, dishes to master, any allergies…',
+    guestLabel: 'Number of participants',
+    guestMax: 20,
+    locationLabel: 'Where to host the class',
+    locationPlaceholder: 'Your home, rented kitchen, or leave blank for chef to suggest',
+    showGuests: true,
+    showSkillLevel: true,
+  },
+  tasting: {
+    titlePlaceholder: 'e.g. West African tasting menu for two',
+    detailsPlaceholder: 'Cuisine interests, dietary restrictions, atmosphere preference…',
+    guestLabel: 'Number of guests',
+    guestMax: 20,
+    locationLabel: 'Venue or your home',
+    locationPlaceholder: 'Neighbourhood or address',
+    showGuests: true,
+    showSkillLevel: false,
+  },
+  other: {
+    titlePlaceholder: 'e.g. Custom food experience',
+    detailsPlaceholder: 'Tell us what you have in mind…',
+    guestLabel: 'Number of people',
+    guestMax: 100,
+    locationLabel: 'Location',
+    locationPlaceholder: 'Neighbourhood or address',
+    showGuests: true,
+    showSkillLevel: false,
+  },
+};
+
+const SKILL_LEVELS = [
+  { key: 'beginner',     label: 'Beginner',     desc: "I'm new to cooking" },
+  { key: 'intermediate', label: 'Intermediate', desc: 'I know the basics' },
+  { key: 'advanced',     label: 'Advanced',     desc: 'I want to refine my skills' },
+] as const;
+type SkillLevel = typeof SKILL_LEVELS[number]['key'];
+
 const BUDGET_PRESETS = [500, 1000, 2000, 5000, 10000];
 const money = (n: number | null) => (n == null ? '—' : `$${n.toLocaleString('en-US')}`);
 const cleanLine = (s: string) => s.replace(/[\x00-\x1F\x7F]/g, ' ').replace(/\s+/g, ' ');
 const cleanBlock = (s: string) => s.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
 
-function GuestStepper({ value, onChange }: { value: number; onChange: (n: number) => void }) {
+function GuestStepper({ value, max, onChange }: { value: number; max: number; onChange: (n: number) => void }) {
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 18, backgroundColor: Palette.canvas, borderRadius: 14, paddingHorizontal: 16, paddingVertical: 10, borderWidth: 1, borderColor: Palette.border }}>
       <PressableScale onPress={() => { feedback.tap(); onChange(Math.max(1, value - 1)); }} disabled={value <= 1}
-        accessibilityRole="button" accessibilityLabel="Decrease guests"
+        accessibilityRole="button" accessibilityLabel="Decrease"
         style={{ width: 34, height: 34, borderRadius: 10, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center', opacity: value <= 1 ? 0.35 : 1 }}>
         <Minus size={15} color={INK} />
       </PressableScale>
-      <Text style={{ fontFamily: Font.display, fontSize: 22, color: INK, minWidth: 34, textAlign: 'center', fontVariant: ['tabular-nums'] }} accessibilityLabel={`${value} guests`}>{value}</Text>
-      <PressableScale onPress={() => { feedback.tap(); onChange(Math.min(500, value + 1)); }} disabled={value >= 500}
-        accessibilityRole="button" accessibilityLabel="Increase guests"
-        style={{ width: 34, height: 34, borderRadius: 10, backgroundColor: ORANGE + '1A', alignItems: 'center', justifyContent: 'center', opacity: value >= 500 ? 0.35 : 1 }}>
+      <Text style={{ fontFamily: Font.display, fontSize: 22, color: INK, minWidth: 34, textAlign: 'center', fontVariant: ['tabular-nums'] }} accessibilityLabel={`${value}`}>{value}</Text>
+      <PressableScale onPress={() => { feedback.tap(); onChange(Math.min(max, value + 1)); }} disabled={value >= max}
+        accessibilityRole="button" accessibilityLabel="Increase"
+        style={{ width: 34, height: 34, borderRadius: 10, backgroundColor: ORANGE + '1A', alignItems: 'center', justifyContent: 'center', opacity: value >= max ? 0.35 : 1 }}>
         <Plus size={15} color={ORANGE} />
       </PressableScale>
     </View>
@@ -76,7 +169,7 @@ function BudgetPicker({ value, onChange }: { value: number | null; onChange: (n:
           <TextInput value={raw} onChangeText={(t) => { const n = t.replace(/[^0-9.]/g, ''); setRaw(n); const v = parseFloat(n); onChange(!isNaN(v) && v > 0 ? v : null); }}
             placeholder="enter amount" placeholderTextColor={Palette.textMuted} keyboardType="numeric" maxLength={8}
             style={{ flex: 1, height: 50, paddingHorizontal: 12, fontFamily: Font.body, fontSize: 15, color: INK }}
-            accessibilityLabel="Custom budget" />
+            accessibilityLabel="Custom budget amount" />
         </View>
       ) : null}
     </View>
@@ -96,10 +189,22 @@ export default function ExperienceRequestScreen() {
   const [guests, setGuests] = useState(10);
   const [budget, setBudget] = useState<number | null>(null);
   const [location, setLocation] = useState('');
+  const [skillLevel, setSkillLevel] = useState<SkillLevel | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [titleTouched, setTitleTouched] = useState(false);
   type Posted = { title: string; kind: ExperienceKind; guests: number; budget: number | null };
   const [posted, setPosted] = useState<Posted | null>(null);
+
+  const cfg = KIND_CONFIG[kind] ?? KIND_CONFIG.other;
+
+  function handleKindChange(k: ExperienceKind) {
+    feedback.tap();
+    setKind(k);
+    // Reset kind-specific fields when switching type
+    setSkillLevel(null);
+    if (!KIND_CONFIG[k].showGuests) setGuests(1);
+    else setGuests(10);
+  }
 
   function goBack() { feedback.tap(); if (router.canGoBack()) { router.back(); } else { router.replace('/experiences'); } }
 
@@ -109,13 +214,17 @@ export default function ExperienceRequestScreen() {
     const cleanTitle = cleanLine(title).trim();
     if (cleanTitle.length < 3) { setTitleTouched(true); feedback.error(); return setErr('Give your request a short title (at least 3 characters).'); }
     feedback.tap();
+    // Append skill level to details for class requests
+    const finalDetails = kind === 'class' && skillLevel
+      ? `[Skill level: ${skillLevel}] ${cleanBlock(details).trim()}`.trim()
+      : cleanBlock(details).trim();
     create.mutate(
-      { kind, title: cleanTitle, details: cleanBlock(details).trim(), guests, budget, location: cleanLine(location).trim() },
+      { kind, title: cleanTitle, details: finalDetails, guests: cfg.showGuests ? guests : 1, budget, location: cleanLine(location).trim() },
       {
         onSuccess: () => {
           feedback.success();
           setPosted({ title: cleanTitle.slice(0, 100), kind, guests, budget });
-          setTitle(''); setDetails(''); setGuests(10); setBudget(null); setLocation(''); setTitleTouched(false);
+          setTitle(''); setDetails(''); setGuests(10); setBudget(null); setLocation(''); setSkillLevel(null); setTitleTouched(false);
         },
         onError: (e) => { feedback.error(); setErr(e instanceof Error ? e.message : 'Could not post request.'); },
       },
@@ -148,7 +257,7 @@ export default function ExperienceRequestScreen() {
                   <MotiView key={k.key} animate={{ backgroundColor: on ? Palette.brandTint : Palette.canvas, borderColor: on ? ORANGE : Palette.border }}
                     transition={{ type: 'timing', duration: 180 }}
                     style={{ borderRadius: Radius.pill, borderWidth: 1, overflow: 'hidden' }}>
-                    <PressableScale onPress={() => { feedback.tap(); setKind(k.key); }} accessibilityRole="button"
+                    <PressableScale onPress={() => handleKindChange(k.key)} accessibilityRole="button"
                       accessibilityState={{ selected: on }} accessibilityLabel={k.label} style={{ paddingHorizontal: 14, paddingVertical: 9 }}>
                       <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: on ? ORANGE : Palette.inkSoft }}>{k.label}</Text>
                     </PressableScale>
@@ -174,7 +283,8 @@ export default function ExperienceRequestScreen() {
                 </Text>
                 <Text style={{ fontFamily: Font.heading, fontSize: 15, color: INK }}>{posted.title}</Text>
                 <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary }}>
-                  {posted.guests} guests{posted.budget != null ? ` · budget ${money(posted.budget)}` : ''}
+                  {posted.guests > 1 ? `${posted.guests} ${KIND_CONFIG[posted.kind]?.guestLabel ?? 'guests'}` : ''}
+                  {posted.budget != null ? ` · budget ${money(posted.budget)}` : ''}
                 </Text>
                 <View style={{ backgroundColor: Palette.brandTint, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 5, alignSelf: 'flex-start', marginTop: 2 }}>
                   <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: ORANGE }}>Open · accepting bids</Text>
@@ -197,10 +307,12 @@ export default function ExperienceRequestScreen() {
           ) : (
             <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 300, delay: 80 }}>
               <View style={{ gap: 14, marginTop: 16 }}>
+
+                {/* Title */}
                 <View style={{ gap: 4 }}>
                   <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: INK }}>Title <Text style={{ color: Palette.danger }}>*</Text></Text>
                   <TextInput style={[inputStyle, { borderColor: titleTouched && title.trim().length < 3 ? Palette.danger : Palette.border, borderWidth: 1.5 }]}
-                    placeholder="e.g. Birthday dinner for 8" placeholderTextColor={Palette.textMuted}
+                    placeholder={cfg.titlePlaceholder} placeholderTextColor={Palette.textMuted}
                     value={title} onChangeText={(t) => setTitle(cleanLine(t))} onBlur={() => setTitleTouched(true)} maxLength={100}
                     accessibilityLabel="Request title" />
                   {titleTouched && title.trim().length < 3
@@ -208,30 +320,71 @@ export default function ExperienceRequestScreen() {
                     : <Text style={{ fontFamily: Font.body, fontSize: 11.5, color: Palette.textMuted, textAlign: 'right' }}>{title.length}/100</Text>}
                 </View>
 
+                {/* Details */}
                 <View style={{ gap: 4 }}>
                   <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: INK }}>Details <Text style={{ fontFamily: Font.body, color: Palette.textMuted }}>(optional)</Text></Text>
                   <TextInput style={[inputStyle, { height: 90, paddingTop: 14, textAlignVertical: 'top' }]}
-                    placeholder="Cuisine preferences, dietary needs, vibe…" placeholderTextColor={Palette.textMuted}
+                    placeholder={cfg.detailsPlaceholder} placeholderTextColor={Palette.textMuted}
                     value={details} onChangeText={(t) => setDetails(cleanBlock(t))} multiline maxLength={500}
                     accessibilityLabel="Request details" />
                   <Text style={{ fontFamily: Font.body, fontSize: 11.5, color: Palette.textMuted, textAlign: 'right' }}>{details.length}/500</Text>
                 </View>
 
-                <View style={{ gap: 6 }}>
-                  <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: INK }}>Number of guests</Text>
-                  <GuestStepper value={guests} onChange={setGuests} />
-                </View>
+                {/* Skill level — cooking class only */}
+                {cfg.showSkillLevel ? (
+                  <View style={{ gap: 8 }}>
+                    <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: INK }}>Your skill level <Text style={{ fontFamily: Font.body, color: Palette.textMuted }}>(optional)</Text></Text>
+                    <View style={{ gap: 8 }}>
+                      {SKILL_LEVELS.map((s) => {
+                        const on = skillLevel === s.key;
+                        return (
+                          <PressableScale key={s.key} onPress={() => { feedback.tap(); setSkillLevel(on ? null : s.key); }}
+                            accessibilityRole="button" accessibilityState={{ selected: on }} accessibilityLabel={s.label}
+                            style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 12, borderRadius: 14, borderWidth: 1.5, borderColor: on ? ORANGE : Palette.border, backgroundColor: on ? Palette.brandTint : Palette.canvas }}>
+                            <View style={{ width: 18, height: 18, borderRadius: 9, borderWidth: 2, borderColor: on ? ORANGE : Palette.border, backgroundColor: on ? ORANGE : 'transparent', alignItems: 'center', justifyContent: 'center' }}>
+                              {on ? <View style={{ width: 7, height: 7, borderRadius: 3.5, backgroundColor: '#fff' }} /> : null}
+                            </View>
+                            <View style={{ flex: 1 }}>
+                              <Text style={{ fontFamily: Font.semibold, fontSize: 13.5, color: on ? ORANGE : INK }}>{s.label}</Text>
+                              <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted }}>{s.desc}</Text>
+                            </View>
+                          </PressableScale>
+                        );
+                      })}
+                    </View>
+                  </View>
+                ) : null}
 
+                {/* Guests / participants — hidden for cleaning */}
+                {cfg.showGuests ? (
+                  <View style={{ gap: 6 }}>
+                    <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: INK }}>{cfg.guestLabel}</Text>
+                    <GuestStepper value={guests} max={cfg.guestMax} onChange={setGuests} />
+                  </View>
+                ) : null}
+
+                {/* Budget */}
                 <View style={{ gap: 6 }}>
                   <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: INK }}>Approximate budget <Text style={{ fontFamily: Font.body, color: Palette.textMuted }}>(optional)</Text></Text>
                   <BudgetPicker value={budget} onChange={setBudget} />
                 </View>
 
+                {/* Location */}
                 <View style={{ gap: 4 }}>
-                  <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: INK }}>Location <Text style={{ fontFamily: Font.body, color: Palette.textMuted }}>(optional)</Text></Text>
-                  <TextInput style={inputStyle} placeholder="Neighbourhood or address" placeholderTextColor={Palette.textMuted}
-                    value={location} onChangeText={(t) => setLocation(cleanLine(t))} maxLength={200}
-                    accessibilityLabel="Location" />
+                  <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: INK }}>{cfg.locationLabel} <Text style={{ fontFamily: Font.body, color: Palette.textMuted }}>(optional)</Text></Text>
+                  <TextInput
+                    style={inputStyle}
+                    placeholder={cfg.locationPlaceholder}
+                    placeholderTextColor={Palette.textMuted}
+                    value={location}
+                    onChangeText={(t) => setLocation(cleanLine(t))}
+                    maxLength={200}
+                    autoComplete="off"
+                    autoCorrect={false}
+                    // @ts-ignore — textContentType is iOS-only
+                    textContentType="none"
+                    accessibilityLabel={cfg.locationLabel}
+                  />
                 </View>
               </View>
 

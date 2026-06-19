@@ -25,7 +25,6 @@ import { Font } from '@/constants/fonts';
 import { Palette, Radius, Shadow } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
 import { type MyExperienceRequest, useMyExperienceRequests } from '@/lib/queries/experiences';
-import { useCustomerMembership } from '@/lib/queries/memberships';
 import { useAuth } from '@/providers/auth-provider';
 import { Image } from 'expo-image';
 import { ChefHat } from 'lucide-react-native';
@@ -132,8 +131,6 @@ export default function ExperiencesScreen() {
   const router = useRouter();
   const { user } = useAuth();
   const { data: myRequests, isLoading, isError, refetch } = useMyExperienceRequests(user?.id);
-  const { data: membership } = useCustomerMembership(user?.id);
-  const isUnlocked = membership?.isUnlocked === true;
   const [refreshing, setRefreshing] = useState(false);
   const [selected, setSelected] = useState<MyExperienceRequest | null>(null);
 
@@ -357,8 +354,6 @@ export default function ExperiencesScreen() {
         <RequestDetailSheet
           request={selected}
           onClose={() => setSelected(null)}
-          isUnlocked={isUnlocked}
-          onConnectPress={() => { setSelected(null); router.push('/connect-premium'); }}
         />
       </SafeAreaView>
     </View>
