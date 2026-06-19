@@ -26,9 +26,11 @@ type ConvRow = {
 const one = <T,>(v: T | T[] | null | undefined): T | undefined => (Array.isArray(v) ? v[0] : v ?? undefined);
 
 /** Inbox: the user's conversations with the other participant + last message. */
-export function useConversations(userId?: string | null) {
+/** Subscribe to new messages to keep the conversation list live. Call this ONCE
+ *  in the component tree (the tab layout already does it). Do NOT call it in
+ *  individual screens that already inherit the subscription. */
+export function useConversationsRealtime(userId?: string | null) {
   const qc = useQueryClient();
-
   useEffect(() => {
     if (!userId) return;
     const name = `conversations:${userId}`;
@@ -36,12 +38,14 @@ export function useConversations(userId?: string | null) {
     const channel = supabase
       .channel(name)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, () => {
-        qc.invalidateQueries({ queryKey: ['conversations', userId] });
+        void qc.invalidateQueries({ queryKey: ['conversations', userId] });
       })
       .subscribe();
     return () => { void supabase.removeChannel(channel); };
   }, [userId, qc]);
+}
 
+export function useConversations(userId?: string | null) {
   return useQuery({
     queryKey: ['conversations', userId ?? 'anon'],
     enabled: !!userId,
