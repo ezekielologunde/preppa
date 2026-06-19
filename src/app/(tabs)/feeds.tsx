@@ -75,7 +75,8 @@ export default function FeedsScreen() {
 
   const [tab, setTab] = useState<'following' | 'explore'>('following');
   const { data: liveItems = [] } = useLiveFeedItems();
-  const { data: exploreItems, isLoading: exploreLoading, isError: exploreError } = useFeed();
+  const { data: exploreData, isLoading: exploreLoading, isError: exploreError } = useFeed();
+  const exploreItems = exploreData?.pages.flat();
   const { data: followingItems, isLoading: followingLoading, isError: followingError } = useFollowingFeed(user?.id);
   const { data: followIds } = useMyFollowIds(user?.id);
   const followSet = useMemo(() => new Set(followIds ?? []), [followIds]);

@@ -41,7 +41,7 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
-      ["expo-router", { "scheme": "preppa" }],
+      "expo-router",
       [
         "expo-splash-screen",
         {
