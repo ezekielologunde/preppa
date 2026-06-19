@@ -334,6 +334,34 @@ export default function AuthScreen() {
           </Pressable>
         )}
 
+        {/* Legal links */}
+        {step === 'form' && (
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', marginTop: 16, gap: 4 }}>
+            <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted }}>
+              By signing up, you agree to our
+            </Text>
+            <PressableScale
+              onPress={() => { feedback.tap(); router.push('/legal/terms' as never); }}
+              accessibilityRole="link"
+              accessibilityLabel="Terms of Service">
+              <Text style={{ fontFamily: Font.medium, fontSize: 12, color: Palette.brand }}>
+                Terms of Service
+              </Text>
+            </PressableScale>
+            <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted }}>
+              and
+            </Text>
+            <PressableScale
+              onPress={() => { feedback.tap(); router.push('/legal/privacy' as never); }}
+              accessibilityRole="link"
+              accessibilityLabel="Privacy Policy">
+              <Text style={{ fontFamily: Font.medium, fontSize: 12, color: Palette.brand }}>
+                Privacy Policy.
+              </Text>
+            </PressableScale>
+          </View>
+        )}
+
       </SafeAreaView>
     </View>
   );
