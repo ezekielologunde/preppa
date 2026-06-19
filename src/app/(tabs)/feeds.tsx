@@ -1,7 +1,7 @@
 import { useRouter } from 'expo-router';
 import { MonitorPlay } from 'lucide-react-native';
 import { MotiView } from 'moti';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   NativeScrollEvent,
@@ -75,7 +75,14 @@ export default function FeedsScreen() {
 
   const [tab, setTab] = useState<'following' | 'explore'>('following');
   const { data: liveItems = [] } = useLiveFeedItems();
-  const { data: exploreData, isLoading: exploreLoading, isError: exploreError } = useFeed();
+  const {
+    data: exploreData,
+    isLoading: exploreLoading,
+    isError: exploreError,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useFeed();
   const exploreItems = exploreData?.pages.flat();
   const { data: followingItems, isLoading: followingLoading, isError: followingError } = useFollowingFeed(user?.id);
   const { data: followIds } = useMyFollowIds(user?.id);
@@ -106,10 +113,17 @@ export default function FeedsScreen() {
   const [page, setPage] = useState(0);
   const [cardHeight, setCardHeight] = useState(windowHeight);
 
-  function onScroll(e: NativeSyntheticEvent<NativeScrollEvent>) {
+  // Trigger next page when 2 cards from the end on the explore tab
+  useEffect(() => {
+    if (tab === 'explore' && hasNextPage && !isFetchingNextPage && page >= stream.length - 2) {
+      fetchNextPage();
+    }
+  }, [tab, page, stream.length, hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  const onScroll = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => {
     const p = Math.round(e.nativeEvent.contentOffset.y / cardHeight);
     setPage(p);
-  }
+  }, [cardHeight]);
 
   if (isLoading) {
     return (
@@ -205,6 +219,11 @@ export default function FeedsScreen() {
             onScroll={onScroll}
             scrollEventThrottle={cardHeight / 2}>
             {stream.map(renderEntry)}
+            {tab === 'explore' && isFetchingNextPage ? (
+              <View style={{ height: cardHeight, alignItems: 'center', justifyContent: 'center', backgroundColor: '#000' }}>
+                <ActivityIndicator color={ORANGE} />
+              </View>
+            ) : null}
           </ScrollView>
           <PositionDots total={stream.length} current={page} />
         </View>
@@ -301,6 +320,11 @@ export default function FeedsScreen() {
         onScroll={onScroll}
         scrollEventThrottle={cardHeight / 2}>
         {stream.map(renderEntry)}
+        {tab === 'explore' && isFetchingNextPage ? (
+          <View style={{ height: cardHeight, alignItems: 'center', justifyContent: 'center', backgroundColor: '#000' }}>
+            <ActivityIndicator color={ORANGE} />
+          </View>
+        ) : null}
       </ScrollView>
       <PositionDots total={stream.length} current={page} />
     </View>

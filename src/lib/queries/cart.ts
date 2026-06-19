@@ -256,6 +256,7 @@ export function usePlaceMultipleOrders() {
           p_note: g.note ?? null,
           p_tip: g.tip ?? 0,
           p_scheduled_at: g.scheduledAt ?? null,
+          p_idempotency_key: crypto.randomUUID(),
         });
         if (error) {
           const err = new Error(`Could not place order with ${g.prepperName}: ${error.message}`) as Error & { failedKitchen: string };
@@ -310,6 +311,7 @@ export function usePlaceOrder() {
         p_scheduled_at: v.scheduledAt ?? null,
         p_gift_card_code: v.giftCardCode ?? null,
         p_gift_card_amount: v.giftCardAmount ?? 0,
+        p_idempotency_key: crypto.randomUUID(),
       });
       if (error) throw error;
       const orderId = data as string;
