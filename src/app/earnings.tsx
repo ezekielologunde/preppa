@@ -53,7 +53,7 @@ function PeriodPills({ value, onChange }: { value: Period; onChange: (p: Period)
         const active = key === value;
         return (
           <TouchableOpacity key={key} onPress={() => { feedback.tap(); onChange(key); }}
-            style={{ borderRadius: Radius.pill, paddingHorizontal: 14, height: 34, alignItems: 'center', justifyContent: 'center',
+            style={{ borderRadius: Radius.pill, paddingHorizontal: 14, height: 44, alignItems: 'center', justifyContent: 'center',
               backgroundColor: active ? ORANGE : CARD, borderWidth: active ? 0 : 1, borderColor: '#ffffff18' }}>
             <Text style={{ fontFamily: Font.medium, fontSize: 12.5, color: active ? '#fff' : MUTED }}>{label}</Text>
           </TouchableOpacity>
@@ -166,7 +166,7 @@ export default function EarningsScreen() {
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingTop: 8, paddingBottom: 8 }}>
           <PressableScale onPress={() => { feedback.tap(); if (router.canGoBack()) { router.back(); } else { router.replace('/dashboard'); } }}
             accessibilityRole="button" accessibilityLabel="Go back"
-            style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center' }}>
+            style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center' }}>
             <ChevronLeft size={22} color="#fff" />
           </PressableScale>
           <Text style={{ fontFamily: Font.display, fontSize: 24, color: '#fff', letterSpacing: -0.6, flex: 1 }}>earnings</Text>

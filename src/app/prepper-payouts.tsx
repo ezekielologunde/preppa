@@ -17,6 +17,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { PayoutSetupCard } from '@/components/payout-setup-card';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Font } from '@/constants/fonts';
@@ -25,6 +26,7 @@ import { feedback } from '@/lib/feedback';
 import { useBreakpoint } from '@/lib/layout';
 import { usePayoutBalance, usePayoutHistory, useRequestPayout, type PayoutRequest } from '@/lib/queries/payouts';
 import { useMyPrepperApplication } from '@/lib/queries/preppers';
+import { useStripeConnect } from '@/lib/queries/stripe-connect';
 import { useAuth } from '@/providers/auth-provider';
 
 const ORANGE = Palette.brand;
@@ -236,6 +238,9 @@ export default function PrepperPayoutsScreen() {
   const { data: application } = useMyPrepperApplication(user?.id);
   const prepperId = application?.id ?? null;
   const isDesktop = useBreakpoint() === 'desktop';
+  const { data: stripeConnect } = useStripeConnect();
+  const stripeStatus = stripeConnect?.stripe_account_status ?? 'not_connected';
+  const stripeActive = stripeStatus === 'active';
 
   const { data: balance, isLoading: balanceLoading, refetch: refetchBalance } = usePayoutBalance(prepperId);
   const { data: history = [], isLoading: historyLoading, refetch: refetchHistory } = usePayoutHistory(prepperId);
@@ -276,8 +281,13 @@ export default function PrepperPayoutsScreen() {
           contentContainerStyle={{ paddingBottom: 48 }}>
           <View style={[{ padding: 20, gap: 16 }, isDesktop ? { maxWidth: 800, alignSelf: 'center', width: '100%' } : null]}>
 
+            {/* Stripe Connect payout setup */}
+            <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280 }}>
+              <PayoutSetupCard />
+            </MotiView>
+
             {/* Balance card */}
-            <MotiView from={{ opacity: 0, translateY: 12 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 300 }}>
+            <MotiView from={{ opacity: 0, translateY: 12 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 300, delay: 60 }}>
               <View style={{ backgroundColor: CARD, borderRadius: 20, padding: 24, gap: 8 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                   <Wallet size={16} color={MUTED} />
@@ -297,12 +307,12 @@ export default function PrepperPayoutsScreen() {
                 )}
                 <PressableScale
                   onPress={() => { feedback.tap(); setModalOpen(true); }}
-                  disabled={available < MIN_PAYOUT || !prepperId}
+                  disabled={available < MIN_PAYOUT || !prepperId || !stripeActive}
                   accessibilityRole="button"
                   accessibilityLabel="Request payout"
                   style={{
                     marginTop: 8,
-                    backgroundColor: available >= MIN_PAYOUT ? ORANGE : '#ffffff18',
+                    backgroundColor: available >= MIN_PAYOUT && stripeActive ? ORANGE : '#ffffff18',
                     borderRadius: Radius.pill,
                     height: 50,
                     flexDirection: 'row',
@@ -310,12 +320,17 @@ export default function PrepperPayoutsScreen() {
                     justifyContent: 'center',
                     gap: 8,
                   }}>
-                  <ArrowDownToLine size={17} color={available >= MIN_PAYOUT ? '#fff' : '#ffffff40'} />
-                  <Text style={{ fontFamily: Font.semibold, fontSize: 15, color: available >= MIN_PAYOUT ? '#fff' : '#ffffff40' }}>
+                  <ArrowDownToLine size={17} color={available >= MIN_PAYOUT && stripeActive ? '#fff' : '#ffffff40'} />
+                  <Text style={{ fontFamily: Font.semibold, fontSize: 15, color: available >= MIN_PAYOUT && stripeActive ? '#fff' : '#ffffff40' }}>
                     Request payout
                   </Text>
                 </PressableScale>
-                {available < MIN_PAYOUT && (
+                {!stripeActive && (
+                  <Text style={{ fontFamily: Font.body, fontSize: 12, color: MUTED, textAlign: 'center', marginTop: 8 }}>
+                    Set up payouts above to unlock withdrawals
+                  </Text>
+                )}
+                {stripeActive && available < MIN_PAYOUT && (
                   <Text style={{ fontFamily: Font.body, fontSize: 12, color: MUTED, textAlign: 'center', marginTop: 8 }}>
                     Need {money(MIN_PAYOUT - available)} more to reach the $50 minimum
                   </Text>
