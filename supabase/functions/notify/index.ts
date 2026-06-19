@@ -16,27 +16,27 @@ Deno.serve(async (req) => {
 
     // Require authentication — service-role key (internal callers) or admin JWT
     const token = (req.headers.get('Authorization') ?? '').replace('Bearer ', '');
-    if (!token) return errorResponse('Not authenticated', 401);
+    if (!token) return errorResponse('Not authenticated', 401, req);
     const isServiceRole = token === Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     if (!isServiceRole) {
       const { data: { user }, error: authErr } = await supabase.auth.getUser(token);
-      if (authErr || !user) return errorResponse('Not authenticated', 401);
+      if (authErr || !user) return errorResponse('Not authenticated', 401, req);
       const userClient = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, {
         global: { headers: { Authorization: `Bearer ${token}` } },
       });
       const { data: isAdmin } = await userClient.rpc('is_admin');
-      if (!isAdmin) return errorResponse('Forbidden', 403);
+      if (!isAdmin) return errorResponse('Forbidden', 403, req);
     }
 
     let payload: Record<string, unknown>;
     try {
       payload = await readBody(req, 32 * 1024) as Record<string, unknown>;
     } catch (e) {
-      return errorResponse(e instanceof Error ? e.message : 'Invalid request', 400);
+      return errorResponse(e instanceof Error ? e.message : 'Invalid request', 400, req);
     }
 
     const { title, body, data } = payload as { title?: string; body?: string; data?: Record<string, unknown> };
-    if (!title || !body) return errorResponse('Missing title or body', 400);
+    if (!title || !body) return errorResponse('Missing title or body', 400, req);
 
     // Resolve the target user ID list — accept either user_id (single) or user_ids (batch).
     const userIds: string[] = Array.isArray(payload.user_ids)
@@ -44,14 +44,14 @@ Deno.serve(async (req) => {
       : payload.user_id
         ? [payload.user_id as string]
         : [];
-    if (userIds.length === 0) return errorResponse('Missing user_id or user_ids', 400);
-    if (userIds.length > MAX_USER_IDS) return errorResponse(`user_ids exceeds maximum of ${MAX_USER_IDS}`, 400);
+    if (userIds.length === 0) return errorResponse('Missing user_id or user_ids', 400, req);
+    if (userIds.length > MAX_USER_IDS) return errorResponse(`user_ids exceeds maximum of ${MAX_USER_IDS}`, 400, req);
 
     const { data: rows, error } = userIds.length === 1
       ? await supabase.from('push_tokens').select('token').eq('user_id', userIds[0])
       : await supabase.from('push_tokens').select('token').in('user_id', userIds);
-    if (error) return errorResponse(error.message, 500);
-    if (!rows || rows.length === 0) return json({ ok: true, sent: 0 });
+    if (error) return errorResponse(error.message, 500, req);
+    if (!rows || rows.length === 0) return json({ ok: true, sent: 0 }, 200, req);
 
     const messages = (rows as { token: string }[]).map((r) => ({
       to: r.token,
@@ -67,8 +67,8 @@ Deno.serve(async (req) => {
       body: JSON.stringify(messages.length === 1 ? messages[0] : messages),
     });
 
-    return json({ ok: true, sent: messages.length });
+    return json({ ok: true, sent: messages.length }, 200, req);
   } catch (e) {
-    return json({ error: e instanceof Error ? e.message : 'Notify failed' }, 500);
+    return json({ error: e instanceof Error ? e.message : 'Notify failed' }, 500, req);
   }
 });

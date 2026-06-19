@@ -224,20 +224,36 @@ export function useKitchensByTag(tag?: string | null) {
 
 /** Search approved preppers by name or specialty (public read). */
 export function usePrepperSearch(query: string) {
-  const q = query.trim().replace(/[,(){}]/g, ' ').replace(/\s+/g, ' ').trim();
+  const q = query.trim().replace(/[^a-zA-Z0-9 \-]/g, '').replace(/\s+/g, ' ').trim().slice(0, 100);
   return useQuery({
     queryKey: ['preppers', 'search', q],
     enabled: q.length >= 2,
     queryFn: async (): Promise<TopPrepper[]> => {
-      const { data, error } = await supabase
-        .from('prepper_profiles')
-        .select(SELECT)
-        .eq('status', 'approved')
-        .eq('accepting_orders', true)
-        .or(`display_name.ilike.%${q}%,specialties.cs.{${q}}`)
-        .limit(12);
-      if (error) throw error;
-      return ((data ?? []) as unknown as Row[]).map(mapPrepper);
+      if (!q) return [];
+      const [byName, bySpecialty] = await Promise.all([
+        supabase
+          .from('prepper_profiles')
+          .select(SELECT)
+          .eq('status', 'approved')
+          .eq('accepting_orders', true)
+          .ilike('display_name', `%${q}%`)
+          .limit(12),
+        supabase
+          .from('prepper_profiles')
+          .select(SELECT)
+          .eq('status', 'approved')
+          .eq('accepting_orders', true)
+          .contains('specialties', [q])
+          .limit(12),
+      ]);
+      if (byName.error) throw byName.error;
+      if (bySpecialty.error) throw bySpecialty.error;
+      const seen = new Set<string>();
+      const combined: Row[] = [];
+      for (const row of [...(byName.data ?? []), ...(bySpecialty.data ?? [])] as unknown as Row[]) {
+        if (!seen.has(row.id)) { seen.add(row.id); combined.push(row); }
+      }
+      return combined.slice(0, 12).map(mapPrepper);
     },
   });
 }

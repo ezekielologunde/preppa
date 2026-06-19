@@ -4,27 +4,23 @@
 // client inserts with status 'active' immediately after the browser returns.
 import Stripe from 'https://esm.sh/stripe@14.21.0?target=denonext';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
+import { cors, json, errorResponse } from '../_shared/security.ts';
 
 const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY')!, {
   apiVersion: '2024-06-20',
   httpClient: Stripe.createFetchHttpClient(),
 });
 const SITE = Deno.env.get('SITE_URL') ?? 'https://app.preppa.live';
-const cors = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
-const json = (body: unknown, status = 200) =>
-  new Response(JSON.stringify(body), { status, headers: { ...cors, 'Content-Type': 'application/json' } });
 
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
+  const corsResp = cors(req);
+  if (corsResp) return corsResp;
+
   try {
     const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
     const token = (req.headers.get('Authorization') ?? '').replace('Bearer ', '');
     const { data: { user }, error: uerr } = await supabase.auth.getUser(token);
-    if (uerr || !user) return json({ error: 'Not authenticated' }, 401);
+    if (uerr || !user) return errorResponse('Not authenticated', 401, req);
 
     const BOOST_PRICES_CENTS: Record<string, number> = {
       '7d': 999,
@@ -32,8 +28,8 @@ Deno.serve(async (req) => {
     };
 
     const { prepperId, plan, durationLabel } = await req.json().catch(() => ({}));
-    if (!prepperId || !plan) return json({ error: 'Missing prepperId or plan' }, 400);
-    if (!(plan in BOOST_PRICES_CENTS)) return json({ error: 'Invalid boost plan' }, 400);
+    if (!prepperId || !plan) return errorResponse('Missing prepperId or plan', 400, req);
+    if (!(plan in BOOST_PRICES_CENTS)) return errorResponse('Invalid boost plan', 400, req);
     const amountCents = BOOST_PRICES_CENTS[plan];
 
     // Verify the prepper belongs to the authed user.
@@ -43,7 +39,7 @@ Deno.serve(async (req) => {
       .eq('id', prepperId)
       .eq('user_id', user.id)
       .single();
-    if (!pp) return json({ error: 'Forbidden' }, 403);
+    if (!pp) return errorResponse('Forbidden', 403, req);
 
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
@@ -65,8 +61,8 @@ Deno.serve(async (req) => {
       cancel_url: `${SITE}/boost`,
     });
 
-    return json({ url: session.url });
+    return json({ url: session.url }, 200, req);
   } catch (e) {
-    return json({ error: e instanceof Error ? e.message : 'Boost checkout failed' }, 500);
+    return errorResponse(e instanceof Error ? e.message : 'Boost checkout failed', 500, req);
   }
 });

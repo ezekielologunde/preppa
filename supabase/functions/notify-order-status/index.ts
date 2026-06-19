@@ -27,19 +27,19 @@ Deno.serve(async (req) => {
 
     const authHeader = req.headers.get('authorization') ?? '';
     const token = authHeader.replace('Bearer ', '');
-    if (!token) return errorResponse('Unauthorized', 401);
+    if (!token) return errorResponse('Unauthorized', 401, req);
 
     const user = await getUser(req, supabase);
-    if (!user) return errorResponse('Unauthorized', 401);
+    if (!user) return errorResponse('Unauthorized', 401, req);
 
     const body = await readBody(req) as Record<string, unknown>;
     const orderId = body.order_id;
     const status = body.status;
-    if (!orderId || typeof orderId !== 'string') return errorResponse('Missing order_id', 400);
-    if (!status || typeof status !== 'string') return errorResponse('Missing status', 400);
+    if (!orderId || typeof orderId !== 'string') return errorResponse('Missing order_id', 400, req);
+    if (!status || typeof status !== 'string') return errorResponse('Missing status', 400, req);
 
     const msg = STATUS_MESSAGES[status];
-    if (!msg) return json({ sent: false, reason: 'status_not_notifiable' });
+    if (!msg) return json({ sent: false, reason: 'status_not_notifiable' }, 200, req);
 
     const { data: order, error: orderError } = await supabase
       .from('orders')
@@ -47,7 +47,7 @@ Deno.serve(async (req) => {
       .eq('id', orderId)
       .single();
 
-    if (orderError || !order) return errorResponse('Order not found', 404);
+    if (orderError || !order) return errorResponse('Order not found', 404, req);
 
     const isPrepper = order.prepper_id === user.id;
     if (!isPrepper) {
@@ -57,7 +57,7 @@ Deno.serve(async (req) => {
         { global: { headers: { Authorization: `Bearer ${token}` } } },
       );
       const { data: adminResult, error: adminError } = await userClient.rpc('is_admin');
-      if (adminError || !adminResult) return errorResponse('Forbidden', 403);
+      if (adminError || !adminResult) return errorResponse('Forbidden', 403, req);
     }
 
     const customerId = order.customer_id as string;
@@ -68,14 +68,14 @@ Deno.serve(async (req) => {
       .eq('user_id', customerId)
       .maybeSingle();
     if (prefs && (!prefs.push_enabled || !prefs.order_updates)) {
-      return json({ sent: false, reason: 'notifications_disabled' });
+      return json({ sent: false, reason: 'notifications_disabled' }, 200, req);
     }
 
     const { data: tokens } = await supabase
       .from('push_tokens')
       .select('token')
       .eq('user_id', customerId);
-    if (!tokens?.length) return json({ sent: false, reason: 'no_token' });
+    if (!tokens?.length) return json({ sent: false, reason: 'no_token' }, 200, req);
 
     const kitchenName = typeof body.kitchen_name === 'string' ? body.kitchen_name : '';
     const prefix = kitchenName ? `${kitchenName}: ` : '';
@@ -93,8 +93,8 @@ Deno.serve(async (req) => {
       body: JSON.stringify(messages.length === 1 ? messages[0] : messages),
     });
     const result = await res.json();
-    return json({ sent: true, result });
+    return json({ sent: true, result }, 200, req);
   } catch (e) {
-    return errorResponse(e instanceof Error ? e.message : 'notify-order-status failed', 500);
+    return errorResponse(e instanceof Error ? e.message : 'notify-order-status failed', 500, req);
   }
 });

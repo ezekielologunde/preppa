@@ -3,23 +3,16 @@
 // Idempotent — safe to call even if already captured.
 import Stripe from 'https://esm.sh/stripe@14.21.0?target=denonext';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
+import { cors, json, errorResponse } from '../_shared/security.ts';
 
 const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY')!, {
   apiVersion: '2024-06-20',
   httpClient: Stripe.createFetchHttpClient(),
 });
 
-const cors = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
-
-const json = (body: unknown, status = 200) =>
-  new Response(JSON.stringify(body), { status, headers: { ...cors, 'Content-Type': 'application/json' } });
-
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
+  const corsResp = cors(req);
+  if (corsResp) return corsResp;
 
   try {
     const supabase = createClient(
@@ -28,10 +21,10 @@ Deno.serve(async (req) => {
     );
     const token = (req.headers.get('Authorization') ?? '').replace('Bearer ', '');
     const { data: { user }, error: uerr } = await supabase.auth.getUser(token);
-    if (uerr || !user) return json({ error: 'Not authenticated' }, 401);
+    if (uerr || !user) return errorResponse('Not authenticated', 401, req);
 
     const { orderId } = await req.json().catch(() => ({}));
-    if (!orderId) return json({ error: 'Missing orderId' }, 400);
+    if (!orderId) return errorResponse('Missing orderId', 400, req);
 
     // Verify caller is the prepper for this order
     const { data: order, error: orderErr } = await supabase
@@ -39,7 +32,7 @@ Deno.serve(async (req) => {
       .select('id, prepper_id, total, fulfillment_type, status')
       .eq('id', orderId)
       .single();
-    if (orderErr || !order) return json({ error: 'Order not found' }, 404);
+    if (orderErr || !order) return errorResponse('Order not found', 404, req);
 
     const { data: pp } = await supabase
       .from('prepper_profiles')
@@ -47,9 +40,9 @@ Deno.serve(async (req) => {
       .eq('id', order.prepper_id)
       .eq('user_id', user.id)
       .maybeSingle();
-    if (!pp) return json({ error: 'Forbidden' }, 403);
+    if (!pp) return errorResponse('Forbidden', 403, req);
 
-    if (order.fulfillment_type !== 'home_cook') return json({ error: 'Not a home cook order' }, 400);
+    if (order.fulfillment_type !== 'home_cook') return errorResponse('Not a home cook order', 400, req);
 
     // Get payment intent from home_cook_requests
     const { data: hcr } = await supabase
@@ -58,15 +51,15 @@ Deno.serve(async (req) => {
       .eq('order_id', orderId)
       .maybeSingle();
 
-    if (!hcr?.payment_intent_id) return json({ error: 'No payment intent on record for this order' }, 404);
+    if (!hcr?.payment_intent_id) return errorResponse('No payment intent on record for this order', 404, req);
 
     // Idempotent — if already captured, return success
     const intent = await stripe.paymentIntents.retrieve(hcr.payment_intent_id);
     if (intent.status === 'succeeded') {
-      return json({ captured: true, paymentIntentId: intent.id, idempotent: true });
+      return json({ captured: true, paymentIntentId: intent.id, idempotent: true }, 200, req);
     }
     if (intent.status !== 'requires_capture') {
-      return json({ error: `Payment intent in unexpected state: ${intent.status}` }, 409);
+      return errorResponse(`Payment intent in unexpected state: ${intent.status}`, 409, req);
     }
 
     const captured = await stripe.paymentIntents.capture(hcr.payment_intent_id);
@@ -78,9 +71,9 @@ Deno.serve(async (req) => {
       p_amount: Number(order.total),
     });
 
-    return json({ captured: true, paymentIntentId: captured.id });
+    return json({ captured: true, paymentIntentId: captured.id }, 200, req);
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Internal error';
-    return json({ error: msg }, 500);
+    return errorResponse(msg, 500, req);
   }
 });

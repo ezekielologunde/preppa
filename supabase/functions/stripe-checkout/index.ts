@@ -1,4 +1,4 @@
-// Creates a Stripe Checkout Session for an order. Two modes:
+﻿// Creates a Stripe Checkout Session for an order. Two modes:
 //  - default: hosted page (returns { url }) — used by native, and as fallback
 //  - embedded: in-app Checkout (returns { clientSecret, pk }) — the customer
 //    pays inside Preppa, no redirect. Same session type, same webhook.
@@ -22,40 +22,40 @@ Deno.serve(async (req) => {
     const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
     const token = (req.headers.get('Authorization') ?? '').replace('Bearer ', '');
     const { data: { user }, error: uerr } = await supabase.auth.getUser(token);
-    if (uerr || !user) return errorResponse('Not authenticated', 401);
+    if (uerr || !user) return errorResponse('Not authenticated', 401, req);
 
     let body: Record<string, unknown>;
     try {
       body = await readBody(req, 16 * 1024) as Record<string, unknown>;
     } catch (e) {
-      return errorResponse(e instanceof Error ? e.message : 'Invalid request', 400);
+      return errorResponse(e instanceof Error ? e.message : 'Invalid request', 400, req);
     }
 
     const allowed = await checkRateLimit(supabase, user.id, 'stripe-checkout', 5);
-    if (!allowed) return errorResponse('Too many requests', 429);
+    if (!allowed) return errorResponse('Too many requests', 429, req);
 
     const { type } = body as { type?: string };
 
     // ── bid_payment: customer pays an accepted meal-request bid ──────────────
     if (type === 'bid_payment') {
       const { bidId } = body as { bidId?: string };
-      if (!bidId) return errorResponse('Missing bidId', 400);
+      if (!bidId) return errorResponse('Missing bidId', 400, req);
 
       const { data: bid, error: berr } = await supabase
         .from('meal_request_bids')
         .select('id, request_id, prepper_id, price_per_serving, status')
         .eq('id', bidId)
         .single();
-      if (berr || !bid) return errorResponse('Bid not found', 404);
-      if (bid.status !== 'accepted') return errorResponse('Bid is not in accepted state', 409);
+      if (berr || !bid) return errorResponse('Bid not found', 404, req);
+      if (bid.status !== 'accepted') return errorResponse('Bid is not in accepted state', 409, req);
 
       const { data: mealReq, error: rerr } = await supabase
         .from('meal_requests')
         .select('id, customer_id, title, servings')
         .eq('id', bid.request_id)
         .single();
-      if (rerr || !mealReq) return errorResponse('Meal request not found', 404);
-      if (mealReq.customer_id !== user.id) return errorResponse('Not your request', 403);
+      if (rerr || !mealReq) return errorResponse('Meal request not found', 404, req);
+      if (mealReq.customer_id !== user.id) return errorResponse('Not your request', 403, req);
 
       const bidTotal = bid.price_per_serving * mealReq.servings;
       const serviceFee = Math.max(Math.round(bidTotal * 0.10 * 100) / 100, 1.50);
@@ -91,24 +91,24 @@ Deno.serve(async (req) => {
         customer_email: user.email ?? undefined,
       }, { idempotencyKey: `bid-checkout-${bidId}` });
 
-      return json({ url: session.url });
+      return json({ url: session.url }, 200, req);
     }
 
     // ── default: hosted checkout for a regular order ─────────────────────────
     const { orderId, embedded } = body as { orderId?: string; embedded?: boolean };
-    if (!orderId) return errorResponse('Missing orderId', 400);
+    if (!orderId) return errorResponse('Missing orderId', 400, req);
 
     const { data: order, error: oerr } = await supabase
       .from('orders')
       .select('id, customer_id, total, delivery_fee, tip, status, gift_card_code, gift_card_amount, items:order_items(quantity, unit_price, meal:meals(title))')
       .eq('id', orderId)
       .single();
-    if (oerr || !order) return errorResponse('Order not found', 404);
-    if (order.customer_id !== user.id) return errorResponse('Not your order', 403);
-    if (order.status === 'cancelled') return errorResponse('Order was cancelled', 409);
+    if (oerr || !order) return errorResponse('Order not found', 404, req);
+    if (order.customer_id !== user.id) return errorResponse('Not your order', 403, req);
+    if (order.status === 'cancelled') return errorResponse('Order was cancelled', 409, req);
 
     const { data: existing } = await supabase.from('payments').select('status').eq('order_id', orderId).maybeSingle();
-    if (existing?.status === 'succeeded') return errorResponse('Order already paid', 409);
+    if (existing?.status === 'succeeded') return errorResponse('Order already paid', 409, req);
 
     type Item = { quantity: number; unit_price: number; meal: { title?: string } | { title?: string }[] | null };
     const items = (order.items ?? []) as Item[];
@@ -123,7 +123,7 @@ Deno.serve(async (req) => {
       line_items.push({ price_data: { currency: 'usd', product_data: { name: 'Delivery fee' }, unit_amount: cents(order.delivery_fee) }, quantity: 1 });
     if (Number(order.tip) > 0)
       line_items.push({ price_data: { currency: 'usd', product_data: { name: 'Tip for your prepper' }, unit_amount: cents(order.tip) }, quantity: 1 });
-    if (line_items.length === 0) return errorResponse('Order has no items', 400);
+    if (line_items.length === 0) return errorResponse('Order has no items', 400, req);
 
     // Gift card partial discount — re-validate card, then create a one-off Stripe coupon
     const gcAmount = Number(order.gift_card_amount ?? 0);
@@ -174,10 +174,10 @@ Deno.serve(async (req) => {
 
     await supabase.rpc('record_payment', { p_order_id: orderId, p_txn: session.id, p_status: 'pending', p_amount: Number(order.total) });
     if (embedded) {
-      return json({ clientSecret: session.client_secret, pk: Deno.env.get('STRIPE_PUBLISHABLE_KEY') ?? null });
+      return json({ clientSecret: session.client_secret, pk: Deno.env.get('STRIPE_PUBLISHABLE_KEY') ?? null }, 200, req);
     }
-    return json({ url: session.url });
+    return json({ url: session.url }, 200, req);
   } catch (e) {
-    return json({ error: e instanceof Error ? e.message : 'Checkout failed' }, 500);
+    return json({ error: e instanceof Error ? e.message : 'Checkout failed' }, 500, req);
   }
 });

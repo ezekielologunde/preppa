@@ -1,4 +1,4 @@
-// Creates a Stripe Checkout Session in subscription mode.
+﻿// Creates a Stripe Checkout Session in subscription mode.
 // Handles Prepper Pro, Prep+, prepper-created meal plan billing, and
 // customer custom-plan billing. Webhook provisions access on completion.
 import Stripe from 'https://esm.sh/stripe@14.21.0?target=denonext';
@@ -28,23 +28,23 @@ Deno.serve(async (req) => {
     const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
     const token = (req.headers.get('Authorization') ?? '').replace('Bearer ', '');
     const { data: { user }, error: uerr } = await supabase.auth.getUser(token);
-    if (uerr || !user) return errorResponse('Not authenticated', 401);
+    if (uerr || !user) return errorResponse('Not authenticated', 401, req);
 
     let body: Record<string, unknown>;
     try {
       body = await readBody(req, 16 * 1024) as Record<string, unknown>;
     } catch (e) {
-      return errorResponse(e instanceof Error ? e.message : 'Invalid request', 400);
+      return errorResponse(e instanceof Error ? e.message : 'Invalid request', 400, req);
     }
 
     const allowed = await checkRateLimit(supabase, user.id, 'stripe-subscribe', 5);
-    if (!allowed) return errorResponse('Too many requests', 429);
+    if (!allowed) return errorResponse('Too many requests', 429, req);
 
     const { type, period, planId, prepperId, qty, deliveryDay, embedded } = body as {
       type?: string; period?: string; planId?: string; prepperId?: string;
       qty?: unknown; deliveryDay?: string; embedded?: boolean;
     };
-    if (!type) return errorResponse('Missing type', 400);
+    if (!type) return errorResponse('Missing type', 400, req);
 
     let amount = 0;
     let productName = '';
@@ -52,10 +52,10 @@ Deno.serve(async (req) => {
     const meta: Record<string, string> = { type };
 
     if (type === 'prepper_pro') {
-      if (!prepperId) return errorResponse('Missing prepperId', 400);
+      if (!prepperId) return errorResponse('Missing prepperId', 400, req);
       const { data: pp } = await supabase
         .from('prepper_profiles').select('user_id').eq('id', prepperId).single();
-      if (!pp || pp.user_id !== user.id) return errorResponse('Forbidden', 403);
+      if (!pp || pp.user_id !== user.id) return errorResponse('Forbidden', 403, req);
       const yearly = period === 'yearly';
       amount      = yearly ? 24900 : 2900;
       productName = `Preppa Pro (${yearly ? 'Yearly' : 'Monthly'})`;
@@ -80,12 +80,12 @@ Deno.serve(async (req) => {
       meta.period  = period ?? 'monthly';
 
     } else if (type === 'meal_plan') {
-      if (!planId) return errorResponse('Missing planId', 400);
+      if (!planId) return errorResponse('Missing planId', 400, req);
       const { data: plan } = await supabase
         .from('meal_plans')
         .select('id,name,price,frequency,prepper_id')
         .eq('id', planId).eq('active', true).single();
-      if (!plan) return errorResponse('Plan not found', 404);
+      if (!plan) return errorResponse('Plan not found', 404, req);
       const servings = Math.max(1, Math.min(6, Number(qty) || 1));
       rec         = FREQ[plan.frequency] ?? FREQ.weekly;
       amount      = cents(plan.price) * servings;
@@ -99,20 +99,20 @@ Deno.serve(async (req) => {
       meta.customer_id = user.id;
 
     } else if (type === 'custom_plan') {
-      if (!planId) return errorResponse('Missing planId', 400);
+      if (!planId) return errorResponse('Missing planId', 400, req);
       type PItem = { qty: number; meal: { base_price: number } | { base_price: number }[] | null };
       const { data: plan } = await supabase
         .from('customer_meal_plans')
         .select('id,name,frequency,delivery_day,customer_id,items:customer_meal_plan_items(qty,meal:meals(base_price))')
         .eq('id', planId).eq('customer_id', user.id).single();
-      if (!plan) return errorResponse('Plan not found', 404);
+      if (!plan) return errorResponse('Plan not found', 404, req);
       const planAny = plan as unknown as { name: string; frequency: string; items: PItem[] };
       let total = 0;
       for (const it of planAny.items ?? []) {
         const m = Array.isArray(it.meal) ? it.meal[0] : it.meal;
         total += (m?.base_price ?? 0) * it.qty;
       }
-      if (total <= 0) return errorResponse('Plan has no priced meals', 400);
+      if (total <= 0) return errorResponse('Plan has no priced meals', 400, req);
       rec         = FREQ[planAny.frequency] ?? FREQ.weekly;
       amount      = cents(total);
       productName = `${planAny.name} (custom plan)`;
@@ -121,10 +121,10 @@ Deno.serve(async (req) => {
       meta.frequency   = planAny.frequency;
 
     } else {
-      return errorResponse('Unknown subscription type', 400);
+      return errorResponse('Unknown subscription type', 400, req);
     }
 
-    if (amount < 50) return errorResponse('Amount too small for Stripe', 400);
+    if (amount < 50) return errorResponse('Amount too small for Stripe', 400, req);
 
     const common: Stripe.Checkout.SessionCreateParams = {
       mode: 'subscription',
@@ -142,22 +142,23 @@ Deno.serve(async (req) => {
       customer_email: user.email ?? undefined,
     };
 
+    const idempotencyKey = `subscribe-${user.id}-${type}-${period ?? ''}-${planId ?? ''}`;
     const session = embedded
       ? await stripe.checkout.sessions.create({
           ...common, ui_mode: 'embedded',
           return_url: `${SITE}/meal-plans?subscribed=1`,
-        })
+        }, { idempotencyKey: `${idempotencyKey}-embedded` })
       : await stripe.checkout.sessions.create({
           ...common,
           success_url: `${SITE}/meal-plans?subscribed=1`,
           cancel_url:  `${SITE}/meal-plans`,
-        });
+        }, { idempotencyKey });
 
     if (embedded) {
-      return json({ clientSecret: session.client_secret, pk: Deno.env.get('STRIPE_PUBLISHABLE_KEY') ?? null });
+      return json({ clientSecret: session.client_secret, pk: Deno.env.get('STRIPE_PUBLISHABLE_KEY') ?? null }, 200, req);
     }
-    return json({ url: session.url });
+    return json({ url: session.url }, 200, req);
   } catch (e) {
-    return json({ error: e instanceof Error ? e.message : 'Subscription setup failed' }, 500);
+    return json({ error: e instanceof Error ? e.message : 'Subscription setup failed' }, 500, req);
   }
 });

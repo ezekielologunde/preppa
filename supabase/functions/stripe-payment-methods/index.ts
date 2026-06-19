@@ -1,4 +1,4 @@
-// Manages saved Stripe payment methods (list / attach / detach / set_default).
+﻿// Manages saved Stripe payment methods (list / attach / detach / set_default).
 // Card tokenization happens on-device via Stripe's REST API using the publishable
 // key — raw card data never touches this server.
 import Stripe from 'https://esm.sh/stripe@14.21.0?target=denonext';
@@ -41,24 +41,24 @@ Deno.serve(async (req) => {
     );
     const token = (req.headers.get('Authorization') ?? '').replace('Bearer ', '');
     const { data: { user }, error: uerr } = await sb.auth.getUser(token);
-    if (uerr || !user) return errorResponse('Not authenticated', 401);
+    if (uerr || !user) return errorResponse('Not authenticated', 401, req);
 
     let body: Record<string, unknown>;
     try {
       body = await readBody(req, 16 * 1024) as Record<string, unknown>;
     } catch (e) {
-      return errorResponse(e instanceof Error ? e.message : 'Invalid request', 400);
+      return errorResponse(e instanceof Error ? e.message : 'Invalid request', 400, req);
     }
 
     const allowed = await checkRateLimit(sb, user.id, 'stripe-payment-methods', 10);
-    if (!allowed) return errorResponse('Too many requests', 429);
+    if (!allowed) return errorResponse('Too many requests', 429, req);
 
     const { action } = body;
 
     // ── List ──────────────────────────────────────────────────────────────────
     if (action === 'list') {
       const { data: profile } = await sb.from('profiles').select('stripe_customer_id').eq('id', user.id).single();
-      if (!profile?.stripe_customer_id) return json({ pk: PK, paymentMethods: [], defaultId: null });
+      if (!profile?.stripe_customer_id) return json({ pk: PK, paymentMethods: [], defaultId: null }, 200, req);
       const customerId = profile.stripe_customer_id;
       const [pms, customer] = await Promise.all([
         stripe.paymentMethods.list({ customer: customerId, type: 'card' }),
@@ -75,13 +75,13 @@ Deno.serve(async (req) => {
           expMonth: String(pm.card?.exp_month ?? '').padStart(2, '0'),
           expYear: String((pm.card?.exp_year ?? 0) % 100).padStart(2, '0'),
         })),
-      });
+      }, 200, req);
     }
 
     // ── Attach ────────────────────────────────────────────────────────────────
     if (action === 'attach') {
       const { pmId } = body as { pmId?: string };
-      if (!pmId) return errorResponse('Missing pmId', 400);
+      if (!pmId) return errorResponse('Missing pmId', 400, req);
       const customerId = await getOrCreateCustomer(sb, user.id, user.email);
       await stripe.paymentMethods.attach(pmId, { customer: customerId });
       // Auto-set as default if it's the first card
@@ -91,32 +91,32 @@ Deno.serve(async (req) => {
           invoice_settings: { default_payment_method: pmId },
         });
       }
-      return json({ ok: true });
+      return json({ ok: true }, 200, req);
     }
 
     // ── Detach ────────────────────────────────────────────────────────────────
     if (action === 'detach') {
       const { pmId } = body as { pmId?: string };
-      if (!pmId) return errorResponse('Missing pmId', 400);
+      if (!pmId) return errorResponse('Missing pmId', 400, req);
       const { data: profile } = await sb.from('profiles').select('stripe_customer_id').eq('id', user.id).single();
       const pm = await stripe.paymentMethods.retrieve(pmId);
-      if (pm.customer !== profile?.stripe_customer_id) return errorResponse('Not your card', 403);
+      if (pm.customer !== profile?.stripe_customer_id) return errorResponse('Not your card', 403, req);
       await stripe.paymentMethods.detach(pmId);
-      return json({ ok: true });
+      return json({ ok: true }, 200, req);
     }
 
     // ── Set default ───────────────────────────────────────────────────────────
     if (action === 'set_default') {
       const { pmId } = body as { pmId?: string };
-      if (!pmId) return errorResponse('Missing pmId', 400);
+      if (!pmId) return errorResponse('Missing pmId', 400, req);
       const { data: profile } = await sb.from('profiles').select('stripe_customer_id').eq('id', user.id).single();
-      if (!profile?.stripe_customer_id) return errorResponse('No customer', 400);
+      if (!profile?.stripe_customer_id) return errorResponse('No customer', 400, req);
       const pm = await stripe.paymentMethods.retrieve(pmId);
-      if (pm.customer !== profile.stripe_customer_id) return errorResponse('Not your card', 403);
+      if (pm.customer !== profile.stripe_customer_id) return errorResponse('Not your card', 403, req);
       await stripe.customers.update(profile.stripe_customer_id, {
         invoice_settings: { default_payment_method: pmId },
       });
-      return json({ ok: true });
+      return json({ ok: true }, 200, req);
     }
 
     // ── Create SetupIntent ────────────────────────────────────────────────────
@@ -127,7 +127,7 @@ Deno.serve(async (req) => {
         payment_method_types: ['card'],
         usage: 'off_session',
       });
-      return json({ clientSecret: si.client_secret, pk: PK });
+      return json({ clientSecret: si.client_secret, pk: PK }, 200, req);
     }
 
     // ── Customer Portal session (native card management) ─────────────────────
@@ -137,11 +137,11 @@ Deno.serve(async (req) => {
         customer: customerId,
         return_url: `${Deno.env.get('SITE_URL') ?? 'https://app.preppa.live'}/payment-methods`,
       });
-      return json({ url: session.url });
+      return json({ url: session.url }, 200, req);
     }
 
-    return errorResponse('Unknown action', 400);
+    return errorResponse('Unknown action', 400, req);
   } catch (e) {
-    return json({ error: e instanceof Error ? e.message : 'Request failed' }, 500);
+    return json({ error: e instanceof Error ? e.message : 'Request failed' }, 500, req);
   }
 });

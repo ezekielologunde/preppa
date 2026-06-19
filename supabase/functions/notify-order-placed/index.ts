@@ -18,12 +18,12 @@ Deno.serve(async (req) => {
     );
 
     const user = await getUser(req, supabase);
-    if (!user) return errorResponse('Unauthorized', 401);
+    if (!user) return errorResponse('Unauthorized', 401, req);
 
     const body = await readBody(req) as Record<string, unknown>;
     const orderId = body.order_id;
     if (!orderId || typeof orderId !== 'string') {
-      return errorResponse('Missing order_id', 400);
+      return errorResponse('Missing order_id', 400, req);
     }
 
     const { data: order, error: orderError } = await supabase
@@ -32,8 +32,8 @@ Deno.serve(async (req) => {
       .eq('id', orderId)
       .single();
 
-    if (orderError || !order) return errorResponse('Order not found', 404);
-    if (order.customer_id !== user.id) return errorResponse('Forbidden', 403);
+    if (orderError || !order) return errorResponse('Order not found', 404, req);
+    if (order.customer_id !== user.id) return errorResponse('Forbidden', 403, req);
 
     const prepperId = order.prepper_id as string;
 
@@ -43,14 +43,14 @@ Deno.serve(async (req) => {
       .eq('user_id', prepperId)
       .maybeSingle();
     if (prefs && (!prefs.push_enabled || !prefs.order_updates)) {
-      return json({ sent: false, reason: 'notifications_disabled' });
+      return json({ sent: false, reason: 'notifications_disabled' }, 200, req);
     }
 
     const { data: tokens } = await supabase
       .from('push_tokens')
       .select('token')
       .eq('user_id', prepperId);
-    if (!tokens?.length) return json({ sent: false, reason: 'no_token' });
+    if (!tokens?.length) return json({ sent: false, reason: 'no_token' }, 200, req);
 
     const customerName = typeof body.customer_name === 'string' ? body.customer_name : 'A customer';
     const count = Number(body.meal_count ?? 1);
@@ -71,8 +71,8 @@ Deno.serve(async (req) => {
       body: JSON.stringify(messages.length === 1 ? messages[0] : messages),
     });
     const result = await res.json();
-    return json({ sent: true, result });
+    return json({ sent: true, result }, 200, req);
   } catch (e) {
-    return errorResponse(e instanceof Error ? e.message : 'notify-order-placed failed', 500);
+    return errorResponse(e instanceof Error ? e.message : 'notify-order-placed failed', 500, req);
   }
 });

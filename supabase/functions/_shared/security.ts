@@ -2,31 +2,49 @@
 // Import: import { cors, json, readBody, sanitize, sanitizeOptional, getUser, errorResponse, checkRateLimit } from '../_shared/security.ts';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
-export const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
+// Parse allowed origins from env (comma-separated). Empty/unset = allow all (*).
+// Set CORS_ALLOWED_ORIGINS=https://app.preppa.live,https://preppa.live in production.
+const ALLOWED_ORIGINS_ENV = Deno.env.get('CORS_ALLOWED_ORIGINS') ?? '';
+const ALLOWED_ORIGINS: string[] | null = ALLOWED_ORIGINS_ENV
+  ? ALLOWED_ORIGINS_ENV.split(',').map((s) => s.trim()).filter(Boolean)
+  : null;
 
-// Handle preflight — return non-null to short-circuit the handler
+function resolveOrigin(req: Request): string {
+  if (!ALLOWED_ORIGINS) return '*';
+  const incoming = req.headers.get('origin') ?? '';
+  return ALLOWED_ORIGINS.includes(incoming) ? incoming : 'null';
+}
+
+function buildCorsHeaders(origin: string): Record<string, string> {
+  return {
+    'Access-Control-Allow-Origin': origin,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    ...(ALLOWED_ORIGINS ? { 'Vary': 'Origin' } : {}),
+  };
+}
+
+// Handle preflight — return non-null to short-circuit the handler.
 export function cors(req: Request): Response | null {
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: CORS_HEADERS, status: 200 });
+    return new Response('ok', { headers: buildCorsHeaders(resolveOrigin(req)), status: 200 });
   }
   return null;
 }
 
-// JSON response with CORS headers attached
-export function json(body: unknown, status = 200): Response {
+// JSON response with per-request CORS headers.
+// Pass req to restrict to the CORS_ALLOWED_ORIGINS allowlist; omit for wildcard (backward compat).
+export function json(body: unknown, status = 200, req?: Request): Response {
+  const origin = req ? resolveOrigin(req) : '*';
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+    headers: { ...buildCorsHeaders(origin), 'Content-Type': 'application/json' },
   });
 }
 
-// Structured error response helper
-export function errorResponse(msg: string, status = 400): Response {
-  return json({ error: msg }, status);
+// Structured error response helper.
+export function errorResponse(msg: string, status = 400, req?: Request): Response {
+  return json({ error: msg }, status, req);
 }
 
 // Body size guard — prevents DOS via oversized payloads.
