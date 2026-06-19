@@ -38,8 +38,16 @@ export function useNotificationsRealtime(userId?: string | null) {
   const qc = useQueryClient();
   useEffect(() => {
     if (!userId) return;
+    const channelName = `notifications-${userId}`;
+    // Supabase reuses channel objects by name. If a prior cleanup's removeChannel
+    // hasn't resolved yet and the effect re-runs, calling .on() on the already-
+    // subscribed channel throws. Evict any stale channel first.
+    supabase.getChannels()
+      .filter((c) => c.topic === channelName)
+      .forEach((c) => supabase.removeChannel(c));
+
     const channel = supabase
-      .channel(`notifications-${userId}`)
+      .channel(channelName)
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${userId}` },
