@@ -120,17 +120,30 @@ Deno.serve(async (req) => {
       line_items.push({ price_data: { currency: 'usd', product_data: { name: 'Tip for your prepper' }, unit_amount: cents(order.tip) }, quantity: 1 });
     if (line_items.length === 0) return json({ error: 'Order has no items' }, 400);
 
-    // Gift card partial discount — create a one-off Stripe coupon
+    // Gift card partial discount — re-validate card, then create a one-off Stripe coupon
     const gcAmount = Number(order.gift_card_amount ?? 0);
     let discounts: { coupon: string }[] | undefined;
-    if (gcAmount > 0) {
-      const coupon = await stripe.coupons.create({
-        amount_off: Math.round(gcAmount * 100),
-        currency: 'usd',
-        duration: 'once',
-        name: `Gift card (${order.gift_card_code ?? ''})`,
-      });
-      discounts = [{ coupon: coupon.id }];
+    if (gcAmount > 0 && order.gift_card_code) {
+      const { data: card } = await supabase
+        .from('gift_cards')
+        .select('balance, is_active, expires_at')
+        .eq('code', order.gift_card_code)
+        .single();
+      const expired = card?.expires_at && new Date(card.expires_at) < new Date();
+      const validAmount = card && card.is_active && !expired && (card.balance ?? 0) > 0
+        ? Math.min(gcAmount, card.balance)
+        : 0;
+      if (validAmount > 0) {
+        const coupon = await stripe.coupons.create({
+          amount_off: Math.round(validAmount * 100),
+          currency: 'usd',
+          duration: 'once',
+          name: `Gift card (${order.gift_card_code})`,
+        });
+        discounts = [{ coupon: coupon.id }];
+      } else {
+        console.warn('gift card invalid or exhausted at checkout — skipping discount', order.gift_card_code);
+      }
     }
 
     const common = {
