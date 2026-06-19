@@ -54,6 +54,14 @@ export function usePaymentMethods() {
   });
 }
 
+export function useAttachPaymentMethod() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (pmId: string) => callPm({ action: 'attach', pmId }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['payment-methods'] }),
+  });
+}
+
 export function useDetachPaymentMethod() {
   const qc = useQueryClient();
   return useMutation({

@@ -1,6 +1,6 @@
 import { BlurView } from 'expo-blur';
 import * as WebBrowser from 'expo-web-browser';
-import { Check, Lock, Minus, Plus, X } from 'lucide-react-native';
+import { Check, CreditCard, Lock, Minus, Plus, X } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useState } from 'react';
 import { ActivityIndicator, Modal, Platform, Pressable, Text, View } from 'react-native';
@@ -11,6 +11,7 @@ import { Font } from '@/constants/fonts';
 import { Palette, Radius } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
 import { useFeatureEnabled } from '@/lib/queries/feature-flags';
+import { usePaymentMethods } from '@/lib/queries/payment-methods';
 import { supabase } from '@/lib/supabase';
 import { nextDeliveryDate, useSubscribeToPlan, type DeliveryDay, type MealPlan } from '@/lib/queries/meal-plans';
 
@@ -30,6 +31,9 @@ const money = (n: number) => `$${n.toLocaleString('en-US')}`;
  */
 export function SubscribePlanSheet({ plan, userId, onClose }: { plan: MealPlan | null; userId: string; onClose: () => void }) {
   const paymentsOn = useFeatureEnabled('payments');
+  const { data: pmData } = usePaymentMethods();
+  const hasCard = (pmData?.methods.length ?? 0) > 0;
+  const defaultCard = pmData?.methods.find((m) => m.isDefault) ?? pmData?.methods[0] ?? null;
   const [qty, setQty] = useState(1);
   const [day, setDay] = useState<DeliveryDay>('mon');
   const [loading, setLoading] = useState(false);
@@ -156,16 +160,39 @@ export function SubscribePlanSheet({ plan, userId, onClose }: { plan: MealPlan |
           </View>
           </MotiView>
 
-          {/* Payment note */}
+          {/* Payment note / saved card indicator */}
           <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 220 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10, backgroundColor: paymentsOn ? Palette.brandTint : Palette.canvas, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12 }}>
-            <Lock size={14} color={paymentsOn ? ORANGE : Palette.textMuted} style={{ marginTop: 2 }} />
-            <Text style={{ flex: 1, fontFamily: Font.body, fontSize: 12.5, color: paymentsOn ? ORANGE : Palette.textSecondary, lineHeight: 18 }}>
-              {paymentsOn
-                ? 'Billed securely via Stripe. Cancel anytime — no charge until after your first delivery.'
-                : 'Online payments coming soon. You\'ll be notified when billing goes live.'}
-            </Text>
-          </View>
+          {paymentsOn && !hasCard ? (
+            <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10, backgroundColor: Palette.amber + '1A', borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12, borderWidth: 1, borderColor: Palette.amber + '40' }}>
+              <CreditCard size={15} color={Palette.amber} style={{ marginTop: 1 }} />
+              <View style={{ flex: 1, gap: 2 }}>
+                <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: Palette.amber }}>No saved card</Text>
+                <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: Palette.textSecondary, lineHeight: 18 }}>
+                  Add a payment method in your profile before subscribing so we can auto-charge each cycle.
+                </Text>
+              </View>
+            </View>
+          ) : paymentsOn && defaultCard ? (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: Palette.brandTint, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12 }}>
+              <CreditCard size={14} color={ORANGE} />
+              <Text style={{ flex: 1, fontFamily: Font.body, fontSize: 12.5, color: ORANGE, lineHeight: 18 }}>
+                Charged to{' '}
+                <Text style={{ fontFamily: Font.semibold }}>
+                  {defaultCard.brand !== 'other' ? defaultCard.brand.charAt(0).toUpperCase() + defaultCard.brand.slice(1) : 'card'} ···· {defaultCard.last4}
+                </Text>
+                {' '}· Cancel anytime
+              </Text>
+            </View>
+          ) : (
+            <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10, backgroundColor: paymentsOn ? Palette.brandTint : Palette.canvas, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12 }}>
+              <Lock size={14} color={paymentsOn ? ORANGE : Palette.textMuted} style={{ marginTop: 2 }} />
+              <Text style={{ flex: 1, fontFamily: Font.body, fontSize: 12.5, color: paymentsOn ? ORANGE : Palette.textSecondary, lineHeight: 18 }}>
+                {paymentsOn
+                  ? 'Billed securely via Stripe. Cancel anytime — no charge until after your first delivery.'
+                  : "Online payments coming soon. You'll be notified when billing goes live."}
+              </Text>
+            </View>
+          )}
           </MotiView>
 
           {/* Confirm */}
@@ -178,6 +205,15 @@ export function SubscribePlanSheet({ plan, userId, onClose }: { plan: MealPlan |
               <Check size={18} color="#fff" strokeWidth={3} />
               <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>You're on the list — we'll notify you</Text>
             </View>
+          ) : paymentsOn && !hasCard ? (
+            <PressableScale
+              onPress={() => { feedback.tap(); onClose(); }}
+              accessibilityRole="button"
+              accessibilityLabel="Add a payment method"
+              style={{ height: 54, borderRadius: Radius.pill, backgroundColor: Palette.amber, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8 }}>
+              <CreditCard size={18} color="#fff" />
+              <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>Add a card first</Text>
+            </PressableScale>
           ) : (
             <PressableScale
               onPress={paymentsOn ? confirm : confirmFree}

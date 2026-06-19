@@ -23,6 +23,7 @@ import { useMySubscriptions } from '@/lib/queries/meal-plans';
 import { useNotifications } from '@/lib/queries/notifications';
 import { useMyOrders, useOrdersRealtime } from '@/lib/queries/orders';
 import { useFollowedPreppers, useMyPrepperApplication } from '@/lib/queries/preppers';
+import { usePaymentMethods } from '@/lib/queries/payment-methods';
 import { useMyReferralCode } from '@/lib/queries/referral';
 import { useRewards } from '@/lib/queries/rewards';
 import { useDarkMode } from '@/lib/theme-mode';
@@ -69,6 +70,12 @@ export default function ProfileScreen() {
   }
 
   const dietaryMeta = buildPrefSummary();
+
+  const { data: paymentMethodsData } = usePaymentMethods();
+  const defaultCard = paymentMethodsData?.methods.find((m) => m.isDefault) ?? null;
+  const paymentMethodSub = defaultCard
+    ? `${defaultCard.brand !== 'other' ? defaultCard.brand.charAt(0).toUpperCase() + defaultCard.brand.slice(1) : 'Card'} ···· ${defaultCard.last4}`
+    : 'Cards, Apple Pay & more';
 
   const { data: referralCode } = useMyReferralCode(user?.id);
   const [refCopied, setRefCopied] = useState(false);
@@ -365,7 +372,7 @@ export default function ProfileScreen() {
   // ─── Account (with dark mode toggle inline) ──────────────────────────────────
   const ACCOUNT_ROWS = [
     { label: 'Dietary Profile',    sub: dietaryMeta ?? 'Set allergies & preferences',  Icon: CalendarCheck, route: '/preferences' },
-    { label: 'Payment Methods',    sub: 'Cards, Apple Pay & more',                     Icon: CreditCard,    route: '/payment-methods'      },
+    { label: 'Payment Methods',    sub: paymentMethodSub,                               Icon: CreditCard,    route: '/payment-methods'      },
     { label: 'Addresses',          sub: 'Home, work & delivery spots',                 Icon: MapPin,        route: '/addresses'            },
     { label: 'Gift Cards',         sub: 'Send & redeem gift cards',                    Icon: Gift,          route: '/gift-cards'           },
     { label: 'My Kitchen Network', sub: followed > 0 ? `Following ${followed} kitchen${followed > 1 ? 's' : ''}` : 'Follow your favourite chefs', Icon: Users, route: '/following' },

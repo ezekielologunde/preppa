@@ -114,6 +114,17 @@ Deno.serve(async (req) => {
       return json({ ok: true });
     }
 
+    // ── Create SetupIntent ────────────────────────────────────────────────────
+    if (action === 'create_setup_intent') {
+      const customerId = await getOrCreateCustomer(sb, user.id, user.email);
+      const si = await stripe.setupIntents.create({
+        customer: customerId,
+        payment_method_types: ['card'],
+        usage: 'off_session',
+      });
+      return json({ clientSecret: si.client_secret, pk: PK });
+    }
+
     return json({ error: 'Unknown action' }, 400);
   } catch (e) {
     return json({ error: e instanceof Error ? e.message : 'Request failed' }, 500);
