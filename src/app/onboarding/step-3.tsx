@@ -5,37 +5,17 @@ import { useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { ProgressDots } from '@/components/onboarding/progress-dots';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
 import { Palette, Radius } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
-
-const TOTAL = 4;
 
 const CUISINE_OPTIONS = [
   'Nigerian', 'Caribbean', 'Soul Food', 'African',
   'Mediterranean', 'Asian', 'Mexican', 'American',
   'Middle Eastern', 'Jamaican', 'Ethiopian', 'Indian',
 ];
-
-function ProgressDots({ current }: { current: number }) {
-  return (
-    <View style={{ flexDirection: 'row', gap: 8, justifyContent: 'center', paddingTop: 20, paddingBottom: 8 }}>
-      {Array.from({ length: TOTAL }, (_, i) => (
-        <MotiView
-          key={i}
-          animate={{
-            width: i === current ? 10 : 8,
-            height: i === current ? 10 : 8,
-            backgroundColor: i === current ? Palette.brand : Palette.border,
-          }}
-          transition={{ type: 'spring', damping: 16, stiffness: 200 }}
-          style={{ borderRadius: 5 }}
-        />
-      ))}
-    </View>
-  );
-}
 
 function CuisineChip({ label, active, onToggle }: { label: string; active: boolean; onToggle: () => void }) {
   return (
@@ -45,13 +25,13 @@ function CuisineChip({ label, active, onToggle }: { label: string; active: boole
         borderColor: active ? Palette.brand : Palette.border,
       }}
       transition={{ type: 'spring', damping: 14, stiffness: 260 }}
-      style={{ borderRadius: 19, borderWidth: 1.5, overflow: 'hidden' }}>
+      style={{ borderRadius: 22, borderWidth: 1.5, overflow: 'hidden' }}>
       <PressableScale
         onPress={onToggle}
         accessibilityRole="checkbox"
         accessibilityState={{ checked: active }}
         accessibilityLabel={label}
-        style={{ height: 38, paddingHorizontal: 16, alignItems: 'center', justifyContent: 'center' }}>
+        style={{ height: 44, paddingHorizontal: 16, alignItems: 'center', justifyContent: 'center' }}>
         <Text
           style={{
             fontFamily: active ? Font.semibold : Font.medium,
@@ -89,7 +69,7 @@ export default function Step3Cuisines() {
   return (
     <View style={{ flex: 1, backgroundColor: Palette.canvas }}>
       <SafeAreaView edges={['top', 'bottom']} style={{ flex: 1 }}>
-        <ProgressDots current={2} />
+        <ProgressDots total={4} current={3} />
 
         {/* Header */}
         <MotiView
@@ -101,7 +81,7 @@ export default function Step3Cuisines() {
             onPress={() => router.back()}
             accessibilityRole="button"
             accessibilityLabel="Go back"
-            style={{ width: 36, height: 36, alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+            style={{ width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
             <ChevronLeft size={22} color={Palette.inkSoft} strokeWidth={2} />
           </Pressable>
 
@@ -117,7 +97,7 @@ export default function Step3Cuisines() {
             what cuisines do you love?
           </Text>
           <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, lineHeight: 21, marginBottom: 24 }}>
-            Pick your favourites — choose any.
+            We'll match you with local chefs who cook what you love.
           </Text>
         </MotiView>
 
@@ -136,6 +116,10 @@ export default function Step3Cuisines() {
             ))}
           </View>
         </ScrollView>
+
+        <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary, textAlign: 'center', marginTop: 12, paddingHorizontal: 24 }}>
+          You can update these anytime in your profile
+        </Text>
 
         {/* CTA */}
         <MotiView

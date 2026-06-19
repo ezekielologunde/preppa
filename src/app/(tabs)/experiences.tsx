@@ -159,13 +159,13 @@ export default function ExperiencesScreen() {
             animate={{ opacity: 1, translateY: 0 }}
             transition={{ type: 'timing', duration: 300 }}>
             <LinearGradient
-              colors={['#FFF3E8', '#FFFFFF']}
+              colors={['#0C0E13', '#1C2133']}
               style={{ height: 180, paddingHorizontal: 20, paddingTop: 24, paddingBottom: 20, justifyContent: 'space-between' }}>
               <View style={{ gap: 4 }}>
-                <Text style={{ fontFamily: Font.display, fontSize: 28, color: Palette.ink, letterSpacing: -0.6 }}>
+                <Text style={{ fontFamily: Font.display, fontSize: 28, color: '#F0F2F5', letterSpacing: -0.6 }}>
                   Dine with the chef
                 </Text>
-                <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, lineHeight: 20 }}>
+                <Text style={{ fontFamily: Font.body, fontSize: 14, color: 'rgba(240,242,245,0.75)', lineHeight: 20 }}>
                   Exclusive in-home dining &amp; cooking classes
                 </Text>
               </View>
@@ -214,41 +214,6 @@ export default function ExperiencesScreen() {
                 );
               })}
             </ScrollView>
-          </MotiView>
-
-          {/* ── Request an experience CTA ── */}
-          <MotiView
-            from={{ opacity: 0, translateY: 8 }}
-            animate={{ opacity: 1, translateY: 0 }}
-            transition={{ type: 'timing', duration: 280, delay: 60 }}
-            style={{ marginHorizontal: 20, marginTop: 8 }}>
-            <PressableScale
-              onPress={() => { feedback.tap(); router.push('/experience-request'); }}
-              accessibilityRole="button"
-              accessibilityLabel="Request a private experience"
-              style={{
-                backgroundColor: Palette.surface,
-                borderRadius: Radius.md,
-                borderWidth: 1,
-                borderColor: Palette.border,
-                padding: 20,
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 14,
-              }}>
-              <View style={{ width: 52, height: 52, borderRadius: 16, backgroundColor: Palette.brandTint, alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <Plus size={24} color={Palette.brand} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={{ fontFamily: Font.heading, fontSize: 15, color: Palette.ink }}>
-                  Request a private experience
-                </Text>
-                <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary, marginTop: 2, lineHeight: 18 }}>
-                  Post what you need — local chefs send you bids
-                </Text>
-              </View>
-              <ChevronRight size={18} color={Palette.textMuted} />
-            </PressableScale>
           </MotiView>
 
           {/* ── Premium hero — Chef at Home ── */}
@@ -309,7 +274,7 @@ export default function ExperiencesScreen() {
           {booked.length > 0 ? (
             <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280, delay: 120 }}>
               <View style={{ marginTop: 8, paddingHorizontal: 16, gap: 10 }}>
-                <Text style={{ fontFamily: Font.heading, fontSize: 12, color: Palette.textSecondary, textTransform: 'uppercase', letterSpacing: 0.5 }}>Confirmed</Text>
+                <Text style={{ fontFamily: Font.heading, fontSize: 12, color: Palette.textSecondary, letterSpacing: 0 }}>Confirmed</Text>
                 {booked.map((r) => (
                   <RequestCard key={r.id} r={r} onPress={() => { feedback.tap(); setSelected(r); }} />
                 ))}
@@ -321,7 +286,7 @@ export default function ExperiencesScreen() {
           {open.length > 0 ? (
             <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280, delay: 140 }}>
               <View style={{ marginTop: 16, paddingHorizontal: 16, gap: 10 }}>
-                <Text style={{ fontFamily: Font.heading, fontSize: 12, color: Palette.textSecondary, textTransform: 'uppercase', letterSpacing: 0.5 }}>Active requests</Text>
+                <Text style={{ fontFamily: Font.heading, fontSize: 12, color: Palette.textSecondary, letterSpacing: 0 }}>Active requests</Text>
                 {open.map((r) => (
                   <RequestCard key={r.id} r={r} onPress={() => { feedback.tap(); setSelected(r); }} />
                 ))}
@@ -380,7 +345,7 @@ export default function ExperiencesScreen() {
                       <Text style={{ fontFamily: Font.heading, fontSize: 14, color: Palette.ink }}>{s.title}</Text>
                       <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: Palette.textSecondary, marginTop: 1 }}>{s.body}</Text>
                     </View>
-                    <Text style={{ fontFamily: Font.display, fontSize: 18, color: Palette.border }}>{i + 1}</Text>
+                    <Text style={{ fontFamily: Font.display, fontSize: 32, color: Palette.brand }}>{i + 1}</Text>
                   </View>
                 ))}
               </View>

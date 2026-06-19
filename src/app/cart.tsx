@@ -4,7 +4,7 @@ import { Bike, CalendarClock, Check, ChevronLeft, MapPin, ShoppingBag, Store } f
 import { MotiView } from 'moti';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect, useMemo, useState, type ComponentType } from 'react';
-import { ActivityIndicator, Modal, Platform, RefreshControl, ScrollView, Text, TextInput, useWindowDimensions, View } from 'react-native';
+import { ActivityIndicator, Modal, Platform, Pressable, RefreshControl, ScrollView, Text, TextInput, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { CartPlacedScreen } from '@/components/cart/cart-placed-screen';
@@ -89,7 +89,7 @@ export default function CartScreen() {
   const validateGiftCard = useValidateGiftCard();
 
   const [note, setNote] = useState('');
-  const [tip, setTip] = useState(0);
+  const [tip, setTip] = useState(2);
   const [customTip, setCustomTip] = useState(false);
   const [scheduleEnabled, setScheduleEnabled] = useState(false);
   const [scheduledAt, setScheduledAt] = useState<Date | null>(null);
@@ -99,6 +99,7 @@ export default function CartScreen() {
   const [pickMinute, setPickMinute] = useState(0);
 
   const [paymentPending, setPaymentPending] = useState(false);
+  const [showCancelPayment, setShowCancelPayment] = useState(false);
   const busy = placeOrder.isPending || placeMultiple.isPending || checkoutStripe.isPending || embeddedCheckout.isPending;
   const [refreshing, setRefreshing] = useState(false);
   const { width } = useWindowDimensions();
@@ -106,6 +107,22 @@ export default function CartScreen() {
 
   async function handleRefresh() { setRefreshing(true); await refetch(); setRefreshing(false); }
 
+  useEffect(() => {
+    if (!paymentPending) return;
+    const t = setTimeout(() => {
+      setPaymentPending(false);
+      setErr('Payment timed out — your preorder is saved. Complete payment from Orders.');
+    }, 12000);
+    return () => clearTimeout(t);
+  }, [paymentPending]);
+
+  useEffect(() => {
+    if (!paymentPending) { setShowCancelPayment(false); return; }
+    const t = setTimeout(() => setShowCancelPayment(true), 3000);
+    return () => clearTimeout(t);
+  }, [paymentPending]);
+
+  // ⚠️ This fallback may not match the actual fee charged. Only show when cart.deliveryFee is confirmed.
   const deliveryFeeAmt = cart?.deliveryFee ?? DELIVERY_FEE_FALLBACK;
 
   // Group cart items by prepperId
@@ -124,7 +141,7 @@ export default function CartScreen() {
 
   const methods = useMemo<Method[]>(() => {
     const all: Method[] = [
-      { key: 'delivery', label: 'Delivery', Icon: Bike, fee: money(deliveryFeeAmt), eta: 'drop-off scheduled' },
+      { key: 'delivery', label: 'Delivery', Icon: Bike, fee: cart?.deliveryFee !== undefined ? money(cart.deliveryFee) : '—', eta: 'drop-off scheduled' },
       { key: 'pickup', label: 'Pickup', Icon: Store, fee: 'Free', eta: 'pickup window' },
       { key: 'meetup', label: 'Meet up', Icon: MapPin, fee: 'Free', eta: 'you pick a spot' },
     ];
@@ -354,6 +371,7 @@ export default function CartScreen() {
         <View style={{ gap: 6 }}>
           <Text style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.textSecondary }}>{noteConfig[method]!.label}</Text>
           <TextInput value={note} onChangeText={(t) => { setNote(t); setErr(null); }} placeholder={noteConfig[method]!.placeholder} placeholderTextColor={Palette.textMuted} maxLength={300} accessibilityLabel={noteConfig[method]!.label} style={{ minHeight: 48, backgroundColor: Palette.surface, borderRadius: Radius.md, borderWidth: 1, borderColor: Palette.border, paddingHorizontal: 14, paddingVertical: 12, fontFamily: Font.body, fontSize: 15, color: INK }} />
+          {method === 'meetup' && <Text style={{ fontSize: 12, color: Palette.textSecondary, marginTop: 4, fontFamily: Font.body }}>* Required for meetup orders</Text>}
         </View>
       ) : null}
 
@@ -515,6 +533,15 @@ export default function CartScreen() {
             <ActivityIndicator size="large" color={Palette.brand} style={{ marginBottom: 16 }} />
             <Text style={{ fontFamily: Font.heading, fontSize: 18, color: '#ffffff', marginBottom: 8, textAlign: 'center' }}>Taking you to payment</Text>
             <Text style={{ fontFamily: Font.body, fontSize: 13, color: '#999999', textAlign: 'center' }}>Preppa secures your transaction</Text>
+            {showCancelPayment && (
+              <Pressable onPress={() => { setPaymentPending(false); router.push('/orders'); }}
+                style={{ marginTop: 24 }}
+                accessibilityRole="button" accessibilityLabel="Cancel payment">
+                <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 14, fontFamily: Font.medium }}>
+                  Cancel — your preorder is saved
+                </Text>
+              </Pressable>
+            )}
           </MotiView>
         </View>
       </Modal>

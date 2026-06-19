@@ -1,7 +1,7 @@
 import { usePathname, useRouter } from 'expo-router';
 import { ShoppingBag } from 'lucide-react-native';
 import { MotiView } from 'moti';
-import { Text, useWindowDimensions } from 'react-native';
+import { Platform, Text, useWindowDimensions } from 'react-native';
 
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
@@ -32,8 +32,10 @@ export function FloatingCartBar() {
     <MotiView
       from={{ opacity: 0, translateY: 16 }}
       animate={{ opacity: 1, translateY: 0 }}
+      exit={{ opacity: 0, translateY: 20 }}
+      exitTransition={{ type: 'timing', duration: 180 }}
       transition={{ type: 'spring', damping: 18, stiffness: 220 }}
-      style={{ position: 'absolute', bottom: 88, left: 16, right: 16, zIndex: 60 }}>
+      style={{ position: 'absolute', bottom: (Platform.OS === 'ios' ? 66 : 96), left: 16, right: 16, zIndex: 60 }}>
       <PressableScale
         onPress={() => { feedback.tap(); router.push('/cart'); }}
         accessibilityRole="button"

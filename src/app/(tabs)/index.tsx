@@ -179,7 +179,6 @@ export default function HomeScreen() {
 
   const { data: cart, refetch: refetchCart } = useCart(user?.id);
   const cartCount = cart?.count ?? 0;
-  const badgeCount = activeOrders + unreadNotifs;
 
   const [refreshing, setRefreshing] = useState(false);
   async function handleRefresh() {
@@ -215,7 +214,7 @@ export default function HomeScreen() {
               accessibilityLabel={`Location: ${locCapturing ? 'detecting' : locationLabel}. Tap to change.`}
               hitSlop={{ top: 8, bottom: 8, left: 4, right: 8 }}
               style={{ flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-start', marginTop: 4 }}>
-              <MapPin size={12} color={locCapturing ? MUTED : MUTED} />
+              <MapPin size={12} color={Palette.textSecondary} />
               <Text numberOfLines={1} style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary }}>
                 {locCapturing ? 'detecting...' : locationLabel}
               </Text>
@@ -223,8 +222,8 @@ export default function HomeScreen() {
           </View>
           {/* Right: notification + cart */}
           <View style={{ flexDirection: 'row', gap: 8, marginTop: 2 }}>
-            <HeaderIconButton Icon={Bell} badge={badgeCount} onPress={() => router.push('/notifications')}
-              label={badgeCount ? `Notifications, ${badgeCount} unread` : 'Notifications'} />
+            <HeaderIconButton Icon={Bell} badge={unreadNotifs} onPress={() => router.push('/notifications')}
+              label={unreadNotifs ? `Notifications, ${unreadNotifs} unread` : 'Notifications'} />
             <View>
               {cartCount > 0 ? (
                 <MotiView

@@ -11,7 +11,7 @@ const ORANGE = Palette.brand;
 const INK = Palette.ink;
 const money = (n: number) => `$${n.toFixed(2)}`;
 
-const TIPS = [0, 1, 2, 5];
+const TIPS = [1, 2, 3, 5];
 
 interface Props {
   tip: number;
@@ -45,16 +45,34 @@ export function TipSelector({ tip, setTip, customTip, setCustomTip, prepper }: P
                 onPress={() => { feedback.tap(); setCustomTip(false); setTip(t); }}
                 accessibilityRole="button"
                 accessibilityState={{ selected: on }}
-                accessibilityLabel={t === 0 ? 'No tip' : `Tip ${money(t)}`}
+                accessibilityLabel={`Tip ${money(t)}`}
                 style={{ height: 46, alignItems: 'center', justifyContent: 'center' }}
               >
                 <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: on ? '#fff' : INK }}>
-                  {t === 0 ? 'None' : money(t)}
+                  {money(t)}
                 </Text>
               </PressableScale>
             </MotiView>
           );
         })}
+        {/* None chip — last so users don't accidentally tap it */}
+        <MotiView
+          animate={{ backgroundColor: !customTip && tip === 0 ? ORANGE : Palette.surface, borderColor: !customTip && tip === 0 ? ORANGE : Palette.border }}
+          transition={{ type: 'timing', duration: 180 }}
+          style={{ flex: 1, borderRadius: Radius.pill, borderWidth: 1.5, overflow: 'hidden' }}
+        >
+          <PressableScale
+            onPress={() => { feedback.tap(); setCustomTip(false); setTip(0); }}
+            accessibilityRole="button"
+            accessibilityState={{ selected: !customTip && tip === 0 }}
+            accessibilityLabel="No tip"
+            style={{ height: 46, alignItems: 'center', justifyContent: 'center' }}
+          >
+            <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: !customTip && tip === 0 ? '#fff' : INK }}>
+              None
+            </Text>
+          </PressableScale>
+        </MotiView>
         <MotiView
           animate={{
             backgroundColor: customTip ? Palette.brandTint : Palette.surface,

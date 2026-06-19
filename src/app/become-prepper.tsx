@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import {
@@ -5,7 +6,7 @@ import {
   FileText, Lock, ShieldCheck, ShieldX, Sparkles, TrendingUp, Users,
 } from 'lucide-react-native';
 import { MotiView } from 'moti';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Linking, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -23,6 +24,7 @@ import { DocUploadGrid, UploadItem } from '@/components/prepper-application/doc-
 
 const ORANGE = Palette.brand;
 const INK = Palette.ink;
+const DRAFT_KEY = (uid: string) => `preppa.prepper-draft.v1.${uid}`;
 
 const SPECIALTIES = ['Comfort food', 'Healthy', 'Vegan', 'Desserts', 'Caribbean', 'Asian', 'Mexican', 'Mediterranean', 'Halal', 'Keto'];
 const CERT_RESOURCES = [
@@ -84,6 +86,34 @@ export default function BecomePrepperScreen() {
   const [bizLicense, setBizLicense] = useState<DocState>(emptyDoc());
   const [showTerms, setShowTerms] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [draftSaved, setDraftSaved] = useState(false);
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Load draft on mount
+  useEffect(() => {
+    if (!user?.id) return;
+    AsyncStorage.getItem(DRAFT_KEY(user.id)).then((saved) => {
+      if (saved) {
+        const draft = JSON.parse(saved);
+        if (draft.name) setName(draft.name);
+        if (draft.bio) setBio(draft.bio);
+        if (draft.picked) setPicked(draft.picked);
+      }
+    }).catch(() => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
+
+  // Auto-save draft with debounce
+  useEffect(() => {
+    if (!user?.id) return;
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(() => {
+      AsyncStorage.setItem(DRAFT_KEY(user.id), JSON.stringify({ name, bio, picked }))
+        .then(() => { setDraftSaved(true); setTimeout(() => setDraftSaved(false), 2000); })
+        .catch(() => {});
+    }, 2000);
+    return () => { if (saveTimerRef.current) clearTimeout(saveTimerRef.current); };
+  }, [name, bio, picked, user?.id]);
 
   function goBack() { feedback.tap(); if (router.canGoBack()) { router.back(); } else { router.replace('/profile'); } }
   function toggle(s: string) { setPicked((p) => (p.includes(s) ? p.filter((x) => x !== s) : [...p, s])); }
@@ -110,7 +140,7 @@ export default function BecomePrepperScreen() {
     const docs = [...photoDocs, ...certDocs2];
     apply.mutate(
       { userId: user.id, displayName: cleanLine(name).trim(), bio: cleanBlock(bio).trim(), specialties: picked, applicationDocuments: docs },
-      { onSuccess: () => { feedback.success(); setShowTerms(false); }, onError: (e) => { feedback.error(); setShowTerms(false); setErr(e instanceof Error ? e.message : 'Something went wrong.'); } },
+      { onSuccess: () => { feedback.success(); setShowTerms(false); if (user?.id) { AsyncStorage.removeItem(DRAFT_KEY(user.id)).catch(() => {}); } }, onError: (e) => { feedback.error(); setShowTerms(false); setErr(e instanceof Error ? e.message : 'Something went wrong.'); } },
     );
   }
   function handleReview() {
@@ -123,11 +153,14 @@ export default function BecomePrepperScreen() {
   }
 
   const backBtn = (
-    <View style={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 4 }}>
+    <View style={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
       <PressableScale onPress={goBack} accessibilityRole="button" accessibilityLabel="Go back"
-        style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.06)', alignItems: 'center', justifyContent: 'center', alignSelf: 'flex-start' }}>
+        style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(0,0,0,0.06)', alignItems: 'center', justifyContent: 'center' }}>
         <ChevronLeft size={22} color={INK} />
       </PressableScale>
+      {draftSaved ? (
+        <Text style={{ fontSize: 11, color: Palette.textSecondary, fontFamily: Font.body }}>Draft saved</Text>
+      ) : null}
     </View>
   );
 
@@ -257,6 +290,16 @@ export default function BecomePrepperScreen() {
           </LinearGradient>
 
           <View style={{ paddingHorizontal: 16 }}>
+
+            {/* ── What happens next callout ─────────────────────────────────── */}
+            <View style={{ backgroundColor: Palette.surface, borderRadius: 12, padding: 16, marginBottom: 20, marginTop: 8 }}>
+              <Text style={{ fontFamily: Font.heading, fontSize: 14, color: Palette.ink, marginBottom: 8 }}>What happens next</Text>
+              <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary, lineHeight: 20 }}>
+                1. Submit your application (~10 min){'\n'}
+                2. Our team reviews within 1–2 business days{'\n'}
+                3. Get approved and start earning
+              </Text>
+            </View>
 
             {/* ── 01 Kitchen basics ────────────────────────────────────────── */}
             <SectionCard step="step 01" title="Kitchen basics" icon={<ChefHat size={22} color={ORANGE} />} delay={60}>

@@ -10,6 +10,23 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
 import { Palette, Radius } from '@/constants/theme';
+
+// ─── Feature flag ─────────────────────────────────────────────────────────────
+const LIVE_STREAMING_ENABLED = false;
+
+function StreamingComingSoon() {
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#0C0E13', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 }}>
+      <Text style={{ fontSize: 48, marginBottom: 24 }}>📡</Text>
+      <Text style={{ fontFamily: Font.display, fontSize: 26, color: '#F0F2F5', textAlign: 'center', marginBottom: 12 }}>
+        Live streaming coming soon
+      </Text>
+      <Text style={{ fontFamily: Font.body, fontSize: 15, color: '#6B7280', textAlign: 'center', lineHeight: 22 }}>
+        Go Live for Pro will let you cook in real time for your followers. We're putting the final touches on it.
+      </Text>
+    </SafeAreaView>
+  );
+}
 import { feedback } from '@/lib/feedback';
 import { usePrepperMembership } from '@/lib/queries/memberships';
 import { useMyPrepperApplication } from '@/lib/queries/preppers';
@@ -29,6 +46,11 @@ const PRO_FEATURES = [
 ];
 
 export default function GoLiveScreen() {
+  if (!LIVE_STREAMING_ENABLED) return <StreamingComingSoon />;
+  return <GoLiveInner />;
+}
+
+function GoLiveInner() {
   const router = useRouter();
   const { user } = useAuth();
   const { data: prepper } = useMyPrepperApplication(user?.id);
@@ -224,7 +246,7 @@ export default function GoLiveScreen() {
                         )}
                       </View>
                       <Text numberOfLines={2} style={{ fontFamily: Font.medium, fontSize: 10, color: '#fff', textAlign: 'center', lineHeight: 13 }}>
-                        {meal.title.length > 12 ? meal.title.slice(0, 12) + '…' : meal.title}
+                        {meal.title}
                       </Text>
                       <Text style={{ fontFamily: Font.semibold, fontSize: 10, color: ORANGE, marginTop: 2 }}>
                         ${(meal.price ?? 0).toFixed(0)}

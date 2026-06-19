@@ -7,6 +7,10 @@ import '@/global.css';
 
 import { Platform } from 'react-native';
 
+/**
+ * @deprecated Use `Palette` instead. This object is kept for backwards
+ * compatibility only and will be removed in a future release.
+ */
 export const Colors = {
   light: {
     text: '#000000',
@@ -85,7 +89,7 @@ export const Palette = {
   ink: '#1C1A18', // primary text, headings, dark buttons (warm near-black)
   inkSoft: '#44403C', // labels and emphasized secondary text
   textSecondary: '#8A8480', // real secondary copy — warm grey
-  textMuted: '#B8B0A8', // DECORATIVE/disabled only — never load-bearing text
+  textMuted: '#B8B0A8', // ⚠️  DECORATIVE/DISABLED ONLY — never use on load-bearing text (contrast < 3:1)
 
   // Customer (light) surfaces — warm cream canvas framing white cards
   surface: '#FFFFFF',
@@ -97,7 +101,7 @@ export const Palette = {
   // Semantic accents — used with a text/icon pairing, never color alone
   success: '#16A34A', // verified, healthy, positive deltas, confirmed status
   amber: '#F59E0B', // star ratings, "popular" badges, gentle warnings
-  danger: '#EF4444', // destructive actions, errors, favorites heart
+  danger: '#DC2626', // destructive actions, errors, favorites heart — 4.5:1 on white
 
   // Prepper (dark) app — intentionally an operations tool (kept dark by mandate)
   prepperBg: '#0C0E13',
@@ -109,7 +113,7 @@ export const Palette = {
 
 export type PaletteToken = keyof typeof Palette;
 
-export const Radius = { sm: 14, md: 20, lg: 24, pill: 999 } as const;
+export const Radius = { sm: 14, md: 12, lg: 16, pill: 999 } as const;
 
 /** Font sizes for the type scale (families live in constants/fonts.ts). */
 export const Type = {
@@ -144,6 +148,24 @@ export const Shadow = {
     shadowOffset: { width: 0, height: -4 },
     elevation: 12,
   },
+} as const;
+
+export const Motion = {
+  springSnappy:  { type: 'timing' as const, duration: 220 },
+  springRelaxed: { type: 'spring' as const, damping: 18, stiffness: 200 },
+  springBouncy:  { type: 'spring' as const, damping: 20, stiffness: 260 },
+  fade:          { type: 'timing' as const, duration: 200 },
+  fadeQuick:     { type: 'timing' as const, duration: 140 },
+} as const;
+
+export const Space = {
+  xs:   2,
+  sm:   4,
+  md:   8,
+  lg:   16,
+  xl:   24,
+  xxl:  32,
+  huge: 64,
 } as const;
 
 /** Standard min touch target (Apple HIG 44pt / Material 48dp). */

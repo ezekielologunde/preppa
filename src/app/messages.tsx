@@ -1,6 +1,6 @@
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Bell, Bike, CalendarCheck, ChefHat, ChevronLeft, CircleCheck, CircleX, Handshake, Heart, MessageCircle, MessageSquareQuote, Package, Send, Star, UtensilsCrossed } from 'lucide-react-native';
+import { Bell, Bike, CalendarCheck, ChefHat, ChevronLeft, CircleCheck, CircleX, Clock, Handshake, Heart, MessageCircle, MessageSquareQuote, Package, Send, Star, UtensilsCrossed } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Platform, RefreshControl, ScrollView, Text, TextInput, useWindowDimensions, View } from 'react-native';
@@ -223,7 +223,9 @@ export default function MessagesScreen() {
 
   const hasUnread = (notifications ?? []).some((n) => !n.read);
   useEffect(() => {
-    if ((isDesktop || tab === 'updates') && hasUnread) markRead.mutate(undefined, { onError: () => feedback.error() });
+    if (!((isDesktop || tab === 'updates') && hasUnread)) return;
+    const t = setTimeout(() => markRead.mutate(undefined, { onError: () => feedback.error() }), 2000);
+    return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab, hasUnread, isDesktop]);
 
@@ -289,7 +291,7 @@ export default function MessagesScreen() {
           ) : null}
           {orders!.map((o, i) => (
             <MotiView key={o.id} from={{ opacity: 0, translateX: -8 }} animate={{ opacity: 1, translateX: 0 }} transition={{ type: 'timing', duration: 200, delay: ((notifications?.length ?? 0) + i) * 35 }}>
-              <NotificationRow o={o} onPress={() => router.push('/orders')} />
+              <NotificationRow o={o} onPress={() => router.push(`/orders/${o.id}` as never)} />
             </MotiView>
           ))}
         </>
@@ -313,7 +315,19 @@ export default function MessagesScreen() {
       </PressableScale>
     </MotiView>
   ) : !conversations?.length ? (
-    <Empty Icon={MessageCircle} title="No messages yet" sub="Message a prepper from a meal or experience to start a conversation." />
+    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 10 }}>
+      <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: Palette.canvas, alignItems: 'center', justifyContent: 'center' }}>
+        <MessageCircle size={28} color={Palette.textMuted} />
+      </View>
+      <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>No messages yet</Text>
+      <Text style={{ fontFamily: Font.body, fontSize: 13.5, color: Palette.textSecondary, textAlign: 'center', maxWidth: 280, lineHeight: 19 }}>Message a prepper from a meal or experience to start a conversation.</Text>
+      <PressableScale
+        onPress={() => router.push('/' as never)}
+        style={{ marginTop: 16, height: 44, paddingHorizontal: 20, backgroundColor: Palette.brand, borderRadius: 10, alignItems: 'center', justifyContent: 'center' }}
+        accessibilityRole="button">
+        <Text style={{ fontFamily: Font.heading, fontSize: 14, color: '#fff' }}>Browse meals</Text>
+      </PressableScale>
+    </View>
   ) : (
     <ScrollView showsVerticalScrollIndicator={false} refreshControl={refreshCtrl} contentContainerStyle={{ paddingTop: Platform.OS === 'web' ? 8 : 4, paddingBottom: 32 }}>
       {conversations.map((c, i) => (
@@ -334,7 +348,7 @@ export default function MessagesScreen() {
     <View style={{ flex: 1, backgroundColor: Palette.surface }}>
       <SafeAreaView edges={['top']} style={{ flex: 1 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingTop: 8, paddingBottom: 8 }}>
-          <PressableScale onPress={goBack} accessibilityRole="button" accessibilityLabel="Go back" style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: Palette.canvas, alignItems: 'center', justifyContent: 'center' }}>
+          <PressableScale onPress={goBack} accessibilityRole="button" accessibilityLabel="Go back" style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: Palette.canvas, alignItems: 'center', justifyContent: 'center' }}>
             <ChevronLeft size={22} color={INK} />
           </PressableScale>
           <Text style={{ fontFamily: Font.display, fontSize: 24, color: INK, letterSpacing: -0.6 }}>inbox</Text>
@@ -385,8 +399,9 @@ export default function MessagesScreen() {
                   ) : (
                     chatMessages.map((m) => (
                       <MotiView key={m.id} from={{ opacity: 0, translateY: 4 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 140 }}
-                        style={{ alignSelf: m.mine ? 'flex-end' : 'flex-start', maxWidth: '75%', backgroundColor: m.mine ? ORANGE : Palette.canvas, borderRadius: 16, borderBottomRightRadius: m.mine ? 4 : 16, borderBottomLeftRadius: m.mine ? 16 : 4, paddingHorizontal: 12, paddingVertical: 8 }}>
-                        <Text style={{ fontFamily: Font.body, fontSize: 14, color: m.mine ? '#fff' : INK, lineHeight: 19 }}>{m.body}</Text>
+                        style={{ alignSelf: m.mine ? 'flex-end' : 'flex-start', maxWidth: '75%', backgroundColor: m.mine ? ORANGE : Palette.canvas, borderRadius: 16, borderBottomRightRadius: m.mine ? 4 : 16, borderBottomLeftRadius: m.mine ? 16 : 4, paddingHorizontal: 12, paddingVertical: 8, flexDirection: 'row', alignItems: 'flex-end', gap: 4 }}>
+                        <Text style={{ fontFamily: Font.body, fontSize: 14, color: m.mine ? '#fff' : INK, lineHeight: 19, flex: 1 }}>{m.body}</Text>
+                        {m.mine && sendMsg.isPending && <Clock size={10} color={m.mine ? 'rgba(255,255,255,0.6)' : Palette.textMuted} style={{ marginLeft: 4 }} />}
                       </MotiView>
                     ))
                   )}

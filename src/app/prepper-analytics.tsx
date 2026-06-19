@@ -97,7 +97,7 @@ export default function PrepperAnalyticsScreen() {
   const router = useRouter();
   const { user } = useAuth();
   const { data: application, isLoading: appLoading } = useMyPrepperApplication(user?.id);
-  const { data: prepperMembership } = usePrepperMembership(application?.id);
+  const { data: prepperMembership, isLoading: membershipLoading } = usePrepperMembership(application?.id);
   const isPro = prepperMembership?.isPro === true;
   const { data: orders, isLoading: ordersLoading, isError: ordersError, refetch } = usePrepperOrders(application?.id);
   const { data: prepperProfile } = usePrepperProfile(application?.id);
@@ -148,7 +148,7 @@ export default function PrepperAnalyticsScreen() {
 
   function goBack() { feedback.tap(); if (router.canGoBack()) { router.back(); } else { router.replace('/prepper-hub'); } }
 
-  if (!isPro && !appLoading) {
+  if (!isPro && !membershipLoading && !appLoading) {
     return (
       <View style={{ flex: 1, backgroundColor: Palette.canvas }}>
         <SafeAreaView edges={['top']} style={{ flex: 1 }}>
@@ -158,20 +158,40 @@ export default function PrepperAnalyticsScreen() {
             </PressableScale>
             <Text style={{ fontFamily: Font.display, fontSize: 24, color: INK, letterSpacing: -0.6 }}>analytics</Text>
           </View>
-          <MotiView from={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', damping: 18, stiffness: 200 }}
-            style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 36, gap: 16 }}>
-            <View style={{ width: 72, height: 72, borderRadius: 36, backgroundColor: Palette.brandTint, alignItems: 'center', justifyContent: 'center' }}>
-              <Crown size={40} color={ORANGE} />
+          {/* Blurred preview of charts behind the paywall */}
+          <View style={{ position: 'relative', flex: 1 }}>
+            <View style={{ opacity: 0.15, flex: 1, overflow: 'hidden', pointerEvents: 'none' }}>
+              <View style={{ padding: 20, gap: 14 }}>
+                <View style={{ flexDirection: 'row', gap: 10 }}>
+                  <View style={{ flex: 1, backgroundColor: Palette.surface, borderRadius: 14, height: 72 }} />
+                  <View style={{ flex: 1, backgroundColor: Palette.surface, borderRadius: 14, height: 72 }} />
+                  <View style={{ flex: 1, backgroundColor: Palette.surface, borderRadius: 14, height: 72 }} />
+                </View>
+                <View style={{ backgroundColor: Palette.surface, borderRadius: 16, height: 140 }} />
+                <View style={{ backgroundColor: Palette.surface, borderRadius: 16, height: 110 }} />
+                <View style={{ backgroundColor: Palette.surface, borderRadius: 14, height: 56 }} />
+                <View style={{ backgroundColor: Palette.surface, borderRadius: 14, height: 56 }} />
+                <View style={{ backgroundColor: Palette.surface, borderRadius: 14, height: 56 }} />
+              </View>
             </View>
-            <Text style={{ fontFamily: Font.display, fontSize: 26, color: INK, letterSpacing: -0.6, textAlign: 'center' }}>analytics is a pro feature</Text>
-            <Text style={{ fontFamily: Font.body, fontSize: 14.5, color: Palette.textSecondary, textAlign: 'center', lineHeight: 22 }}>
-              Track revenue, repeat buyers, and top meals with a Go Pro subscription.
-            </Text>
-            <PressableScale onPress={() => { feedback.tap(); router.push('/prepper-premium'); }} accessibilityRole="button" accessibilityLabel="Upgrade to Pro"
-              style={{ marginTop: 8, height: 52, paddingHorizontal: 32, borderRadius: Radius.pill, backgroundColor: Palette.brand, alignItems: 'center', justifyContent: 'center' }}>
-              <Text style={{ fontFamily: Font.heading, fontSize: 15.5, color: '#fff' }}>Go Pro</Text>
-            </PressableScale>
-          </MotiView>
+            {/* Overlay paywall */}
+            <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', padding: 36, gap: 16 }}>
+              <MotiView from={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', damping: 18, stiffness: 200 }}
+                style={{ alignItems: 'center', gap: 16, backgroundColor: Palette.canvas + 'E8', borderRadius: 24, padding: 32, width: '100%' }}>
+                <View style={{ width: 72, height: 72, borderRadius: 36, backgroundColor: Palette.brandTint, alignItems: 'center', justifyContent: 'center' }}>
+                  <Crown size={40} color={ORANGE} />
+                </View>
+                <Text style={{ fontFamily: Font.display, fontSize: 26, color: INK, letterSpacing: -0.6, textAlign: 'center' }}>analytics is a pro feature</Text>
+                <Text style={{ fontFamily: Font.body, fontSize: 14.5, color: Palette.textSecondary, textAlign: 'center', lineHeight: 22 }}>
+                  Track revenue, repeat buyers, and top meals with a Go Pro subscription.
+                </Text>
+                <PressableScale onPress={() => { feedback.tap(); router.push('/prepper-premium'); }} accessibilityRole="button" accessibilityLabel="Upgrade to Pro"
+                  style={{ marginTop: 8, height: 52, paddingHorizontal: 32, borderRadius: Radius.pill, backgroundColor: Palette.brand, alignItems: 'center', justifyContent: 'center' }}>
+                  <Text style={{ fontFamily: Font.heading, fontSize: 15.5, color: '#fff' }}>Go Pro</Text>
+                </PressableScale>
+              </MotiView>
+            </View>
+          </View>
         </SafeAreaView>
       </View>
     );
@@ -191,7 +211,7 @@ export default function PrepperAnalyticsScreen() {
           <View style={{ flexDirection: 'row', gap: 4 }}>
             {PERIODS.map((p) => (
               <PressableScale key={p.key} onPress={() => { feedback.tap(); setPeriod(p.key); }} accessibilityRole="button" accessibilityState={{ selected: period === p.key }}
-                style={{ backgroundColor: period === p.key ? Palette.brandTint : Palette.chip, borderRadius: 8, paddingHorizontal: 9, paddingVertical: 5 }}>
+                style={{ backgroundColor: period === p.key ? Palette.brandTint : Palette.chip, borderRadius: 8, paddingHorizontal: 9, paddingVertical: 5, minHeight: 44, justifyContent: 'center', alignItems: 'center' }}>
                 <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: period === p.key ? ORANGE : Palette.textMuted }}>{p.label}</Text>
               </PressableScale>
             ))}
@@ -298,7 +318,7 @@ export default function PrepperAnalyticsScreen() {
                 const isToday = i === todayIdx;
                 return (
                   <View key={day} style={{ flex: 1, alignItems: 'center', gap: 4 }}>
-                    <Bar value={count} max={maxDay} color={isToday ? ORANGE : Palette.border} />
+                    <Bar value={count} max={maxDay} color={isToday ? ORANGE : 'rgba(255,255,255,0.25)'} />
                     <Text style={{ fontFamily: Font.medium, fontSize: 10, color: isToday ? ORANGE : Palette.textMuted }}>{day}</Text>
                   </View>
                 );
@@ -399,7 +419,7 @@ export default function PrepperAnalyticsScreen() {
           <View style={{ gap: 10 }}>
             {insights.map(({ icon: Icon, color, text }, i) => (
               <MotiView key={i} from={{ opacity: 0, translateX: -6 }} animate={{ opacity: 1, translateX: 0 }} transition={{ type: 'timing', duration: 220, delay: 200 + i * 40 }}>
-              <View style={{ backgroundColor: INK, borderRadius: 14, padding: 14, flexDirection: 'row', alignItems: 'flex-start', gap: 12 }}>
+              <View style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 14, padding: 14, flexDirection: 'row', alignItems: 'flex-start', gap: 12 }}>
                 <View style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: color + '22', alignItems: 'center', justifyContent: 'center', marginTop: 1 }}>
                   <Icon size={15} color={color} />
                 </View>

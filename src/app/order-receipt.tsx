@@ -1,7 +1,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { CalendarClock, CheckCircle2, ChevronLeft, Clock, CreditCard, Package, Truck, XCircle } from 'lucide-react-native';
+import { CalendarClock, CheckCircle2, ChevronLeft, Clock, CreditCard, Package, Share2, Truck, XCircle } from 'lucide-react-native';
 import { MotiView } from 'moti';
-import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Share, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PressableScale } from '@/components/ui/pressable-scale';
@@ -33,6 +33,17 @@ const STATUS_LABEL: Record<string, string> = {
   ready: 'Ready!', out_for_delivery: 'On the way', completed: 'Completed', cancelled: 'Cancelled',
 };
 
+function buildReceiptText(order: any) {
+  return [
+    `Preppa Receipt`,
+    `Order from: ${order.prepper ?? 'Kitchen'}`,
+    `Date: ${new Date(order.created_at).toLocaleDateString()}`,
+    `Items: ${(order.items ?? []).map((i: any) => `${i.title} ×${i.quantity}`).join(', ')}`,
+    `Total: ${money(order.total ?? 0)}`,
+    `Status: ${order.paymentStatus ?? ''}`,
+  ].join('\n');
+}
+
 function ReceiptRow({ label, value, bold }: { label: string; value: string; bold?: boolean }) {
   return (
     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 3 }}>
@@ -55,7 +66,7 @@ function ItemPriceHint({ items, orderItems }: { items: OrderSummary['items']; or
   return (
     <View style={{ gap: 2, marginTop: 8 }}>
       {orderItems.map((oi) => (
-        <Text key={oi.id} style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted }}>
+        <Text key={oi.id} style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary }}>
           {oi.title} — {oi.quantity}x @ {money(oi.price_at_time)}
         </Text>
       ))}
@@ -108,7 +119,14 @@ export default function OrderReceiptScreen() {
             style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: Palette.canvas, alignItems: 'center', justifyContent: 'center' }}>
             <ChevronLeft size={22} color={Palette.ink} />
           </PressableScale>
-          <Text style={{ fontFamily: Font.display, fontSize: 24, color: Palette.ink, letterSpacing: -0.6 }}>receipt</Text>
+          <Text style={{ fontFamily: Font.display, fontSize: 24, color: Palette.ink, letterSpacing: -0.6, flex: 1 }}>receipt</Text>
+          <Pressable
+            onPress={() => { void Share.share({ message: buildReceiptText(order) }); }}
+            accessibilityRole="button"
+            accessibilityLabel="Share receipt"
+            style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: Palette.canvas, alignItems: 'center', justifyContent: 'center' }}>
+            <Share2 size={18} color={Palette.ink} />
+          </Pressable>
         </View>
 
         {/* Order meta card */}
@@ -180,7 +198,7 @@ export default function OrderReceiptScreen() {
           <ReceiptRow label="Subtotal" value={money(order.subtotal)} />
           {(order.deliveryFee ?? 0) > 0 ? <ReceiptRow label="Delivery" value={money(order.deliveryFee)} /> : null}
           {(order.tip ?? 0) > 0 ? <ReceiptRow label="Tip" value={money(order.tip)} /> : null}
-          {(order.service_fee ?? 0) > 0 ? <ReceiptRow label="Platform fee" value={money(order.service_fee!)} /> : null}
+          {(order.service_fee ?? 0) > 0 ? <ReceiptRow label="Service fee" value={money(order.service_fee!)} /> : null}
           <Divider />
           <ReceiptRow label="Total" value={money(order.total)} bold />
           {order.paymentStatus ? (
@@ -208,6 +226,16 @@ export default function OrderReceiptScreen() {
             </PressableScale>
           </MotiView>
         ) : null}
+
+        {/* Report an issue */}
+        <Pressable
+          onPress={() => router.push(`/messages?orderId=${order?.id}` as never)}
+          style={{ alignItems: 'center', paddingVertical: 8, marginTop: 4 }}
+          accessibilityRole="button">
+          <Text style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.textSecondary }}>
+            Report an issue
+          </Text>
+        </Pressable>
 
       </ScrollView>
     </SafeAreaView>

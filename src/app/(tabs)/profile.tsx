@@ -1,13 +1,13 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import {
-  BadgeCheck, Bell, Bookmark, CalendarCheck, ChefHat, ChevronRight, Clock, Copy, CreditCard, Crown,
+  BadgeCheck, Bell, BellRing, Bookmark, CalendarCheck, Camera, ChefHat, ChevronRight, Clock, Copy, CreditCard, Crown,
   Gift, Heart, LifeBuoy, MapPin, Package, Settings, ShieldCheck, Share2, Sparkles, Ticket,
   TrendingUp, Users, Video, Wallet,
 } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useState } from 'react';
-import { Alert, Platform, RefreshControl, ScrollView, Share, Text, View } from 'react-native';
+import { Alert, Platform, Pressable, RefreshControl, ScrollView, Share, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { DarkCard, DarkModeRow, MealPlansSection, RewardsCard, SectionCard, StatChip } from '@/components/profile-sections';
@@ -138,6 +138,23 @@ export default function ProfileScreen() {
         accessibilityRole="button" accessibilityLabel="Edit your profile">
         <View style={{ width: 88, height: 88, borderRadius: 44, borderWidth: 2.5, borderColor: Palette.brand, alignItems: 'center', justifyContent: 'center' }}>
           <Avatar name={displayName} url={user?.user_metadata?.avatar_url as string | undefined} size={80} />
+          {!user?.user_metadata?.avatar_url && (
+            <View style={{
+              position: 'absolute',
+              bottom: 0,
+              right: 0,
+              width: 24,
+              height: 24,
+              borderRadius: 12,
+              backgroundColor: Palette.brand,
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderWidth: 2,
+              borderColor: Palette.canvas,
+            }}>
+              <Camera size={12} color="#fff" />
+            </View>
+          )}
         </View>
       </PressableScale>
 
@@ -178,7 +195,16 @@ export default function ProfileScreen() {
         <Text numberOfLines={1} style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center' }}>
           {bio}
         </Text>
-      ) : null}
+      ) : (
+        <Pressable
+          onPress={() => router.push('/edit-profile' as never)}
+          accessibilityRole="button"
+          accessibilityLabel="Add bio">
+          <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.brand, fontStyle: 'italic' }}>
+            + add a bio
+          </Text>
+        </Pressable>
+      )}
 
       {/* Edit profile pill */}
       <PressableScale onPress={() => { feedback.tap(); router.push('/edit-profile'); }}
@@ -408,7 +434,7 @@ export default function ProfileScreen() {
       <View style={{ marginHorizontal: 20, gap: 8, marginBottom: 12 }}>
         <Text style={{ fontFamily: Font.display, fontSize: 15, color: Palette.ink, letterSpacing: -0.3 }}>settings & support</Text>
         <SectionCard rows={[
-          { label: 'Notifications',    sub: unreadNotifs > 0 ? `${unreadNotifs} unread` : 'Activity, orders & social', Icon: Bell, accent: unreadNotifs > 0, onPress: () => { feedback.tap(); go('/notifications'); } },
+          { label: 'View Notifications', sub: unreadNotifs > 0 ? `${unreadNotifs} unread` : 'Activity, orders & social', Icon: BellRing, accent: unreadNotifs > 0, onPress: () => { feedback.tap(); go('/notifications'); } },
           { label: 'Notification Settings', sub: 'Push alerts, orders, social & promotions', Icon: Bell, onPress: () => { feedback.tap(); go('/notification-preferences'); } },
           { label: 'Account Settings', sub: 'Profile, security & privacy',    Icon: Settings, onPress: () => { feedback.tap(); go('/settings'); }      },
           { label: 'Help Center',      sub: 'Guides, FAQ & contact support',  Icon: LifeBuoy, onPress: () => { feedback.tap(); go('/settings-help'); }  },
@@ -424,8 +450,8 @@ export default function ProfileScreen() {
         {user ? (
           <PressableScale onPress={handleSignOut}
             accessibilityRole="button" accessibilityLabel="Sign out"
-            style={{ height: 50, borderRadius: 14, backgroundColor: '#FF3B30', alignItems: 'center', justifyContent: 'center' }}>
-            <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>sign out</Text>
+            style={{ height: 50, borderRadius: 14, backgroundColor: 'transparent', borderWidth: 1, borderColor: Palette.danger, alignItems: 'center', justifyContent: 'center' }}>
+            <Text style={{ fontFamily: Font.heading, fontSize: 16, color: Palette.danger }}>sign out</Text>
           </PressableScale>
         ) : (
           <PressableScale onPress={() => { feedback.tap(); router.push('/auth?mode=signin'); }}

@@ -1,4 +1,4 @@
-import { useRouter } from 'expo-router';
+import { usePathname, useRouter } from 'expo-router';
 import { MotiView } from 'moti';
 import { Briefcase, ChefHat, Crown, Gift, Home, MessageSquare, Plus, ShoppingBag, TrendingUp, User, Video, type LucideIcon } from 'lucide-react-native';
 import { View, Text } from 'react-native';
@@ -8,6 +8,7 @@ import { Palette, Shadow } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
 
 const ORANGE = Palette.brand;
+// TODO: Move to Palette as Palette.liveStream and Palette.drop when confirmed in brand guide
 const PINK = '#f472b6';
 const PURPLE = '#a78bfa';
 const CARD = Palette.surface;
@@ -19,7 +20,7 @@ export function ActionItem({ Icon, label, color, onPress }: { Icon: LucideIcon; 
       accessibilityRole="button" accessibilityLabel={label}
       style={{ alignItems: 'center', gap: 5, width: 58 }}
     >
-      <View style={{ width: 38, height: 38, borderRadius: 19, borderWidth: 1.5, borderColor: color === Palette.inkSoft ? Palette.border : color + '66', alignItems: 'center', justifyContent: 'center' }}>
+      <View style={{ width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center' }}>
         <Icon size={18} color={color} />
       </View>
       <Text style={{ fontFamily: Font.medium, fontSize: 10, color: Palette.textMuted }} numberOfLines={1}>{label}</Text>
@@ -32,7 +33,7 @@ export function NavTab({ Icon, label, active, badge, onPress }: { Icon: LucideIc
   return (
     <PressableScale
       onPress={onPress ? () => { feedback.tap(); onPress(); } : undefined}
-      accessibilityRole="button" accessibilityState={{ selected: !!active }} accessibilityLabel={label}
+      accessibilityRole="tab" accessibilityState={{ selected: !!active }} accessibilityLabel={label}
       style={{ alignItems: 'center', gap: 3 }}
     >
       <View>
@@ -43,7 +44,7 @@ export function NavTab({ Icon, label, active, badge, onPress }: { Icon: LucideIc
           </View>
         ) : null}
       </View>
-      <Text style={{ fontFamily: Font.medium, fontSize: 10, color }}>{label}</Text>
+      <Text style={{ fontFamily: Font.medium, fontSize: 11, color }}>{label}</Text>
     </PressableScale>
   );
 }
@@ -58,6 +59,9 @@ export interface DashboardFloatingBarProps {
 }
 
 export function DashboardFloatingBar({ isPro, isDesktop, newCount, bottomInset, router, onGoLive }: DashboardFloatingBarProps) {
+  const pathname = usePathname();
+  const isActive = (href: string) => pathname.startsWith(href);
+
   return (
     <>
       <MotiView
@@ -84,12 +88,12 @@ export function DashboardFloatingBar({ isPro, isDesktop, newCount, bottomInset, 
       </MotiView>
 
       {!isDesktop && (
-        <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', backgroundColor: Palette.surface, paddingTop: 10, paddingBottom: Math.max(bottomInset, 16), borderTopLeftRadius: 24, borderTopRightRadius: 24, ...Shadow.navBar }}>
-          <NavTab Icon={Home} label="home" onPress={() => router.push('/')} />
-          <NavTab Icon={ShoppingBag} label="preorders" badge={newCount || undefined} onPress={() => router.push('/prepper-orders')} />
-          <NavTab Icon={ChefHat} label="kitchen" active />
-          <NavTab Icon={MessageSquare} label="messages" onPress={() => router.push('/messages')} />
-          <NavTab Icon={User} label="profile" onPress={() => router.push('/profile')} />
+        <View accessibilityRole="tablist" style={{ position: 'absolute', left: 0, right: 0, bottom: 0, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', backgroundColor: Palette.surface, paddingTop: 10, paddingBottom: Math.max(bottomInset, 16), borderTopLeftRadius: 24, borderTopRightRadius: 24, ...Shadow.navBar }}>
+          <NavTab Icon={Home} label="home" active={isActive('/')} onPress={() => router.push('/')} />
+          <NavTab Icon={ShoppingBag} label="preorders" badge={newCount || undefined} active={isActive('/prepper-orders')} onPress={() => router.push('/prepper-orders')} />
+          <NavTab Icon={ChefHat} label="kitchen" active={isActive('/dashboard')} onPress={() => router.push('/dashboard')} />
+          <NavTab Icon={MessageSquare} label="messages" active={isActive('/messages')} onPress={() => router.push('/messages')} />
+          <NavTab Icon={User} label="profile" active={isActive('/profile')} onPress={() => router.push('/profile')} />
         </View>
       )}
     </>

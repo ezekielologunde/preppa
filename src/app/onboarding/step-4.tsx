@@ -1,38 +1,17 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ChevronLeft } from 'lucide-react-native';
-import { MotiView } from 'moti';
 import { useState } from 'react';
 import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { markFtueComplete } from '@/app/_layout';
+import { ProgressDots } from '@/components/onboarding/progress-dots';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
 import { Palette, Radius } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/providers/auth-provider';
-
-const TOTAL = 4;
-
-function ProgressDots({ current }: { current: number }) {
-  return (
-    <View style={{ flexDirection: 'row', gap: 8, justifyContent: 'center', paddingTop: 20, paddingBottom: 8 }}>
-      {Array.from({ length: TOTAL }, (_, i) => (
-        <MotiView
-          key={i}
-          animate={{
-            width: i === current ? 10 : 8,
-            height: i === current ? 10 : 8,
-            backgroundColor: i === current ? Palette.brand : Palette.border,
-          }}
-          transition={{ type: 'spring', damping: 16, stiffness: 200 }}
-          style={{ borderRadius: 5 }}
-        />
-      ))}
-    </View>
-  );
-}
 
 export default function Step4Location() {
   const router = useRouter();
@@ -47,7 +26,10 @@ export default function Step4Location() {
   const [saving, setSaving] = useState(false);
 
   async function handleComplete() {
-    if (!user) return;
+    if (!user) {
+      router.replace('/auth?mode=signin');
+      return;
+    }
     feedback.success();
     setSaving(true);
     try {
@@ -71,7 +53,10 @@ export default function Step4Location() {
   }
 
   async function handleSkip() {
-    if (!user) return;
+    if (!user) {
+      router.replace('/auth?mode=signin');
+      return;
+    }
     feedback.tap();
     setSaving(true);
     try {
@@ -96,7 +81,7 @@ export default function Step4Location() {
   return (
     <View style={{ flex: 1, backgroundColor: Palette.canvas }}>
       <SafeAreaView edges={['top', 'bottom']} style={{ flex: 1 }}>
-        <ProgressDots current={3} />
+        <ProgressDots total={4} current={4} />
 
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -110,9 +95,10 @@ export default function Step4Location() {
 
             <Pressable
               onPress={() => router.back()}
+              disabled={saving}
               accessibilityRole="button"
               accessibilityLabel="Go back"
-              style={{ width: 36, height: 36, alignItems: 'center', justifyContent: 'center', marginTop: 12, marginBottom: 24 }}>
+              style={{ width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', marginTop: 12, marginBottom: 24 }}>
               <ChevronLeft size={22} color={Palette.inkSoft} strokeWidth={2} />
             </Pressable>
 
@@ -125,7 +111,7 @@ export default function Step4Location() {
                 lineHeight: 38,
                 marginBottom: 6,
               }}>
-              your area
+              where are you?
             </Text>
             <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, lineHeight: 21, marginBottom: 28 }}>
               We use this to surface local chefs and seasonal drops near you.

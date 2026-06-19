@@ -51,7 +51,9 @@ function ReferralRow({ status, creditAmount, createdAt, completedAt }: {
         <Text style={{ fontFamily: Font.heading, fontSize: 13.5, color: Palette.ink }}>
           {status === 'pending' ? 'Shared' : 'Friend joined'} {date}
         </Text>
-        {status !== 'pending' && (
+        {status === 'pending' ? (
+          <Text style={{ fontSize: 11, color: Palette.textMuted, fontFamily: Font.body, marginTop: 1 }}>Shared via link</Text>
+        ) : (
           <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted, marginTop: 1 }}>
             ${creditAmount.toFixed(2)} credit earned
           </Text>
@@ -80,7 +82,7 @@ export default function ReferralScreen() {
 
   async function handleShare() {
     feedback.tap();
-    try { await Share.share({ message: shareMessage }); } catch { /* dismissed */ }
+    try { await Share.share({ message: shareMessage, url: `https://preppa.live?ref=${code}` }); } catch { /* dismissed */ }
   }
 
   function handleCopy() {
@@ -103,7 +105,7 @@ export default function ReferralScreen() {
           <PressableScale
             onPress={() => { feedback.tap(); if (router.canGoBack()) { router.back(); } else { router.replace('/profile'); } }}
             accessibilityRole="button" accessibilityLabel="Go back"
-            style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
+            style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
             <ChevronLeft size={22} color={Palette.ink} />
           </PressableScale>
           <View style={{ flex: 1 }}>

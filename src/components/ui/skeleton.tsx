@@ -1,9 +1,9 @@
-import { useEffect, useRef } from 'react';
-import { Animated, Easing, View, type DimensionValue, type StyleProp, type ViewStyle } from 'react-native';
+import { MotiView } from 'moti';
+import { View, type DimensionValue, type StyleProp, type ViewStyle } from 'react-native';
 
 import { Palette, Radius } from '@/constants/theme';
 
-/** Shimmer placeholder — opacity loop on the native driver (60 fps, no JS thread). */
+/** Shimmer placeholder — Moti-based opacity loop (unified animation system). */
 export function Skeleton({
   width,
   height,
@@ -15,32 +15,12 @@ export function Skeleton({
   radius?: number;
   style?: StyleProp<ViewStyle>;
 }) {
-  const anim = useRef(new Animated.Value(0.4)).current;
-
-  useEffect(() => {
-    const pulse = Animated.loop(
-      Animated.sequence([
-        Animated.timing(anim, {
-          toValue: 0.9,
-          duration: 900,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-        Animated.timing(anim, {
-          toValue: 0.4,
-          duration: 900,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-      ]),
-    );
-    pulse.start();
-    return () => pulse.stop();
-  }, [anim]);
-
   return (
-    <Animated.View
-      style={[{ width, height, borderRadius: radius, backgroundColor: Palette.chip, opacity: anim }, style]}
+    <MotiView
+      from={{ opacity: 0.4 }}
+      animate={{ opacity: 0.85 }}
+      transition={{ loop: true, type: 'timing', duration: 700, repeatReverse: true }}
+      style={[{ width, height, borderRadius: radius, backgroundColor: Palette.chip }, style]}
     />
   );
 }
@@ -70,7 +50,7 @@ export function MealCardSkeleton({ width = 200 }: { width?: number }) {
 /** Meal/prepper card placeholder used while carousels load. */
 export function CardSkeleton({ width = 200 }: { width?: number }) {
   return (
-    <View style={{ width, borderRadius: 20, overflow: 'hidden', backgroundColor: Palette.surface, padding: 0 }}>
+    <View style={{ width, borderRadius: 12, overflow: 'hidden', backgroundColor: Palette.surface, padding: 0 }}>
       <Skeleton width={width} height={130} radius={0} />
       <View style={{ padding: 12, gap: 8 }}>
         <Skeleton width="80%" height={14} radius={6} />
@@ -97,7 +77,7 @@ export function ListSkeleton({ count = 3, rowHeight = 96 }: { count?: number; ro
   return (
     <View style={{ gap: 12, paddingHorizontal: 20, paddingTop: 8 }}>
       {Array.from({ length: count }).map((_, i) => (
-        <View key={i} style={{ backgroundColor: Palette.surface, borderRadius: 20, padding: 14, flexDirection: 'row', gap: 12, alignItems: 'center' }}>
+        <View key={i} style={{ backgroundColor: Palette.surface, borderRadius: 12, padding: 14, flexDirection: 'row', gap: 12, alignItems: 'center' }}>
           <Skeleton width={60} height={60} radius={14} />
           <View style={{ flex: 1, gap: 8 }}>
             <Skeleton width="65%" height={14} radius={6} />

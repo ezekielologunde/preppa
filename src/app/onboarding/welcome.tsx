@@ -31,7 +31,7 @@ export default function OnboardingWelcome() {
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: 'spring', damping: 10, stiffness: 120, delay: 80 }}
           style={{ marginBottom: 24 }}>
-          <Text style={{ fontSize: 72 }}>🎉</Text>
+          <Text style={{ fontSize: 72 }} accessibilityLabel="Celebration">🎉</Text>
         </MotiView>
 
         {/* Headline */}
@@ -68,7 +68,7 @@ export default function OnboardingWelcome() {
               lineHeight: 24,
               maxWidth: 280,
             }}>
-            We've personalised your feed based on your taste. Local chefs are ready.
+            Explore what's cooking near you — your personalized feed is ready.
           </Text>
         </MotiView>
 
@@ -76,7 +76,7 @@ export default function OnboardingWelcome() {
         <MotiView
           from={{ opacity: 0, translateY: 16 }}
           animate={{ opacity: 1, translateY: 0 }}
-          transition={{ type: 'spring', damping: 18, stiffness: 180, delay: 460 }}
+          transition={{ type: 'spring', damping: 18, stiffness: 180, delay: 180 }}
           style={{ width: '100%' }}>
           <PressableScale
             onPress={handleStart}

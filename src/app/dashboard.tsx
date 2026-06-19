@@ -19,7 +19,7 @@ import { Palette, Radius } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
 import { useMyEarnings } from '@/lib/queries/earnings';
 import { usePrepperMembership } from '@/lib/queries/memberships';
-import { useAdvanceOrder, usePrepperOrders } from '@/lib/queries/orders';
+import { useAdvanceOrder, useOrdersRealtime, usePrepperOrders } from '@/lib/queries/orders';
 import { useMyPrepperApplication, useToggleAvailability } from '@/lib/queries/preppers';
 import { useAuth } from '@/providers/auth-provider';
 import type { OrderStatus } from '@/types/database.types';
@@ -95,12 +95,15 @@ export default function DashboardScreen() {
   const { data: membership, refetch: refetchMembership }        = usePrepperMembership(prepper?.id);
   const { data: orders, refetch: refetchOrders }                = usePrepperOrders(prepper?.id);
   const { data: earnings }                                      = useMyEarnings();
+  useOrdersRealtime('prepper_id', prepper?.id);
   const advanceOrder       = useAdvanceOrder();
   const toggleAvailability = useToggleAvailability(prepper?.id);
 
   const [confirmToggle, setConfirmToggle] = useState(false);
   const [localOpen, setLocalOpen]         = useState<boolean | null>(null);
   const [refreshing, setRefreshing]       = useState(false);
+  const [busyId, setBusyId]               = useState<string | null>(null);
+  const [kitchenToast, setKitchenToast]   = useState<string | null>(null);
 
   async function handleRefresh() {
     setRefreshing(true);
@@ -130,8 +133,15 @@ export default function DashboardScreen() {
     setConfirmToggle(false);
     feedback.impact();
     toggleAvailability.mutate({ accepting_orders: toOpen } as never, {
-      onSuccess: () => feedback.success(),
-      onError:   () => { feedback.error(); setLocalOpen(!toOpen); },
+      onSuccess: () => {
+        feedback.success();
+        const msg = toOpen
+          ? 'Kitchen open. Takes effect in ~30 seconds.'
+          : 'Kitchen paused. Takes effect in ~30 seconds.';
+        setKitchenToast(msg);
+        setTimeout(() => setKitchenToast(null), 3500);
+      },
+      onError: () => { feedback.error(); setLocalOpen(!toOpen); },
     });
   }
 
@@ -202,13 +212,21 @@ export default function DashboardScreen() {
             </TouchableOpacity>
           </View>
 
+          {/* ── Kitchen toggle toast ────────────────────────────────────── */}
+          {kitchenToast && (
+            <MotiView from={{ opacity: 0, translateY: -8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 200 }}
+              style={{ marginHorizontal: 20, marginBottom: 8, backgroundColor: '#22C55E22', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 10, borderWidth: 1, borderColor: '#22C55E44' }}>
+              <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: '#22C55E', textAlign: 'center' }}>{kitchenToast}</Text>
+            </MotiView>
+          )}
+
           {/* ── At-a-glance stats ───────────────────────────────────────── */}
           <MotiView from={{ opacity: 0, translateY: 6 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 240 }}
             style={{ flexDirection: 'row', marginHorizontal: 20, marginBottom: 32, backgroundColor: CARD, borderRadius: 16, borderWidth: 1, borderColor: BORDER }}>
             {([
               { label: 'Active',       value: active.length,                        hot: active.length > 0 },
               { label: 'Done today',   value: todayDone },
-              { label: 'This week',    value: money(earnings?.net_week ?? 0) },
+              { label: 'This week (net)', value: money(earnings?.net_week ?? 0) },
             ] as const).map((s, i) => (
               <View key={s.label} style={{ flex: 1, paddingVertical: 18, alignItems: 'center', borderLeftWidth: i > 0 ? 1 : 0, borderLeftColor: BORDER }}>
                 <Text style={{ fontFamily: Font.display, fontSize: 22, color: s.hot ? ORANGE : WHITE, letterSpacing: -0.4 }}>{s.value}</Text>
@@ -241,47 +259,50 @@ export default function DashboardScreen() {
                 </PressableScale>
               </MotiView>
             ) : (
-              <View style={{ gap: 12 }}>
-                {active.slice(0, 4).map((order, idx) => {
-                  const step  = ADVANCE[order.status];
-                  const color = STATUS_COLOR[order.status] ?? MUTED;
-                  const label = STATUS_LABEL[order.status] ?? order.status;
-                  const parts = (order.customer ?? '').trim().split(/\s+/);
-                  const name  = parts.length > 1 ? `${parts[0]} ${parts[parts.length - 1][0]}.` : (parts[0] ?? 'Customer');
-                  return (
-                    <MotiView key={order.id} from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 240, delay: idx * 40 }}
-                      style={{ backgroundColor: CARD, borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: BORDER }}>
-                      <View style={{ height: 3, backgroundColor: color }} />
-                      <View style={{ padding: 16, gap: 14 }}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                          <View>
-                            <Text style={{ fontFamily: Font.semibold, fontSize: 15, color: WHITE }}>{name}</Text>
-                            <Text style={{ fontFamily: Font.body, fontSize: 13, color: MUTED, marginTop: 2 }}>{order.items?.length ?? 0} items · {money(order.total)}</Text>
+              <ScrollView style={{ maxHeight: 400 }} showsVerticalScrollIndicator={false} nestedScrollEnabled>
+                <View style={{ gap: 12 }}>
+                  {active.map((order, idx) => {
+                    const step  = ADVANCE[order.status];
+                    const color = STATUS_COLOR[order.status] ?? MUTED;
+                    const label = STATUS_LABEL[order.status] ?? order.status;
+                    const parts = (order.customer ?? '').trim().split(/\s+/);
+                    const name  = parts.length > 1 ? `${parts[0]} ${parts[parts.length - 1][0]}.` : (parts[0] ?? 'Customer');
+                    return (
+                      <MotiView key={order.id} from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 240, delay: idx * 40 }}
+                        style={{ backgroundColor: CARD, borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: BORDER }}>
+                        <View style={{ height: 3, backgroundColor: color }} />
+                        <View style={{ padding: 16, gap: 14 }}>
+                          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <View>
+                              <Text style={{ fontFamily: Font.semibold, fontSize: 15, color: WHITE }}>{name}</Text>
+                              <Text style={{ fontFamily: Font.body, fontSize: 13, color: MUTED, marginTop: 2 }}>{order.items?.length ?? 0} items · {money(order.total)}</Text>
+                            </View>
+                            <View style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: Radius.pill, backgroundColor: color + '22' }}>
+                              <Text style={{ fontFamily: Font.semibold, fontSize: 12, color }}>{label}</Text>
+                            </View>
                           </View>
-                          <View style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: Radius.pill, backgroundColor: color + '22' }}>
-                            <Text style={{ fontFamily: Font.semibold, fontSize: 12, color }}>{label}</Text>
-                          </View>
+                          {step && (
+                            <TouchableOpacity
+                              onPress={() => {
+                                feedback.impact();
+                                setBusyId(order.id);
+                                advanceOrder.mutate({ orderId: order.id, next: step.next }, {
+                                  onSuccess: () => setBusyId(null),
+                                  onError:   () => setBusyId(null),
+                                });
+                              }}
+                              disabled={busyId === order.id}
+                              accessibilityRole="button" accessibilityLabel={step.cta}
+                              style={{ height: 52, borderRadius: 12, backgroundColor: color, alignItems: 'center', justifyContent: 'center', opacity: busyId === order.id ? 0.65 : 1 }}>
+                              <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>{step.cta}</Text>
+                            </TouchableOpacity>
+                          )}
                         </View>
-                        {step && (
-                          <TouchableOpacity onPress={() => { feedback.impact(); advanceOrder.mutate({ orderId: order.id, next: step.next }); }}
-                            disabled={advanceOrder.isPending}
-                            accessibilityRole="button" accessibilityLabel={step.cta}
-                            style={{ height: 52, borderRadius: 12, backgroundColor: color, alignItems: 'center', justifyContent: 'center', opacity: advanceOrder.isPending ? 0.65 : 1 }}>
-                            <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>{step.cta}</Text>
-                          </TouchableOpacity>
-                        )}
-                      </View>
-                    </MotiView>
-                  );
-                })}
-                {active.length > 4 && (
-                  <TouchableOpacity onPress={() => { feedback.tap(); router.push('/prepper-orders' as never); }}
-                    accessibilityRole="button" accessibilityLabel={`See all ${active.length} orders`}
-                    style={{ height: 48, borderRadius: 12, borderWidth: 1.5, borderColor: BORDER, alignItems: 'center', justifyContent: 'center' }}>
-                    <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: MUTED }}>+{active.length - 4} more orders →</Text>
-                  </TouchableOpacity>
-                )}
-              </View>
+                      </MotiView>
+                    );
+                  })}
+                </View>
+              </ScrollView>
             )}
           </View>
 
@@ -335,7 +356,7 @@ export default function DashboardScreen() {
             { label: 'Orders',  Icon: Package,     route: '/prepper-orders',   active: false, badge: newCount },
             { label: 'Kitchen', Icon: ChefHat,     route: '/dashboard',        active: true  },
             { label: 'Messages',Icon: MessageSquare,route: '/messages',        active: false },
-            { label: 'Profile', Icon: Wallet,      route: '/prepper-payouts',  active: false },
+            { label: 'Earnings', Icon: Wallet,      route: '/prepper-payouts',  active: false },
           ] as const).map(({ label, Icon, route, active: isActive, badge }) => (
             <TouchableOpacity key={label} onPress={() => { feedback.tap(); router.push(route as never); }}
               accessibilityRole="tab" accessibilityLabel={label} accessibilityState={{ selected: isActive }}

@@ -1,4 +1,3 @@
-import { MotiView } from 'moti';
 import { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, {
@@ -37,15 +36,14 @@ export function LoadingSplash() {
   const logoStyle = useAnimatedStyle(() => ({ transform: [{ scale: logoScale.value }] }));
 
   return (
-    <Animated.View exiting={FadeOut.duration(300)} style={styles.container}>
-      {/* Logo with spring entrance */}
+    <Animated.View
+      accessible={true}
+      accessibilityLabel="Preppa is loading"
+      exiting={FadeOut.duration(300)}
+      style={styles.container}>
+      {/* Logo with spring entrance — scale-in is sufficient; no extra opacity layer needed */}
       <Animated.View style={logoStyle}>
-        <MotiView
-          from={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ type: 'timing', duration: 200 }}>
-          <PreppaLogo size={80} glow={false} />
-        </MotiView>
+        <PreppaLogo size={80} glow={false} />
       </Animated.View>
 
       {/* Progress bar */}

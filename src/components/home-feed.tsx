@@ -104,7 +104,7 @@ export function QuickAddButton({ meal, pill = false }: { meal: Meal; pill?: bool
     <MotiView
       animate={{ backgroundColor: bgColor }}
       transition={{ type: 'spring', damping: 18, stiffness: 220 }}
-      style={{ height: 32, borderRadius: 16, paddingHorizontal: 10, minWidth: 68, alignItems: 'center', justifyContent: 'center' }}>
+      style={{ height: 38, borderRadius: 19, paddingHorizontal: 10, minWidth: 68, alignItems: 'center', justifyContent: 'center' }}>
       <PressableScale onPress={onAdd} haptic={false} accessibilityLabel={label}
         style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
         {done ? <Check size={13} color="#fff" strokeWidth={2.5} />
@@ -165,7 +165,17 @@ export function TrendingSection({
   const list = meals ?? [];
   const [hero, ...rest] = list;
 
-  if (!isLoading && list.length === 0) return null;
+  if (!isLoading && list.length === 0) return (
+    <View style={{ alignItems: 'center', paddingVertical: 32, paddingHorizontal: 24 }}>
+      <Text style={{ fontSize: 32, marginBottom: 12 }}>🍳</Text>
+      <Text style={{ fontFamily: Font.heading, fontSize: 16, color: Palette.ink, marginBottom: 8, textAlign: 'center' }}>
+        No meals near you yet
+      </Text>
+      <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center', lineHeight: 20 }}>
+        Local chefs are joining. Check back soon or explore kitchens from anywhere.
+      </Text>
+    </View>
+  );
 
   return (
     <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }}
@@ -191,15 +201,23 @@ export function TrendingSection({
             </MotiView>
           ) : null}
           {rest.length > 0 ? (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ paddingHorizontal: 20, gap: 12, paddingBottom: 4 }}>
-              {rest.map((m, i) => (
-                <MotiView key={m.id} from={{ opacity: 0, translateY: 6 }} animate={{ opacity: 1, translateY: 0 }}
-                  transition={{ type: 'timing', duration: 220, delay: i * 50 }}>
-                  <TrendingMealCard meal={m} width={carouselCardWidth} />
-                </MotiView>
-              ))}
-            </ScrollView>
+            <View style={{ position: 'relative' }}>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{ paddingHorizontal: 20, gap: 12, paddingBottom: 4 }}>
+                {rest.map((m, i) => (
+                  <MotiView key={m.id} from={{ opacity: 0, translateY: 6 }} animate={{ opacity: 1, translateY: 0 }}
+                    transition={{ type: 'timing', duration: 220, delay: i * 50 }}>
+                    <TrendingMealCard meal={m} width={carouselCardWidth} />
+                  </MotiView>
+                ))}
+              </ScrollView>
+              <LinearGradient
+                colors={['transparent', Palette.canvas]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 40, pointerEvents: 'none' }}
+              />
+            </View>
           ) : null}
         </>
       )}
@@ -337,15 +355,23 @@ export function FreshDropsSection() {
       <SectionHeader title="just dropped" linkLabel="see all →" Icon={Zap}
         onLink={() => { feedback.tap(); router.push('/explore'); }} />
       {isLoading ? <CardRowSkeleton count={3} /> : (
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: 20, gap: 12, paddingBottom: 4 }}>
-          {(meals ?? []).map((meal, i) => (
-            <MotiView key={meal.id} from={{ opacity: 0, translateY: 6 }} animate={{ opacity: 1, translateY: 0 }}
-              transition={{ type: 'timing', duration: 220, delay: i * 50 }}>
-              <TrendingMealCard meal={meal} width={carouselCardWidth} />
-            </MotiView>
-          ))}
-        </ScrollView>
+        <View style={{ position: 'relative' }}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ paddingHorizontal: 20, gap: 12, paddingBottom: 4 }}>
+            {(meals ?? []).map((meal, i) => (
+              <MotiView key={meal.id} from={{ opacity: 0, translateY: 6 }} animate={{ opacity: 1, translateY: 0 }}
+                transition={{ type: 'timing', duration: 220, delay: i * 50 }}>
+                <TrendingMealCard meal={meal} width={carouselCardWidth} />
+              </MotiView>
+            ))}
+          </ScrollView>
+          <LinearGradient
+            colors={['transparent', Palette.canvas]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 40, pointerEvents: 'none' }}
+          />
+        </View>
       )}
     </MotiView>
   );

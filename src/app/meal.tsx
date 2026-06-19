@@ -47,7 +47,7 @@ function Macro({ label, value }: { label: string; value: number | null }) {
   return (
     <View style={{ flex: 1, alignItems: 'center', backgroundColor: Palette.canvas, borderRadius: 14, paddingVertical: 12 }}>
       <Text style={{ fontFamily: Font.display, fontSize: 18, color: INK, fontVariant: ['tabular-nums'] }}>{value}</Text>
-      <Text style={{ fontFamily: Font.body, fontSize: 11, color: Palette.textMuted }}>{label}</Text></View>
+      <Text style={{ fontFamily: Font.body, fontSize: 11, color: Palette.textSecondary }}>{label}</Text></View>
   );
 }
 
@@ -208,7 +208,7 @@ export default function MealScreen() {
               <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
                 <Text style={{ fontFamily: Font.display, fontSize: 24, color: INK, letterSpacing: -0.5, flex: 1 }}>{meal.title}</Text>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-                  <Text style={{ fontFamily: Font.display, fontSize: 22, color: ORANGE, fontVariant: ['tabular-nums'] }}>${meal.price.toFixed(2)}</Text>
+                  <Text style={{ fontFamily: Font.display, fontSize: 24, color: ORANGE, fontVariant: ['tabular-nums'] }}>${meal.price.toFixed(2)}</Text>
                   <PressableScale
                     onPress={() => { void handleShare(); }}
                     accessibilityRole="button"
@@ -325,7 +325,7 @@ export default function MealScreen() {
                     </View>
                   ) : null}
                   {meal.allergens && meal.allergens.length > 0 ? (
-                    <View style={{ borderLeftWidth: 3, borderLeftColor: '#F59E0B', borderRadius: 4, paddingLeft: 12, paddingVertical: 10, backgroundColor: '#FFFBEB', gap: 4 }}>
+                    <View style={{ borderWidth: 1, borderColor: '#F59E0B', backgroundColor: '#FFFBEB', borderRadius: 12, padding: 12, gap: 4 }}>
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
                         <AlertTriangle size={13} color="#F59E0B" />
                         <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: '#B45309' }}>Contains allergens</Text>
@@ -440,7 +440,8 @@ export default function MealScreen() {
                 onPress={() => { feedback.tap(); setQty((q) => Math.max(1, q - 1)); }}
                 accessibilityRole="button"
                 accessibilityLabel="Decrease quantity"
-                style={{ width: 40, height: 52, alignItems: 'center', justifyContent: 'center' }}>
+                hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
+                style={{ width: 44, height: 52, alignItems: 'center', justifyContent: 'center' }}>
                 <Minus size={16} color={qty <= 1 ? Palette.textMuted : INK} strokeWidth={2.5} />
               </PressableScale>
               <Text style={{ fontFamily: Font.display, fontSize: 16, color: INK, minWidth: 24, textAlign: 'center', fontVariant: ['tabular-nums'] }}>{qty}</Text>
@@ -448,7 +449,8 @@ export default function MealScreen() {
                 onPress={() => { feedback.tap(); setQty((q) => q + 1); }}
                 accessibilityRole="button"
                 accessibilityLabel="Increase quantity"
-                style={{ width: 40, height: 52, alignItems: 'center', justifyContent: 'center' }}>
+                hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
+                style={{ width: 44, height: 52, alignItems: 'center', justifyContent: 'center' }}>
                 <Plus size={16} color={INK} strokeWidth={2.5} />
               </PressableScale>
             </View>

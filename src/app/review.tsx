@@ -120,7 +120,7 @@ export default function ReviewScreen() {
     <View style={{ flex: 1, backgroundColor: Palette.surface }}>
       <SafeAreaView edges={['top']} style={{ flex: 1 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingTop: 8, paddingBottom: 8 }}>
-          <PressableScale onPress={goBack} accessibilityRole="button" accessibilityLabel="Go back" style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: Palette.canvas, alignItems: 'center', justifyContent: 'center' }}>
+          <PressableScale onPress={goBack} accessibilityRole="button" accessibilityLabel="Go back" style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: Palette.canvas, alignItems: 'center', justifyContent: 'center' }}>
             <ChevronLeft size={22} color={INK} />
           </PressableScale>
           <Text style={{ fontFamily: Font.display, fontSize: 24, color: INK, letterSpacing: -0.6 }}>leave a review</Text>
@@ -138,7 +138,7 @@ export default function ReviewScreen() {
             <View style={{ alignItems: 'center', gap: 8 }}>
               <View style={{ flexDirection: 'row', gap: 8 }}>
                 {[1, 2, 3, 4, 5].map((n) => (
-                  <PressableScale key={n} onPress={() => { feedback.tap(); setRating(n); setTapped(n); }} accessibilityRole="button" accessibilityLabel={`${n} star${n > 1 ? 's' : ''}`} style={{ padding: 4 }}>
+                  <PressableScale key={n} onPress={() => { feedback.tap(); setRating(n); setTapped(n); }} accessibilityRole="button" accessibilityLabel={`${n} star${n > 1 ? 's' : ''}`} style={{ padding: 6 }}>
                     <MotiView
                       key={`star-${n}-${tapped === n ? tapped : 0}`}
                       from={{ scale: tapped === n ? 1.2 : 1 }}
@@ -158,7 +158,7 @@ export default function ReviewScreen() {
           </MotiView>
 
           {/* Quick-phrase chips */}
-          {rating > 0 && !body ? (
+          {rating > 0 && body.length < 40 ? (
             <MotiView from={{ opacity: 0, translateY: 6 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 220 }}>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingVertical: 2 }}>
                 {(QUICK_PHRASES[rating] ?? []).map((phrase) => (

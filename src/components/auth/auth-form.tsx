@@ -17,6 +17,7 @@ export interface AuthFormProps {
   onForgot: () => void;
   onSendOtp: () => void;
   msg: { text: string; ok: boolean } | null;
+  fieldError?: 'name' | 'email' | 'password' | null;
   name: string;
   setName: (v: string) => void;
   email: string;
@@ -95,6 +96,7 @@ export function AuthForm({
   onForgot,
   onSendOtp,
   msg,
+  fieldError,
   name,
   setName,
   email,
@@ -103,7 +105,6 @@ export function AuthForm({
   setPassword,
 }: AuthFormProps) {
   const [showPw, setShowPw] = useState(false);
-  const hasError = !!(msg && !msg.ok);
 
   return (
     <MotiView
@@ -141,7 +142,7 @@ export function AuthForm({
           textContentType="name"
           maxLength={80}
           editable={!busy}
-          hasError={hasError}
+          hasError={fieldError === 'name'}
           accessibilityLabel="Full name"
         />
       )}
@@ -156,7 +157,7 @@ export function AuthForm({
         keyboardType="email-address"
         maxLength={254}
         editable={!busy}
-        hasError={hasError}
+        hasError={fieldError === 'email'}
         accessibilityLabel="Email address"
       />
 
@@ -171,12 +172,12 @@ export function AuthForm({
         onSubmitEditing={onSubmit}
         returnKeyType={mode === 'signup' ? 'next' : 'go'}
         editable={!busy}
-        hasError={hasError}
+        hasError={fieldError === 'password'}
         accessibilityLabel="Password"
         rightSlot={
           <Pressable
             onPress={() => setShowPw((v) => !v)}
-            hitSlop={10}
+            hitSlop={12}
             accessibilityRole="button"
             accessibilityLabel={showPw ? 'Hide password' : 'Show password'}>
             {showPw
@@ -227,7 +228,7 @@ export function AuthForm({
         <Pressable
           onPress={onForgot}
           disabled={busy}
-          style={{ alignItems: 'center', paddingVertical: 6 }}
+          style={{ height: 44, alignItems: 'center', justifyContent: 'center' }}
           accessibilityRole="button"
           accessibilityLabel="Forgot password">
           <Text style={{
@@ -246,7 +247,7 @@ export function AuthForm({
           disabled={busy}
           accessibilityRole="button"
           accessibilityLabel="Email me a sign-in code instead"
-          style={{ alignItems: 'center', paddingVertical: 8 }}>
+          style={{ height: 44, alignItems: 'center', justifyContent: 'center' }}>
           <Text style={{ fontFamily: Font.medium, fontSize: 14, color: Palette.textSecondary }}>
             Email me a sign-in code{' '}
             <Text style={{ fontFamily: Font.heading, color: Palette.brand }}>instead</Text>

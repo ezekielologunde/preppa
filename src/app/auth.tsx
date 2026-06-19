@@ -2,7 +2,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Eye, EyeOff } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, Text, TextInput, View } from 'react-native';
 import Animated, {
   useAnimatedStyle, useSharedValue, withSequence, withSpring,
 } from 'react-native-reanimated';
@@ -38,6 +38,7 @@ export default function AuthScreen() {
   const [code, setCode] = useState('');
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ text: string; ok: boolean } | null>(null);
+  const [fieldError, setFieldError] = useState<'name' | 'email' | 'password' | null>(null);
   const codeRef = useRef<TextInput>(null);
 
   const shakeX = useSharedValue(0);
@@ -52,7 +53,9 @@ export default function AuthScreen() {
     );
   }
 
-  const fail = (text: string) => { feedback.error(); shake(); setBusy(false); setMsg({ text, ok: false }); };
+  const fail = (text: string, field: 'name' | 'email' | 'password' | null = null) => {
+    feedback.error(); shake(); setBusy(false); setMsg({ text, ok: false }); setFieldError(field);
+  };
 
   const goCode = (next: Intent, text: string) => {
     feedback.success();
@@ -60,15 +63,17 @@ export default function AuthScreen() {
     setIntent(next);
     setStep('code');
     setCode('');
+    setFieldError(null);
     setMsg({ text, ok: true });
     setTimeout(() => codeRef.current?.focus(), 250);
   };
 
   async function submit() {
     setMsg(null);
-    if (mode === 'signup' && name.trim().length < 2) return fail('Tell us your name.');
-    if (!emailOk(email)) return fail('Enter a valid email.');
-    if (password.length < 8) return fail('Password must be at least 8 characters.');
+    setFieldError(null);
+    if (mode === 'signup' && name.trim().length < 2) return fail('Tell us your name.', 'name');
+    if (!emailOk(email)) return fail('Enter a valid email.', 'email');
+    if (password.length < 8) return fail('Password must be at least 8 characters.', 'password');
     setBusy(true);
     feedback.impact();
     if (mode === 'signup') {
@@ -150,7 +155,8 @@ export default function AuthScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: Palette.canvas }}>
-      <SafeAreaView style={{ flex: 1, paddingHorizontal: 24 }}>
+      <SafeAreaView style={{ flex: 1 }}>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1, paddingHorizontal: 24 }}>
 
         {/* Wordmark + tagline */}
         <MotiView
@@ -165,7 +171,7 @@ export default function AuthScreen() {
             animate={{ opacity: 1, translateY: 0 }}
             transition={{ type: 'timing', duration: 200 }}
             style={{ alignItems: 'center', marginTop: 16, gap: 4 }}>
-            <Text style={{ fontFamily: Font.display, fontSize: 32, color: Palette.ink, letterSpacing: -1 }}>
+            <Text style={{ fontFamily: Font.display, fontSize: 32, color: Palette.ink, letterSpacing: -0.5 }}>
               {screenTitle}
             </Text>
             {step === 'form' && (
@@ -176,36 +182,7 @@ export default function AuthScreen() {
           </MotiView>
         </MotiView>
 
-        {/* Social auth buttons */}
-        {step === 'form' && (
-          <MotiView
-            from={{ opacity: 0, translateY: 10 }}
-            animate={{ opacity: 1, translateY: 0 }}
-            transition={{ type: 'timing', duration: 260, delay: 120 }}
-            style={{ gap: 10, marginBottom: 20 }}>
-            <PressableScale
-              onPress={() => { feedback.tap(); setMsg({ text: 'Apple Sign In launching soon — use email for now.', ok: true }); }}
-              accessibilityRole="button"
-              accessibilityLabel="Continue with Apple"
-              style={{ height: 50, borderRadius: 14, borderWidth: 1, borderColor: Palette.border, backgroundColor: Palette.surface, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
-              <Text style={{ fontSize: 20, color: Palette.ink, lineHeight: 24 }}></Text>
-              <Text style={{ fontFamily: Font.heading, fontSize: 15, color: Palette.ink }}>Continue with Apple</Text>
-            </PressableScale>
-            <PressableScale
-              onPress={() => { feedback.tap(); setMsg({ text: 'Google Sign In launching soon — use email for now.', ok: true }); }}
-              accessibilityRole="button"
-              accessibilityLabel="Continue with Google"
-              style={{ height: 50, borderRadius: 14, borderWidth: 1, borderColor: Palette.border, backgroundColor: Palette.surface, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
-              <Text style={{ fontSize: 18, color: Palette.ink, lineHeight: 22 }}>G</Text>
-              <Text style={{ fontFamily: Font.heading, fontSize: 15, color: Palette.ink }}>Continue with Google</Text>
-            </PressableScale>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 4 }}>
-              <View style={{ flex: 1, height: 1, backgroundColor: Palette.border }} />
-              <Text style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.textMuted }}>or with email</Text>
-              <View style={{ flex: 1, height: 1, backgroundColor: Palette.border }} />
-            </View>
-          </MotiView>
-        )}
+        {/* TODO: Social auth (Apple / Google) — coming soon */}
 
         {/* Form / Code step */}
         <Animated.View style={shakeStyle}>
@@ -218,6 +195,7 @@ export default function AuthScreen() {
               onForgot={forgot}
               onSendOtp={sendOtp}
               msg={msg}
+              fieldError={fieldError}
               name={name}
               setName={setName}
               email={email}
@@ -308,14 +286,16 @@ export default function AuthScreen() {
                 <Pressable
                   onPress={() => { feedback.tap(); setStep('form'); setCode(''); setMsg(null); }}
                   accessibilityRole="button"
-                  accessibilityLabel="Back to form">
+                  accessibilityLabel="Back to form"
+                  style={{ height: 44, justifyContent: 'center', paddingHorizontal: 8 }}>
                   <Text style={{ fontFamily: Font.medium, fontSize: 14, color: Palette.textSecondary }}>back</Text>
                 </Pressable>
                 <Pressable
                   onPress={resend}
                   disabled={busy}
                   accessibilityRole="button"
-                  accessibilityLabel="Resend code">
+                  accessibilityLabel="Resend code"
+                  style={{ height: 44, justifyContent: 'center', paddingHorizontal: 8 }}>
                   <Text style={{ fontFamily: Font.heading, fontSize: 14, color: Palette.brand }}>Resend code</Text>
                 </Pressable>
               </View>
@@ -342,7 +322,7 @@ export default function AuthScreen() {
         {/* Legal links */}
         {step === 'form' && (
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', marginTop: 16, gap: 4 }}>
-            <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted }}>
+            <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary }}>
               By signing up, you agree to our
             </Text>
             <PressableScale
@@ -353,7 +333,7 @@ export default function AuthScreen() {
                 Terms of Service
               </Text>
             </PressableScale>
-            <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted }}>
+            <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary }}>
               and
             </Text>
             <PressableScale
@@ -367,6 +347,7 @@ export default function AuthScreen() {
           </View>
         )}
 
+        </KeyboardAvoidingView>
       </SafeAreaView>
     </View>
   );

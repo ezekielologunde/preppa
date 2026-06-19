@@ -1,11 +1,13 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { ArrowDownToLine, ChevronLeft, Wallet } from 'lucide-react-native';
 import { MotiView } from 'moti';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Modal,
   Platform,
+  Pressable,
   RefreshControl,
   ScrollView,
   Text,
@@ -30,6 +32,7 @@ const BG = Palette.prepperBg;
 const CARD = Palette.prepperCard;
 const MUTED = Palette.textMuted;
 const MIN_PAYOUT = 50;
+const BANK_KEY = (uid: string) => `preppa.bank.v1.${uid}`;
 
 const money = (n: number) => `$${(n ?? 0).toFixed(2)}`;
 const shortDate = (iso: string) => {
@@ -65,18 +68,42 @@ function HistoryRow({ item }: { item: PayoutRequest }) {
   );
 }
 
+type SavedBank = { bankName: string; accountName: string; accountNumber: string };
+
 type ModalFormProps = {
   available: number;
   prepperId: string;
+  uid: string;
   onClose: () => void;
 };
 
-function RequestModal({ available, prepperId, onClose }: ModalFormProps) {
+function RequestModal({ available, prepperId, uid, onClose }: ModalFormProps) {
   const [amount, setAmount] = useState('');
   const [bankName, setBankName] = useState('');
   const [accountNumber, setAccountNumber] = useState('');
   const [accountName, setAccountName] = useState('');
+  const [savedBank, setSavedBank] = useState<SavedBank | null>(null);
   const requestPayout = useRequestPayout(prepperId);
+
+  useEffect(() => {
+    AsyncStorage.getItem(BANK_KEY(uid)).then((saved) => {
+      if (saved) {
+        const parsed: SavedBank = JSON.parse(saved);
+        setSavedBank(parsed);
+        setBankName(parsed.bankName);
+        setAccountName(parsed.accountName);
+        setAccountNumber(parsed.accountNumber);
+      }
+    }).catch(() => {});
+  }, [uid]);
+
+  function clearSavedBank() {
+    setSavedBank(null);
+    setBankName('');
+    setAccountName('');
+    setAccountNumber('');
+    AsyncStorage.removeItem(BANK_KEY(uid)).catch(() => {});
+  }
 
   const parsedAmount = parseFloat(amount);
   const valid =
@@ -92,6 +119,7 @@ function RequestModal({ available, prepperId, onClose }: ModalFormProps) {
     feedback.tap();
     try {
       await requestPayout.mutateAsync({ amount: parsedAmount, bankName: bankName.trim(), accountNumber: accountNumber.trim(), accountName: accountName.trim() });
+      await AsyncStorage.setItem(BANK_KEY(uid), JSON.stringify({ bankName: bankName.trim(), accountName: accountName.trim(), accountNumber: accountNumber.trim() }));
       feedback.success();
       onClose();
     } catch {
@@ -126,6 +154,17 @@ function RequestModal({ available, prepperId, onClose }: ModalFormProps) {
           <Text style={{ fontFamily: Font.body, fontSize: 13, color: MUTED, marginBottom: 20 }}>
             available: {money(available)} · min {money(MIN_PAYOUT)}
           </Text>
+
+          {savedBank && (
+            <View style={{ backgroundColor: '#0d1117', borderRadius: 10, padding: 12, marginBottom: 12 }}>
+              <Text style={{ fontFamily: Font.medium, fontSize: 13, color: MUTED }}>
+                Saved account: {savedBank.bankName} — ****{savedBank.accountNumber.slice(-4)}
+              </Text>
+              <Pressable onPress={clearSavedBank} style={{ marginTop: 4 }}>
+                <Text style={{ fontFamily: Font.medium, fontSize: 12, color: ORANGE }}>Change account</Text>
+              </Pressable>
+            </View>
+          )}
 
           <Text style={labelStyle}>Amount</Text>
           <TextInput
@@ -225,7 +264,7 @@ export default function PrepperPayoutsScreen() {
         {/* Header */}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingTop: 8, paddingBottom: 8 }}>
           <PressableScale onPress={goBack} accessibilityRole="button" accessibilityLabel="Go back"
-            style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center' }}>
+            style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center' }}>
             <ChevronLeft size={22} color="#fff" />
           </PressableScale>
           <Text style={{ fontFamily: Font.display, fontSize: 24, color: '#fff', letterSpacing: -0.6, flex: 1 }}>payouts</Text>
@@ -250,6 +289,12 @@ export default function PrepperPayoutsScreen() {
                   <Text style={{ fontFamily: Font.display, fontSize: 36, color: ORANGE, letterSpacing: -1 }}>{money(available)}</Text>
                 )}
                 <Text style={{ fontFamily: Font.body, fontSize: 11, color: MUTED }}>after 15% platform fee</Text>
+                {balance?.pending != null && balance.pending > 0 && (
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 }}>
+                    <Text style={{ fontFamily: Font.body, fontSize: 12, color: MUTED }}>Settling soon:</Text>
+                    <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: '#60a5fa' }}>{money(balance.pending)}</Text>
+                  </View>
+                )}
                 <PressableScale
                   onPress={() => { feedback.tap(); setModalOpen(true); }}
                   disabled={available < MIN_PAYOUT || !prepperId}
@@ -270,6 +315,11 @@ export default function PrepperPayoutsScreen() {
                     Request payout
                   </Text>
                 </PressableScale>
+                {available < MIN_PAYOUT && (
+                  <Text style={{ fontFamily: Font.body, fontSize: 12, color: MUTED, textAlign: 'center', marginTop: 8 }}>
+                    Need {money(MIN_PAYOUT - available)} more to reach the $50 minimum
+                  </Text>
+                )}
               </View>
             </MotiView>
 
@@ -317,10 +367,11 @@ export default function PrepperPayoutsScreen() {
         </ScrollView>
       </SafeAreaView>
 
-      {modalOpen && prepperId ? (
+      {modalOpen && prepperId && user ? (
         <RequestModal
           available={available}
           prepperId={prepperId}
+          uid={user.id}
           onClose={() => setModalOpen(false)}
         />
       ) : null}

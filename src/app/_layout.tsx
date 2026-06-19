@@ -115,42 +115,44 @@ function AppSidebar() {
         paddingTop: insets.top + 16,
         paddingBottom: insets.bottom + 12,
       }}>
-      {SIDEBAR_ITEMS.map(({ href, label, Icon }) => {
-        const active = isActive(href);
-        const color = active ? Palette.brand : Palette.textSecondary;
+      <View accessibilityRole="tablist" style={{ flex: 1 }}>
+        {SIDEBAR_ITEMS.map(({ href, label, Icon }) => {
+          const active = isActive(href);
+          const color = active ? Palette.brand : Palette.textSecondary;
 
-        return (
-          <PressableScale
-            key={href}
-            onPress={() => { feedback.tap(); router.push(href as never); }}
-            accessibilityRole="button"
-            accessibilityState={{ selected: active }}
-            accessibilityLabel={label}
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: isDesktop ? 'flex-start' : 'center',
-              gap: 12,
-              marginHorizontal: 8,
-              marginBottom: 4,
-              paddingVertical: 11,
-              paddingHorizontal: isDesktop ? 12 : 0,
-              borderRadius: 12,
-              backgroundColor: active ? Palette.brandTint : 'transparent',
-            }}>
-            <Icon size={22} color={color} strokeWidth={active ? 2.4 : 1.8} />
-            {isDesktop ? (
-              <MotiText
-                from={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ type: 'timing', duration: 200, delay: 80 }}
-                style={{ fontFamily: active ? Font.semibold : Font.medium, fontSize: 14.5, color, letterSpacing: 0.1 }}>
-                {label}
-              </MotiText>
-            ) : null}
-          </PressableScale>
-        );
-      })}
+          return (
+            <PressableScale
+              key={href}
+              onPress={() => { feedback.tap(); router.push(href as never); }}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: active }}
+              accessibilityLabel={label}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: isDesktop ? 'flex-start' : 'center',
+                gap: 12,
+                marginHorizontal: 8,
+                marginBottom: 4,
+                paddingVertical: 11,
+                paddingHorizontal: isDesktop ? 12 : 0,
+                borderRadius: 12,
+                backgroundColor: active ? Palette.brandTint : 'transparent',
+              }}>
+              <Icon size={22} color={color} strokeWidth={active ? 2.4 : 1.8} />
+              {isDesktop ? (
+                <MotiText
+                  from={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ type: 'timing', duration: 200, delay: 80 }}
+                  style={{ fontFamily: active ? Font.semibold : Font.medium, fontSize: 14.5, color, letterSpacing: 0.1 }}>
+                  {label}
+                </MotiText>
+              ) : null}
+            </PressableScale>
+          );
+        })}
+      </View>
     </MotiView>
   );
 }
@@ -172,10 +174,9 @@ function ResponsiveFrame({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const path = pathname ?? '/';
 
-  const invert = Platform.OS === 'web' && dark && !DARK_BY_DESIGN.some((r) => path.startsWith(r));
-  const darkProps = invert
-    ? { dataSet: { preppadark: 'true' }, style: { flex: 1, filter: 'invert(0.93) hue-rotate(180deg)' } as never }
-    : { style: { flex: 1 } };
+  // TODO: Implement real dark mode token system. CSS invert removed — was inverting food photography.
+  const invert = false;
+  const darkProps = { style: { flex: 1 } };
 
   // Compact phones: pass-through (the bottom tab bar is the nav here).
   if (width < BP.tablet) {

@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { AlertCircle, ChevronDown, Compass, Flame, LayoutGrid, List, MapPin, QrCode, Search, Shuffle, SlidersHorizontal, Sparkles, Star, UtensilsCrossed, X, Zap } from 'lucide-react-native';
+import { AlertCircle, ChevronDown, Compass, Flame, LayoutGrid, List, MapPin, Search, Shuffle, SlidersHorizontal, Sparkles, Star, UtensilsCrossed, X, Zap } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Animated, Linking, Platform, RefreshControl, ScrollView, Text, TextInput, View } from 'react-native';
@@ -91,11 +91,7 @@ function SearchBar({ value, onChangeText, onClear, pad, placeholderIdx }: { valu
         )}
         {value.length > 0 ? (
           <PressableScale onPress={() => { feedback.tap(); onClear(); }} accessibilityRole="button" accessibilityLabel="Clear search"><X size={16} color={Palette.textSecondary} /></PressableScale>
-        ) : (
-          <PressableScale onPress={() => { feedback.tap(); }} accessibilityRole="button" accessibilityLabel="Scan QR code" style={{ width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' }}>
-            <QrCode size={16} color={Palette.textMuted} />
-          </PressableScale>
-        )}
+        ) : null}
       </Animated.View>
     </MotiView>
   );
@@ -263,7 +259,7 @@ export default function ExploreScreen() {
                 {locCapturing ? <ActivityIndicator size="small" color={Palette.brand} /> : <Compass size={13} color={loc.status === 'granted' ? Palette.brand : Palette.textMuted} />}
               </PressableScale>
               <PressableScale onPress={handleAddressTap} accessibilityRole="button" accessibilityLabel={`Location: ${locationLabel}. Tap to change.`} style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 3, paddingRight: 10, height: 40, minWidth: 0 }}>
-                <Text numberOfLines={1} style={{ fontFamily: Font.medium, fontSize: 13, color: locationLabel !== 'near you' ? Palette.inkSoft : Palette.textMuted, flexShrink: 1 }}>{locCapturing ? 'detecting...' : locationLabel}</Text>
+                <Text numberOfLines={1} style={{ fontFamily: Font.medium, fontSize: 13, color: locationLabel !== 'near you' ? Palette.inkSoft : Palette.textSecondary, flexShrink: 1 }}>{locCapturing ? 'detecting...' : locationLabel}</Text>
                 <ChevronDown size={12} color={Palette.textSecondary} style={{ flexShrink: 0 }} />
               </PressableScale>
             </View>
@@ -469,7 +465,7 @@ export default function ExploreScreen() {
           {/* Can't Decide? */}
           <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 140 }}>
             <PressableScale onPress={() => { feedback.tap(); router.push('/surprise'); }} accessibilityRole="button" accessibilityLabel="Surprise me — let us pick your meal" style={{ marginHorizontal: pad, marginBottom: 20 }}>
-              <View style={{ backgroundColor: Palette.surface, borderRadius: 16, padding: 20, gap: 14, borderWidth: 1, borderColor: Palette.border, ...Shadow.card }}>
+              <View style={{ backgroundColor: Palette.surface, borderRadius: 16, padding: 20, gap: 14, ...Shadow.card }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
                   <View style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: Palette.brand + '18', alignItems: 'center', justifyContent: 'center' }}>
                     <Shuffle size={22} color={Palette.brand} />

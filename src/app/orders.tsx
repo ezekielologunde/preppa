@@ -1,10 +1,10 @@
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
-import { ArrowRight, CalendarClock, Check, ChevronLeft, Receipt, RefreshCcw, ShoppingBag } from 'lucide-react-native';
+import { AlertCircle, ArrowRight, CalendarClock, Check, ChevronLeft, Receipt, RefreshCcw, ShoppingBag } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useMemo, useState } from 'react';
-import { ActivityIndicator, Platform, RefreshControl, ScrollView, Text, useWindowDimensions, View } from 'react-native';
+import { ActivityIndicator, Linking, Modal, Platform, Pressable, RefreshControl, ScrollView, Text, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { OrderCard } from '@/components/order-card';
@@ -155,6 +155,7 @@ export default function OrdersScreen() {
   }
 
   const [confirmCancel, setConfirmCancel] = useState<OrderSummary | null>(null);
+  const [refundFailModal, setRefundFailModal] = useState(false);
 
   function doCancel(o: OrderSummary) {
     setConfirmCancel(null);
@@ -164,7 +165,7 @@ export default function OrdersScreen() {
       {
         onSuccess: () => refundOrder.mutate(o.id, {
           onSuccess: () => feedback.success(),
-          onError: () => { feedback.error(); setActionErr('Preorder cancelled but refund failed — contact support if needed.'); },
+          onError: () => { feedback.error(); setRefundFailModal(true); },
         }),
         onError: (e) => { feedback.error(); setActionErr(e instanceof Error ? e.message : 'Could not cancel. Try again.'); },
       },
@@ -318,6 +319,27 @@ export default function OrdersScreen() {
               );
             })() : null}
 
+            {/* Unpaid orders warning banner */}
+            {tab === 'active' && paymentsOn && activeOrders.some((o) => o.status === 'pending' && o.paymentStatus !== 'succeeded' && o.paymentStatus !== 'refunded') && (
+              <View style={{
+                backgroundColor: '#FEF3C7',
+                borderColor: '#F59E0B',
+                borderWidth: 1,
+                borderRadius: 10,
+                padding: 12,
+                marginHorizontal: 16,
+                marginBottom: 8,
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 8,
+              }}>
+                <AlertCircle size={16} color="#D97706" />
+                <Text style={{ fontFamily: Font.medium, fontSize: 13, color: '#92400E', flex: 1 }}>
+                  You have unpaid orders — complete payment to confirm
+                </Text>
+              </View>
+            )}
+
             {/* Empty state */}
             {filtered.length === 0 ? (
               <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280 }}
@@ -339,7 +361,7 @@ export default function OrdersScreen() {
                 ) : statusFilter !== 'all' ? (
                   <>
                     <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK, textAlign: 'center' }}>
-                      No {statusFilter} orders
+                      No {statusFilter} orders in {tab === 'active' ? 'active' : tab === 'upcoming' ? 'upcoming' : 'past'}
                     </Text>
                     <PressableScale onPress={() => { feedback.tap(); setStatusFilter('all'); }} accessibilityRole="button" accessibilityLabel="View all orders"
                       style={{ marginTop: 4, paddingHorizontal: 22, height: 44, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
@@ -530,6 +552,26 @@ export default function OrdersScreen() {
         onConfirm={doCancel}
         onDismiss={() => setConfirmCancel(null)}
       />
+
+      <Modal visible={refundFailModal} transparent animationType="fade">
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+          <View style={{ backgroundColor: '#fff', borderRadius: 20, padding: 24, width: '100%', maxWidth: 340, gap: 16 }}>
+            <Text style={{ fontFamily: Font.heading, fontSize: 17, color: Palette.ink, textAlign: 'center' }}>
+              Refund could not be processed
+            </Text>
+            <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center', lineHeight: 20 }}>
+              Your preorder was cancelled but the refund failed. Please contact support and we will resolve this for you.
+            </Text>
+            <Pressable
+              onPress={() => { void Linking.openURL('mailto:support@preppa.live'); }}
+              accessibilityRole="button"
+              accessibilityLabel="Contact support"
+              style={{ height: 48, borderRadius: Radius.pill, backgroundColor: Palette.brand, alignItems: 'center', justifyContent: 'center' }}>
+              <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#fff' }}>Contact Support</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }

@@ -1,34 +1,13 @@
 import { useRouter } from 'expo-router';
-import { MotiView } from 'moti';
 import { useRef, useState } from 'react';
 import { KeyboardAvoidingView, Platform, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { ProgressDots } from '@/components/onboarding/progress-dots';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
 import { Palette, Radius } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
-
-const TOTAL = 4;
-
-function ProgressDots({ current }: { current: number }) {
-  return (
-    <View style={{ flexDirection: 'row', gap: 8, justifyContent: 'center', paddingTop: 20, paddingBottom: 8 }}>
-      {Array.from({ length: TOTAL }, (_, i) => (
-        <MotiView
-          key={i}
-          animate={{
-            width: i === current ? 10 : 8,
-            height: i === current ? 10 : 8,
-            backgroundColor: i === current ? Palette.brand : Palette.border,
-          }}
-          transition={{ type: 'spring', damping: 16, stiffness: 200 }}
-          style={{ borderRadius: 5 }}
-        />
-      ))}
-    </View>
-  );
-}
 
 export default function Step1Name() {
   const router = useRouter();
@@ -43,10 +22,10 @@ export default function Step1Name() {
   return (
     <View style={{ flex: 1, backgroundColor: Palette.canvas }}>
       <SafeAreaView edges={['top', 'bottom']} style={{ flex: 1 }}>
-        <ProgressDots current={0} />
+        <ProgressDots total={4} current={1} />
 
         <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={{ flex: 1, paddingHorizontal: 24 }}>
 
           <MotiView
@@ -85,7 +64,6 @@ export default function Step1Name() {
               placeholder="First name"
               placeholderTextColor={Palette.textMuted}
               maxLength={50}
-              autoFocus
               autoCapitalize="words"
               returnKeyType="done"
               accessibilityLabel="First name"
@@ -106,6 +84,7 @@ export default function Step1Name() {
 
             <PressableScale
               onPress={handleContinue}
+              disabled={!name.trim()}
               accessibilityRole="button"
               accessibilityLabel="Continue"
               style={{
@@ -132,8 +111,8 @@ export default function Step1Name() {
               }}
               accessibilityRole="button"
               accessibilityLabel="Skip name"
-              style={{ height: 44, alignItems: 'center', justifyContent: 'center', marginTop: 4 }}>
-              <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: Palette.textMuted }}>
+              style={{ height: 44, alignItems: 'center', justifyContent: 'center', marginTop: 16 }}>
+              <Text style={{ fontFamily: Font.medium, fontSize: 14, color: Palette.textSecondary }}>
                 Skip for now
               </Text>
             </PressableScale>

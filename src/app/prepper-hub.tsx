@@ -1,8 +1,8 @@
 import { useRouter } from 'expo-router';
-import { CalendarDays, ChefHat, ChevronLeft, ChevronRight, Clock, DollarSign, Flame, MessageSquare, Package, RefreshCw, Sparkles, Star, TrendingUp, Users, Video, Wallet, Zap } from 'lucide-react-native';
+import { CalendarDays, ChefHat, ChevronLeft, ChevronRight, Clock, DollarSign, Flame, MessageSquare, Package, Sparkles, Star, TrendingUp, Video, Wallet } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useState } from 'react';
-import { RefreshControl, ScrollView, Text, View } from 'react-native';
+import { Modal, RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { LiveSessionBanner } from '@/components/live-session-banner';
@@ -27,29 +27,23 @@ const CARD = Palette.prepperCard;
 const MUTED = '#6B7280';
 const TEXT2 = '#9CA3AF';
 
+// TODO: Pull from real analytics once prepper analytics API is wired
 const WEEKLY_INSIGHTS = [
-  { label: 'Nigerian cuisine', trend: '+34%', note: 'Jollof rice preorders surging this week' },
-  { label: 'Lunch slot preorders', trend: '+18%', note: 'Best time to list new items is 10–11 am' },
+  // { label: 'Nigerian cuisine', trend: '+34%', note: 'Jollof rice preorders surging this week' },   // static marketing copy — remove once real data available
+  // { label: 'Lunch slot preorders', trend: '+18%', note: 'Best time to list new items is 10–11 am' }, // static marketing copy — remove once real data available
   { label: 'Repeat customers', trend: '62%', note: 'Loyal buyers return every 5–7 days' },
   { label: 'Photo quality', trend: 'Key', note: 'Listings with 3+ photos get 2× preorders' },
 ];
 
 const ACTIONS = [
-  { label: 'edit kitchen profile', desc: 'Update your name, photo, bio and specialties', Icon: ChefHat, color: Palette.brand, route: '/prepper-profile-edit' },
-  { label: 'set schedule', desc: 'Set your weekly cook days and hours for customers', Icon: CalendarDays, color: '#06b6d4', route: '/prepper-schedule' },
   { label: 'manage preorder queue', desc: 'Review, confirm and advance active preorders', Icon: Package, color: '#06b6d4', route: '/prepper-orders' },
-  { label: 'add a rush-hour special', desc: 'Attract more preorders during peak windows', Icon: Flame, color: ORANGE, route: '/prepper-specials' },
   { label: 'update your menu', desc: 'Keep listings fresh — remove sold-out items', Icon: Package, color: '#06b6d4', route: '/meal-editor' },
-  { label: 'meal planner', desc: 'Set which days each meal is available for the week', Icon: CalendarDays, color: Palette.brand, route: '/prepper-meal-planner' },
-  { label: 'manage subscription plans', desc: 'Create and publish recurring meal plans customers subscribe to', Icon: RefreshCw, color: '#8b5cf6', route: '/prepper-meal-plans' },
-  { label: 'reply to reviews', desc: 'Responding boosts your ranking score', Icon: MessageSquare, color: '#8b5cf6', route: '/reviews' },
-  { label: 'bid requests', desc: 'View and bid on open meal requests from customers', Icon: Sparkles, color: '#f59e0b', route: '/bid-requests' },
-  { label: 'boost your listing', desc: 'Appear at the top of search during rush', Icon: Zap, color: '#d97706', route: '/boost' },
   { label: 'view performance analytics', desc: 'Weekly trends, top dishes, and smart insights', Icon: TrendingUp, color: '#22c55e', route: '/prepper-analytics' },
-  { label: 'view earnings breakdown', desc: 'Net pay, weekly totals, and recent transactions', Icon: Wallet, color: '#10b981', route: '/earnings' },
-  { label: 'request a payout', desc: 'Withdraw your available balance to your bank account', Icon: Wallet, color: '#22c55e', route: '/prepper-payouts' },
-  { label: 'view your customers', desc: 'Your buyers, repeat rate, and spend per person', Icon: Users, color: '#06b6d4', route: '/customers' },
-  { label: 'go pro / premium', desc: 'Unlock analytics, bid requests, live streaming and more', Icon: Star, color: ORANGE, route: '/prepper-premium' },
+  { label: 'view earnings breakdown', desc: 'Net pay, weekly totals, and recent transactions', Icon: Wallet, color: '#10b981', route: '/prepper-payouts' },
+  { label: 'reply to reviews', desc: 'Responding boosts your ranking score', Icon: MessageSquare, color: '#8b5cf6', route: '/reviews' },
+  { label: 'meal planner', desc: 'Set which days each meal is available for the week', Icon: CalendarDays, color: Palette.brand, route: '/prepper-meal-planner' },
+  { label: 'edit kitchen profile', desc: 'Update your name, photo, bio and specialties', Icon: ChefHat, color: Palette.brand, route: '/prepper-profile-edit' },
+  { label: 'bid requests', desc: 'View and bid on open meal requests from customers', Icon: Sparkles, color: '#f59e0b', route: '/bid-requests' },
 ];
 
 const TIPS = [
@@ -72,6 +66,7 @@ export default function PrepperHubScreen() {
   const statsLoading = appLoading || (application?.id != null && ordersLoading);
   const [refreshing, setRefreshing] = useState(false);
   const [accepting, setAccepting] = useState<boolean | null>(null);
+  const [confirmClose, setConfirmClose] = useState(false);
   const toggleAvailability = useToggleAvailability(application?.id);
   const isOpen = accepting !== null ? accepting : ((application as unknown as { accepting_orders?: boolean })?.accepting_orders !== false);
   async function handleRefresh() { setRefreshing(true); await refetchOrders(); setRefreshing(false); }
@@ -94,20 +89,49 @@ export default function PrepperHubScreen() {
     return uniq > 0 ? Math.round((Object.values(counts).filter((n) => n > 1).length / uniq) * 100) : null;
   })();
   const hubInsights = [
-    WEEKLY_INSIGHTS[0],
-    WEEKLY_INSIGHTS[1],
     {
       label: 'Your repeat buyers',
       trend: repeatRate !== null ? `${repeatRate}%` : '—',
       note: repeatRate === null ? 'Complete your first preorders to track your repeat buyer rate.' : repeatRate >= 30 ? 'Strong loyalty. Offer a weekly special to keep them coming back.' : 'Grow repeat buyers with subscription plans and fast message replies.',
     },
-    WEEKLY_INSIGHTS[3],
+    ...WEEKLY_INSIGHTS,
   ];
 
   function goBack() { feedback.tap(); if (router.canGoBack()) { router.back(); } else { router.replace('/dashboard'); } }
 
   return (
     <View style={{ flex: 1, backgroundColor: BG }}>
+      {/* ── Kitchen close confirmation modal ─────────────────────────────── */}
+      <Modal visible={confirmClose} transparent animationType="fade" onRequestClose={() => setConfirmClose(false)}>
+        <TouchableOpacity activeOpacity={1} onPress={() => setConfirmClose(false)} accessibilityLabel="Dismiss"
+          style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.72)', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+          <MotiView from={{ opacity: 0, scale: 0.94 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'spring', damping: 22 }}
+            style={{ backgroundColor: CARD, borderRadius: 20, padding: 28, width: '100%', maxWidth: 360, gap: 16 }}>
+            <Text style={{ fontFamily: Font.display, fontSize: 20, color: INK, textAlign: 'center', letterSpacing: -0.4 }}>Close your kitchen?</Text>
+            <Text style={{ fontFamily: Font.body, fontSize: 14, color: MUTED, textAlign: 'center', lineHeight: 21 }}>
+              No new orders will arrive until you reopen. Active orders are unaffected.
+            </Text>
+            <View style={{ flexDirection: 'row', gap: 12, marginTop: 4 }}>
+              <TouchableOpacity onPress={() => setConfirmClose(false)}
+                accessibilityRole="button" accessibilityLabel="Cancel"
+                style={{ flex: 1, height: 52, borderRadius: Radius.pill, borderWidth: 1.5, borderColor: '#252D3D', alignItems: 'center', justifyContent: 'center' }}>
+                <Text style={{ fontFamily: Font.semibold, fontSize: 15, color: MUTED }}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  setConfirmClose(false);
+                  setAccepting(false);
+                  toggleAvailability.mutate(false, { onSuccess: () => feedback.success(), onError: () => { feedback.error(); setAccepting(true); } });
+                }}
+                accessibilityRole="button" accessibilityLabel="Confirm close kitchen"
+                style={{ flex: 1, height: 52, borderRadius: Radius.pill, backgroundColor: Palette.danger, alignItems: 'center', justifyContent: 'center' }}>
+                <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#fff' }}>Close</Text>
+              </TouchableOpacity>
+            </View>
+          </MotiView>
+        </TouchableOpacity>
+      </Modal>
+
       <SafeAreaView edges={['top']} style={{ flex: 1 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingTop: 8, paddingBottom: 8 }}>
           <PressableScale onPress={goBack} accessibilityRole="button" accessibilityLabel="Go back" style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center' }}>
@@ -164,9 +188,12 @@ export default function PrepperHubScreen() {
             <PressableScale
               onPress={() => {
                 feedback.tap();
-                const next = !isOpen;
-                setAccepting(next);
-                toggleAvailability.mutate(next, { onSuccess: () => feedback.success(), onError: () => { feedback.error(); setAccepting(!next); } });
+                if (isOpen) {
+                  setConfirmClose(true);
+                } else {
+                  setAccepting(true);
+                  toggleAvailability.mutate(true, { onSuccess: () => feedback.success(), onError: () => { feedback.error(); setAccepting(false); } });
+                }
               }}
               accessibilityRole="switch"
               accessibilityState={{ checked: isOpen }}
@@ -290,7 +317,7 @@ export default function PrepperHubScreen() {
 
           {/* Weekly earnings chart */}
           <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 215 }}>
-            <PrepperEarningsChart prepperId={user?.id} />
+            <PrepperEarningsChart prepperId={application?.id} />
           </MotiView>
 
           {/* Action items */}
