@@ -240,17 +240,19 @@ export function AuthForm({
         </Pressable>
       )}
 
-      <PressableScale
-        onPress={onSendOtp}
-        disabled={busy}
-        accessibilityRole="button"
-        accessibilityLabel="Email me a sign-in code instead"
-        style={{ alignItems: 'center', paddingVertical: 8 }}>
-        <Text style={{ fontFamily: Font.medium, fontSize: 14, color: Palette.textSecondary }}>
-          Email me a sign-in code{' '}
-          <Text style={{ fontFamily: Font.heading, color: Palette.brand }}>instead</Text>
-        </Text>
-      </PressableScale>
+      {mode === 'signin' && (
+        <PressableScale
+          onPress={onSendOtp}
+          disabled={busy}
+          accessibilityRole="button"
+          accessibilityLabel="Email me a sign-in code instead"
+          style={{ alignItems: 'center', paddingVertical: 8 }}>
+          <Text style={{ fontFamily: Font.medium, fontSize: 14, color: Palette.textSecondary }}>
+            Email me a sign-in code{' '}
+            <Text style={{ fontFamily: Font.heading, color: Palette.brand }}>instead</Text>
+          </Text>
+        </PressableScale>
+      )}
     </MotiView>
   );
 }

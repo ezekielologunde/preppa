@@ -39,26 +39,21 @@ const FTUE_KEY = (uid: string) => `preppa.ftue.v2.${uid}`;
 
 async function isFirstLogin(uid: string): Promise<boolean> {
   try {
-    // Fast path: local cache says already done.
     const local = await AsyncStorage.getItem(FTUE_KEY(uid));
     if (local === '1') return false;
 
-    // Slow path: check server in case storage was wiped (reinstall, new device).
-    const { data } = await supabase
-      .from('profiles')
-      .select('onboarding_completed_at')
-      .eq('id', uid)
-      .maybeSingle();
+    const { data } = await Promise.race([
+      supabase.from('profiles').select('onboarding_completed_at').eq('id', uid).maybeSingle(),
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000)),
+    ]);
 
     if (data?.onboarding_completed_at) {
-      // Backfill local cache so subsequent launches skip the network call.
       await AsyncStorage.setItem(FTUE_KEY(uid), '1').catch(() => {});
       return false;
     }
-
     return true;
   } catch {
-    return false; // fail-open: don't trap users in onboarding on storage error
+    return false; // fail-open: timeout or storage error
   }
 }
 
@@ -250,15 +245,17 @@ function AuthGate({ children }: { children: ReactNode }) {
 
     const uid = session.user.id;
     isFirstLogin(uid).then((firstTime) => {
-      if (firstTime && !isPublicPath) {
+      if (firstTime) {
         router.replace('/onboarding/step-1');
+      } else if (isPublicPath) {
+        router.replace('/');
       }
       setFtueCheckedFor(uid);
     });
   }, [session, loading, pathname]);
 
   // Hide children while we determine the correct route.
-  if (loading) return null;
+  if (loading) return <LoadingSplash />;
   if (!session && !isPublicPath) return null;
   if (session && !ftueChecked && !isPublicPath) return <LoadingSplash />;
 
