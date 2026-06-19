@@ -1,404 +1,358 @@
+import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
+import {
+  BarChart3, ChefHat, ChevronLeft, Clock, Home,
+  MessageSquare, Package, PlusCircle, ShieldX, Utensils,
+  Wallet,
+} from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useState } from 'react';
 import {
-  ActivityIndicator, Modal, Platform, RefreshControl, ScrollView,
-  Text, TextInput, TouchableOpacity, View,
+  ActivityIndicator, Modal, RefreshControl, ScrollView,
+  Text, TouchableOpacity, View,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ChefHat, ChevronLeft, Clock, ShieldX, X } from 'lucide-react-native';
 
-import { Ring } from '@/components/dashboard-widgets';
-import { PrepperBadgeShelf } from '@/components/badge-shelf';
-import { ProfileHealthCard } from '@/components/profile-health-card';
-import { DashboardHeader } from '@/components/dashboard/dashboard-header';
-import { DashboardFloatingBar } from '@/components/dashboard/dashboard-nav';
-import { Skeleton } from '@/components/ui/skeleton';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
-import { Palette, Radius, Shadow } from '@/constants/theme';
+import { Palette, Radius } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
 import { useMyEarnings } from '@/lib/queries/earnings';
 import { usePrepperMembership } from '@/lib/queries/memberships';
 import { useAdvanceOrder, usePrepperOrders } from '@/lib/queries/orders';
-import {
-  useMyPrepperApplication, usePrepperBadges, usePrepperProfile, useToggleAvailability,
-} from '@/lib/queries/preppers';
+import { useMyPrepperApplication, useToggleAvailability } from '@/lib/queries/preppers';
 import { useAuth } from '@/providers/auth-provider';
 import type { OrderStatus } from '@/types/database.types';
 
-const NEXT_STATUS: Partial<Record<OrderStatus, { next: OrderStatus; cta: string; bg: string }>> = {
-  pending:    { next: 'confirmed',  cta: 'Confirm Order', bg: Palette.brand },
-  confirmed:  { next: 'preparing', cta: 'Start Prepping', bg: Palette.brand },
-  preparing:  { next: 'ready',     cta: 'Mark Ready',    bg: Palette.success },
-  ready:      { next: 'completed', cta: 'Complete',       bg: Palette.success },
+// ─── Design tokens (dark chef theme) ─────────────────────────────────────────
+const BG     = '#0C0E13';
+const CARD   = '#161B27';
+const BORDER = '#252D3D';
+const WHITE  = '#F0F2F5';
+const MUTED  = '#6B7280';
+const ORANGE = Palette.brand;
+
+// ─── Order status helpers ─────────────────────────────────────────────────────
+const ADVANCE: Partial<Record<OrderStatus, { next: OrderStatus; cta: string }>> = {
+  pending:   { next: 'confirmed',  cta: 'Accept order'  },
+  confirmed: { next: 'preparing',  cta: 'Start prepping' },
+  preparing: { next: 'ready',      cta: 'Mark ready'    },
+  ready:     { next: 'completed',  cta: 'Hand off'      },
 };
 const STATUS_COLOR: Partial<Record<OrderStatus, string>> = {
-  pending:   Palette.amber,
-  confirmed: Palette.brand,
-  preparing: Palette.brand,
-  ready:     Palette.success,
+  pending:   '#F59E0B',
+  confirmed: ORANGE,
+  preparing: ORANGE,
+  ready:     '#22C55E',
+};
+const STATUS_LABEL: Partial<Record<OrderStatus, string>> = {
+  pending: 'New', confirmed: 'Confirmed', preparing: 'Prepping', ready: 'Ready!',
 };
 const money = (n: number) => n >= 1000 ? `$${(n / 1000).toFixed(1)}k` : `$${Math.round(n)}`;
 
+// ─── Application status gate ──────────────────────────────────────────────────
+function StatusGate({ prepper, router }: { prepper: any; router: ReturnType<typeof useRouter> }) {
+  const cfg = prepper?.status === 'pending'
+    ? { Icon: Clock,    color: '#F59E0B', title: 'Under review',         body: "We're reviewing your kitchen — usually 48 hours." }
+    : prepper?.status === 'rejected'
+      ? { Icon: ShieldX, color: '#EF4444', title: 'Not approved',          body: prepper.rejection_note ?? 'Contact support or reapply.' }
+      : prepper?.status === 'suspended'
+        ? { Icon: ShieldX, color: MUTED,    title: 'Kitchen paused',        body: 'Contact support to reactivate your account.' }
+        : { Icon: ChefHat, color: ORANGE,   title: 'Start cooking on Preppa', body: 'Apply to list your meals and earn on your schedule.' };
+  return (
+    <View style={{ flex: 1, backgroundColor: BG }}>
+      <SafeAreaView edges={['top']} style={{ flex: 1 }}>
+        <TouchableOpacity onPress={() => { feedback.tap(); router.canGoBack() ? router.back() : router.replace('/profile'); }}
+          accessibilityRole="button" accessibilityLabel="Go back"
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          style={{ margin: 16, width: 44, height: 44, borderRadius: 22, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center' }}>
+          <ChevronLeft size={22} color={WHITE} />
+        </TouchableOpacity>
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 20 }}>
+          <View style={{ width: 88, height: 88, borderRadius: 28, backgroundColor: cfg.color + '20', alignItems: 'center', justifyContent: 'center' }}>
+            <cfg.Icon size={40} color={cfg.color} />
+          </View>
+          <Text style={{ fontFamily: Font.display, fontSize: 24, color: WHITE, textAlign: 'center', letterSpacing: -0.6 }}>{cfg.title}</Text>
+          <Text style={{ fontFamily: Font.body, fontSize: 15, color: MUTED, textAlign: 'center', lineHeight: 22, maxWidth: 300 }}>{cfg.body}</Text>
+          <PressableScale onPress={() => { feedback.tap(); router.replace('/become-prepper'); }}
+            accessibilityRole="button" accessibilityLabel={prepper ? 'View application status' : 'Apply to become a prepper'}
+            style={{ marginTop: 4, height: 54, paddingHorizontal: 32, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
+            <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>{prepper ? 'View status' : 'Apply now'}</Text>
+          </PressableScale>
+        </View>
+      </SafeAreaView>
+    </View>
+  );
+}
+
+// ─── Main dashboard ───────────────────────────────────────────────────────────
 export default function DashboardScreen() {
-  const router  = useRouter();
-  const insets  = useSafeAreaInsets();
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { user } = useAuth();
 
-  const { data: prepper, isLoading: appLoading, refetch: refetchPrepper } = useMyPrepperApplication(user?.id);
-  const { data: prepperProfile }              = usePrepperProfile(prepper?.id);
-  const { data: prepperMembership, refetch: refetchMembership } = usePrepperMembership(prepper?.id);
-  const isPro = prepperMembership?.isPro === true;
-  const { data: prepperBadges, refetch: refetchBadges } = usePrepperBadges(prepper?.id);
-  const { data: orders, isLoading: ordersLoading, refetch: refetchOrders } = usePrepperOrders(prepper?.id);
-  const { data: earnings, isLoading: earningsLoading } = useMyEarnings();
-
-  const advanceOrder      = useAdvanceOrder();
+  const { data: prepper, isLoading, refetch: refetchPrepper }  = useMyPrepperApplication(user?.id);
+  const { data: membership, refetch: refetchMembership }        = usePrepperMembership(prepper?.id);
+  const { data: orders, refetch: refetchOrders }                = usePrepperOrders(prepper?.id);
+  const { data: earnings }                                      = useMyEarnings();
+  const advanceOrder       = useAdvanceOrder();
   const toggleAvailability = useToggleAvailability(prepper?.id);
 
   const [confirmToggle, setConfirmToggle] = useState(false);
-  const [accepting, setAccepting]         = useState<boolean | null>(null);
+  const [localOpen, setLocalOpen]         = useState<boolean | null>(null);
   const [refreshing, setRefreshing]       = useState(false);
-  const [search, setSearch]               = useState('');
 
   async function handleRefresh() {
     setRefreshing(true);
-    await Promise.all([refetchPrepper(), refetchMembership(), refetchBadges(), refetchOrders()]);
+    await Promise.all([refetchPrepper(), refetchMembership(), refetchOrders()]);
     setRefreshing(false);
   }
 
-  // ── Loading ───────────────────────────────────────────────────────────────
-  if (appLoading) {
-    return (
-      <View style={{ flex: 1, backgroundColor: Palette.canvas, alignItems: 'center', justifyContent: 'center' }}>
-        <ActivityIndicator size="large" color={Palette.brand} />
-      </View>
-    );
+  if (isLoading) {
+    return <View style={{ flex: 1, backgroundColor: BG, alignItems: 'center', justifyContent: 'center' }}><ActivityIndicator size="large" color={ORANGE} /></View>;
   }
-
-  // ── Application status guard ──────────────────────────────────────────────
   if (!prepper || prepper.status !== 'approved') {
-    const cfg =
-      prepper?.status === 'pending'
-        ? { Icon: Clock,    tint: Palette.amber,         title: 'Application under review', body: "Our team is reviewing your kitchen. We'll notify you once you're approved — usually within 48 hours." }
-        : prepper?.status === 'rejected'
-          ? { Icon: ShieldX, tint: Palette.danger,        title: 'Application not approved',  body: prepper.rejection_note ?? 'Your application was not approved. Contact support to learn more or submit a new application.' }
-          : prepper?.status === 'suspended'
-            ? { Icon: ShieldX, tint: Palette.textSecondary, title: 'Kitchen paused',            body: 'Your prepper account is currently paused. Contact support to reactivate.' }
-            : { Icon: ChefHat, tint: Palette.brand,         title: 'Become a Prepper',           body: "You haven't applied yet. Submit an application to start earning with your cooking." };
-    return (
-      <View style={{ flex: 1, backgroundColor: Palette.canvas }}>
-        <SafeAreaView edges={['top']} style={{ flex: 1 }}>
-          <View style={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 4 }}>
-            <PressableScale onPress={() => { feedback.tap(); router.canGoBack() ? router.back() : router.replace('/profile'); }} accessibilityRole="button" accessibilityLabel="Go back" style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center', alignSelf: 'flex-start' }}>
-              <ChevronLeft size={22} color={Palette.ink} />
-            </PressableScale>
-          </View>
-          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 16 }}>
-            <MotiView from={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'spring', damping: 18, stiffness: 200 }}>
-              <View style={{ width: 82, height: 82, borderRadius: 28, backgroundColor: cfg.tint + '1F', alignItems: 'center', justifyContent: 'center' }}>
-                <cfg.Icon size={36} color={cfg.tint} />
-              </View>
-            </MotiView>
-            <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280, delay: 80 }}>
-              <Text style={{ fontFamily: Font.display, fontSize: 24, color: Palette.ink, textAlign: 'center', letterSpacing: -0.6 }}>{cfg.title}</Text>
-            </MotiView>
-            <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280, delay: 140 }}>
-              <Text style={{ fontFamily: Font.body, fontSize: 15, color: Palette.textSecondary, textAlign: 'center', lineHeight: 22, maxWidth: 320 }}>{cfg.body}</Text>
-            </MotiView>
-            <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280, delay: 200 }}>
-              <PressableScale onPress={() => { feedback.tap(); router.replace('/become-prepper'); }} accessibilityRole="button" accessibilityLabel="View application status" style={{ marginTop: 8, paddingHorizontal: 28, height: 52, borderRadius: Radius.pill, backgroundColor: cfg.tint, alignItems: 'center', justifyContent: 'center' }}>
-                <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>{prepper ? 'view application status' : 'apply now'}</Text>
-              </PressableScale>
-            </MotiView>
-          </View>
-        </SafeAreaView>
-      </View>
-    );
+    return <StatusGate prepper={prepper} router={router} />;
   }
-  // ─────────────────────────────────────────────────────────────────────────
 
-  const isOpen = accepting !== null ? accepting : ((prepper as unknown as { accepting_orders?: boolean })?.accepting_orders !== false);
-  const list   = orders ?? [];
-  const today  = new Date().toDateString();
-  const todayOrders = list.filter(o => new Date(o.created_at).toDateString() === today);
-  const active  = list.filter(o => ['pending', 'confirmed', 'preparing', 'ready'].includes(o.status));
-  const newCount = list.filter(o => o.status === 'pending').length;
+  const isOpen      = localOpen !== null ? localOpen : ((prepper as any)?.accepting_orders !== false);
+  const list        = orders ?? [];
+  const today       = new Date().toDateString();
+  const active      = list.filter(o => ['pending', 'confirmed', 'preparing', 'ready'].includes(o.status));
+  const todayDone   = list.filter(o => o.status === 'completed' && new Date(o.created_at).toDateString() === today).length;
+  const newCount    = list.filter(o => o.status === 'pending').length;
+  const kitchenName = (prepper.display_name ?? (user?.user_metadata?.full_name as string) ?? 'Chef').toString();
+  const avatarUrl   = user?.user_metadata?.avatar_url as string | undefined;
+  const isPro       = membership?.isPro === true;
 
-  const weekStart = new Date();
-  weekStart.setDate(weekStart.getDate() - (weekStart.getDay() === 0 ? 6 : weekStart.getDay() - 1));
-  weekStart.setHours(0, 0, 0, 0);
-  const weekDays = Array<boolean>(7).fill(false);
-  list.filter(o => o.status === 'completed' && new Date(o.created_at) >= weekStart)
-    .forEach(o => { weekDays[(new Date(o.created_at).getDay() + 6) % 7] = true; });
+  function commitToggle(toOpen: boolean) {
+    setLocalOpen(toOpen);
+    setConfirmToggle(false);
+    feedback.impact();
+    toggleAvailability.mutate({ accepting_orders: toOpen } as never, {
+      onSuccess: () => feedback.success(),
+      onError:   () => { feedback.error(); setLocalOpen(!toOpen); },
+    });
+  }
 
-  const goalPct  = Math.min(1, (earnings?.net_week ?? 0) / 150);
-  const goalPct100 = Math.round(goalPct * 100);
-
-  const searched = search.trim()
-    ? list.filter(o => o.id.includes(search) || o.status.includes(search.toLowerCase()))
-    : [];
-
-  const headerProps = {
-    displayName: prepper?.display_name ?? (user?.user_metadata?.full_name as string | undefined),
-    avatarUrl: user?.user_metadata?.avatar_url as string | undefined,
-    newCount, isOpen, isHomeCookAvailable: false, router,
-    onToggleOpen: () => { feedback.tap(); setConfirmToggle(true); },
-    onToggleHomeCook: () => {},
-  };
+  const QUICK = [
+    { label: 'Orders',    Icon: Package,  color: '#3B82F6', route: '/prepper-orders',   badge: newCount },
+    { label: 'Menu',      Icon: Utensils, color: '#10B981', route: '/meal-editor' },
+    { label: 'Earnings',  Icon: Wallet,   color: '#F59E0B', route: '/prepper-payouts' },
+    { label: 'Analytics', Icon: BarChart3,color: '#8B5CF6', route: '/prepper-analytics' },
+  ] as const;
 
   return (
-    <View style={{ flex: 1, backgroundColor: Palette.canvas }}>
+    <View style={{ flex: 1, backgroundColor: BG }}>
       <SafeAreaView edges={['top']} style={{ flex: 1 }}>
 
-        {/* Toggle Confirmation Modal */}
+        {/* ── Toggle Confirmation Modal ────────────────────────────────── */}
         <Modal visible={confirmToggle} transparent animationType="fade" onRequestClose={() => setConfirmToggle(false)}>
-          <View style={{ flex: 1, backgroundColor: Palette.overlay, alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-            <MotiView from={{ opacity: 0, scale: 0.92 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'spring', damping: 20 }} style={{ backgroundColor: Palette.surface, borderRadius: Radius.md, padding: 24, width: '100%', maxWidth: 360, gap: 12 }}>
-              <Text style={{ fontFamily: Font.heading, fontSize: 18, color: Palette.ink, textAlign: 'center' }}>
-                {isOpen ? 'Pause your kitchen?' : 'Reopen your kitchen?'}
+          <TouchableOpacity activeOpacity={1} onPress={() => setConfirmToggle(false)} accessibilityLabel="Dismiss"
+            style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.72)', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+            <MotiView from={{ opacity: 0, scale: 0.94 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'spring', damping: 22 }}
+              style={{ backgroundColor: CARD, borderRadius: 20, padding: 28, width: '100%', maxWidth: 360, gap: 16, borderWidth: 1, borderColor: BORDER }}>
+              <Text style={{ fontFamily: Font.display, fontSize: 20, color: WHITE, textAlign: 'center', letterSpacing: -0.4 }}>
+                {isOpen ? 'Pause kitchen?' : 'Open kitchen?'}
               </Text>
-              <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center', lineHeight: 20 }}>
-                {isOpen ? "Customers won't be able to order until you reopen." : "You'll appear on the Explore feed."}
+              <Text style={{ fontFamily: Font.body, fontSize: 14, color: MUTED, textAlign: 'center', lineHeight: 21 }}>
+                {isOpen ? 'No new orders until you reopen. Active orders are unaffected.' : 'Your kitchen will appear in Explore and accept new orders.'}
               </Text>
-              <View style={{ flexDirection: 'row', gap: 10, marginTop: 8 }}>
-                <TouchableOpacity onPress={() => { feedback.tap(); setConfirmToggle(false); }} style={{ flex: 1, height: 48, borderRadius: Radius.pill, borderWidth: 1.5, borderColor: Palette.divider, alignItems: 'center', justifyContent: 'center' }}>
-                  <Text style={{ fontFamily: Font.semibold, fontSize: 15, color: Palette.textSecondary }}>Cancel</Text>
+              <View style={{ flexDirection: 'row', gap: 12, marginTop: 4 }}>
+                <TouchableOpacity onPress={() => { feedback.tap(); setConfirmToggle(false); }}
+                  accessibilityRole="button" accessibilityLabel="Cancel"
+                  style={{ flex: 1, height: 52, borderRadius: Radius.pill, borderWidth: 1.5, borderColor: BORDER, alignItems: 'center', justifyContent: 'center' }}>
+                  <Text style={{ fontFamily: Font.semibold, fontSize: 15, color: MUTED }}>Cancel</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => {
-                  const nxt = !isOpen;
-                  setAccepting(nxt);
-                  setConfirmToggle(false);
-                  feedback.tap();
-                  toggleAvailability.mutate({ accepting_orders: nxt } as never, {
-                    onSuccess: () => feedback.success(),
-                    onError: () => { feedback.error(); setAccepting(!nxt); },
-                  });
-                }} style={{ flex: 1, height: 48, borderRadius: Radius.pill, backgroundColor: Palette.brand, alignItems: 'center', justifyContent: 'center' }}>
-                  <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#fff' }}>Confirm</Text>
+                <TouchableOpacity onPress={() => commitToggle(!isOpen)}
+                  accessibilityRole="button" accessibilityLabel={isOpen ? 'Confirm pause kitchen' : 'Confirm open kitchen'}
+                  style={{ flex: 1, height: 52, borderRadius: Radius.pill, backgroundColor: isOpen ? '#EF4444' : '#22C55E', alignItems: 'center', justifyContent: 'center' }}>
+                  <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#fff' }}>{isOpen ? 'Pause' : 'Open'}</Text>
                 </TouchableOpacity>
               </View>
             </MotiView>
-          </View>
+          </TouchableOpacity>
         </Modal>
 
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={Palette.brand} colors={[Palette.brand]} />}
-          contentContainerStyle={{ paddingTop: Platform.OS === 'web' ? 20 : 14, paddingBottom: Math.max(insets.bottom, 16) + 140 }}
-        >
-          <DashboardHeader size="mobile" {...headerProps} />
+        <ScrollView showsVerticalScrollIndicator={false}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={ORANGE} colors={[ORANGE]} />}
+          contentContainerStyle={{ paddingBottom: insets.bottom + 80 }}>
 
-          {/* ── S1: Kitchen Status Banner ────────────────────────────────── */}
-          <MotiView from={{ opacity: 0, translateY: -6 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260 }}>
-            <TouchableOpacity onPress={() => { feedback.tap(); setConfirmToggle(true); }} activeOpacity={0.85}
-              style={{ marginHorizontal: 16, marginBottom: 14, borderRadius: Radius.sm, backgroundColor: isOpen ? '#22c55e' : Palette.divider, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-              <MotiView animate={{ scale: isOpen ? [1, 1.5, 1] : 1 }} transition={{ type: 'timing', duration: 1000, loop: isOpen }}
-                style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: isOpen ? '#fff' : Palette.textMuted }} />
-              <View style={{ flex: 1 }}>
-                <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: isOpen ? '#fff' : Palette.textSecondary }}>
-                  {isOpen ? 'Kitchen Open · Accepting Orders' : 'Your kitchen is hidden from Explore'}
-                </Text>
-                {!isOpen && (
-                  <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted, marginTop: 2 }}>Tap to reopen</Text>
-                )}
-              </View>
+          {/* ── Header ──────────────────────────────────────────────────── */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingTop: 16, paddingBottom: 24, gap: 12 }}>
+            <View style={{ width: 46, height: 46, borderRadius: 23, backgroundColor: CARD, overflow: 'hidden', borderWidth: 2, borderColor: ORANGE + '55' }}>
+              {avatarUrl
+                ? <Image source={avatarUrl} style={{ width: 46, height: 46 }} contentFit="cover" accessibilityLabel="Kitchen avatar" />
+                : <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+                    <Text style={{ fontFamily: Font.heading, fontSize: 18, color: ORANGE }}>{kitchenName[0]?.toUpperCase() ?? 'C'}</Text>
+                  </View>
+              }
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontFamily: Font.body, fontSize: 12, color: MUTED }}>kitchen hub</Text>
+              <Text style={{ fontFamily: Font.heading, fontSize: 17, color: WHITE, letterSpacing: -0.2 }} numberOfLines={1}>{kitchenName}</Text>
+            </View>
+            <TouchableOpacity onPress={() => { feedback.tap(); setConfirmToggle(true); }}
+              accessibilityRole="switch" accessibilityLabel={isOpen ? 'Kitchen open — tap to pause' : 'Kitchen paused — tap to open'}
+              accessibilityState={{ checked: isOpen }}
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 7, paddingHorizontal: 14, height: 36, borderRadius: Radius.pill, borderWidth: 1.5, borderColor: isOpen ? '#22C55E55' : BORDER, backgroundColor: isOpen ? '#22C55E15' : CARD, minWidth: 44 }}>
+              <MotiView animate={{ backgroundColor: isOpen ? '#22C55E' : MUTED }} transition={{ type: 'timing', duration: 220 }}
+                style={{ width: 8, height: 8, borderRadius: 4 }} />
+              <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: isOpen ? '#22C55E' : MUTED }}>{isOpen ? 'Open' : 'Paused'}</Text>
             </TouchableOpacity>
+          </View>
+
+          {/* ── At-a-glance stats ───────────────────────────────────────── */}
+          <MotiView from={{ opacity: 0, translateY: 6 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 240 }}
+            style={{ flexDirection: 'row', marginHorizontal: 20, marginBottom: 32, backgroundColor: CARD, borderRadius: 16, borderWidth: 1, borderColor: BORDER }}>
+            {([
+              { label: 'Active',       value: active.length,                        hot: active.length > 0 },
+              { label: 'Done today',   value: todayDone },
+              { label: 'This week',    value: money(earnings?.net_week ?? 0) },
+            ] as const).map((s, i) => (
+              <View key={s.label} style={{ flex: 1, paddingVertical: 18, alignItems: 'center', borderLeftWidth: i > 0 ? 1 : 0, borderLeftColor: BORDER }}>
+                <Text style={{ fontFamily: Font.display, fontSize: 22, color: s.hot ? ORANGE : WHITE, letterSpacing: -0.4 }}>{s.value}</Text>
+                <Text style={{ fontFamily: Font.body, fontSize: 11, color: MUTED, marginTop: 2 }}>{s.label}</Text>
+              </View>
+            ))}
           </MotiView>
 
-          {/* ── S2: The Big Three ─────────────────────────────────────────── */}
-          <Text style={{ fontFamily: Font.display, fontSize: 15, color: Palette.ink, paddingHorizontal: 20, marginBottom: 8, letterSpacing: -0.3 }}>overview</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, gap: 12, paddingBottom: 4 }}>
-
-            {/* Card A — Financial Engine */}
-            <View style={{ width: 200, height: 130, borderRadius: 12, backgroundColor: Palette.surface, padding: 14, justifyContent: 'space-between', ...Shadow.card }}>
-              {earningsLoading ? (
-                <View style={{ gap: 8 }}>
-                  <Skeleton width="60%" height={28} radius={6} />
-                  <Skeleton width="80%" height={14} radius={4} />
-                </View>
-              ) : (
-                <>
-                  <View>
-                    <Text style={{ fontFamily: Font.display, fontSize: 26, color: Palette.ink, letterSpacing: -0.5 }}>{money(earnings?.net_total ?? 0)}</Text>
-                    <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted }}>This week: {money(earnings?.net_week ?? 0)}</Text>
-                  </View>
-                  <TouchableOpacity onPress={() => { feedback.tap(); router.push('/prepper-payouts' as never); }}
-                    style={{ height: 48, borderRadius: Radius.pill, backgroundColor: Palette.brand, alignItems: 'center', justifyContent: 'center' }}>
-                    <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: '#fff' }}>Request Payout →</Text>
-                  </TouchableOpacity>
-                </>
-              )}
-            </View>
-
-            {/* Card B — Daily Goal Ring */}
-            <View style={{ width: 200, height: 130, borderRadius: 12, backgroundColor: Palette.surface, padding: 14, justifyContent: 'space-between', ...Shadow.card }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                <View style={{ position: 'relative', width: 60, height: 60, alignItems: 'center', justifyContent: 'center' }}>
-                  <Ring pct={goalPct100} color={Palette.brand} size={60} stroke={6} />
-                  <View style={{ position: 'absolute' }}>
-                    <Text style={{ fontFamily: Font.display, fontSize: 12, color: Palette.ink }}>{goalPct100}%</Text>
-                  </View>
-                </View>
-                <View>
-                  <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: Palette.textSecondary }}>Weekly</Text>
-                  <Text style={{ fontFamily: Font.heading, fontSize: 13, color: Palette.ink }}>{money(earnings?.net_week ?? 0)} / $150</Text>
-                </View>
-              </View>
-              <View style={{ flexDirection: 'row', gap: 4 }}>
-                {['M','T','W','T','F','S','S'].map((d, i) => (
-                  <View key={i} style={{ flex: 1, height: 20, borderRadius: 4, backgroundColor: weekDays[i] ? Palette.brand + '33' : Palette.chip, alignItems: 'center', justifyContent: 'center' }}>
-                    <Text style={{ fontFamily: Font.semibold, fontSize: 9, color: weekDays[i] ? Palette.brand : Palette.textMuted }}>{d}</Text>
-                  </View>
-                ))}
-              </View>
-            </View>
-
-            {/* Card C — Fulfillment Queue */}
-            <View style={{ width: 200, height: 130, borderRadius: 12, backgroundColor: Palette.surface, padding: 14, justifyContent: 'space-between', ...Shadow.card }}>
-              <View style={{ gap: 2 }}>
-                <Text style={{ fontFamily: Font.heading, fontSize: 15, color: Palette.ink }}>{todayOrders.length} Orders today</Text>
-                <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted }}>{todayOrders.filter(o => o.status === 'preparing').length} Preparing · {todayOrders.filter(o => o.status === 'ready').length} Ready</Text>
-              </View>
-              <TouchableOpacity onPress={() => { feedback.tap(); router.push('/prepper-orders' as never); }}
-                style={{ height: 48, borderRadius: Radius.pill, borderWidth: 1.5, borderColor: Palette.brand, alignItems: 'center', justifyContent: 'center' }}>
-                <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: Palette.brand }}>View Queue →</Text>
-              </TouchableOpacity>
-            </View>
-          </ScrollView>
-
-          {/* ── S3: Needs Action ─────────────────────────────────────────── */}
-          <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 300, delay: 120 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, marginTop: 20, marginBottom: 10, gap: 8 }}>
-              <Text style={{ fontFamily: Font.display, fontSize: 15, color: Palette.ink, letterSpacing: -0.3 }}>needs action</Text>
+          {/* ── Needs action ────────────────────────────────────────────── */}
+          <View style={{ paddingHorizontal: 20, marginBottom: 32 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16, gap: 10 }}>
+              <Text style={{ fontFamily: Font.display, fontSize: 20, color: WHITE, letterSpacing: -0.5, flex: 1 }}>needs action</Text>
               {active.length > 0 && (
-                <View style={{ backgroundColor: Palette.brand, borderRadius: Radius.pill, paddingHorizontal: 8, paddingVertical: 2 }}>
-                  <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: '#fff' }}>{active.length}</Text>
+                <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
+                  <Text style={{ fontFamily: Font.heading, fontSize: 13, color: '#fff' }}>{active.length}</Text>
                 </View>
               )}
             </View>
 
             {active.length === 0 ? (
-              <View style={{ marginHorizontal: 16, backgroundColor: Palette.surface, borderRadius: Radius.sm, padding: 20, alignItems: 'center', gap: 8 }}>
-                <Text style={{ fontFamily: Font.heading, fontSize: 16, color: Palette.ink }}>You're all caught up 🎉</Text>
-                <TouchableOpacity onPress={() => { feedback.tap(); router.push('/prepper-orders' as never); }}>
-                  <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: Palette.brand }}>View History</Text>
-                </TouchableOpacity>
-              </View>
+              <MotiView from={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ type: 'timing', duration: 300 }}
+                style={{ backgroundColor: CARD, borderRadius: 16, padding: 28, alignItems: 'center', gap: 10, borderWidth: 1, borderColor: BORDER }}>
+                <Text style={{ fontSize: 30 }}>🎉</Text>
+                <Text style={{ fontFamily: Font.heading, fontSize: 17, color: WHITE }}>All caught up</Text>
+                <Text style={{ fontFamily: Font.body, fontSize: 14, color: MUTED, textAlign: 'center', lineHeight: 20 }}>No orders waiting right now.</Text>
+                <PressableScale onPress={() => { feedback.tap(); router.push('/prepper-orders' as never); }}
+                  accessibilityRole="button" accessibilityLabel="View order history"
+                  style={{ marginTop: 4, height: 44, paddingHorizontal: 24, borderRadius: Radius.pill, borderWidth: 1.5, borderColor: BORDER, alignItems: 'center', justifyContent: 'center' }}>
+                  <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: MUTED }}>View history</Text>
+                </PressableScale>
+              </MotiView>
             ) : (
-              <View style={{ paddingHorizontal: 16, gap: 10 }}>
-                {active.slice(0, 3).map(order => {
+              <View style={{ gap: 12 }}>
+                {active.slice(0, 4).map((order, idx) => {
+                  const step  = ADVANCE[order.status];
+                  const color = STATUS_COLOR[order.status] ?? MUTED;
+                  const label = STATUS_LABEL[order.status] ?? order.status;
                   const parts = (order.customer ?? '').trim().split(/\s+/);
-                  const masked = parts.length > 1 ? `${parts[0][0]}.${parts[parts.length - 1][0]}.` : parts[0]?.[0] + '.';
-                  const step = NEXT_STATUS[order.status];
-                  const pillColor = STATUS_COLOR[order.status] ?? Palette.textMuted;
+                  const name  = parts.length > 1 ? `${parts[0]} ${parts[parts.length - 1][0]}.` : (parts[0] ?? 'Customer');
                   return (
-                    <View key={order.id} style={{ backgroundColor: Palette.surface, borderRadius: Radius.sm, padding: 14, gap: 10, ...Shadow.card }}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <View>
-                          <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: Palette.ink }}>{masked}</Text>
-                          <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted }}>{order.items?.length ?? 0} items · {money(order.total)}</Text>
+                    <MotiView key={order.id} from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 240, delay: idx * 40 }}
+                      style={{ backgroundColor: CARD, borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: BORDER }}>
+                      <View style={{ height: 3, backgroundColor: color }} />
+                      <View style={{ padding: 16, gap: 14 }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <View>
+                            <Text style={{ fontFamily: Font.semibold, fontSize: 15, color: WHITE }}>{name}</Text>
+                            <Text style={{ fontFamily: Font.body, fontSize: 13, color: MUTED, marginTop: 2 }}>{order.items?.length ?? 0} items · {money(order.total)}</Text>
+                          </View>
+                          <View style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: Radius.pill, backgroundColor: color + '22' }}>
+                            <Text style={{ fontFamily: Font.semibold, fontSize: 12, color }}>{label}</Text>
+                          </View>
                         </View>
-                        <View style={{ backgroundColor: pillColor + '22', borderRadius: Radius.pill, paddingHorizontal: 10, paddingVertical: 4 }}>
-                          <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: pillColor }}>{order.status}</Text>
-                        </View>
+                        {step && (
+                          <TouchableOpacity onPress={() => { feedback.impact(); advanceOrder.mutate({ orderId: order.id, next: step.next }); }}
+                            disabled={advanceOrder.isPending}
+                            accessibilityRole="button" accessibilityLabel={step.cta}
+                            style={{ height: 52, borderRadius: 12, backgroundColor: color, alignItems: 'center', justifyContent: 'center', opacity: advanceOrder.isPending ? 0.65 : 1 }}>
+                            <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>{step.cta}</Text>
+                          </TouchableOpacity>
+                        )}
                       </View>
-                      {step && (
-                        <TouchableOpacity onPress={() => { feedback.tap(); advanceOrder.mutate({ orderId: order.id, next: step.next }); }}
-                          disabled={advanceOrder.isPending}
-                          style={{ height: 56, borderRadius: Radius.sm, backgroundColor: step.bg, alignItems: 'center', justifyContent: 'center' }}>
-                          <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#fff' }}>{step.cta}</Text>
-                        </TouchableOpacity>
-                      )}
-                    </View>
+                    </MotiView>
                   );
                 })}
-                {active.length > 3 && (
-                  <TouchableOpacity onPress={() => { feedback.tap(); router.push('/prepper-orders' as never); }} style={{ alignItems: 'center', paddingVertical: 6 }}>
-                    <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: Palette.brand }}>See all {active.length} orders →</Text>
+                {active.length > 4 && (
+                  <TouchableOpacity onPress={() => { feedback.tap(); router.push('/prepper-orders' as never); }}
+                    accessibilityRole="button" accessibilityLabel={`See all ${active.length} orders`}
+                    style={{ height: 48, borderRadius: 12, borderWidth: 1.5, borderColor: BORDER, alignItems: 'center', justifyContent: 'center' }}>
+                    <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: MUTED }}>+{active.length - 4} more orders →</Text>
                   </TouchableOpacity>
                 )}
               </View>
             )}
-          </MotiView>
+          </View>
 
-          {/* ── S4: Hub Search ───────────────────────────────────────────── */}
-          <MotiView from={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ type: 'timing', duration: 280, delay: 180 }}>
-            <View style={{ marginHorizontal: 16, marginTop: 20, marginBottom: 4, flexDirection: 'row', alignItems: 'center', backgroundColor: Palette.surface, borderRadius: Radius.sm, borderWidth: 1, borderColor: Palette.border, paddingHorizontal: 14, gap: 8 }}>
-              <TextInput
-                value={search} onChangeText={setSearch}
-                placeholder="Search orders, meals, customers..."
-                placeholderTextColor={Palette.textMuted}
-                style={{ flex: 1, height: 48, fontFamily: Font.body, fontSize: 14, color: Palette.ink }}
-              />
-              {search.length > 0 && (
-                <TouchableOpacity onPress={() => setSearch('')} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                  <X size={16} color={Palette.textMuted} />
-                </TouchableOpacity>
-              )}
-            </View>
-            {searched.length > 0 && (
-              <View style={{ marginHorizontal: 16, backgroundColor: Palette.surface, borderRadius: Radius.sm, borderWidth: 1, borderColor: Palette.border, overflow: 'hidden' }}>
-                {searched.slice(0, 5).map((o, i) => (
-                  <View key={o.id} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 12, borderTopWidth: i === 0 ? 0 : 1, borderTopColor: Palette.border }}>
-                    <Text style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.ink }}>#{o.id.slice(-6)}</Text>
-                    <Text style={{ fontFamily: Font.body, fontSize: 12, color: STATUS_COLOR[o.status] ?? Palette.textMuted }}>{o.status}</Text>
-                    <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: Palette.ink }}>{money(o.total)}</Text>
+          {/* ── Quick access 2×2 ────────────────────────────────────────── */}
+          <View style={{ paddingHorizontal: 20, marginBottom: 28 }}>
+            <Text style={{ fontFamily: Font.display, fontSize: 20, color: WHITE, letterSpacing: -0.5, marginBottom: 16 }}>quick access</Text>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
+              {QUICK.map(({ label, Icon, color, route, badge }) => (
+                <PressableScale key={label} onPress={() => { feedback.tap(); router.push(route as never); }}
+                  accessibilityRole="button" accessibilityLabel={label}
+                  style={{ width: '47%', aspectRatio: 1.65, backgroundColor: CARD, borderRadius: 16, borderWidth: 1, borderColor: BORDER, alignItems: 'flex-start', justifyContent: 'space-between', padding: 16 }}>
+                  <View style={{ position: 'relative' }}>
+                    <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: color + '20', alignItems: 'center', justifyContent: 'center' }}>
+                      <Icon size={20} color={color} />
+                    </View>
+                    {!!badge && badge > 0 && (
+                      <View style={{ position: 'absolute', top: -4, right: -4, width: 18, height: 18, borderRadius: 9, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
+                        <Text style={{ fontFamily: Font.heading, fontSize: 9, color: '#fff' }}>{badge > 9 ? '9+' : badge}</Text>
+                      </View>
+                    )}
                   </View>
-                ))}
-              </View>
-            )}
-          </MotiView>
+                  <Text style={{ fontFamily: Font.semibold, fontSize: 15, color: WHITE }}>{label}</Text>
+                </PressableScale>
+              ))}
+            </View>
+          </View>
 
-          {/* ── S5: Boost & Pro Strip ────────────────────────────────────── */}
-          <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 300, delay: 220 }}>
+          {/* ── Add meal CTA ─────────────────────────────────────────────── */}
+          <View style={{ paddingHorizontal: 20 }}>
+            <PressableScale onPress={() => { feedback.impact(); router.push('/meal-editor' as never); }}
+              accessibilityRole="button" accessibilityLabel="Add a new meal to your menu"
+              style={{ height: 56, borderRadius: 16, backgroundColor: ORANGE, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
+              <PlusCircle size={20} color="#fff" />
+              <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>Add a meal</Text>
+            </PressableScale>
             {!isPro && (
-              <View style={{ marginHorizontal: 16, marginTop: 20, borderRadius: Radius.sm, backgroundColor: Palette.brand, padding: 18, gap: 10 }}>
-                <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>Go Pro — unlock premium tools</Text>
-                {['Priority placement in Explore', 'Advanced analytics dashboard', 'Lower platform fees'].map(b => (
-                  <Text key={b} style={{ fontFamily: Font.body, fontSize: 13, color: 'rgba(255,255,255,0.85)' }}>· {b}</Text>
-                ))}
-                <TouchableOpacity onPress={() => { feedback.tap(); router.push('/prepper-premium' as never); }}
-                  style={{ marginTop: 4, height: 48, borderRadius: Radius.pill, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' }}>
-                  <Text style={{ fontFamily: Font.heading, fontSize: 14, color: Palette.brand }}>Upgrade →</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-            <View style={{ marginHorizontal: 16, marginTop: isPro ? 20 : 12, backgroundColor: Palette.surface, borderRadius: Radius.sm, padding: 16, gap: 12, ...Shadow.card }}>
-              <Text style={{ fontFamily: Font.heading, fontSize: 15, color: Palette.ink }}>Boost Your Kitchen</Text>
-              <View style={{ flexDirection: 'row', gap: 8 }}>
-                {[{ label: '$5 / 24h', price: 500, dur: '24 hours' }, { label: '$12 / 3d', price: 1200, dur: '3 days' }, { label: '$25 / 1w', price: 2500, dur: '1 week' }].map(chip => (
-                  <View key={chip.label} style={{ flex: 1, paddingVertical: 8, borderRadius: 8, backgroundColor: Palette.brandTint, alignItems: 'center' }}>
-                    <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: Palette.brand }}>{chip.label}</Text>
-                  </View>
-                ))}
-              </View>
-              <TouchableOpacity onPress={() => { feedback.tap(); router.push('/boost' as never); }}
-                style={{ height: 48, borderRadius: Radius.pill, backgroundColor: Palette.brand, alignItems: 'center', justifyContent: 'center' }}>
-                <Text style={{ fontFamily: Font.heading, fontSize: 14, color: '#fff' }}>Boost Now →</Text>
+              <TouchableOpacity onPress={() => { feedback.tap(); router.push('/prepper-premium' as never); }}
+                accessibilityRole="button" accessibilityLabel="Upgrade to Pro"
+                style={{ marginTop: 12, height: 44, borderRadius: 12, borderWidth: 1.5, borderColor: ORANGE + '44', alignItems: 'center', justifyContent: 'center' }}>
+                <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: ORANGE }}>Upgrade to Pro — unlock priority placement</Text>
               </TouchableOpacity>
-            </View>
-          </MotiView>
+            )}
+          </View>
 
-          {/* ── S6: Performance ──────────────────────────────────────────── */}
-          {prepperBadges && prepperBadges.length > 0 && (
-            <View style={{ paddingHorizontal: 20, marginTop: 20, marginBottom: 8 }}>
-              <PrepperBadgeShelf badges={prepperBadges} />
-            </View>
-          )}
-          {prepperProfile && (
-            <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 260 }}>
-              <ProfileHealthCard profile={prepperProfile} />
-            </MotiView>
-          )}
         </ScrollView>
 
-        <DashboardFloatingBar
-          isPro={isPro} isDesktop={false} newCount={newCount}
-          bottomInset={insets.bottom} router={router}
-          onGoLive={() => router.push('/go-live')}
-        />
+        {/* ── Bottom navigation ────────────────────────────────────────────── */}
+        <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, flexDirection: 'row', backgroundColor: CARD, borderTopWidth: 1, borderTopColor: BORDER, paddingTop: 10, paddingBottom: Math.max(insets.bottom, 16) }}>
+          {([
+            { label: 'Home',    Icon: Home,        route: '/',                 active: false },
+            { label: 'Orders',  Icon: Package,     route: '/prepper-orders',   active: false, badge: newCount },
+            { label: 'Kitchen', Icon: ChefHat,     route: '/dashboard',        active: true  },
+            { label: 'Messages',Icon: MessageSquare,route: '/messages',        active: false },
+            { label: 'Profile', Icon: Wallet,      route: '/prepper-payouts',  active: false },
+          ] as const).map(({ label, Icon, route, active: isActive, badge }) => (
+            <TouchableOpacity key={label} onPress={() => { feedback.tap(); router.push(route as never); }}
+              accessibilityRole="tab" accessibilityLabel={label} accessibilityState={{ selected: isActive }}
+              style={{ flex: 1, alignItems: 'center', gap: 4, minHeight: 44 }}>
+              <View style={{ position: 'relative' }}>
+                <Icon size={22} color={isActive ? ORANGE : MUTED} strokeWidth={isActive ? 2.4 : 1.8} />
+                {!!badge && badge > 0 && (
+                  <View style={{ position: 'absolute', top: -4, right: -7, minWidth: 16, height: 16, borderRadius: 8, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3 }}>
+                    <Text style={{ fontFamily: Font.heading, fontSize: 9, color: '#fff' }}>{badge > 9 ? '9+' : badge}</Text>
+                  </View>
+                )}
+              </View>
+              <Text style={{ fontFamily: isActive ? Font.semibold : Font.body, fontSize: 10.5, color: isActive ? ORANGE : MUTED }}>{label}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
       </SafeAreaView>
     </View>
   );

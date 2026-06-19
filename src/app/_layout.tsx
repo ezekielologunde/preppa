@@ -68,7 +68,7 @@ export async function markFtueComplete(uid: string): Promise<void> {
 }
 
 // Screens that are dark by design — inverting them would make them light.
-const DARK_BY_DESIGN = ['/prepper-orders', '/earnings', '/admin', '/prepper', '/meal-editor'];
+const DARK_BY_DESIGN = ['/prepper-orders', '/earnings', '/admin', '/prepper', '/meal-editor', '/dashboard'];
 
 // ─── Sidebar nav items ────────────────────────────────────────────────────────
 
