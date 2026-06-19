@@ -16,8 +16,11 @@ Notifications.setNotificationHandler({
   }),
 });
 
-export async function registerPushToken(userId: string): Promise<void> {
+export async function registerPushToken(): Promise<void> {
   if (!Device.isDevice) return; // Expo Push doesn't work on simulators
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
 
   const { status: existing } = await Notifications.getPermissionsAsync();
   let finalStatus = existing;
@@ -31,13 +34,15 @@ export async function registerPushToken(userId: string): Promise<void> {
   const platform = Platform.OS === 'ios' ? 'ios' : Platform.OS === 'android' ? 'android' : 'web';
 
   await supabase.from('push_tokens').upsert(
-    { user_id: userId, token, platform, updated_at: new Date().toISOString() },
+    { user_id: user.id, token, platform, updated_at: new Date().toISOString() },
     { onConflict: 'user_id,platform' },
   );
 }
 
-export async function clearPushToken(userId: string): Promise<void> {
-  await supabase.from('push_tokens').delete().eq('user_id', userId);
+export async function clearPushToken(): Promise<void> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+  await supabase.from('push_tokens').delete().eq('user_id', user.id);
 }
 
 export function usePushNotificationListeners() {

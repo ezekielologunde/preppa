@@ -87,12 +87,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }).catch(() => {});
         if (next?.user?.id) {
           hydrateFromServer(next.user.id, supabase).catch(() => {});
-          registerPushToken(next.user.id).catch(() => {});
+          registerPushToken().catch(() => {});
         }
       }
       if (event === 'SIGNED_OUT') {
         if (session?.user?.id) {
-          clearPushToken(session.user.id).catch(() => {});
+          clearPushToken().catch(() => {});
         }
         AsyncStorage.removeItem(SESSION_START_KEY).catch(() => {});
         AsyncStorage.removeItem(ROLE_KEY).catch(() => {});

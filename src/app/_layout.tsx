@@ -225,7 +225,7 @@ function PushSetup() {
 
   useEffect(() => {
     if (session?.user?.id) {
-      void registerPushToken(session.user.id);
+      void registerPushToken();
     }
   }, [session?.user?.id]);
 
