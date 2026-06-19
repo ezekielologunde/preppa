@@ -20,13 +20,6 @@ import { Platform, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { RequestDetailSheet } from '@/components/request-detail-sheet';
-import {
-  ExperienceCardSkeleton,
-  FeaturedExperienceCard,
-  type FeaturedExperience,
-  type FilterKey,
-} from '@/components/experiences/experience-card';
-import { FilterChips } from '@/components/experiences/experience-filters';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
 import { Palette, Radius, Shadow } from '@/constants/theme';
@@ -57,44 +50,6 @@ const KIND_LABEL: Record<string, string> = {
   cleaning: 'Kitchen reset', class: 'Cooking class', tasting: 'Tasting menu',
 };
 
-const FEATURED_EXPERIENCES: FeaturedExperience[] = [
-  {
-    id: 'fe-1',
-    title: 'Italian Farm-to-Table Evening',
-    hostName: 'Chef Marco',
-    hostAvatar: 'https://images.unsplash.com/photo-1577219491135-ce391730fb2c?auto=format&fit=crop&w=80&q=70',
-    image: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=900&q=70',
-    price: 95,
-    dateLabel: 'Sat, Jun 21',
-    timeLabel: '7:00 PM',
-    spotsLeft: 2,
-    category: 'dinner',
-  },
-  {
-    id: 'fe-2',
-    title: 'Sourdough & Brunch Class',
-    hostName: 'Chef Amara',
-    hostAvatar: 'https://images.unsplash.com/photo-1607631568010-a87245c0daf8?auto=format&fit=crop&w=80&q=70',
-    image: 'https://images.unsplash.com/photo-1484723091739-30990de931dc?auto=format&fit=crop&w=900&q=70',
-    price: 55,
-    dateLabel: 'Sun, Jun 22',
-    timeLabel: '10:00 AM',
-    spotsLeft: 6,
-    category: 'class',
-  },
-  {
-    id: 'fe-3',
-    title: 'Rooftop Tapas Pop-up',
-    hostName: 'Chef Lucia',
-    hostAvatar: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=80&q=70',
-    image: 'https://images.unsplash.com/photo-1544025162-d76538d30ene?auto=format&fit=crop&w=900&q=70',
-    price: 75,
-    dateLabel: 'Fri, Jun 27',
-    timeLabel: '6:30 PM',
-    spotsLeft: 4,
-    category: 'popup',
-  },
-];
 
 // ─── Sub-components ────────────────────────────────────────────────────────────
 
@@ -181,7 +136,6 @@ export default function ExperiencesScreen() {
   const isUnlocked = membership?.isUnlocked === true;
   const [refreshing, setRefreshing] = useState(false);
   const [selected, setSelected] = useState<MyExperienceRequest | null>(null);
-  const [activeFilter, setActiveFilter] = useState<FilterKey>('all');
 
   async function handleRefresh() { setRefreshing(true); await refetch(); setRefreshing(false); }
 
@@ -190,9 +144,6 @@ export default function ExperiencesScreen() {
   const open = allRequests.filter((r) => r.status === 'open');
   const hasAny = allRequests.length > 0;
 
-  const filteredFeatured = activeFilter === 'all'
-    ? FEATURED_EXPERIENCES
-    : FEATURED_EXPERIENCES.filter((e) => e.category === activeFilter);
 
   return (
     <View style={{ flex: 1, backgroundColor: Palette.canvas }}>
@@ -265,44 +216,40 @@ export default function ExperiencesScreen() {
             </ScrollView>
           </MotiView>
 
-          {/* ── Featured Experiences section ── */}
-          <View style={{ marginTop: 4 }}>
-            <MotiView
-              from={{ opacity: 0, translateY: 8 }}
-              animate={{ opacity: 1, translateY: 0 }}
-              transition={{ type: 'timing', duration: 280, delay: 60 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, marginBottom: 4 }}>
-                <Text style={{ fontFamily: Font.display, fontSize: 20, color: Palette.ink, letterSpacing: -0.4 }}>
-                  upcoming events
+          {/* ── Request an experience CTA ── */}
+          <MotiView
+            from={{ opacity: 0, translateY: 8 }}
+            animate={{ opacity: 1, translateY: 0 }}
+            transition={{ type: 'timing', duration: 280, delay: 60 }}
+            style={{ marginHorizontal: 20, marginTop: 8 }}>
+            <PressableScale
+              onPress={() => { feedback.tap(); router.push('/experience-request'); }}
+              accessibilityRole="button"
+              accessibilityLabel="Request a private experience"
+              style={{
+                backgroundColor: Palette.surface,
+                borderRadius: Radius.md,
+                borderWidth: 1,
+                borderColor: Palette.border,
+                padding: 20,
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 14,
+              }}>
+              <View style={{ width: 52, height: 52, borderRadius: 16, backgroundColor: Palette.brandTint, alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Plus size={24} color={Palette.brand} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontFamily: Font.heading, fontSize: 15, color: Palette.ink }}>
+                  Request a private experience
                 </Text>
-                <PressableScale
-                  onPress={() => { feedback.tap(); router.push('/experience-request'); }}
-                  accessibilityRole="button"
-                  accessibilityLabel="See all experiences">
-                  <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: Palette.brand }}>See all</Text>
-                </PressableScale>
+                <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary, marginTop: 2, lineHeight: 18 }}>
+                  Post what you need — local chefs send you bids
+                </Text>
               </View>
-            </MotiView>
-
-            <MotiView from={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ type: 'timing', duration: 240, delay: 80 }}>
-              <FilterChips active={activeFilter} onSelect={setActiveFilter} />
-            </MotiView>
-
-            {isLoading && !refreshing ? (
-              <View style={{ marginTop: 8 }}>
-                <ExperienceCardSkeleton />
-                <ExperienceCardSkeleton />
-              </View>
-            ) : filteredFeatured.length === 0 ? (
-              <ExperiencesEmptyState />
-            ) : (
-              <View style={{ marginTop: 8 }}>
-                {filteredFeatured.map((exp, i) => (
-                  <FeaturedExperienceCard key={exp.id} exp={exp} index={i} />
-                ))}
-              </View>
-            )}
-          </View>
+              <ChevronRight size={18} color={Palette.textMuted} />
+            </PressableScale>
+          </MotiView>
 
           {/* ── Premium hero — Chef at Home ── */}
           <MotiView

@@ -182,7 +182,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (data.order_id) router.push(`/prepper-orders` as never);
         break;
       case 'new_follower':
-        router.push('/followers' as never);
+        router.push('/following' as never);
         break;
       case 'meal_drop':
         if (data.prepper_id) router.push(`/prepper/${data.prepper_id}` as never);

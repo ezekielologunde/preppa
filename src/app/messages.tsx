@@ -110,6 +110,8 @@ const NOTIF_STYLE: Record<AppNotification['type'], { Icon: LucideIcon; color: st
   live: { Icon: Bell, color: Palette.danger, bg: Palette.danger + '1A' },
   bid: { Icon: Handshake, color: ORANGE, bg: Palette.brandTint },
   bid_accepted: { Icon: Handshake, color: Palette.success, bg: Palette.success + '1A' },
+  approved: { Icon: ChefHat, color: Palette.success, bg: Palette.success + '1A' },
+  rejected: { Icon: CircleX, color: Palette.danger, bg: Palette.danger + '1A' },
 };
 
 function NotificationItemRow({ n, onPress }: { n: AppNotification; onPress: () => void }) {
