@@ -1,5 +1,14 @@
 import '@/global.css';
 
+import * as Sentry from '@sentry/react-native';
+
+Sentry.init({
+  dsn: process.env.EXPO_PUBLIC_SENTRY_DSN ?? '',
+  environment: process.env.EXPO_PUBLIC_APP_ENV ?? 'development',
+  enabled: !!process.env.EXPO_PUBLIC_SENTRY_DSN,
+  tracesSampleRate: 0.2,
+});
+
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFonts } from 'expo-font';
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider, usePathname, useRouter } from 'expo-router';
@@ -22,6 +31,7 @@ import { FloatingCartBar } from '@/components/floating-cart-bar';
 import { LoadingSplash } from '@/components/loading-splash';
 import { Onboarding } from '@/components/onboarding';
 import { ErrorBoundary } from '@/components/error-boundary';
+import { OfflineBanner } from '@/components/offline-banner';
 import { AppProviders } from '@/providers/app-providers';
 import { useAuth } from '@/providers/auth-provider';
 
@@ -303,6 +313,7 @@ export default function RootLayout() {
     <ErrorBoundary>
       <AppProviders>
         <PushSetup />
+        <OfflineBanner />
         <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
           <ResponsiveFrame>
             <AuthGate>

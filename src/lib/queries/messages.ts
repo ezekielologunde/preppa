@@ -114,9 +114,11 @@ export function useSendMessage() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (v: { conversationId: string; senderId: string; body: string; senderName?: string }) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not signed in');
       const { error } = await supabase.from('messages').insert({
         conversation_id: v.conversationId,
-        sender_id: v.senderId,
+        sender_id: user.id,
         body: v.body,
       });
       if (error) throw error;

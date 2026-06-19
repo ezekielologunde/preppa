@@ -1,4 +1,5 @@
 import { Component, Fragment, type ReactNode, type ErrorInfo } from 'react';
+import * as Sentry from '@sentry/react-native';
 import { Text, View, Pressable } from 'react-native';
 import { Font } from '@/constants/fonts';
 import { Palette, Spacing, Type } from '@/constants/theme';
@@ -15,7 +16,9 @@ export class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, info: ErrorInfo) {
     this.props.onError?.(error, info);
-    // In production: send to error tracking (Sentry, etc.)
+    if (typeof Sentry !== 'undefined') {
+      Sentry.captureException(error, { extra: { componentStack: info.componentStack } });
+    }
     console.error('[ErrorBoundary]', error, info.componentStack);
   }
 

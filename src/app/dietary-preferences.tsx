@@ -2,7 +2,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { CheckCircle2, ChevronLeft } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useState } from 'react';
-import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, ScrollView, Switch, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PressableScale } from '@/components/ui/pressable-scale';
@@ -128,6 +128,12 @@ export default function DietaryPreferencesScreen() {
   const [saved, setSaved] = useState(false);
   const [saveErr, setSaveErr] = useState<string | null>(null);
 
+  const hasPriorConsent = !!(meta.dietary_consent_at as string | undefined);
+  const hasPriorData =
+    (meta.dietary as string[] | undefined)?.length ||
+    (meta.allergies as string[] | undefined)?.length;
+  const [consentGiven, setConsentGiven] = useState<boolean>(hasPriorConsent);
+
   function toggle(arr: string[], set: (v: string[]) => void, val: string) {
     set(arr.includes(val) ? arr.filter((x) => x !== val) : [...arr, val]);
   }
@@ -136,8 +142,13 @@ export default function DietaryPreferencesScreen() {
     feedback.tap();
     setSaving(true);
     setSaveErr(null);
+    if (!consentGiven) {
+      setSaveErr('Please give consent before saving dietary and allergy data.');
+      setSaving(false);
+      return;
+    }
     const { error } = await supabase.auth.updateUser({
-      data: { dietary, allergies, cuisines, spice },
+      data: { dietary, allergies, cuisines, spice, dietary_consent_at: new Date().toISOString() },
     });
     setSaving(false);
     if (!error) {
@@ -188,10 +199,34 @@ export default function DietaryPreferencesScreen() {
         </View>
 
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 120 }}>
+          <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260 }}>
+            <View style={{ backgroundColor: consentGiven ? Palette.brandTint : Palette.surface, borderRadius: Radius.md, padding: 16, marginBottom: 20, borderWidth: 1.5, borderColor: consentGiven ? Palette.brand : Palette.border }}>
+              {!hasPriorConsent && !!hasPriorData ? (
+                <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: Palette.brand, marginBottom: 6 }}>
+                  Consent required to continue storing your dietary data
+                </Text>
+              ) : null}
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.ink, flex: 1, lineHeight: 18 }}>
+                  I consent to Preppa storing my health and dietary data to personalize meal recommendations
+                </Text>
+                <Switch
+                  value={consentGiven}
+                  onValueChange={(v) => { feedback.tap(); setConsentGiven(v); }}
+                  trackColor={{ false: Palette.border, true: Palette.brand }}
+                  thumbColor="#fff"
+                  accessibilityLabel="Consent to storing dietary and health data"
+                  accessibilityRole="switch"
+                />
+              </View>
+            </View>
+          </MotiView>
+          <View style={{ opacity: consentGiven ? 1 : 0.38, pointerEvents: consentGiven ? 'auto' : 'none' }}>
           <ChipGroup label="dietary restrictions" options={DIETARY} selected={dietary} onToggle={(v) => toggle(dietary, setDietary, v)} delay={0} />
           <ChipGroup label="allergies" options={ALLERGIES} selected={allergies} onToggle={(v) => toggle(allergies, setAllergies, v)} delay={80} />
           <ChipGroup label="cuisine preferences" options={CUISINES} selected={cuisines} onToggle={(v) => toggle(cuisines, setCuisines, v)} delay={160} />
           <SpiceRow selected={spice} onSelect={setSpice} />
+          </View>
           <MotiView from={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ type: 'timing', duration: 260, delay: 320 }}>
             <View style={{ backgroundColor: Palette.surface, borderRadius: Radius.md, padding: 14, flexDirection: 'row', gap: 10 }}>
               <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: Palette.textSecondary, flex: 1, lineHeight: 18 }}>

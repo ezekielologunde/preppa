@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/providers/auth-provider';
 import type {
   AdminDisputeRow,
   MarketplaceFit,
@@ -92,9 +93,11 @@ export type AdminCustomer = {
 /** All customer accounts, newest first; optional name/email search. */
 export function useAdminCustomers(search?: string) {
   const term = search?.trim();
+  const { isAdmin } = useAuth();
   return useQuery({
     queryKey: ['admin', 'customers', term ?? ''],
     queryFn: async (): Promise<AdminCustomer[]> => {
+      if (!isAdmin) throw new Error('Unauthorized');
       let q = supabase
         .from('profiles')
         .select('id,full_name,email,phone,status,created_at')
@@ -119,9 +122,11 @@ export type CustomerOrderStat = {
 
 /** Lightweight order-count + spend map keyed by customer_id for the customers panel. */
 export function useAdminCustomerOrderStats() {
+  const { isAdmin } = useAuth();
   return useQuery({
     queryKey: ['admin', 'customer-order-stats'],
     queryFn: async (): Promise<Map<string, CustomerOrderStat>> => {
+      if (!isAdmin) throw new Error('Unauthorized');
       const { data, error } = await supabase
         .from('orders')
         .select('customer_id,total,status');
@@ -159,9 +164,11 @@ export type AdminOrder = {
 
 /** Recent orders with line items + payment — the receipts view. */
 export function useAdminOrders(status?: OrderStatus) {
+  const { isAdmin } = useAuth();
   return useQuery({
     queryKey: ['admin', 'orders', status ?? 'all'],
     queryFn: async (): Promise<AdminOrder[]> => {
+      if (!isAdmin) throw new Error('Unauthorized');
       let q = supabase
         .from('orders')
         .select(
@@ -191,10 +198,12 @@ export type AdminOrderItem = { quantity: number; total: number; title: string };
  * orders) so RLS behaves identically; only fires when `enabled` (card expanded).
  */
 export function useAdminOrderItems(orderId: string | null, enabled: boolean) {
+  const { isAdmin } = useAuth();
   return useQuery({
     queryKey: ['admin', 'order-items', orderId],
     enabled: enabled && !!orderId,
     queryFn: async (): Promise<AdminOrderItem[]> => {
+      if (!isAdmin) throw new Error('Unauthorized');
       if (!orderId) return [];
       const { data, error } = await supabase
         .from('orders')
@@ -329,10 +338,12 @@ export function useVerifyPrepper() {
 export type GmvWeek = { label: string; gmv: number; orders: number };
 
 export function useAdminGmvChart() {
+  const { isAdmin } = useAuth();
   return useQuery({
     queryKey: ['admin', 'gmv-chart'],
     staleTime: 300_000,
     queryFn: async (): Promise<GmvWeek[]> => {
+      if (!isAdmin) throw new Error('Unauthorized');
       const since = new Date();
       since.setDate(since.getDate() - 56); // 8 weeks
       const { data, error } = await supabase
@@ -432,10 +443,12 @@ export type AdminUser = {
 /** All profiles with their roles, newest first; optional name/email search (min 2 chars). */
 export function useAdminUsers(search: string = '') {
   const term = search.trim();
+  const { isAdmin } = useAuth();
   return useQuery({
     queryKey: ['admin', 'users', term],
     staleTime: 30_000,
     queryFn: async (): Promise<AdminUser[]> => {
+      if (!isAdmin) throw new Error('Unauthorized');
       let q = supabase
         .from('profiles')
         .select('id,full_name,email,status,created_at,user_roles(roles(key))')
