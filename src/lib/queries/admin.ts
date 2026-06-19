@@ -47,6 +47,8 @@ export type AdminPrepper = {
   status: PrepperStatus;
   rejection_note: string | null;
   created_at: string;
+  is_featured: boolean;
+  featured_at: string | null;
   user: { full_name: string | null; email: string | null; phone: string | null } | null;
 };
 
@@ -61,7 +63,7 @@ export function useAdminPreppers(status?: PrepperStatus) {
         p_status: status ?? 'all',
       });
       if (error) throw error;
-      type Row = { id: string; display_name: string; bio: string | null; verified: boolean; status: string; rejection_note: string | null; created_at: string; user_full_name: string | null; user_email: string | null; user_phone: string | null };
+      type Row = { id: string; display_name: string; bio: string | null; verified: boolean; status: string; rejection_note: string | null; created_at: string; user_full_name: string | null; user_email: string | null; user_phone: string | null; is_featured: boolean; featured_at: string | null };
       return ((data ?? []) as Row[]).map((r) => ({
         id: r.id,
         display_name: r.display_name,
@@ -70,6 +72,8 @@ export function useAdminPreppers(status?: PrepperStatus) {
         status: r.status as PrepperStatus,
         rejection_note: r.rejection_note,
         created_at: r.created_at,
+        is_featured: r.is_featured ?? false,
+        featured_at: r.featured_at ?? null,
         user: { full_name: r.user_full_name, email: r.user_email, phone: r.user_phone },
       }));
     },
@@ -96,7 +100,10 @@ export function useAdminCustomers(search?: string) {
         .select('id,full_name,email,phone,status,created_at')
         .order('created_at', { ascending: false })
         .limit(200);
-      if (term) q = q.or(`full_name.ilike.%${term}%,email.ilike.%${term}%`);
+      if (term) {
+        const safe = term.replace(/[,(){}<>]/g, ' ').replace(/\s+/g, ' ').trim();
+        q = q.or(`full_name.ilike.%${safe}%,email.ilike.%${safe}%`);
+      }
       const { data, error } = await q;
       if (error) throw error;
       return (data ?? []) as unknown as AdminCustomer[];
@@ -315,6 +322,74 @@ export function useVerifyPrepper() {
   });
 }
 
+// ---------------------------------------------------------------------------
+// OVERVIEW CHARTS
+// ---------------------------------------------------------------------------
+
+export type GmvWeek = { label: string; gmv: number; orders: number };
+
+export function useAdminGmvChart() {
+  return useQuery({
+    queryKey: ['admin', 'gmv-chart'],
+    staleTime: 300_000,
+    queryFn: async (): Promise<GmvWeek[]> => {
+      const since = new Date();
+      since.setDate(since.getDate() - 56); // 8 weeks
+      const { data, error } = await supabase
+        .from('orders')
+        .select('created_at,total')
+        .gte('created_at', since.toISOString())
+        .eq('status', 'completed');
+      if (error) throw error;
+
+      const weeks: Record<string, { gmv: number; orders: number }> = {};
+      for (const row of (data ?? []) as { created_at: string; total: number }[]) {
+        const d = new Date(row.created_at);
+        const weekStart = new Date(d);
+        weekStart.setDate(d.getDate() - d.getDay());
+        const key = weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        if (!weeks[key]) weeks[key] = { gmv: 0, orders: 0 };
+        weeks[key].gmv += Number(row.total ?? 0);
+        weeks[key].orders++;
+      }
+
+      return Object.entries(weeks)
+        .slice(-8)
+        .map(([label, { gmv, orders }]) => ({ label, gmv, orders }));
+    },
+  });
+}
+
+export type TopPrepper = {
+  prepperId: string;
+  displayName: string;
+  totalRevenue: number;
+  orderCount: number;
+  avgRating: number;
+};
+
+/** Top preppers by revenue, derived from the admin_prepper_earnings() RPC. */
+export function useAdminTopPreppers(limit = 10) {
+  return useQuery({
+    queryKey: ['admin', 'top-preppers', limit],
+    staleTime: 300_000,
+    queryFn: async (): Promise<TopPrepper[]> => {
+      const { data, error } = await supabase.rpc('admin_prepper_earnings');
+      if (error) throw error;
+      return ((data ?? []) as import('@/types/database.types').PrepperEarningsRow[])
+        .sort((a, b) => b.completed_sales - a.completed_sales)
+        .slice(0, limit)
+        .map((r) => ({
+          prepperId: r.prepper_id,
+          displayName: r.display_name,
+          totalRevenue: r.completed_sales,
+          orderCount: r.completed_orders,
+          avgRating: r.rating,
+        }));
+    },
+  });
+}
+
 export function useAdminDisputes(status: 'open' | 'resolved' | 'dismissed' | 'all' = 'open') {
   return useQuery({
     queryKey: ['admin', 'disputes', status],
@@ -338,5 +413,83 @@ export function useResolveDispute() {
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'disputes'] }),
+  });
+}
+
+// ---------------------------------------------------------------------------
+// USER MANAGEMENT
+// ---------------------------------------------------------------------------
+
+export type AdminUser = {
+  id: string;
+  displayName: string;
+  email: string | null;
+  roles: string[];
+  status: UserStatus;
+  createdAt: string;
+};
+
+/** All profiles with their roles, newest first; optional name/email search (min 2 chars). */
+export function useAdminUsers(search: string = '') {
+  const term = search.trim();
+  return useQuery({
+    queryKey: ['admin', 'users', term],
+    staleTime: 30_000,
+    queryFn: async (): Promise<AdminUser[]> => {
+      let q = supabase
+        .from('profiles')
+        .select('id,full_name,email,status,created_at,user_roles(roles(key))')
+        .order('created_at', { ascending: false })
+        .limit(100);
+      if (term.length >= 2) {
+        const safe = term.replace(/[,(){}<>]/g, ' ').replace(/\s+/g, ' ').trim();
+        q = q.or(`full_name.ilike.%${safe}%,email.ilike.%${safe}%`);
+      }
+      const { data, error } = await q;
+      if (error) throw error;
+      type Row = { id: string; full_name: string | null; email: string | null; status: string; created_at: string; user_roles: { roles: { key: string } | { key: string }[] | null }[] };
+      return ((data ?? []) as unknown as Row[]).map((r) => {
+        const roles = (r.user_roles ?? [])
+          .map((ur) => (Array.isArray(ur.roles) ? ur.roles[0]?.key : ur.roles?.key))
+          .filter((k): k is string => !!k);
+        return {
+          id: r.id,
+          displayName: r.full_name ?? r.email?.split('@')[0] ?? 'Unknown',
+          email: r.email,
+          roles,
+          status: r.status as UserStatus,
+          createdAt: r.created_at,
+        };
+      });
+    },
+  });
+}
+
+export function useAdminUpdateUserStatus() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ userId, status }: { userId: string; status: UserStatus }) => {
+      const { error } = await supabase.rpc('admin_set_user_status', { p_user: userId, p_status: status });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin', 'users'] });
+      qc.invalidateQueries({ queryKey: ['admin', 'customers'] });
+    },
+  });
+}
+
+export function useAdminUpdateUserRole() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ userId, role, revoke }: { userId: string; role: string; revoke?: boolean }) => {
+      const fn = revoke ? 'admin_revoke_role' : 'admin_grant_role';
+      const { error } = await supabase.rpc(fn, { p_user: userId, p_role: role });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin', 'users'] });
+      qc.invalidateQueries({ queryKey: ['admin', 'customers'] });
+    },
   });
 }

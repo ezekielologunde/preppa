@@ -1,61 +1,32 @@
 import { useRouter } from 'expo-router';
-import { ChevronLeft, Compass, RefreshCw, ShoppingCart, Sparkles } from 'lucide-react-native';
+import { ChevronLeft, Compass, RefreshCw, Sparkles } from 'lucide-react-native';
 import { MotiView } from 'moti';
-import { useState } from 'react';
-import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
+import { useMemo, useState } from 'react';
+import { ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { MealCard } from '@/components/meal-card';
 import { PressableScale } from '@/components/ui/pressable-scale';
+import {
+  BudgetPicker,
+  VibePicker,
+  type VibeOption,
+} from '@/components/surprise/preference-chips';
+import {
+  RevealError,
+  RevealEmpty,
+  RevealLoading,
+  RevealResults,
+} from '@/components/surprise/reveal-card';
+import { pickMeals } from '@/components/surprise/scoring';
 import { Font } from '@/constants/fonts';
-import { Palette, Radius, Shadow } from '@/constants/theme';
+import { Palette, Radius } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
 import { useAddToCart } from '@/lib/queries/cart';
 import { useSurpriseMeals, type SurpriseFilters } from '@/lib/queries/meals';
+import { useMyOrders } from '@/lib/queries/orders';
 import { useAuth } from '@/providers/auth-provider';
 
-const ORANGE = Palette.brand;
 const INK = Palette.ink;
-
-const BUDGET_OPTIONS = [
-  { label: 'Under $10', value: 10 },
-  { label: 'Under $15', value: 15 },
-  { label: 'Under $20', value: 20 },
-  { label: 'Under $25', value: 25 },
-  { label: 'Any budget', value: 0 },
-];
-
-const VIBE_OPTIONS = [
-  { label: 'High Protein', tag: 'High-Protein', color: '#ef4444' },
-  { label: 'Vegan', tag: 'Vegan-Friendly', color: '#22c55e' },
-  { label: 'Comfort Food', tag: 'Comfort', color: '#f59e0b' },
-  { label: 'Keto', tag: 'Keto', color: '#8b5cf6' },
-  { label: 'Family', tag: 'Family Meals', color: '#3b82f6' },
-  { label: 'Breakfast', category: 'breakfast', color: '#f97316' },
-  { label: 'Light & Clean', tag: 'Low-Calorie', color: '#06b6d4' },
-  { label: 'Spicy', tag: 'Spicy', color: '#ef4444' },
-];
-
-function Chip({ label, color, active, onPress }: { label: string; color: string; active: boolean; onPress: () => void }) {
-  return (
-    <MotiView
-      animate={{
-        backgroundColor: active ? color + '22' : Palette.surface,
-        borderColor: active ? color : Palette.border,
-      }}
-      transition={{ type: 'timing', duration: 180 }}
-      style={{ borderRadius: Radius.pill, borderWidth: 1.5, overflow: 'hidden', ...Shadow.card }}>
-      <PressableScale
-        onPress={onPress}
-        accessibilityRole="button"
-        accessibilityState={{ selected: active }}
-        accessibilityLabel={label}
-        style={{ paddingHorizontal: 16, paddingVertical: 10 }}>
-        <Text style={{ fontFamily: Font.semibold, fontSize: 13.5, color: active ? color : Palette.textSecondary }}>{label}</Text>
-      </PressableScale>
-    </MotiView>
-  );
-}
 
 export default function SurpriseScreen() {
   const router = useRouter();
@@ -63,10 +34,25 @@ export default function SurpriseScreen() {
   const addToCart = useAddToCart();
 
   const [budget, setBudget] = useState(15);
-  const [vibe, setVibe] = useState<typeof VIBE_OPTIONS[0] | null>(null);
+  const [vibe, setVibe] = useState<VibeOption | null>(null);
   const [revealed, setRevealed] = useState(false);
   const [addingId, setAddingId] = useState<string | null>(null);
   const [pickErr, setPickErr] = useState<string | null>(null);
+  const [pickSeed, setPickSeed] = useState(0);
+
+  // Extract user dietary prefs from metadata
+  const meta = user?.user_metadata ?? {};
+  const userDietary: string[] = Array.isArray(meta.dietary) ? (meta.dietary as string[]) : [];
+  const userAllergies: string[] = Array.isArray(meta.allergies) ? (meta.allergies as string[]) : [];
+  const userSpice: string = typeof meta.spice === 'string' ? (meta.spice as string) : '';
+  const userCuisines: string[] = Array.isArray(meta.cuisines) ? (meta.cuisines as string[]) : [];
+
+  // Order history for repeat-prepper affinity signal
+  const { data: orders } = useMyOrders(user?.id);
+  const orderedPreppers = useMemo(
+    () => new Set((orders ?? []).filter((o) => o.status === 'completed').map((o) => o.prepper)),
+    [orders],
+  );
 
   const filters: SurpriseFilters = {
     maxPrice: budget > 0 ? budget : undefined,
@@ -74,17 +60,35 @@ export default function SurpriseScreen() {
     categoryKey: vibe?.category ?? null,
   };
 
-  const { data: picks, isLoading, isError, refetch } = useSurpriseMeals(filters, revealed);
+  const { data: pool, isLoading, isError, refetch } = useSurpriseMeals(filters, revealed);
+
+  const pickResult = useMemo(() => {
+    if (!pool?.length) return null;
+    void pickSeed;
+    return pickMeals(pool, userDietary, userAllergies, userSpice, userCuisines, orderedPreppers, 3);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pool, pickSeed, userDietary.join(','), userAllergies.join(','), userSpice, userCuisines.join(','), orderedPreppers]);
+
+  const picks = pickResult?.meals ?? null;
+  const pickReasons = pickResult?.reasons ?? new Map<string, string>();
+  const isPersonalized = pickResult?.personalized ?? false;
 
   function reveal() {
     feedback.tap();
-    setRevealed(true);
-    if (revealed) void refetch();
+    if (revealed) {
+      setPickSeed((s) => s + 1);
+      void refetch();
+    } else {
+      setRevealed(true);
+    }
   }
 
   async function addPick(mealId: string, price: number) {
     feedback.tap();
-    if (!user) { router.push('/auth?mode=signup'); return; }
+    if (!user) {
+      router.push('/auth?mode=signup');
+      return;
+    }
     setAddingId(mealId);
     setPickErr(null);
     try {
@@ -103,53 +107,38 @@ export default function SurpriseScreen() {
     <View style={{ flex: 1, backgroundColor: Palette.canvas }}>
       <SafeAreaView edges={['top']} style={{ flex: 1 }}>
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 80 }}>
+
           {/* Header */}
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingTop: 8, paddingBottom: 20 }}>
-            <PressableScale onPress={() => { feedback.tap(); if (router.canGoBack()) { router.back(); } else { router.replace('/'); } }} accessibilityRole="button" accessibilityLabel="Go back" style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
+            <PressableScale
+              onPress={() => { feedback.tap(); if (router.canGoBack()) { router.back(); } else { router.replace('/'); } }}
+              accessibilityRole="button"
+              accessibilityLabel="Go back"
+              style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
               <ChevronLeft size={22} color={INK} />
             </PressableScale>
             <View style={{ flex: 1 }}>
-              <Text style={{ fontFamily: Font.display, fontSize: 26, color: INK, letterSpacing: -0.8 }}>surprise me</Text>
-              <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary, marginTop: 1 }}>let a local kitchen choose</Text>
+              <Text style={{ fontFamily: Font.display, fontSize: 26, color: INK, letterSpacing: -0.8 }}>
+                surprise me
+              </Text>
+              <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary, marginTop: 1 }}>
+                let a local kitchen choose
+              </Text>
             </View>
-            <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
+            <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: Palette.brand, alignItems: 'center', justifyContent: 'center' }}>
               <Sparkles size={22} color="#fff" />
             </View>
           </View>
 
-          {/* Budget picker */}
-          <View style={{ paddingHorizontal: 20, marginBottom: 24 }}>
-            <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK, marginBottom: 12 }}>budget</Text>
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-              {BUDGET_OPTIONS.map((b) => (
-                <Chip
-                  key={b.value}
-                  label={b.label}
-                  color={ORANGE}
-                  active={budget === b.value}
-                  onPress={() => { feedback.tap(); setBudget(b.value); setRevealed(false); }}
-                />
-              ))}
-            </View>
-          </View>
-
-          {/* Vibe picker */}
-          <View style={{ paddingHorizontal: 20, marginBottom: 28 }}>
-            <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK, marginBottom: 12 }}>
-              vibe <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textMuted }}>(optional)</Text>
-            </Text>
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-              {VIBE_OPTIONS.map((v) => (
-                <Chip
-                  key={v.label}
-                  label={v.label}
-                  color={v.color}
-                  active={vibe?.label === v.label}
-                  onPress={() => { feedback.tap(); setVibe(vibe?.label === v.label ? null : v); setRevealed(false); }}
-                />
-              ))}
-            </View>
-          </View>
+          {/* Preference pickers */}
+          <BudgetPicker
+            budget={budget}
+            onSelect={(v) => { setBudget(v); setRevealed(false); }}
+          />
+          <VibePicker
+            vibe={vibe}
+            onSelect={(v) => { setVibe(v); setRevealed(false); }}
+          />
 
           {/* CTA */}
           <View style={{ paddingHorizontal: 20, marginBottom: 28 }}>
@@ -162,74 +151,39 @@ export default function SurpriseScreen() {
               <Text style={{ fontFamily: Font.display, fontSize: 17, color: '#fff', letterSpacing: -0.3 }}>
                 {revealed ? 'try again' : 'surprise me'}
               </Text>
-              {revealed ? <RefreshCw size={16} color={ORANGE} /> : <Sparkles size={16} color={ORANGE} />}
+              {revealed ? (
+                <RefreshCw size={16} color={Palette.brand} />
+              ) : (
+                <Sparkles size={16} color={Palette.brand} />
+              )}
             </PressableScale>
           </View>
 
           {/* Results */}
           {revealed ? (
             isLoading ? (
-              <View style={{ alignItems: 'center', paddingVertical: 32 }}>
-                <ActivityIndicator color={ORANGE} size="large" />
-                <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, marginTop: 12 }}>finding your perfect meal…</Text>
-              </View>
+              <RevealLoading />
             ) : isError ? (
-              <MotiView
-                from={{ opacity: 0, translateY: 10 }}
-                animate={{ opacity: 1, translateY: 0 }}
-                transition={{ type: 'timing', duration: 260 }}
-                style={{ alignItems: 'center', paddingVertical: 32, paddingHorizontal: 32, gap: 12 }}>
-                <Compass size={32} color={Palette.textMuted} />
-                <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>Couldn't fetch picks</Text>
-                <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center', lineHeight: 20 }}>Check your connection and tap retry.</Text>
-                <PressableScale onPress={() => { feedback.tap(); void refetch(); }} accessibilityRole="button" accessibilityLabel="Retry"
-                  style={{ backgroundColor: ORANGE, borderRadius: Radius.pill, paddingHorizontal: 24, paddingVertical: 12 }}>
-                  <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: '#fff' }}>retry</Text>
-                </PressableScale>
-              </MotiView>
+              <RevealError onRetry={() => { feedback.tap(); void refetch(); }} />
             ) : !picks?.length ? (
-              <MotiView
-                from={{ opacity: 0, translateY: 10 }}
-                animate={{ opacity: 1, translateY: 0 }}
-                transition={{ type: 'timing', duration: 260 }}
-                style={{ alignItems: 'center', paddingVertical: 32, paddingHorizontal: 32, gap: 10 }}>
-                <Compass size={32} color={Palette.textMuted} />
-                <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>No matches found</Text>
-                <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center', lineHeight: 20 }}>Try a higher budget or different vibe — preppers add new meals every week.</Text>
-              </MotiView>
+              <RevealEmpty />
             ) : (
-              <View style={{ paddingHorizontal: 20 }}>
-                <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK, marginBottom: pickErr ? 6 : 14 }}>
-                  {picks.length === 1 ? "here's your pick" : `here's ${picks.length} options`}
-                </Text>
-                {pickErr ? (
-                  <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.danger, marginBottom: 10 }}>{pickErr}</Text>
-                ) : null}
-                <View style={{ gap: 16 }}>
-                  {picks.map((meal, i) => (
-                    <MotiView
-                      key={meal.id}
-                      from={{ opacity: 0, translateY: 14, scale: 0.97 }}
-                      animate={{ opacity: 1, translateY: 0, scale: 1 }}
-                      transition={{ type: 'timing', duration: 280, delay: i * 45 }}
-                      style={{ flexDirection: 'row', gap: 12, alignItems: 'flex-start' }}>
-                      <View style={{ flex: 1 }}>
-                        <MealCard meal={meal} width={null} />
-                      </View>
-                      <PressableScale
-                        onPress={() => addPick(meal.id, meal.price)}
-                        disabled={addingId === meal.id}
-                        accessibilityRole="button"
-                        accessibilityLabel={`Add ${meal.title} to cart`}
-                        style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', marginTop: 8, opacity: addingId === meal.id ? 0.6 : 1 }}>
-                        {addingId === meal.id ? <ActivityIndicator color="#fff" size="small" /> : <ShoppingCart size={18} color="#fff" />}
-                      </PressableScale>
-                    </MotiView>
-                  ))}
-                </View>
-              </View>
+              <MotiView
+                from={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ type: 'timing', duration: 200 }}>
+                <RevealResults
+                  picks={picks}
+                  pickReasons={pickReasons}
+                  isPersonalized={isPersonalized}
+                  pickErr={pickErr}
+                  addingId={addingId}
+                  onAdd={addPick}
+                />
+              </MotiView>
             )
           ) : null}
+
         </ScrollView>
       </SafeAreaView>
     </View>

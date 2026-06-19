@@ -1,8 +1,8 @@
 import { useRouter } from 'expo-router';
-import { ChevronLeft, Minus, Plus, RefreshCw, ToggleLeft, ToggleRight, X } from 'lucide-react-native';
+import { ChevronLeft, ExternalLink, Minus, Plus, RefreshCw, Share2, ToggleLeft, ToggleRight, Users, X } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useState } from 'react';
-import { ActivityIndicator, Modal, Pressable, RefreshControl, ScrollView, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Modal, Pressable, RefreshControl, ScrollView, Share, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PressableScale } from '@/components/ui/pressable-scale';
@@ -13,7 +13,9 @@ import { feedback } from '@/lib/feedback';
 import {
   useCreatePrepperMealPlan,
   useMyPrepperMealPlans,
+  usePrepperPlanStats,
   useUpdatePrepperMealPlan,
+  type PlanStats,
   type PrepperMealPlan,
 } from '@/lib/queries/meal-plans';
 import { useMyPrepperApplication } from '@/lib/queries/preppers';
@@ -49,8 +51,23 @@ function Stepper({ label, value, onChange, min = 1, max = 20 }: { label: string;
   );
 }
 
-function PlanCard({ plan, onToggle, busy }: { plan: PrepperMealPlan; onToggle: () => void; busy: boolean }) {
+function PlanCard({
+  plan,
+  stats,
+  onToggle,
+  busy,
+  onViewAsCustomer,
+  onShare,
+}: {
+  plan: PrepperMealPlan;
+  stats: PlanStats | undefined;
+  onToggle: () => void;
+  busy: boolean;
+  onViewAsCustomer: () => void;
+  onShare: () => void;
+}) {
   const cycleLabel = plan.frequency === 'weekly' ? '/wk' : plan.frequency === 'biweekly' ? '/2wk' : '/mo';
+  const subscribers = stats?.activeSubscribers ?? 0;
   return (
     <View style={{ backgroundColor: Palette.surface, borderRadius: 20, padding: 16, gap: 12 }}>
       <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10 }}>
@@ -65,6 +82,13 @@ function PlanCard({ plan, onToggle, busy }: { plan: PrepperMealPlan; onToggle: (
           {plan.description ? (
             <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: Palette.textSecondary, marginTop: 4, lineHeight: 18 }} numberOfLines={2}>{plan.description}</Text>
           ) : null}
+          {/* Subscriber chip */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6, alignSelf: 'flex-start', backgroundColor: Palette.chip, borderRadius: Radius.pill, paddingHorizontal: 8, paddingVertical: 3 }}>
+            <Users size={11} color={Palette.textMuted} />
+            <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: Palette.textMuted }}>
+              {subscribers} {subscribers === 1 ? 'subscriber' : 'subscribers'}
+            </Text>
+          </View>
         </View>
         <View style={{ alignItems: 'flex-end', gap: 6 }}>
           <Text style={{ fontFamily: Font.display, fontSize: 18, color: ORANGE, letterSpacing: -0.4 }}>{money(plan.price)}<Text style={{ fontFamily: Font.body, fontSize: 11, color: Palette.textMuted }}>{cycleLabel}</Text></Text>
@@ -75,6 +99,8 @@ function PlanCard({ plan, onToggle, busy }: { plan: PrepperMealPlan; onToggle: (
           </View>
         </View>
       </View>
+
+      {/* Toggle visibility */}
       <PressableScale onPress={() => { feedback.tap(); onToggle(); }} disabled={busy} accessibilityRole="button"
         accessibilityLabel={plan.active ? 'Hide plan from customers' : 'Make plan visible to customers'}
         style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, height: 38, borderRadius: Radius.sm, backgroundColor: Palette.canvas, borderWidth: 1, borderColor: Palette.border }}>
@@ -90,6 +116,20 @@ function PlanCard({ plan, onToggle, busy }: { plan: PrepperMealPlan; onToggle: (
           </>
         )}
       </PressableScale>
+
+      {/* View as customer + Share row */}
+      <View style={{ flexDirection: 'row', gap: 8 }}>
+        <PressableScale onPress={() => { feedback.tap(); onViewAsCustomer(); }} accessibilityRole="button" accessibilityLabel="View plan as customer"
+          style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 36, borderRadius: Radius.sm, backgroundColor: Palette.canvas, borderWidth: 1, borderColor: Palette.border }}>
+          <ExternalLink size={14} color={Palette.textSecondary} />
+          <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: Palette.textSecondary }}>Customer view</Text>
+        </PressableScale>
+        <PressableScale onPress={() => { feedback.tap(); onShare(); }} accessibilityRole="button" accessibilityLabel="Share plan link"
+          style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 36, borderRadius: Radius.sm, backgroundColor: ORANGE + '14', borderWidth: 1, borderColor: ORANGE + '30' }}>
+          <Share2 size={14} color={ORANGE} />
+          <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: ORANGE }}>Share plan</Text>
+        </PressableScale>
+      </View>
     </View>
   );
 }
@@ -101,6 +141,7 @@ export default function PrepperMealPlansScreen() {
   const prepperId = application?.status === 'approved' ? application.id : null;
 
   const { data: plans, isLoading, isError, refetch } = useMyPrepperMealPlans(prepperId);
+  const { data: planStats } = usePrepperPlanStats(prepperId);
   const createPlan = useCreatePrepperMealPlan(prepperId);
   const updatePlan = useUpdatePrepperMealPlan(prepperId);
 
@@ -148,6 +189,19 @@ export default function PrepperMealPlansScreen() {
     }
   }
 
+  function handleShare(planId: string) {
+    void Share.share({ message: `https://preppa.live/plans/${planId}`, url: `https://preppa.live/plans/${planId}` });
+  }
+
+  function handleViewAsCustomer(planId: string) {
+    router.push({ pathname: '/meal-plans', params: { planId } } as never);
+  }
+
+  // Aggregate stats for the summary banner
+  const totalSubscribers = (planStats ?? []).reduce((sum, s) => sum + s.activeSubscribers, 0);
+  const totalRevenue = (planStats ?? []).reduce((sum, s) => sum + s.monthlyRevenue, 0);
+  const activePlanCount = (plans ?? []).filter((p) => p.active).length;
+
   function goBack() { feedback.tap(); if (router.canGoBack()) { router.back(); } else { router.replace('/prepper-hub'); } }
 
   return (
@@ -175,6 +229,23 @@ export default function PrepperMealPlansScreen() {
         <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={ORANGE} colors={[ORANGE]} />}
           contentContainerStyle={{ padding: 16, paddingBottom: 40, gap: 12 }}>
+
+          {/* Analytics summary banner — only shown once plans exist or stats are loaded */}
+          {(!isLoading && !isError && (plans ?? []).length > 0) ? (
+            <MotiView from={{ opacity: 0, translateY: -6 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 240 }}
+              style={{ flexDirection: 'row', gap: 8, marginBottom: 4 }}>
+              {([
+                { label: 'SUBSCRIBERS', value: String(totalSubscribers) },
+                { label: 'MONTHLY RECURRING', value: money(totalRevenue) },
+                { label: 'ACTIVE PLANS', value: String(activePlanCount) },
+              ] as const).map((cell) => (
+                <View key={cell.label} style={{ flex: 1, backgroundColor: Palette.surface, borderRadius: 16, padding: 14, gap: 4 }}>
+                  <Text style={{ fontFamily: Font.semibold, fontSize: 10, color: Palette.textMuted, textTransform: 'uppercase', letterSpacing: 0.4 }} numberOfLines={1}>{cell.label}</Text>
+                  <Text style={{ fontFamily: Font.display, fontSize: 20, color: cell.label === 'MONTHLY RECURRING' ? ORANGE : INK, letterSpacing: -0.5 }} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>{cell.value}</Text>
+                </View>
+              ))}
+            </MotiView>
+          ) : null}
 
           {isLoading ? <ListSkeleton count={3} rowHeight={110} /> : isError ? (
             <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }}
@@ -206,14 +277,20 @@ export default function PrepperMealPlansScreen() {
             </MotiView>
           ) : (plans ?? []).map((p, i) => (
             <MotiView key={p.id} from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 220, delay: i * 50 }}>
-              <PlanCard plan={p} busy={updatePlan.isPending}
+              <PlanCard
+                plan={p}
+                stats={(planStats ?? []).find((s) => s.planId === p.id)}
+                busy={updatePlan.isPending}
                 onToggle={() => {
                   setToggleErr(null);
                   updatePlan.mutate({ id: p.id, active: !p.active }, {
                     onSuccess: () => feedback.success(),
                     onError: () => { feedback.error(); setToggleErr('Could not update plan status. Please try again.'); },
                   });
-                }} />
+                }}
+                onViewAsCustomer={() => handleViewAsCustomer(p.id)}
+                onShare={() => handleShare(p.id)}
+              />
             </MotiView>
           ))}
         </ScrollView>

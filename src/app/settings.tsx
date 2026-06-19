@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { ChevronRight, Info, LifeBuoy, ShieldCheck, SlidersHorizontal, type LucideIcon } from 'lucide-react-native';
+import { ChevronRight, Info, LifeBuoy, Settings2, ShieldCheck, SlidersHorizontal, type LucideIcon } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { Platform, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -16,7 +16,7 @@ type Bucket = {
   sub: string;
   Icon: LucideIcon;
   tint: string;
-  route: '/settings-account' | '/settings-help' | '/settings-about' | '/settings-privacy';
+  route: '/settings-account' | '/settings-help' | '/settings-about' | '/settings-privacy' | '/settings-app';
 };
 
 const BUCKETS: Bucket[] = [
@@ -52,6 +52,14 @@ const BUCKETS: Bucket[] = [
     tint: '#0EA5E9',
     route: '/settings-privacy',
   },
+  {
+    key: 'app',
+    title: 'App Preferences',
+    sub: 'Haptics, display, privacy toggles & cached data',
+    Icon: Settings2,
+    tint: Palette.brand,
+    route: '/settings-app',
+  },
 ];
 
 function BucketCard({ bucket, index }: { bucket: Bucket; index: number }) {
@@ -83,7 +91,7 @@ export default function SettingsHubScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: Palette.canvas }}>
       <SafeAreaView edges={['top']} style={{ flex: 1 }}>
-        <SettingsHeader title="settings & support" subtitle="Everything that keeps your food coming, in four simple places." />
+        <SettingsHeader title="settings & support" subtitle="Everything that keeps your food coming, in five simple places." />
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 40, gap: 14, ...(Platform.OS === 'web' ? { maxWidth: 640, alignSelf: 'center', width: '100%' } : {}) }}>

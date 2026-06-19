@@ -1,8 +1,8 @@
 import { useRouter } from 'expo-router';
-import { Bike, Check, ChevronLeft, Crown, Gift, Lock, MessageSquare, ShoppingBag, Sparkles, Star, Tag, UserPlus } from 'lucide-react-native';
+import { Bike, Check, ChevronLeft, ChevronRight, Crown, Gift, Lock, MessageSquare, ShoppingBag, Sparkles, Star, Tag, UserPlus } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useState } from 'react';
-import { Modal, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { Modal, Pressable, RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/ui/button';
@@ -12,7 +12,7 @@ import { feedback } from '@/lib/feedback';
 import { Font } from '@/constants/fonts';
 import { Palette, Radius } from '@/constants/theme';
 import { useMyOrders } from '@/lib/queries/orders';
-import { TIERS, useRewards, type Tier } from '@/lib/queries/rewards';
+import { TIERS, useRewards, useRewardsHistory, type Tier, type PointsEntry } from '@/lib/queries/rewards';
 import { useAuth } from '@/providers/auth-provider';
 
 const ORANGE = Palette.brand;
@@ -52,6 +52,30 @@ const PERKS: Perk[] = [
     cta: 'Explore meal plans', ctaRoute: '/meal-plans',
   },
 ];
+
+function ActivityRow({ entry, onOrderPress }: { entry: PointsEntry; onOrderPress: (id: string) => void }) {
+  const date = new Date(entry.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  const label =
+    entry.reason === 'order' ? 'Order placed' :
+    entry.reason === 'review' ? 'Review submitted' :
+    entry.reason === 'referral' ? 'Referral bonus' :
+    entry.reason;
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 13, borderTopWidth: 1, borderTopColor: Palette.divider }}>
+      <View style={{ flex: 1 }}>
+        <Text style={{ fontFamily: Font.semibold, fontSize: 13.5, color: Palette.success }}>+{entry.points} pts</Text>
+        <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.ink, marginTop: 2 }}>{label}</Text>
+      </View>
+      <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted, marginRight: entry.orderId ? 4 : 0 }}>{date}</Text>
+      {entry.orderId ? (
+        <TouchableOpacity onPress={() => { feedback.tap(); onOrderPress(entry.orderId!); }}
+          accessibilityRole="button" accessibilityLabel="View order details" hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+          <ChevronRight size={16} color={Palette.brand} />
+        </TouchableOpacity>
+      ) : null}
+    </View>
+  );
+}
 
 function RedeemSheet({ perk, canRedeem, userPoints, onClose, onCta }: { perk: Perk | null; canRedeem: boolean; userPoints: number; onClose: () => void; onCta: (route: string) => void }) {
   if (!perk) return null;
@@ -146,9 +170,10 @@ export default function RewardsScreen() {
   const { user } = useAuth();
   const r = useRewards(user?.id);
   const { refetch: refetchOrders } = useMyOrders(user?.id);
+  const { data: history, isLoading: historyLoading, refetch: refetchHistory } = useRewardsHistory(user?.id);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedPerk, setSelectedPerk] = useState<Perk | null>(null);
-  async function handleRefresh() { setRefreshing(true); await Promise.all([refetchOrders(), r.refetch()]); setRefreshing(false); }
+  async function handleRefresh() { setRefreshing(true); await Promise.all([refetchOrders(), r.refetch(), refetchHistory()]); setRefreshing(false); }
 
   function handlePerkCta(route: string) {
     setSelectedPerk(null);
@@ -294,6 +319,33 @@ export default function RewardsScreen() {
                 </View>
               ))}
             </View>
+            </MotiView>
+
+            {/* Recent activity */}
+            <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 360 }}>
+            <Text style={{ fontFamily: Font.display, fontSize: 15, color: INK, letterSpacing: -0.3, marginTop: 8 }}>recent activity</Text>
+            {historyLoading ? (
+              <View style={{ gap: 8, marginTop: 12 }}>
+                {[0, 1, 2].map((i) => <Skeleton key={i} width="100%" height={54} radius={12} />)}
+              </View>
+            ) : (history ?? []).length === 0 ? (
+              <View style={{ backgroundColor: Palette.surface, borderRadius: Radius.lg, padding: 20, alignItems: 'center', gap: 8, marginTop: 12 }}>
+                <Text style={{ fontFamily: Font.body, fontSize: 13.5, color: Palette.textSecondary, textAlign: 'center' }}>
+                  No points activity yet. Place your first preorder to start earning!
+                </Text>
+              </View>
+            ) : (
+              <View style={{ backgroundColor: Palette.surface, borderRadius: Radius.lg, paddingHorizontal: 16, marginTop: 12, overflow: 'hidden' }}>
+                {(history ?? []).map((entry, i) => (
+                  <MotiView key={entry.id} from={{ opacity: 0, translateX: -5 }} animate={{ opacity: 1, translateX: 0 }} transition={{ type: 'timing', duration: 200, delay: i * 25 }}>
+                    <ActivityRow
+                      entry={entry}
+                      onOrderPress={(id) => router.push(`/order-status?id=${id}` as never)}
+                    />
+                  </MotiView>
+                ))}
+              </View>
+            )}
             </MotiView>
 
             {/* Refer CTA */}

@@ -7,49 +7,48 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withRepeat,
-  withSequence,
+  withSpring,
   withTiming,
 } from 'react-native-reanimated';
 
+import { Palette } from '@/constants/theme';
 import { BRAND, PreppaLogo } from './preppa-logo';
 
-const TRACK_WIDTH = 100;
-const BAR_WIDTH = 36;
+const TRACK_WIDTH = 120;
+const BAR_WIDTH = 44;
 
 export function LoadingSplash() {
   const x = useSharedValue(-BAR_WIDTH);
-  const ringScale = useSharedValue(0.92);
+  const logoScale = useSharedValue(0);
 
   useEffect(() => {
+    // Spring scale-in for the wordmark
+    logoScale.value = withSpring(1, { damping: 20, stiffness: 260 });
+
+    // Sliding progress bar
     x.value = withRepeat(
-      withTiming(TRACK_WIDTH, { duration: 1100, easing: Easing.inOut(Easing.ease) }),
+      withTiming(TRACK_WIDTH, { duration: 1000, easing: Easing.inOut(Easing.ease) }),
       -1,
       false,
     );
-    ringScale.value = withRepeat(
-      withSequence(
-        withTiming(1.12, { duration: 900, easing: Easing.inOut(Easing.ease) }),
-        withTiming(0.94, { duration: 900, easing: Easing.inOut(Easing.ease) }),
-      ),
-      -1,
-      false,
-    );
-  }, [x, ringScale]);
+  }, [x, logoScale]);
 
   const barStyle = useAnimatedStyle(() => ({ transform: [{ translateX: x.value }] }));
-  const ringStyle = useAnimatedStyle(() => ({ transform: [{ scale: ringScale.value }] }));
+  const logoStyle = useAnimatedStyle(() => ({ transform: [{ scale: logoScale.value }] }));
 
   return (
-    <Animated.View exiting={FadeOut.duration(360)} style={styles.container}>
-      <View style={styles.logoWrap}>
-        <Animated.View style={[styles.ring, ringStyle]} />
+    <Animated.View exiting={FadeOut.duration(300)} style={styles.container}>
+      {/* Logo with spring entrance */}
+      <Animated.View style={logoStyle}>
         <MotiView
-          from={{ scale: 0.92 }}
-          animate={{ scale: 1.04 }}
-          transition={{ type: 'timing', duration: 1100, loop: true, repeatReverse: true }}>
-          <PreppaLogo size={92} glow />
+          from={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ type: 'timing', duration: 200 }}>
+          <PreppaLogo size={80} glow={false} />
         </MotiView>
-      </View>
+      </Animated.View>
+
+      {/* Progress bar */}
       <View style={styles.track}>
         <Animated.View style={[styles.bar, barStyle]} />
       </View>
@@ -60,30 +59,21 @@ export function LoadingSplash() {
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    top: 0, left: 0, right: 0, bottom: 0,
-    backgroundColor: '#0b0604',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: Palette.canvas,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 36,
+    gap: 40,
     zIndex: 2000,
-  },
-  logoWrap: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  ring: {
-    position: 'absolute',
-    width: 128,
-    height: 128,
-    borderRadius: 64,
-    borderWidth: 1.5,
-    borderColor: 'rgba(232,97,26,0.35)',
   },
   track: {
     width: TRACK_WIDTH,
     height: 3,
     borderRadius: 2,
-    backgroundColor: 'rgba(255,255,255,0.12)',
+    backgroundColor: Palette.border,
     overflow: 'hidden',
   },
   bar: {

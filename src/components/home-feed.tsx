@@ -8,7 +8,6 @@ import { ScrollView, Text, View } from 'react-native';
 
 import type { Meal } from '@/components/meal-card';
 import { MealCard } from '@/components/meal-card';
-import { PrepperCard } from '@/components/prepper-card';
 import { SectionHeader } from '@/components/home-extras';
 import { CardRowSkeleton } from '@/components/ui/skeleton';
 import { PressableScale } from '@/components/ui/pressable-scale';
@@ -19,7 +18,8 @@ import { imgUrl } from '@/lib/img';
 import { useCarouselCardWidth, useContentWidth, usePagePadding, gridCardWidth } from '@/lib/layout';
 import { useMealPlans } from '@/lib/queries/meal-plans';
 import { useNewestMeals } from '@/lib/queries/meals';
-import { useFollowedPreppers, useTopPreppers } from '@/lib/queries/preppers';
+import { useMyFollowIds, useTopPreppers } from '@/lib/queries/preppers';
+import { useFollowingFeed, type FeedItem } from '@/lib/queries/feed';
 import { useAddToCart } from '@/lib/queries/cart';
 import { useAuth } from '@/providers/auth-provider';
 
@@ -128,8 +128,8 @@ function TrendingMealCard({
   const isBig = variant === 'big';
   return (
     <View style={width !== null ? { width } : undefined}>
-      <MealCard meal={meal} width={width} variant={variant} action={!isBig ? <QuickAddButton meal={meal} /> : undefined} />
-      {/* Below-card row: diet tag + QuickAdd for both variants */}
+      <MealCard meal={meal} width={width} variant={variant} />
+      {/* Below-card row: diet tag + QuickAdd for hero (big) cards only */}
       {isBig ? (
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: tag ? 'space-between' : 'flex-end', paddingHorizontal: 6, paddingTop: 8, paddingBottom: 2 }}>
           {tag ? (
@@ -265,24 +265,61 @@ export function ChefsInActionFeed() {
 
 // ─── FollowingKitchensSection ─────────────────────────────────────────────────
 
+function FollowingDropCard({ item }: { item: FeedItem }) {
+  const router = useRouter();
+  const dest = item.isPost
+    ? (`/prepper?id=${item.prepper_id}` as never)
+    : (`/meal?id=${item.id}` as never);
+  return (
+    <PressableScale
+      onPress={() => { feedback.tap(); router.push(dest); }}
+      accessibilityRole="button"
+      accessibilityLabel={item.title || item.prepper}
+      style={{ width: 140, backgroundColor: Palette.surface, borderRadius: Radius.lg, overflow: 'hidden', ...Shadow.card }}>
+      <View style={{ width: 140, height: 110, backgroundColor: Palette.border }}>
+        {(item.thumbnail || item.image)
+          ? <Image source={{ uri: imgUrl(item.thumbnail || item.image, 280) }} style={{ flex: 1 }} contentFit="cover" transition={200} />
+          : <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}><UtensilsCrossed size={28} color={Palette.textMuted} /></View>}
+      </View>
+      <View style={{ padding: 8, gap: 2 }}>
+        <Text numberOfLines={1} style={{ fontFamily: Font.heading, fontSize: 12.5, color: INK }}>{item.title || 'post'}</Text>
+        <Text numberOfLines={1} style={{ fontFamily: Font.body, fontSize: 11, color: Palette.textMuted }}>{item.prepper}</Text>
+      </View>
+    </PressableScale>
+  );
+}
+
 export function FollowingKitchensSection({ userId }: { userId: string }) {
   const router = useRouter();
-  const { data: preppers } = useFollowedPreppers(userId);
-  if (!preppers?.length) return null;
+  const { data: followIds } = useMyFollowIds(userId);
+  const { data: followingFeed, isLoading } = useFollowingFeed(userId);
+  const hasFollows = (followIds?.length ?? 0) > 0;
+  const items = (followingFeed ?? []).slice(0, 6);
+
+  if (!hasFollows) return null;
+
   return (
     <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }}
       transition={{ type: 'timing', duration: 260, delay: 100 }}>
-      <SectionHeader title="kitchens you follow" linkLabel="see all →" Icon={Sparkles}
-        onLink={() => { feedback.tap(); router.push('/following'); }} />
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: 20, gap: 12, paddingBottom: 4 }}>
-        {preppers.map((prepper, i) => (
-          <MotiView key={prepper.id} from={{ opacity: 0, translateX: 10 }} animate={{ opacity: 1, translateX: 0 }}
-            transition={{ type: 'timing', duration: 220, delay: i * 50 }}>
-            <PrepperCard prepper={prepper} />
-          </MotiView>
-        ))}
-      </ScrollView>
+      <SectionHeader title="from kitchens you follow" linkLabel="see feed →" Icon={Sparkles}
+        onLink={() => { feedback.tap(); router.push('/feeds'); }} />
+      {isLoading ? <CardRowSkeleton count={3} width={140} /> : items.length > 0 ? (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ paddingHorizontal: 20, gap: 12, paddingBottom: 4 }}>
+          {items.map((item, i) => (
+            <MotiView key={item.id} from={{ opacity: 0, translateX: 10 }} animate={{ opacity: 1, translateX: 0 }}
+              transition={{ type: 'timing', duration: 220, delay: i * 50 }}>
+              <FollowingDropCard item={item} />
+            </MotiView>
+          ))}
+        </ScrollView>
+      ) : (
+        <View style={{ paddingHorizontal: 20, paddingBottom: 4 }}>
+          <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textMuted }}>
+            No recent drops from your kitchens.
+          </Text>
+        </View>
+      )}
     </MotiView>
   );
 }

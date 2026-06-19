@@ -1,4 +1,4 @@
-import { type LucideIcon } from 'lucide-react-native';
+import { ChevronRight, type LucideIcon } from 'lucide-react-native';
 import { Text, View } from 'react-native';
 import Svg, { Circle, Polyline } from 'react-native-svg';
 
@@ -56,7 +56,10 @@ export function StatCard({ Icon, value, label, trend, color, spark, onPress, fle
         <View style={{ width: 38, height: 38, borderRadius: 12, backgroundColor: color + '24', alignItems: 'center', justifyContent: 'center' }}>
           <Icon size={19} color={color} />
         </View>
-        <Text style={{ fontFamily: Font.semibold, fontSize: 12, color }}>{trend}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+          <Text style={{ fontFamily: Font.semibold, fontSize: 12, color }}>{trend}</Text>
+          {onPress && <ChevronRight size={12} color={MUTED} />}
+        </View>
       </View>
       <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: MUTED }}>{label}</Text>
       <Text style={{ fontFamily: Font.display, fontSize: 26, color: INK, letterSpacing: -0.6 }}>{value}</Text>

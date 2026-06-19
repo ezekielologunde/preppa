@@ -1,4 +1,6 @@
-import { BadgeCheck, Check, ChevronDown, ChevronUp, Star, Store, X } from 'lucide-react-native';
+import { BadgeCheck, Check, ChevronDown, ChevronRight, ChevronUp, ExternalLink, Star, Store, X } from 'lucide-react-native';
+import { useAdminToggleFeatured } from '@/lib/queries/featured';
+import { useRouter } from 'expo-router';
 import { MotiView } from 'moti';
 import { useState } from 'react';
 import { Text, TextInput, View } from 'react-native';
@@ -9,6 +11,7 @@ import { Radius } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
 import { useAdminPreppers, usePrepperEarnings, useSetPrepperStatus, useVerifyPrepper } from '@/lib/queries/admin';
 import type { AdminPrepper } from '@/lib/queries/admin';
+import { supabase } from '@/lib/supabase';
 import type { PrepperEarningsRow, PrepperStatus } from '@/types/database.types';
 import { Admin, Avatar, Card, money, compact, Pill, SectionState } from './ui';
 
@@ -24,17 +27,29 @@ function dateLabel(iso: string) {
 }
 
 function PrepperCard({ p, earnings }: { p: AdminPrepper; earnings?: PrepperEarningsRow }) {
+  const router = useRouter();
   const [expanded, setExpanded] = useState(false);
   const [rejecting, setRejecting] = useState(false);
   const [note, setNote] = useState('');
   const [actionErr, setActionErr] = useState<string | null>(null);
   const setStatus = useSetPrepperStatus();
   const verify = useVerifyPrepper();
+  const toggleFeatured = useAdminToggleFeatured();
 
   function approve() {
     setActionErr(null);
     setStatus.mutate({ prepperId: p.id, status: 'approved' }, {
-      onSuccess: () => feedback.success(),
+      onSuccess: () => {
+        feedback.success();
+        void supabase.from('prepper_profiles').select('user_id').eq('id', p.id).single().then(({ data }) => {
+          const uid = (data as { user_id: string } | null)?.user_id;
+          if (uid) {
+            void supabase.functions.invoke('notify', {
+              body: { user_id: uid, title: 'You\'re approved!', body: 'Your kitchen is now live on Preppa. Time to publish your first meal!', data: { type: 'approved' } },
+            });
+          }
+        });
+      },
       onError: () => { feedback.error(); setActionErr('Could not approve. Please try again.'); },
     });
   }
@@ -50,7 +65,19 @@ function PrepperCard({ p, earnings }: { p: AdminPrepper; earnings?: PrepperEarni
     setStatus.mutate(
       { prepperId: p.id, status: 'rejected', note: note.trim() || undefined },
       {
-        onSuccess: () => { feedback.success(); setRejecting(false); setNote(''); },
+        onSuccess: () => {
+          feedback.success();
+          setRejecting(false);
+          setNote('');
+          void supabase.from('prepper_profiles').select('user_id').eq('id', p.id).single().then(({ data }) => {
+            const uid = (data as { user_id: string } | null)?.user_id;
+            if (uid) {
+              void supabase.functions.invoke('notify', {
+                body: { user_id: uid, title: 'Application update', body: 'Your kitchen application wasn\'t approved this time. Tap to review and reapply.', data: { type: 'rejected' } },
+              });
+            }
+          });
+        },
         onError: () => { feedback.error(); setActionErr('Could not reject. Please try again.'); },
       },
     );
@@ -68,6 +95,22 @@ function PrepperCard({ p, earnings }: { p: AdminPrepper; earnings?: PrepperEarni
           </Text>
         </View>
         <Pill label={p.status} />
+        {p.status === 'approved' ? (
+          <PressableScale
+            onPress={() => {
+              toggleFeatured.mutate({ prepperId: p.id, featured: !p.is_featured }, {
+                onSuccess: () => feedback.success(),
+                onError: () => feedback.error(),
+              });
+            }}
+            disabled={toggleFeatured.isPending}
+            accessibilityRole="button"
+            accessibilityLabel={p.is_featured ? 'Remove from featured' : 'Mark as featured'}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            style={{ width: 32, height: 32, alignItems: 'center', justifyContent: 'center' }}>
+            <Star size={16} color={p.is_featured ? '#f59e0b' : Admin.textDim} fill={p.is_featured ? '#f59e0b' : 'none'} />
+          </PressableScale>
+        ) : null}
         <PressableScale
           onPress={() => setExpanded((x) => !x)}
           accessibilityRole="button"
@@ -227,6 +270,18 @@ function PrepperCard({ p, earnings }: { p: AdminPrepper; earnings?: PrepperEarni
           ) : null}
         </View>
       )}
+
+      {p.status === 'approved' ? (
+        <PressableScale
+          onPress={() => { feedback.tap(); router.push(`/prepper?id=${p.id}`); }}
+          accessibilityRole="link"
+          accessibilityLabel="View public profile"
+          style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 10, paddingTop: 10, borderTopWidth: 1, borderTopColor: Admin.border }}>
+          <ExternalLink size={16} color={Admin.textDim} />
+          <Text style={{ flex: 1, fontFamily: Font.body, fontSize: 13, color: Admin.textDim }}>View public kitchen</Text>
+          <ChevronRight size={16} color={Admin.textDim} />
+        </PressableScale>
+      ) : null}
     </Card>
   );
 }

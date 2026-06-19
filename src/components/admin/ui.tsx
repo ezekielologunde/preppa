@@ -2,6 +2,8 @@ import type { ReactNode } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
 import type { LucideIcon } from 'lucide-react-native';
 
+import { PressableScale } from '@/components/ui/pressable-scale';
+
 import { Font } from '@/constants/fonts';
 import { Palette, Radius } from '@/constants/theme';
 
@@ -33,9 +35,9 @@ export function Card({ children, style }: { children: ReactNode; style?: object 
   );
 }
 
-export function StatCard({ label, value, sub, Icon, tone = 'brand' }: { label: string; value: string; sub?: string; Icon?: LucideIcon; tone?: 'brand' | 'success' | 'danger' | 'warn' }) {
+export function StatCard({ label, value, sub, Icon, tone = 'brand', onPress }: { label: string; value: string; sub?: string; Icon?: LucideIcon; tone?: 'brand' | 'success' | 'danger' | 'warn'; onPress?: () => void }) {
   const tint = Admin[tone];
-  return (
+  const inner = (
     <Card style={{ flex: 1, minWidth: 150 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
         <Text style={{ fontFamily: Font.medium, fontSize: 12, color: Admin.textDim }}>{label}</Text>
@@ -49,6 +51,14 @@ export function StatCard({ label, value, sub, Icon, tone = 'brand' }: { label: s
       {sub ? <Text style={{ fontFamily: Font.body, fontSize: 12, color: Admin.textMuted, marginTop: 2 }}>{sub}</Text> : null}
     </Card>
   );
+  if (onPress) {
+    return (
+      <PressableScale onPress={onPress} accessibilityRole="button" accessibilityLabel={label} style={{ flex: 1 }}>
+        {inner}
+      </PressableScale>
+    );
+  }
+  return inner;
 }
 
 const PILL_TONES: Record<string, { bg: string; fg: string }> = {

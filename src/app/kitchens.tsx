@@ -11,7 +11,7 @@ import { CardRowSkeleton } from '@/components/ui/skeleton';
 import { Font } from '@/constants/fonts';
 import { Palette, Radius } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
-import { useKitchensByTag, useKitchenTags } from '@/lib/queries/preppers';
+import { useActiveLiveSessions, useKitchensByTag, useKitchenTags } from '@/lib/queries/preppers';
 
 const INK = Palette.ink;
 
@@ -42,6 +42,7 @@ export default function KitchensScreen() {
   const [selected, setSelected] = useState<string | null>(tag || null);
   const { data: tags } = useKitchenTags();
   const { data: kitchens, isLoading, isError, refetch } = useKitchensByTag(selected);
+  const { data: liveSet = new Set<string>() } = useActiveLiveSessions();
   const [refreshing, setRefreshing] = useState(false);
   async function handleRefresh() { setRefreshing(true); await refetch(); setRefreshing(false); }
 
@@ -100,7 +101,7 @@ export default function KitchensScreen() {
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 16, justifyContent: 'center' }}>
                 {kitchens.map((k, i) => (
                   <MotiView key={k.id} from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 220, delay: i * 45 }}>
-                    <PrepperCard prepper={k} />
+                    <PrepperCard prepper={k} isLive={liveSet.has(k.id)} />
                   </MotiView>
                 ))}
               </View>

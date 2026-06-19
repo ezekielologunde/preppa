@@ -1,16 +1,13 @@
-import { Image } from 'expo-image';
 import { MotiView } from 'moti';
 import type { ComponentType } from 'react';
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import {
-  Bell, ChevronRight, Flame, MapPin, Search, ShoppingCart, SlidersHorizontal, Star, UtensilsCrossed,
+  Bell, ChevronRight, Flame, MapPin, Search, ShoppingCart, SlidersHorizontal, UtensilsCrossed,
 } from 'lucide-react-native';
 import { Platform, RefreshControl, ScrollView, Text, View, useWindowDimensions } from 'react-native';
-import { imgUrl } from '@/lib/img';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { PreppaLogo } from '@/components/preppa-logo';
 import {
   ActionSplitter, CategoryIconsRow, ExperiencesBar, MyPlansSection,
   RewardsBanner, SurpriseMeBanner,
@@ -19,6 +16,7 @@ import {
   ChefsInActionFeed, FreshDropsSection, FollowingKitchensSection, MealPlansDiscoverySection,
   TrendingSection,
 } from '@/components/home-feed';
+import { FeaturedKitchensSection, ForYouSection, RecentlyViewedSection, TrendingNowSection } from '@/components/home-sections';
 import { BecomePrepperNudge } from '@/components/home-nudges';
 import { Font } from '@/constants/fonts';
 import { PressableScale } from '@/components/ui/pressable-scale';
@@ -31,6 +29,7 @@ import { useDeviceLocation, usePurgeGpsAddresses } from '@/lib/use-location';
 import { useMyOrders } from '@/lib/queries/orders';
 import { useNotifications } from '@/lib/queries/notifications';
 import { usePersonalizedMeals } from '@/lib/queries/recommend';
+import { useTodayStock } from '@/lib/queries/stock';
 import { BP, useHomeColumns } from '@/lib/layout';
 import { useAuth } from '@/providers/auth-provider';
 import { feedback } from '@/lib/feedback';
@@ -166,7 +165,10 @@ export default function HomeScreen() {
   // usePersonalizedMeals already reads user?.user_metadata (which includes dietary prefs)
   // so personalization here picks up 'Vegan', 'Keto', etc. automatically via user_metadata.
   const rankedMeals = usePersonalizedMeals(liveMeals ?? [], user?.id, user?.user_metadata ?? null).map((s) => s.meal);
-  const meals = rankedMeals.length > 0 ? rankedMeals : (liveMeals ?? []);
+  const baseMeals = rankedMeals.length > 0 ? rankedMeals : (liveMeals ?? []);
+  const homeMealIds = baseMeals.map((m) => m.id);
+  const { data: homeStockMap = {} } = useTodayStock(homeMealIds);
+  const meals = baseMeals.map((m) => ({ ...m, stockRemaining: homeStockMap[m.id]?.qtyRemaining ?? null }));
 
   const { data: myOrders, refetch: refetchOrders } = useMyOrders(user?.id);
   const activeOrder = (myOrders ?? []).find((o) => o.status !== 'completed' && o.status !== 'cancelled');
@@ -198,32 +200,29 @@ export default function HomeScreen() {
   const greet = greeting();
   const uid = user?.id;
 
-  const heroMeal = meals[0];
-
   const headerEl = (
-    <View>
-      {/* ── Top bar ── */}
+    <View style={{ paddingTop: 24 }}>
+      {/* ── Greeting row + icon buttons ── */}
       <MotiView from={{ opacity: 0, translateY: -10 }} animate={{ opacity: 1, translateY: 0 }}
         transition={{ type: 'spring', damping: 18, stiffness: 180 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: headerPad, paddingTop: 12, gap: 12 }}>
-          <PressableScale onPress={() => { feedback.tap(); router.push('/profile'); }} accessibilityRole="button" accessibilityLabel="Your profile" hitSlop={8}>
-            <PreppaLogo size={40} showTile={false} flameColor={ORANGE} />
-          </PressableScale>
+        <View style={{ flexDirection: 'row', alignItems: 'flex-start', paddingHorizontal: headerPad, gap: 12 }}>
+          {/* Left: greeting + location */}
           <View style={{ flex: 1 }}>
-            <Text numberOfLines={1} style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>
-              {`${greet.charAt(0).toUpperCase()}${greet.slice(1)}`}{rawFirst ? `, ${rawFirst} 👋` : ''}
+            <Text numberOfLines={1} style={{ fontFamily: Font.display, fontSize: 28, color: INK, letterSpacing: -0.5, lineHeight: 33 }}>
+              {`${greet}, `}{firstName ?? 'there'}
             </Text>
             <PressableScale onPress={handleLocationTap} accessibilityRole="button"
-              accessibilityLabel={`Find chefs near ${locCapturing ? '...' : locationLabel}`}
+              accessibilityLabel={`Location: ${locCapturing ? 'detecting' : locationLabel}. Tap to change.`}
               hitSlop={{ top: 8, bottom: 8, left: 4, right: 8 }}
-              style={{ flexDirection: 'row', alignItems: 'center', gap: 3, alignSelf: 'flex-start', marginTop: 2 }}>
-              <MapPin size={11} color={locCapturing ? Palette.textMuted : ORANGE} />
-              <Text numberOfLines={1} style={{ fontFamily: Font.medium, fontSize: 12, color: locCapturing ? Palette.textMuted : ORANGE }}>
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-start', marginTop: 4 }}>
+              <MapPin size={12} color={locCapturing ? MUTED : MUTED} />
+              <Text numberOfLines={1} style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary }}>
                 {locCapturing ? 'detecting...' : locationLabel}
               </Text>
             </PressableScale>
           </View>
-          <View style={{ flexDirection: 'row', gap: 8 }}>
+          {/* Right: notification + cart */}
+          <View style={{ flexDirection: 'row', gap: 8, marginTop: 2 }}>
             <HeaderIconButton Icon={Bell} badge={badgeCount} onPress={() => router.push('/notifications')}
               label={badgeCount ? `Notifications, ${badgeCount} unread` : 'Notifications'} />
             <View>
@@ -240,42 +239,6 @@ export default function HomeScreen() {
           </View>
         </View>
       </MotiView>
-
-      {/* ── Hero section ── */}
-      <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }}
-        transition={{ type: 'spring', damping: 14, stiffness: 130, delay: 60 }}>
-        <View style={{ flexDirection: 'row', paddingLeft: headerPad, marginTop: 10, alignItems: 'flex-end' }}>
-          {/* Left: headline + subtitle */}
-          <View style={{ flex: 1, paddingRight: 10, paddingBottom: 6 }}>
-            <Text style={{ fontFamily: Font.display, fontSize: 26, color: INK, letterSpacing: -0.8, lineHeight: 31 }}>
-              Real food.
-            </Text>
-            <Text style={{ fontFamily: Font.display, fontSize: 26, color: ORANGE, letterSpacing: -0.8, lineHeight: 31 }}>
-              Made by local cooks.
-            </Text>
-            <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: Palette.textSecondary, marginTop: 6, lineHeight: 18 }}>
-              Skip the chains — order from the best home preppers in your neighborhood.
-            </Text>
-          </View>
-          {/* Right: food photo + rating badge */}
-          {heroMeal?.image ? (
-            <View style={{ width: 140 }}>
-              <Image source={imgUrl(heroMeal.image, 400)}
-                style={{ width: 140, height: 158, borderRadius: 20 }}
-                contentFit="cover" transition={200} />
-              <View style={{ position: 'absolute', bottom: 10, left: -20, backgroundColor: Palette.surface, borderRadius: 14, paddingHorizontal: 10, paddingVertical: 8, ...Shadow.floating, maxWidth: 140 }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
-                  {[0, 1, 2, 3].map((i) => <Star key={i} size={11} fill={Palette.amber} color={Palette.amber} />)}
-                  <Text style={{ fontFamily: Font.heading, fontSize: 13, color: INK, marginLeft: 3 }}>4.8</Text>
-                </View>
-                <Text style={{ fontFamily: Font.body, fontSize: 10.5, color: Palette.textSecondary, marginTop: 1 }}>from 1.2K+ reviews</Text>
-              </View>
-            </View>
-          ) : (
-            <View style={{ width: 140, height: 158, borderRadius: 20, backgroundColor: Palette.brandTint }} />
-          )}
-        </View>
-      </MotiView>
     </View>
   );
 
@@ -283,12 +246,14 @@ export default function HomeScreen() {
     <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }}
       transition={{ type: 'spring', damping: 18, stiffness: 200, delay: 130 }}>
       <PressableScale onPress={() => { feedback.tap(); router.push('/search'); }} accessibilityRole="search"
-        accessibilityLabel="Search meals, cuisines, or preppers"
-        style={{ marginHorizontal: 20, marginTop: 16, flexDirection: 'row', alignItems: 'center', height: 52, borderRadius: 18, backgroundColor: Palette.surface, paddingLeft: 16, paddingRight: 8, gap: 10, ...Shadow.card }}>
-        <Search size={19} color={MUTED} />
-        <Text style={{ flex: 1, fontFamily: Font.body, fontSize: 14, color: MUTED }}>search meals, cuisines, or preppers…</Text>
-        <View style={{ width: 38, height: 38, borderRadius: 12, backgroundColor: Palette.brandTint, alignItems: 'center', justifyContent: 'center' }}>
-          <SlidersHorizontal size={17} color={ORANGE} />
+        accessibilityLabel="Search meals, kitchens"
+        style={{ marginHorizontal: 20, marginTop: 12 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', height: 44, borderRadius: 22, backgroundColor: Palette.surface, paddingHorizontal: 16, gap: 10, ...Shadow.card }}>
+          <Search size={16} color={MUTED} />
+          <Text style={{ flex: 1, fontFamily: Font.body, fontSize: 14, color: MUTED }}>Search meals, kitchens…</Text>
+          <View style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: Palette.brandTint, alignItems: 'center', justifyContent: 'center' }}>
+            <SlidersHorizontal size={15} color={ORANGE} />
+          </View>
         </View>
       </PressableScale>
     </MotiView>
@@ -308,6 +273,7 @@ export default function HomeScreen() {
                 {searchEl}
                 <CategoryIconsRow />
                 <View style={{ marginTop: 4 }}><TrendingSection meals={meals} isLoading={mealsLoading} isTablet={false} /></View>
+                <View style={{ marginTop: 24 }}><FeaturedKitchensSection /></View>
                 {!activeOrder ? <RushBanner /> : null}
                 {activeOrder ? <ActiveOrderBanner order={activeOrder} /> : null}
                 {activeOrder ? <View style={{ height: 8 }} /> : null}
@@ -315,7 +281,10 @@ export default function HomeScreen() {
                 <ChefsInActionFeed />
                 <View style={{ marginTop: 24 }}><FreshDropsSection /></View>
                 <View style={{ marginTop: 24 }}><ExperiencesBar /></View>
+                <View style={{ marginTop: 24 }}><RecentlyViewedSection /></View>
                 {uid ? <View style={{ marginTop: 24 }}><FollowingKitchensSection userId={uid} /></View> : null}
+                <View style={{ marginTop: 24 }}><ForYouSection userId={uid} firstName={firstName} /></View>
+                <View style={{ marginTop: 24 }}><TrendingNowSection /></View>
               </ScrollView>
             </View>
             <View style={{ width: cols.rail }}>
@@ -344,6 +313,7 @@ export default function HomeScreen() {
           {searchEl}
           <CategoryIconsRow />
           <View style={{ marginTop: 4 }}><TrendingSection meals={meals} isLoading={mealsLoading} isTablet={isTablet} /></View>
+          <View style={{ marginTop: 24 }}><FeaturedKitchensSection /></View>
           {!activeOrder ? <RushBanner /> : null}
           {activeOrder ? <ActiveOrderBanner order={activeOrder} /> : null}
           {activeOrder ? <View style={{ height: 8 }} /> : null}
@@ -351,7 +321,10 @@ export default function HomeScreen() {
           <ChefsInActionFeed />
           <View style={{ marginTop: 24 }}><FreshDropsSection /></View>
           <View style={{ marginTop: 24 }}><ExperiencesBar /></View>
+          <View style={{ marginTop: 24 }}><RecentlyViewedSection /></View>
           {uid ? <View style={{ marginTop: 24 }}><FollowingKitchensSection userId={uid} /></View> : null}
+          <View style={{ marginTop: 24 }}><ForYouSection userId={uid} firstName={firstName} /></View>
+          <View style={{ marginTop: 24 }}><TrendingNowSection /></View>
           {uid ? <View style={{ marginTop: 24 }}><MyPlansSection userId={uid} /></View> : null}
           <View style={{ marginTop: 24 }}><MealPlansDiscoverySection /></View>
           <View style={{ marginTop: 24 }}><SurpriseMeBanner /></View>

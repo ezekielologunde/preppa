@@ -12,12 +12,12 @@ type CheckItem = { label: string; done: boolean; route: string };
 
 function healthItems(profile: PrepperProfile): CheckItem[] {
   return [
-    { label: 'profile photo', done: !!profile.avatar, route: '/edit-profile' },
-    { label: 'bio written', done: !!profile.bio && profile.bio.length > 0, route: '/edit-profile' },
-    { label: 'cuisine specialties', done: profile.specialties.length > 0, route: '/edit-profile' },
-    { label: 'city / location', done: !!profile.city, route: '/edit-profile' },
+    { label: 'kitchen photo', done: !!profile.avatar, route: '/kitchen-settings' },
+    { label: 'bio written', done: !!profile.bio && profile.bio.length > 0, route: '/kitchen-settings' },
+    { label: 'cuisine specialties', done: profile.specialties.length > 0, route: '/kitchen-settings' },
+    { label: 'city / location', done: !!profile.city, route: '/kitchen-settings' },
     { label: 'at least 1 meal listed', done: profile.meals.length > 0, route: '/meal-editor' },
-    { label: 'delivery options set', done: profile.delivers || profile.pickup, route: '/edit-profile' },
+    { label: 'delivery options set', done: profile.delivers || profile.pickup, route: '/delivery-settings' },
   ];
 }
 
@@ -37,7 +37,7 @@ export function ProfileHealthCard({ profile }: { profile: PrepperProfile }) {
 
   return (
     <PressableScale
-      onPress={() => { feedback.tap(); router.push('/edit-profile'); }}
+      onPress={() => { feedback.tap(); router.push('/kitchen-settings'); }}
       accessibilityRole="button"
       accessibilityLabel={`Profile health ${pct}%`}
       style={{

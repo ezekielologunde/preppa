@@ -1,11 +1,14 @@
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { BadgeCheck, Check, Clock, MessageCircle, RefreshCw, Star, Zap } from 'lucide-react-native';
+import { AlertTriangle, BadgeCheck, Bookmark, Check, ChevronRight, Clock, MessageCircle, Minus, Plus, RefreshCw, Share2, Star, Zap } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { MotiView } from 'moti';
-import { Platform, RefreshControl, ScrollView, Text, useWindowDimensions, View } from 'react-native';
+import { Platform, RefreshControl, ScrollView, Share, Text, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { DietaryBadge } from '@/components/dietary-badge';
+import { ALLERGENS } from '@/constants/dietary';
+import { MealReviewList, MealVideoStrip } from '@/components/meal-extras';
 import { MealGallery } from '@/components/meal-gallery';
 import { MealConfirmSheet, MealSwitchPrompt } from '@/components/meal-modals';
 import { PressableScale } from '@/components/ui/pressable-scale';
@@ -18,7 +21,7 @@ import { useAddToCart, useCart } from '@/lib/queries/cart';
 import { useFeatureEnabled } from '@/lib/queries/feature-flags';
 import { QuickAddButton } from '@/components/home-feed';
 import { MealCard } from '@/components/meal-card';
-import { useMeal, useMealsByPrepper } from '@/lib/queries/meals';
+import { useIsMealSaved, useMeal, useMealsByPrepper, useToggleSavedMeal } from '@/lib/queries/meals';
 import { BP } from '@/lib/layout';
 import { useStartConversation } from '@/lib/queries/messages';
 import { getCurrentRush, getRushUrgency } from '@/lib/rush-hour';
@@ -26,8 +29,7 @@ import { useIsFollowing, useToggleFollow } from '@/lib/queries/preppers';
 import { usePrepperReviews } from '@/lib/queries/reviews';
 import { useAuth } from '@/providers/auth-provider';
 
-const ORANGE = Palette.brand;
-const INK = Palette.ink;
+const ORANGE = Palette.brand; const INK = Palette.ink;
 
 /** "ends in 3h" / "ends in 2d" — null when no expiry or already past. */
 function dropTimeLeft(expiresAt: string | null): string | null {
@@ -45,8 +47,7 @@ function Macro({ label, value }: { label: string; value: number | null }) {
   return (
     <View style={{ flex: 1, alignItems: 'center', backgroundColor: Palette.canvas, borderRadius: 14, paddingVertical: 12 }}>
       <Text style={{ fontFamily: Font.display, fontSize: 18, color: INK, fontVariant: ['tabular-nums'] }}>{value}</Text>
-      <Text style={{ fontFamily: Font.body, fontSize: 11, color: Palette.textMuted }}>{label}</Text>
-    </View>
+      <Text style={{ fontFamily: Font.body, fontSize: 11, color: Palette.textMuted }}>{label}</Text></View>
   );
 }
 
@@ -56,6 +57,7 @@ export default function MealScreen() {
   const { user } = useAuth();
   const { data: meal, isLoading, isError, refetch: refetchMeal } = useMeal(id);
   const [added, setAdded] = useState(false);
+  const [qty, setQty] = useState(1);
   const [cartErr, setCartErr] = useState<string | null>(null);
   const [msgErr, setMsgErr] = useState<string | null>(null);
   const [switchPrompt, setSwitchPrompt] = useState(false);
@@ -78,6 +80,10 @@ export default function MealScreen() {
   const { data: moreMeals } = useMealsByPrepper(meal?.prepperId, id ?? null, 6);
   const { data: isFollowing } = useIsFollowing(meal?.prepperId, user?.id);
   const toggleFollow = useToggleFollow(meal?.prepperId ?? '', user?.id);
+  const { data: isSaved, isLoading: isSavedLoading } = useIsMealSaved(user?.id, id);
+  const [savedOptimistic, setSavedOptimistic] = useState<boolean | null>(null);
+  const effectiveSaved = savedOptimistic ?? isSaved ?? false;
+  const toggleSaved = useToggleSavedMeal(user?.id, id);
   const orderingOn = useFeatureEnabled('ordering');
   const nowHour = new Date().getHours();
   const liveRush = getRushUrgency(nowHour, new Date().getMinutes()) === 'live' ? getCurrentRush(nowHour) : null;
@@ -100,6 +106,27 @@ export default function MealScreen() {
     toggleFollow.mutate(isFollowing ?? false, { onSuccess: () => feedback.success(), onError: () => feedback.error() });
   }
 
+  function handleToggleSaved() {
+    feedback.tap();
+    if (!user) return router.push('/auth?mode=signin');
+    if (!meal?.id) return;
+    setSavedOptimistic(!effectiveSaved);
+    toggleSaved.mutate(effectiveSaved, {
+      onSuccess: () => setSavedOptimistic(null),
+      onError: () => { feedback.error(); setSavedOptimistic(null); },
+    });
+  }
+
+  async function handleShare() {
+    if (!meal) return;
+    feedback.tap();
+    await Share.share({
+      title: meal.title,
+      message: `Check out ${meal.title} by ${meal.prepper} on Preppa — $${meal.price.toFixed(2)}! Order fresh, home-cooked meals: preppa.live/meal/${meal.id}`,
+      url: `https://preppa.live/meal/${meal.id}`,
+    });
+  }
+
   // A cart holds one prepper at a time (each prepper cooks & fulfils its own order).
   const cartPrepperId = cart?.items[0]?.prepperId ?? null;
   const cartPrepperName = cart?.items[0]?.prepper ?? 'another kitchen';
@@ -109,7 +136,7 @@ export default function MealScreen() {
     if (!user || !meal) return;
     setCartErr(null);
     addToCart.mutate(
-      { userId: user.id, mealId: meal.id, price: meal.price, replace },
+      { userId: user.id, mealId: meal.id, price: meal.price, quantity: qty, replace },
       {
         onSuccess: () => {
           setSwitchPrompt(false);
@@ -159,6 +186,8 @@ export default function MealScreen() {
             </View>
           ) : (
             <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260 }}>
+              <MealVideoStrip urls={meal.videoUrls} />
+
               {meal.isLimited ? (() => {
                 const timeLeft = dropTimeLeft(meal.expiresAt);
                 return (
@@ -175,61 +204,138 @@ export default function MealScreen() {
                 );
               })() : null}
 
-              <Text style={{ fontFamily: Font.display, fontSize: 28, color: INK, letterSpacing: -0.6 }}>{meal.title}</Text>
-
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                <PressableScale
-                  onPress={() => { if (meal.prepperId) { feedback.tap(); router.push(`/prepper?id=${meal.prepperId}`); } }}
-                  style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}>
-                  <Text numberOfLines={1} style={{ fontFamily: Font.heading, fontSize: 15, color: Palette.inkSoft, flexShrink: 1 }}>by {meal.prepper}</Text>
-                  {meal.prepperVerified ? <BadgeCheck size={16} color={ORANGE} fill={ORANGE} stroke="#fff" /> : null}
-                </PressableScale>
-                {meal.prepperId ? (
-                  <MotiView
-                    animate={{ backgroundColor: isFollowing ? ORANGE : Palette.brandTint }}
-                    transition={{ type: 'spring', damping: 18, stiffness: 220 }}
-                    style={{ borderRadius: 18, overflow: 'hidden' }}>
-                    <PressableScale
-                      onPress={handleFollow}
-                      disabled={toggleFollow.isPending}
-                      accessibilityRole="button"
-                      accessibilityLabel={isFollowing ? `Unfollow ${meal.prepper}` : `Follow ${meal.prepper}`}
-                      style={{ flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 12, height: 36 }}>
-                      {isFollowing ? <Check size={13} color="#fff" strokeWidth={3} /> : null}
-                      <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: isFollowing ? '#fff' : ORANGE }}>
-                        {isFollowing ? 'following' : 'follow'}
-                      </Text>
-                    </PressableScale>
-                  </MotiView>
-                ) : null}
-                {meal.prepperUserId ? (
+              {/* Title + Price + Bookmark row */}
+              <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+                <Text style={{ fontFamily: Font.display, fontSize: 24, color: INK, letterSpacing: -0.5, flex: 1 }}>{meal.title}</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                  <Text style={{ fontFamily: Font.display, fontSize: 22, color: ORANGE, fontVariant: ['tabular-nums'] }}>${meal.price.toFixed(2)}</Text>
                   <PressableScale
-                    onPress={messagePrepper}
-                    disabled={startConv.isPending}
+                    onPress={() => { void handleShare(); }}
                     accessibilityRole="button"
-                    accessibilityLabel={`Message ${meal.prepper}`}
-                    style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, height: 36, borderRadius: 18, backgroundColor: Palette.brandTint }}>
-                    <MessageCircle size={15} color={ORANGE} />
-                    <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: ORANGE }}>Message</Text>
+                    accessibilityLabel="Share this meal"
+                    style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: Palette.border }}>
+                    <Share2 size={18} color={Palette.textMuted} />
+                  </PressableScale>
+                  <PressableScale
+                    onPress={handleToggleSaved}
+                    disabled={isSavedLoading || toggleSaved.isPending}
+                    accessibilityRole="button"
+                    accessibilityLabel={effectiveSaved ? 'Remove from saved meals' : 'Save meal for later'}
+                    style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: Palette.border }}>
+                    <Bookmark
+                      size={19}
+                      color={effectiveSaved ? ORANGE : Palette.textMuted}
+                      fill={effectiveSaved ? ORANGE : 'transparent'}
+                      strokeWidth={effectiveSaved ? 2 : 1.8}
+                    />
+                  </PressableScale>
+                </View>
+              </View>
+
+              {/* Chef row */}
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                {meal.prepperId ? (
+                  <Image
+                    source={`https://api.dicebear.com/8.x/thumbs/png?seed=${meal.prepperId}`}
+                    style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: Palette.canvas }}
+                    contentFit="cover"
+                    cachePolicy="memory-disk"
+                  />
+                ) : null}
+                <View style={{ flex: 1, minWidth: 0 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+                    <Text numberOfLines={1} style={{ fontFamily: Font.heading, fontSize: 14, color: INK, flexShrink: 1 }}>{meal.prepper}</Text>
+                    {meal.prepperVerified ? <BadgeCheck size={15} color={ORANGE} fill={ORANGE} stroke="#fff" /> : null}
+                  </View>
+                </View>
+                {meal.prepperId ? (
+                  <PressableScale
+                    onPress={() => { feedback.tap(); router.push(`/prepper?id=${meal.prepperId}`); }}
+                    accessibilityRole="button"
+                    accessibilityLabel={`View ${meal.prepper}'s kitchen`}
+                    style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+                    <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: ORANGE }}>View kitchen</Text>
+                    <ChevronRight size={14} color={ORANGE} strokeWidth={2.5} />
                   </PressableScale>
                 ) : null}
               </View>
 
+              {/* Follow + Message row */}
+              {(meal.prepperId || meal.prepperUserId) ? (
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                  {meal.prepperId ? (
+                    <MotiView
+                      animate={{ backgroundColor: isFollowing ? ORANGE : Palette.brandTint }}
+                      transition={{ type: 'spring', damping: 18, stiffness: 220 }}
+                      style={{ borderRadius: 18, overflow: 'hidden' }}>
+                      <PressableScale
+                        onPress={handleFollow}
+                        disabled={toggleFollow.isPending}
+                        accessibilityRole="button"
+                        accessibilityLabel={isFollowing ? `Unfollow ${meal.prepper}` : `Follow ${meal.prepper}`}
+                        style={{ flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 12, height: 36 }}>
+                        {isFollowing ? <Check size={13} color="#fff" strokeWidth={3} /> : null}
+                        <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: isFollowing ? '#fff' : ORANGE }}>
+                          {isFollowing ? 'following' : 'follow'}
+                        </Text>
+                      </PressableScale>
+                    </MotiView>
+                  ) : null}
+                  {meal.prepperUserId ? (
+                    <PressableScale
+                      onPress={messagePrepper}
+                      disabled={startConv.isPending}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Message ${meal.prepper}`}
+                      style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, height: 36, borderRadius: 18, backgroundColor: Palette.brandTint }}>
+                      <MessageCircle size={15} color={ORANGE} />
+                      <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: ORANGE }}>Message</Text>
+                    </PressableScale>
+                  ) : null}
+                </View>
+              ) : null}
+
+              {/* Rating row */}
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-                  <Star size={15} color={Palette.amber} fill={Palette.amber} />
-                  <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: INK }}>{meal.rating.toFixed(1)}</Text>
-                  <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textMuted }}>({meal.reviews})</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                  {[1, 2, 3, 4, 5].map((n) => (
+                    <Star key={n} size={14} color={ORANGE} fill={n <= Math.round(meal.rating) ? ORANGE : 'transparent'} />
+                  ))}
+                  <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: INK, marginLeft: 3 }}>{meal.rating.toFixed(1)}</Text>
+                  <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary }}>({meal.reviews})</Text>
                 </View>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-                  <Clock size={15} color={Palette.textMuted} />
+                  <Clock size={14} color={Palette.textMuted} />
                   <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary }}>{meal.time} prep</Text>
                 </View>
               </View>
 
               {msgErr ? <Text style={{ fontFamily: Font.medium, fontSize: 12.5, color: Palette.danger }}>{msgErr}</Text> : null}
               {meal.description ? (
-                <Text style={{ fontFamily: Font.body, fontSize: 15, lineHeight: 23, color: Palette.inkSoft }}>{meal.description}</Text>
+                <Text style={{ fontFamily: Font.body, fontSize: 15, lineHeight: 22, color: INK }}>{meal.description}</Text>
+              ) : null}
+
+              {/* Dietary info section */}
+              {(meal.dietaryTags && meal.dietaryTags.length > 0) || (meal.allergens && meal.allergens.length > 0) ? (
+                <View style={{ gap: 10 }}>
+                  <Text style={{ fontFamily: Font.heading, fontSize: 14, color: Palette.textMuted, letterSpacing: 0.2 }}>Dietary info</Text>
+                  {meal.dietaryTags && meal.dietaryTags.length > 0 ? (
+                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+                      {meal.dietaryTags.map((tag) => <DietaryBadge key={tag} tag={tag} />)}
+                    </View>
+                  ) : null}
+                  {meal.allergens && meal.allergens.length > 0 ? (
+                    <View style={{ borderLeftWidth: 3, borderLeftColor: '#F59E0B', borderRadius: 4, paddingLeft: 12, paddingVertical: 10, backgroundColor: '#FFFBEB', gap: 4 }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+                        <AlertTriangle size={13} color="#F59E0B" />
+                        <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: '#B45309' }}>Contains allergens</Text>
+                      </View>
+                      <Text style={{ fontFamily: Font.body, fontSize: 13, color: '#92400E', lineHeight: 19 }}>
+                        {meal.allergens.map((a) => { const m = ALLERGENS.find((x) => x.key === a); return m ? `${m.emoji} ${m.label}` : a; }).join(', ')}
+                      </Text>
+                    </View>
+                  ) : null}
+                </View>
               ) : null}
 
               {meal.nutrition && (meal.nutrition.calories != null || meal.nutrition.protein != null) ? (
@@ -248,40 +354,35 @@ export default function MealScreen() {
                 </View>
               ) : null}
 
-              {reviews && reviews.length > 0 ? (
-                <View>
-                  <Text style={{ fontFamily: Font.display, fontSize: 15, color: INK, letterSpacing: -0.3, marginBottom: 8 }}>reviews ({reviews.length})</Text>
-                  {(allReviews ? reviews : reviews.slice(0, 4)).map((rv, i) => (
-                    <MotiView key={rv.id} from={{ opacity: 0, translateX: -6 }} animate={{ opacity: 1, translateX: 0 }} transition={{ type: 'timing', duration: 220, delay: i * 40 }}
-                      style={{ paddingVertical: 11, borderTopWidth: i > 0 ? 1 : 0, borderTopColor: Palette.divider, gap: 5 }}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                        <Text style={{ fontFamily: Font.semibold, fontSize: 13.5, color: INK }}>{rv.author}</Text>
-                        <View style={{ flexDirection: 'row', gap: 1 }}>
-                          {[1, 2, 3, 4, 5].map((n) => (
-                            <Star key={n} size={12} color={Palette.amber} fill={n <= rv.rating ? Palette.amber : 'transparent'} />
-                          ))}
-                        </View>
+              {/* Fulfillment */}
+              {(meal.prepperDelivers || meal.prepperPickup) ? (
+                <View style={{ backgroundColor: Palette.canvas, borderRadius: 16, padding: 14, marginTop: 4, gap: 10 }}>
+                  <Text style={{ fontFamily: Font.heading, fontSize: 13, color: Palette.textMuted }}>Fulfillment</Text>
+                  {meal.prepperPickup ? (
+                    <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10 }}>
+                      <Text style={{ fontSize: 18 }}>🏠</Text>
+                      <View style={{ flex: 1 }}>
+                        <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: INK }}>Pickup at kitchen</Text>
+                        {meal.prepperCity ? <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary, marginTop: 2 }}>{meal.prepperCity}</Text> : null}
                       </View>
-                      {rv.body ? <Text style={{ fontFamily: Font.body, fontSize: 13.5, lineHeight: 20, color: Palette.inkSoft }}>{rv.body}</Text> : null}
-                      {rv.photos?.length > 0 ? (
-                        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6, paddingTop: 2 }}>
-                          {rv.photos.map((ph, pi) => (
-                            <View key={pi} style={{ width: 68, height: 68, borderRadius: 10, overflow: 'hidden', backgroundColor: Palette.canvas }}>
-                              <Image source={ph} style={{ flex: 1 }} contentFit="cover" transition={200} />
-                            </View>
-                          ))}
-                        </ScrollView>
-                      ) : null}
-                    </MotiView>
-                  ))}
-                  {reviews.length > 4 ? (
-                    <PressableScale onPress={() => { feedback.tap(); setAllReviews((v) => !v); }} accessibilityRole="button" accessibilityLabel={allReviews ? 'Show fewer reviews' : `See all ${reviews.length} reviews`} style={{ alignSelf: 'flex-start', paddingVertical: 6 }}>
-                      <Text style={{ fontFamily: Font.semibold, fontSize: 13.5, color: ORANGE }}>
-                        {allReviews ? 'show fewer' : `see all ${reviews.length} reviews`}
-                      </Text>
-                    </PressableScale>
+                    </View>
+                  ) : null}
+                  {meal.prepperDelivers ? (
+                    <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10 }}>
+                      <Text style={{ fontSize: 18 }}>🚗</Text>
+                      <View style={{ flex: 1 }}>
+                        <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: INK }}>Delivery{meal.prepperDeliveryRadius != null ? ` within ${meal.prepperDeliveryRadius}km` : ''}</Text>
+                        <Text style={{ fontFamily: Font.body, fontSize: 13, color: meal.prepperDeliveryFee > 0 ? Palette.textSecondary : Palette.success, marginTop: 2 }}>
+                          {meal.prepperDeliveryFee > 0 ? `$${meal.prepperDeliveryFee.toFixed(2)} delivery fee` : 'Free delivery'}
+                        </Text>
+                      </View>
+                    </View>
                   ) : null}
                 </View>
+              ) : null}
+
+              {reviews && reviews.length > 0 ? (
+                <MealReviewList reviews={reviews} allReviews={allReviews} onToggleAll={() => setAllReviews((v) => !v)} />
               ) : null}
             </MotiView>
           )}
@@ -332,24 +433,38 @@ export default function MealScreen() {
           {cartErr ? (
             <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.danger, textAlign: 'center', paddingHorizontal: 20 }}>{cartErr}</Text>
           ) : null}
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 20, paddingVertical: 12 }}>
-            <View>
-              <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted }}>price</Text>
-              <Text style={{ fontFamily: Font.display, fontSize: 24, color: INK, fontVariant: ['tabular-nums'] }}>${meal.price.toFixed(2)}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 20, paddingVertical: 12 }}>
+            {/* Quantity stepper */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 0, backgroundColor: Palette.canvas, borderRadius: 14, overflow: 'hidden' }}>
+              <PressableScale
+                onPress={() => { feedback.tap(); setQty((q) => Math.max(1, q - 1)); }}
+                accessibilityRole="button"
+                accessibilityLabel="Decrease quantity"
+                style={{ width: 40, height: 52, alignItems: 'center', justifyContent: 'center' }}>
+                <Minus size={16} color={qty <= 1 ? Palette.textMuted : INK} strokeWidth={2.5} />
+              </PressableScale>
+              <Text style={{ fontFamily: Font.display, fontSize: 16, color: INK, minWidth: 24, textAlign: 'center', fontVariant: ['tabular-nums'] }}>{qty}</Text>
+              <PressableScale
+                onPress={() => { feedback.tap(); setQty((q) => q + 1); }}
+                accessibilityRole="button"
+                accessibilityLabel="Increase quantity"
+                style={{ width: 40, height: 52, alignItems: 'center', justifyContent: 'center' }}>
+                <Plus size={16} color={INK} strokeWidth={2.5} />
+              </PressableScale>
             </View>
             <MotiView
               animate={{ backgroundColor: !orderingOn ? Palette.textMuted : added ? Palette.success : ORANGE }}
               transition={{ type: 'timing', duration: 300 }}
-              style={{ flex: 1, height: 54, borderRadius: Radius.pill, overflow: 'hidden' }}>
+              style={{ flex: 1, height: 52, borderRadius: 14, overflow: 'hidden' }}>
               <PressableScale
                 onPress={handleAddToCart}
                 disabled={addToCart.isPending || !orderingOn}
                 accessibilityRole="button"
-                accessibilityLabel={!orderingOn ? 'Ordering paused' : user ? 'Add to cart' : 'Sign in to preorder'}
+                accessibilityLabel={!orderingOn ? 'Ordering paused' : user ? `Add to cart — $${(meal.price * qty).toFixed(2)}` : 'Sign in to preorder'}
                 style={{ flex: 1, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 7, opacity: addToCart.isPending ? 0.7 : 1 }}>
                 {added && orderingOn ? <Check size={18} color="#fff" strokeWidth={3} /> : null}
-                <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>
-                  {!orderingOn ? 'Ordering paused' : added ? 'Added to cart' : user ? 'Add to cart' : 'Sign in to preorder'}
+                <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#fff' }}>
+                  {!orderingOn ? 'Ordering paused' : added ? 'Added to cart' : user ? `Add to cart — $${(meal.price * qty).toFixed(2)}` : 'Sign in to preorder'}
                 </Text>
               </PressableScale>
             </MotiView>

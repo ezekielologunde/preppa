@@ -1,13 +1,13 @@
-import { MotiView } from 'moti';
-import { View, type DimensionValue, type StyleProp, type ViewStyle } from 'react-native';
+import { useEffect, useRef } from 'react';
+import { Animated, Easing, View, type DimensionValue, type StyleProp, type ViewStyle } from 'react-native';
 
-import { Palette } from '@/constants/theme';
+import { Palette, Radius } from '@/constants/theme';
 
-/** Pulsing placeholder — opacity-only so it stays at 60fps. */
+/** Shimmer placeholder — opacity loop on the native driver (60 fps, no JS thread). */
 export function Skeleton({
   width,
   height,
-  radius = 12,
+  radius = 8,
   style,
 }: {
   width?: DimensionValue;
@@ -15,13 +15,55 @@ export function Skeleton({
   radius?: number;
   style?: StyleProp<ViewStyle>;
 }) {
+  const anim = useRef(new Animated.Value(0.4)).current;
+
+  useEffect(() => {
+    const pulse = Animated.loop(
+      Animated.sequence([
+        Animated.timing(anim, {
+          toValue: 0.9,
+          duration: 900,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(anim, {
+          toValue: 0.4,
+          duration: 900,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ]),
+    );
+    pulse.start();
+    return () => pulse.stop();
+  }, [anim]);
+
   return (
-    <MotiView
-      from={{ opacity: 0.45 }}
-      animate={{ opacity: 1 }}
-      transition={{ type: 'timing', duration: 850, loop: true, repeatReverse: true }}
-      style={[{ width, height, borderRadius: radius, backgroundColor: '#E7E7EA' }, style]}
+    <Animated.View
+      style={[{ width, height, borderRadius: radius, backgroundColor: Palette.chip, opacity: anim }, style]}
     />
+  );
+}
+
+/** MealCard-dimension placeholder — matches the normal (non-big) MealCard exactly. */
+export function MealCardSkeleton({ width = 200 }: { width?: number }) {
+  return (
+    <View style={{ width, borderRadius: Radius.md, overflow: 'hidden', backgroundColor: Palette.surface }}>
+      {/* Image area — same height as MealCard normal imgHeight */}
+      <Skeleton width={width} height={180} radius={0} />
+      <View style={{ padding: 12, gap: 0 }}>
+        {/* Title line */}
+        <Skeleton width="70%" height={14} radius={7} />
+        {/* Price line */}
+        <View style={{ marginTop: 6 }}>
+          <Skeleton width="40%" height={12} radius={6} />
+        </View>
+        {/* Chef line */}
+        <View style={{ marginTop: 4 }}>
+          <Skeleton width="55%" height={10} radius={5} />
+        </View>
+      </View>
+    </View>
   );
 }
 
@@ -39,12 +81,12 @@ export function CardSkeleton({ width = 200 }: { width?: number }) {
   );
 }
 
-/** A horizontal row of card skeletons. */
+/** A horizontal row of MealCard skeletons (matches carousel cards). */
 export function CardRowSkeleton({ count = 3, width = 200 }: { count?: number; width?: number }) {
   return (
     <View style={{ flexDirection: 'row', gap: 14, paddingHorizontal: 20 }}>
       {Array.from({ length: count }).map((_, i) => (
-        <CardSkeleton key={i} width={width} />
+        <MealCardSkeleton key={i} width={width} />
       ))}
     </View>
   );

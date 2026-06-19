@@ -3,7 +3,7 @@ import { useRouter } from 'expo-router';
 import { ChevronLeft, Hash, ImagePlus, Video } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useState } from 'react';
-import { ActivityIndicator, ScrollView, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Platform, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PressableScale } from '@/components/ui/pressable-scale';
@@ -11,7 +11,7 @@ import { Font } from '@/constants/fonts';
 import { Palette, Radius } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
 import { supabase } from '@/lib/supabase';
-import { pickAndUploadImage } from '@/lib/upload';
+import { pickAndUploadImage, pickAndUploadImageNative, pickAndUploadVideoNative } from '@/lib/upload';
 import { useMyPrepperApplication } from '@/lib/queries/preppers';
 import { useAuth } from '@/providers/auth-provider';
 
@@ -33,7 +33,9 @@ export default function PostVideoScreen() {
   const [caption, setCaption] = useState('');
   const [tags, setTags] = useState<string[]>([]);
   const [thumb, setThumb] = useState<string | null>(null);
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [uploadingVideo, setUploadingVideo] = useState(false);
   const [posted, setPosted] = useState(false);
   const [postErr, setPostErr] = useState<string | null>(null);
 
@@ -62,7 +64,10 @@ export default function PostVideoScreen() {
     setUploading(true);
     setPostErr(null);
     try {
-      const url = await pickAndUploadImage('meal-videos', user?.id ?? 'anon');
+      const uid = user?.id ?? 'anon';
+      const url = Platform.OS === 'web'
+        ? await pickAndUploadImage('meal-videos', uid)
+        : await pickAndUploadImageNative('meal-videos', uid);
       if (url) setThumb(url);
     } catch {
       feedback.error();
@@ -72,13 +77,29 @@ export default function PostVideoScreen() {
     }
   }
 
+  async function pickVideo() {
+    feedback.tap();
+    setUploadingVideo(true);
+    setPostErr(null);
+    try {
+      const uid = user?.id ?? 'anon';
+      const url = await pickAndUploadVideoNative('meal-videos', uid);
+      if (url) setVideoUrl(url);
+    } catch {
+      feedback.error();
+      setPostErr('Could not upload video. Please try again.');
+    } finally {
+      setUploadingVideo(false);
+    }
+  }
+
   function toggleTag(t: string) {
     feedback.tap();
     setTags((prev) => (prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]));
   }
 
   async function handlePost() {
-    if (!caption.trim() && !thumb) return;
+    if (!caption.trim() && !thumb && !videoUrl) return;
     feedback.tap();
     setUploading(true);
     setPostErr(null);
@@ -87,6 +108,7 @@ export default function PostVideoScreen() {
         prepper_id: prepper!.id,
         caption: cleanBlock(caption).trim() || null,
         thumbnail_url: thumb,
+        video_url: videoUrl,
         tags,
       });
       if (error) throw error;
@@ -111,39 +133,64 @@ export default function PostVideoScreen() {
             style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center' }}>
             <ChevronLeft size={22} color="#fff" />
           </PressableScale>
-          <Text style={{ flex: 1, fontFamily: Font.display, fontSize: 24, color: '#fff', letterSpacing: -0.6 }}>post a video</Text>
+          <View style={{ flex: 1, gap: 2 }}>
+            <Text style={{ fontFamily: Font.display, fontSize: 24, color: '#fff', letterSpacing: -0.6 }}>post a video</Text>
+            <Text style={{ fontFamily: Font.body, fontSize: 13, color: MUTED }}>share what you're cooking</Text>
+          </View>
         </View>
 
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 20, paddingBottom: 40, gap: 20 }}
           keyboardShouldPersistTaps="handled">
 
-          {/* Thumbnail / video picker */}
+          {/* Thumbnail + video pickers (side by side) */}
           <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280 }}>
-          <PressableScale onPress={pickThumb} disabled={uploading} accessibilityRole="button" accessibilityLabel="Pick a thumbnail or video"
-            style={{ height: 200, borderRadius: 20, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', borderWidth: 1.5, borderColor: thumb ? 'transparent' : '#2d3240', borderStyle: 'dashed' }}>
-            {uploading ? (
-              <ActivityIndicator color={ORANGE} />
-            ) : thumb ? (
-              <>
-                <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#1a1d28' }} />
-                <MotiView from={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 240 }}
-                  style={{ alignItems: 'center', gap: 8 }}>
-                  <View style={{ width: 52, height: 52, borderRadius: 26, backgroundColor: ORANGE + '28', alignItems: 'center', justifyContent: 'center' }}>
-                    <Video size={24} color={ORANGE} />
+          <View style={{ flexDirection: 'row', gap: 12 }}>
+            {/* Thumbnail picker */}
+            <PressableScale onPress={pickThumb} disabled={uploading} accessibilityRole="button" accessibilityLabel="Pick a thumbnail image"
+              style={{ flex: 1, height: 110, borderRadius: 16, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center', gap: 8, borderWidth: 1.5, borderColor: thumb ? ORANGE + '60' : '#2d3240', borderStyle: thumb ? 'solid' : 'dashed' }}>
+              {uploading ? (
+                <ActivityIndicator color={ORANGE} size="small" />
+              ) : thumb ? (
+                <>
+                  <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: ORANGE + '28', alignItems: 'center', justifyContent: 'center' }}>
+                    <ImagePlus size={20} color={ORANGE} />
                   </View>
-                  <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: ORANGE }}>thumbnail selected — tap to change</Text>
-                </MotiView>
-              </>
-            ) : (
-              <View style={{ alignItems: 'center', gap: 8 }}>
-                <View style={{ width: 52, height: 52, borderRadius: 26, backgroundColor: '#252a34', alignItems: 'center', justifyContent: 'center' }}>
-                  <ImagePlus size={24} color={MUTED} />
-                </View>
-                <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: MUTED }}>tap to add thumbnail or video</Text>
-                <Text style={{ fontFamily: Font.body, fontSize: 12, color: '#5b6170' }}>JPG, PNG or MP4 · max 100MB</Text>
-              </View>
+                  <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: ORANGE, textAlign: 'center' }}>thumbnail{'\n'}selected</Text>
+                </>
+              ) : (
+                <>
+                  <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#252a34', alignItems: 'center', justifyContent: 'center' }}>
+                    <ImagePlus size={20} color={MUTED} />
+                  </View>
+                  <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: MUTED, textAlign: 'center' }}>Thumbnail</Text>
+                </>
+              )}
+            </PressableScale>
+
+            {/* Video file picker (native only) */}
+            {Platform.OS !== 'web' && (
+              <PressableScale onPress={pickVideo} disabled={uploadingVideo} accessibilityRole="button" accessibilityLabel="Pick a video file"
+                style={{ flex: 1, height: 110, borderRadius: 16, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center', gap: 8, borderWidth: 1.5, borderColor: videoUrl ? ORANGE + '60' : '#2d3240', borderStyle: videoUrl ? 'solid' : 'dashed' }}>
+                {uploadingVideo ? (
+                  <ActivityIndicator color={ORANGE} size="small" />
+                ) : videoUrl ? (
+                  <>
+                    <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: ORANGE + '28', alignItems: 'center', justifyContent: 'center' }}>
+                      <Video size={20} color={ORANGE} />
+                    </View>
+                    <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: ORANGE, textAlign: 'center' }}>video{'\n'}ready</Text>
+                  </>
+                ) : (
+                  <>
+                    <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#252a34', alignItems: 'center', justifyContent: 'center' }}>
+                      <Video size={20} color={MUTED} />
+                    </View>
+                    <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: MUTED, textAlign: 'center' }}>Video file</Text>
+                  </>
+                )}
+              </PressableScale>
             )}
-          </PressableScale>
+          </View>
           </MotiView>
 
           {/* Caption */}
@@ -201,10 +248,10 @@ export default function PostVideoScreen() {
               <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>Posted! Redirecting…</Text>
             </MotiView>
           ) : (
-            <PressableScale onPress={handlePost} disabled={uploading || (!caption.trim() && !thumb)}
+            <PressableScale onPress={handlePost} disabled={uploading || (!caption.trim() && !thumb && !videoUrl)}
               accessibilityRole="button" accessibilityLabel="Post video"
               style={{ height: 54, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center',
-                opacity: uploading || (!caption.trim() && !thumb) ? 0.5 : 1 }}>
+                opacity: uploading || (!caption.trim() && !thumb && !videoUrl) ? 0.5 : 1 }}>
               {uploading ? <ActivityIndicator color="#fff" /> : <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>post to feed</Text>}
             </PressableScale>
           )}

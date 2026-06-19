@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { ChevronDown, ChevronLeft, ChevronUp, Repeat, Users } from 'lucide-react-native';
+import { ChevronDown, ChevronLeft, ChevronUp, Crown, Repeat, Users } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useState } from 'react';
 import { RefreshControl, ScrollView, Text, View } from 'react-native';
@@ -11,6 +11,7 @@ import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
 import { Palette, Radius } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
+import { usePrepperMembership } from '@/lib/queries/memberships';
 import { usePrepperOrders, type OrderSummary } from '@/lib/queries/orders';
 import { useMyPrepperApplication } from '@/lib/queries/preppers';
 import { useAuth } from '@/providers/auth-provider';
@@ -61,6 +62,8 @@ export default function CustomersScreen() {
   const { user } = useAuth();
   const { data: prepper } = useMyPrepperApplication(user?.id);
   const prepperId = prepper?.id;
+  const { data: prepperMembership } = usePrepperMembership(prepperId);
+  const isPro = prepperMembership?.isPro === true;
   const { data: orders, isLoading, isError, refetch } = usePrepperOrders(prepperId);
   const [refreshing, setRefreshing] = useState(false);
   async function handleRefresh() { setRefreshing(true); await refetch(); setRefreshing(false); }
@@ -75,11 +78,41 @@ export default function CustomersScreen() {
   const totalEarned = rows.reduce((s, r) => s + r.paidTotal, 0);
   const avgSpend = rows.length > 0 ? totalEarned / rows.length : 0;
 
+  function goBack() { feedback.tap(); if (router.canGoBack()) { router.back(); } else { router.replace('/dashboard'); } }
+
+  if (!isPro && prepperId) {
+    return (
+      <View style={{ flex: 1, backgroundColor: BG }}>
+        <SafeAreaView edges={['top']} style={{ flex: 1 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingTop: 8 }}>
+            <PressableScale onPress={goBack} accessibilityRole="button" accessibilityLabel="Go back" style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center' }}>
+              <ChevronLeft size={22} color="#fff" />
+            </PressableScale>
+          </View>
+          <MotiView from={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', damping: 18, stiffness: 200 }}
+            style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 36, gap: 16 }}>
+            <View style={{ width: 72, height: 72, borderRadius: 36, backgroundColor: '#F59E0B22', alignItems: 'center', justifyContent: 'center' }}>
+              <Crown size={40} color="#F59E0B" />
+            </View>
+            <Text style={{ fontFamily: Font.display, fontSize: 26, color: '#fff', letterSpacing: -0.6, textAlign: 'center' }}>Customer insights is a Pro feature</Text>
+            <Text style={{ fontFamily: Font.body, fontSize: 14.5, color: 'rgba(255,255,255,0.65)', textAlign: 'center', lineHeight: 22 }}>
+              See who's ordering from your kitchen, their spend history, and repeat buyer patterns with a Go Pro subscription.
+            </Text>
+            <PressableScale onPress={() => { feedback.tap(); router.push('/prepper-premium'); }} accessibilityRole="button" accessibilityLabel="Upgrade to Pro"
+              style={{ marginTop: 8, height: 52, paddingHorizontal: 32, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
+              <Text style={{ fontFamily: Font.heading, fontSize: 15.5, color: '#fff' }}>Upgrade to Pro</Text>
+            </PressableScale>
+          </MotiView>
+        </SafeAreaView>
+      </View>
+    );
+  }
+
   return (
     <View style={{ flex: 1, backgroundColor: BG }}>
       <SafeAreaView edges={['top']} style={{ flex: 1 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingTop: 8, paddingBottom: 8 }}>
-          <PressableScale onPress={() => { feedback.tap(); if (router.canGoBack()) { router.back(); } else { router.replace('/dashboard'); } }} accessibilityRole="button" accessibilityLabel="Go back" style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center' }}>
+          <PressableScale onPress={goBack} accessibilityRole="button" accessibilityLabel="Go back" style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center' }}>
             <ChevronLeft size={22} color="#fff" />
           </PressableScale>
           <Text style={{ fontFamily: Font.display, fontSize: 24, color: '#fff', letterSpacing: -0.6, flex: 1 }}>customers</Text>

@@ -1,9 +1,9 @@
 import { Image } from 'expo-image';
-import { AlertTriangle, Lock, MessageCircle, RotateCcw, Star } from 'lucide-react-native';
-import { MotiView } from 'moti';
+import { AlertTriangle, CalendarClock, Lock, MessageCircle, RotateCcw, Star } from 'lucide-react-native';
 import { ActivityIndicator, Text, View } from 'react-native';
 
 import { HandoffCard } from '@/components/handoff-card';
+import { DeliveryEtaBanner, OrderTimeline } from '@/components/order-timeline';
 import { Button } from '@/components/ui/button';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
@@ -23,74 +23,6 @@ const STATUS_LABEL: Record<OrderStatus, string> = {
   cancelled: 'Cancelled',
 };
 
-const TIMELINE_STEPS = [
-  { key: 'pending',   label: 'Received' },
-  { key: 'confirmed', label: 'Confirmed' },
-  { key: 'preparing', label: 'Cooking' },
-  { key: 'ready',     label: 'Ready' },
-  { key: 'completed', label: 'Done' },
-];
-
-function timelineIdx(status: OrderStatus): number {
-  if (status === 'pending') return 0;
-  if (status === 'confirmed') return 1;
-  if (status === 'preparing') return 2;
-  if (status === 'ready' || status === 'out_for_delivery') return 3;
-  if (status === 'completed') return 4;
-  return 0;
-}
-
-function OrderTimeline({ status }: { status: OrderStatus }) {
-  if (status === 'cancelled') return null;
-  const curr = timelineIdx(status);
-  const inFlight = status !== 'completed';
-  return (
-    <View style={{ marginTop: 4, marginBottom: 2 }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', height: 18 }}>
-        {TIMELINE_STEPS.map((step, i) => {
-          const done = i <= curr;
-          const active = i === curr;
-          const nodeStyle = {
-            width: active ? 11 : 8,
-            height: active ? 11 : 8,
-            borderRadius: 6,
-            backgroundColor: done ? Palette.brand : Palette.border,
-            ...(active ? { shadowColor: Palette.brand, shadowRadius: 5, shadowOpacity: 0.55, elevation: 3 } : {}),
-          };
-          return (
-            <View key={step.key} style={{ flexDirection: 'row', alignItems: 'center', flex: i < TIMELINE_STEPS.length - 1 ? 1 : 0 }}>
-              {active && inFlight ? (
-                <MotiView from={{ opacity: 0.55, scale: 0.85 }} animate={{ opacity: 1, scale: 1 }}
-                  transition={{ type: 'timing', duration: 950, loop: true, repeatReverse: true }}>
-                  <View style={nodeStyle} />
-                </MotiView>
-              ) : (
-                <View style={nodeStyle} />
-              )}
-              {i < TIMELINE_STEPS.length - 1 ? (
-                <View style={{ flex: 1, height: 2, backgroundColor: i < curr ? Palette.brand : Palette.border, marginHorizontal: 2, borderRadius: 1 }} />
-              ) : null}
-            </View>
-          );
-        })}
-      </View>
-      <View style={{ flexDirection: 'row', marginTop: 4 }}>
-        {TIMELINE_STEPS.map((step, i) => {
-          const active = i === curr;
-          const done = i < curr;
-          return (
-            <View key={step.key} style={{ flex: i < TIMELINE_STEPS.length - 1 ? 1 : 0, minWidth: 32, alignItems: i === 0 ? 'flex-start' : i === TIMELINE_STEPS.length - 1 ? 'flex-end' : 'center' }}>
-              <Text style={{ fontFamily: active ? Font.semibold : Font.body, fontSize: 9.5, color: active ? Palette.brand : done ? Palette.inkSoft : Palette.textMuted }}>
-                {step.label}
-              </Text>
-            </View>
-          );
-        })}
-      </View>
-    </View>
-  );
-}
-
 function statusStyle(s: OrderStatus): { bg: string; fg: string } {
   if (s === 'completed') return { bg: Palette.success + '1A', fg: Palette.success };
   if (s === 'cancelled') return { bg: Palette.canvas, fg: Palette.textSecondary };
@@ -102,18 +34,27 @@ function dateLabel(iso: string): string {
   return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
 
-export function OrderCard({ order, onCancel, onReview, onPay, onReorder, onReport, onMessage, onChat, cancelling, needsPayment, paying, reordering }: {
+export function OrderCard({ order, onCancel, onReview, onPay, onReorder, onReport, onMessage, onChat, onPress, cancelling, needsPayment, paying, reordering }: {
   order: OrderSummary; onCancel: () => void; onReview: () => void; onPay: () => void;
   onReorder: () => void; onReport: () => void; onMessage: () => void; onChat: () => void;
+  onPress?: () => void;
   cancelling: boolean; needsPayment: boolean; paying: boolean; reordering: boolean;
 }) {
   const st = statusStyle(order.status);
   return (
-    <View style={{ backgroundColor: Palette.surface, borderRadius: Radius.md, padding: 14, gap: 12 }}>
+    <PressableScale onPress={onPress} disabled={!onPress} accessibilityRole={onPress ? 'button' : undefined} accessibilityLabel={onPress ? `View preorder from ${order.prepper}` : undefined} style={{ backgroundColor: Palette.surface, borderRadius: Radius.md, padding: 14, gap: 12 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
         <PressableScale onPress={onMessage} accessibilityRole="button" accessibilityLabel={`View ${order.prepper}'s kitchen`} style={{ flex: 1, minWidth: 0 }}>
           <Text style={{ fontFamily: Font.heading, fontSize: 15, color: Palette.ink }} numberOfLines={1}>{order.prepper}</Text>
           <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary, marginTop: 1, textTransform: 'capitalize' }}>{dateLabel(order.created_at)} · {order.fulfillment === 'meetup' ? 'meet up' : order.fulfillment === 'home_cook' ? 'home cook' : order.fulfillment}</Text>
+          {order.scheduled_at ? (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 3 }}>
+              <CalendarClock size={12} color={Palette.brand} />
+              <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: Palette.brand }}>
+                Scheduled for {new Date(order.scheduled_at).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+              </Text>
+            </View>
+          ) : null}
         </PressableScale>
         <View style={{ paddingHorizontal: 11, height: 26, borderRadius: Radius.pill, backgroundColor: st.bg, alignItems: 'center', justifyContent: 'center' }}>
           <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: st.fg }}>{STATUS_LABEL[order.status]}</Text>
@@ -124,6 +65,10 @@ export function OrderCard({ order, onCancel, onReview, onPay, onReorder, onRepor
         <View style={{ backgroundColor: Palette.canvas, borderRadius: Radius.sm, paddingHorizontal: 12, paddingVertical: 10 }}>
           <OrderTimeline status={order.status} />
         </View>
+      ) : null}
+
+      {order.status === 'out_for_delivery' && order.fulfillment === 'delivery' ? (
+        <DeliveryEtaBanner />
       ) : null}
 
       <View style={{ gap: 8 }}>
@@ -145,9 +90,17 @@ export function OrderCard({ order, onCancel, onReview, onPay, onReorder, onRepor
         />
       ) : null}
 
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderTopWidth: 1, borderTopColor: Palette.chip, paddingTop: 11 }}>
-        <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary }}>Total</Text>
-        <Text style={{ fontFamily: Font.display, fontSize: 18, color: Palette.ink, fontVariant: ['tabular-nums'] }}>{money(order.total)}</Text>
+      <View style={{ borderTopWidth: 1, borderTopColor: Palette.chip, paddingTop: 11, gap: 5 }}>
+        {order.service_fee != null && order.service_fee > 0 ? (
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary }}>Platform fee</Text>
+            <Text style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.textSecondary, fontVariant: ['tabular-nums'] }}>{money(order.service_fee)}</Text>
+          </View>
+        ) : null}
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary }}>Total</Text>
+          <Text style={{ fontFamily: Font.display, fontSize: 18, color: Palette.ink, fontVariant: ['tabular-nums'] }}>{money(order.total)}</Text>
+        </View>
       </View>
 
       {needsPayment ? (
@@ -206,6 +159,6 @@ export function OrderCard({ order, onCancel, onReview, onPay, onReorder, onRepor
           </PressableScale>
         )
       ) : null}
-    </View>
+    </PressableScale>
   );
 }

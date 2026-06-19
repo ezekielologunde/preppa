@@ -226,6 +226,81 @@ export function useUpdatePrepperMealPlan(prepperId?: string | null) {
   });
 }
 
+// ---------------------------------------------------------------------------
+// Prepper analytics — subscriber count + revenue per plan
+// ---------------------------------------------------------------------------
+
+export type PlanStats = {
+  planId: string;
+  activeSubscribers: number;
+  monthlyRevenue: number;
+};
+
+/**
+ * For each of this prepper's plans, return the count of active subscribers and
+ * the implied monthly revenue (sum of plan.price for active subscriptions).
+ * Joins via prepper_id on the subscriptions table — no inner join needed since
+ * prepper_id is a direct column on subscriptions.
+ */
+export function usePrepperPlanStats(prepperId?: string | null) {
+  return useQuery({
+    queryKey: ['prepper-plan-stats', prepperId ?? 'none'],
+    enabled: !!prepperId,
+    staleTime: 60_000,
+    queryFn: async (): Promise<PlanStats[]> => {
+      // Fetch active subscriptions for this prepper that have a plan_id set,
+      // and join the plan price from meal_plans.
+      const { data, error } = await supabase
+        .from('subscriptions')
+        .select('plan_id, meal_plans(price)')
+        .eq('prepper_id', prepperId!)
+        .eq('status', 'active')
+        .not('plan_id', 'is', null);
+      if (error) throw error;
+
+      const grouped: Record<string, PlanStats> = {};
+      for (const row of data ?? []) {
+        const pid = row.plan_id as string;
+        const planRow = Array.isArray(row.meal_plans) ? row.meal_plans[0] : row.meal_plans;
+        const price = Number((planRow as { price?: number } | null)?.price ?? 0);
+        if (!grouped[pid]) grouped[pid] = { planId: pid, activeSubscribers: 0, monthlyRevenue: 0 };
+        grouped[pid].activeSubscribers++;
+        grouped[pid].monthlyRevenue += price;
+      }
+      return Object.values(grouped);
+    },
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Customer billing history
+// ---------------------------------------------------------------------------
+
+export type BillingRecord = {
+  id: string;
+  amount: number;
+  status: string;
+  billing_date: string;
+  plan_name: string;
+};
+
+/**
+ * Billing history for the signed-in customer.
+ * Returns an empty array until a subscription_payments table is added to the schema.
+ * Gracefully degrades: the UI shows an empty state, not an error.
+ */
+export function useMyBillingHistory(userId?: string | null) {
+  return useQuery({
+    queryKey: ['billing-history', userId ?? 'anon'],
+    enabled: !!userId,
+    staleTime: 120_000,
+    queryFn: async (): Promise<BillingRecord[]> => {
+      // subscription_payments table not yet in schema — return empty until migration lands.
+      return [];
+    },
+  });
+}
+
 /** Skip the next delivery — bumps next_billing_at forward one cycle, no charge. */
 export function useSkipDelivery(userId?: string | null) {
   const qc = useQueryClient();

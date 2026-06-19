@@ -1,0 +1,74 @@
+import * as Device from 'expo-device';
+import * as Notifications from 'expo-notifications';
+import { useRouter } from 'expo-router';
+import { useEffect } from 'react';
+import { Platform } from 'react-native';
+
+import { supabase } from '@/lib/supabase';
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: true,
+    shouldShowBanner: true,
+    shouldShowList: true,
+  }),
+});
+
+export async function registerPushToken(userId: string): Promise<void> {
+  if (!Device.isDevice) return; // Expo Push doesn't work on simulators
+
+  const { status: existing } = await Notifications.getPermissionsAsync();
+  let finalStatus = existing;
+  if (existing !== 'granted') {
+    const { status } = await Notifications.requestPermissionsAsync();
+    finalStatus = status;
+  }
+  if (finalStatus !== 'granted') return;
+
+  const token = (await Notifications.getExpoPushTokenAsync()).data;
+  const platform = Platform.OS === 'ios' ? 'ios' : Platform.OS === 'android' ? 'android' : 'web';
+
+  await supabase.from('push_tokens').upsert(
+    { user_id: userId, token, platform, updated_at: new Date().toISOString() },
+    { onConflict: 'user_id,platform' },
+  );
+}
+
+export async function clearPushToken(userId: string): Promise<void> {
+  await supabase.from('push_tokens').delete().eq('user_id', userId);
+}
+
+export function usePushNotificationListeners() {
+  const router = useRouter();
+
+  useEffect(() => {
+    const received = Notifications.addNotificationReceivedListener(_notification => {
+      // Notification received while app is foregrounded — no-op for now.
+    });
+
+    const response = Notifications.addNotificationResponseReceivedListener(res => {
+      const data = res.notification.request.content.data as Record<string, unknown>;
+      if (typeof data?.screen === 'string') {
+        if (data.screen === 'order' && typeof data.orderId === 'string') {
+          router.push(`/order-status?id=${data.orderId}` as never);
+        }
+      }
+    });
+
+    return () => {
+      received.remove();
+      response.remove();
+    };
+  }, [router]);
+}
+
+if (Platform.OS === 'android') {
+  Notifications.setNotificationChannelAsync('default', {
+    name: 'Preppa',
+    importance: Notifications.AndroidImportance.MAX,
+    vibrationPattern: [0, 250, 250, 250],
+    lightColor: '#E8611A',
+  });
+}

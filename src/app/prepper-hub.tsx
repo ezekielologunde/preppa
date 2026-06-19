@@ -1,23 +1,31 @@
 import { useRouter } from 'expo-router';
-import { ChevronLeft, ChevronRight, Clock, DollarSign, Flame, MessageSquare, Package, RefreshCw, Sparkles, Star, TrendingUp, Users, Wallet, Zap } from 'lucide-react-native';
+import { CalendarDays, ChefHat, ChevronLeft, ChevronRight, Clock, DollarSign, Flame, MessageSquare, Package, RefreshCw, Sparkles, Star, TrendingUp, Users, Video, Wallet, Zap } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useState } from 'react';
 import { RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { LiveSessionBanner } from '@/components/live-session-banner';
+import { PrepperEarningsChart } from '@/components/prepper-earnings-chart';
+import { PrepperInsightsCard } from '@/components/prepper-insights-card';
+import { PrepperTodayPanel } from '@/components/prepper-today-panel';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Font } from '@/constants/fonts';
+import { Palette, Radius } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
 import { useBreakpoint } from '@/lib/layout';
 import { usePrepperOrders } from '@/lib/queries/orders';
-import { useMyPrepperApplication } from '@/lib/queries/preppers';
+import { useMyPrepperApplication, useToggleAvailability } from '@/lib/queries/preppers';
 import { getCurrentRush, getNextRush } from '@/lib/rush-hour';
-import { Palette, Radius } from '@/constants/theme';
 import { useAuth } from '@/providers/auth-provider';
 
 const ORANGE = Palette.brand;
-const INK = Palette.ink;
+const INK = '#FFFFFF';
+const BG = Palette.prepperBg;
+const CARD = Palette.prepperCard;
+const MUTED = '#6B7280';
+const TEXT2 = '#9CA3AF';
 
 const WEEKLY_INSIGHTS = [
   { label: 'Nigerian cuisine', trend: '+34%', note: 'Jollof rice preorders surging this week' },
@@ -27,14 +35,21 @@ const WEEKLY_INSIGHTS = [
 ];
 
 const ACTIONS = [
-  { label: 'add a rush-hour special', desc: 'Attract more preorders during peak windows', Icon: Flame, color: ORANGE, route: '/specials' },
+  { label: 'edit kitchen profile', desc: 'Update your name, photo, bio and specialties', Icon: ChefHat, color: Palette.brand, route: '/prepper-profile-edit' },
+  { label: 'set schedule', desc: 'Set your weekly cook days and hours for customers', Icon: CalendarDays, color: '#06b6d4', route: '/prepper-schedule' },
+  { label: 'manage preorder queue', desc: 'Review, confirm and advance active preorders', Icon: Package, color: '#06b6d4', route: '/prepper-orders' },
+  { label: 'add a rush-hour special', desc: 'Attract more preorders during peak windows', Icon: Flame, color: ORANGE, route: '/prepper-specials' },
   { label: 'update your menu', desc: 'Keep listings fresh — remove sold-out items', Icon: Package, color: '#06b6d4', route: '/meal-editor' },
+  { label: 'meal planner', desc: 'Set which days each meal is available for the week', Icon: CalendarDays, color: Palette.brand, route: '/prepper-meal-planner' },
   { label: 'manage subscription plans', desc: 'Create and publish recurring meal plans customers subscribe to', Icon: RefreshCw, color: '#8b5cf6', route: '/prepper-meal-plans' },
   { label: 'reply to reviews', desc: 'Responding boosts your ranking score', Icon: MessageSquare, color: '#8b5cf6', route: '/reviews' },
+  { label: 'bid requests', desc: 'View and bid on open meal requests from customers', Icon: Sparkles, color: '#f59e0b', route: '/bid-requests' },
   { label: 'boost your listing', desc: 'Appear at the top of search during rush', Icon: Zap, color: '#d97706', route: '/boost' },
   { label: 'view performance analytics', desc: 'Weekly trends, top dishes, and smart insights', Icon: TrendingUp, color: '#22c55e', route: '/prepper-analytics' },
   { label: 'view earnings breakdown', desc: 'Net pay, weekly totals, and recent transactions', Icon: Wallet, color: '#10b981', route: '/earnings' },
+  { label: 'request a payout', desc: 'Withdraw your available balance to your bank account', Icon: Wallet, color: '#22c55e', route: '/prepper-payouts' },
   { label: 'view your customers', desc: 'Your buyers, repeat rate, and spend per person', Icon: Users, color: '#06b6d4', route: '/customers' },
+  { label: 'go pro / premium', desc: 'Unlock analytics, bid requests, live streaming and more', Icon: Star, color: ORANGE, route: '/prepper-premium' },
 ];
 
 const TIPS = [
@@ -46,6 +61,8 @@ const TIPS = [
   'Set a prep-time buffer of +10 min during rush to protect your on-time rate.',
 ];
 
+const GREEN = '#22c55e';
+
 export default function PrepperHubScreen() {
   const router = useRouter();
   const { user } = useAuth();
@@ -54,6 +71,9 @@ export default function PrepperHubScreen() {
   const { data: orders, isLoading: ordersLoading, isError: ordersError, refetch: refetchOrders } = usePrepperOrders(application?.id);
   const statsLoading = appLoading || (application?.id != null && ordersLoading);
   const [refreshing, setRefreshing] = useState(false);
+  const [accepting, setAccepting] = useState<boolean | null>(null);
+  const toggleAvailability = useToggleAvailability(application?.id);
+  const isOpen = accepting !== null ? accepting : ((application as unknown as { accepting_orders?: boolean })?.accepting_orders !== false);
   async function handleRefresh() { setRefreshing(true); await refetchOrders(); setRefreshing(false); }
   const hour = new Date().getHours();
   const currentRush = getCurrentRush(hour);
@@ -84,13 +104,13 @@ export default function PrepperHubScreen() {
     WEEKLY_INSIGHTS[3],
   ];
 
-  function goBack() { feedback.tap(); if (router.canGoBack()) { router.back(); } else { router.replace('/profile'); } }
+  function goBack() { feedback.tap(); if (router.canGoBack()) { router.back(); } else { router.replace('/dashboard'); } }
 
   return (
-    <View style={{ flex: 1, backgroundColor: Palette.canvas }}>
+    <View style={{ flex: 1, backgroundColor: BG }}>
       <SafeAreaView edges={['top']} style={{ flex: 1 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingTop: 8, paddingBottom: 8 }}>
-          <PressableScale onPress={goBack} accessibilityRole="button" accessibilityLabel="Go back" style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
+          <PressableScale onPress={goBack} accessibilityRole="button" accessibilityLabel="Go back" style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center' }}>
             <ChevronLeft size={22} color={INK} />
           </PressableScale>
           <Text style={{ fontFamily: Font.display, fontSize: 24, color: INK, letterSpacing: -0.6 }}>kitchen hub</Text>
@@ -114,26 +134,62 @@ export default function PrepperHubScreen() {
               </View>
             </View>
           ) : nextRush ? (
-            <View style={{ backgroundColor: Palette.surface, borderRadius: Radius.lg, padding: 18, gap: 8, borderWidth: 1, borderColor: ORANGE + '30' }}>
+            <View style={{ backgroundColor: CARD, borderRadius: Radius.lg, padding: 18, gap: 8, borderWidth: 1, borderColor: ORANGE + '30' }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                 <Clock size={17} color={ORANGE} />
                 <Text style={{ fontFamily: Font.heading, fontSize: 15, color: INK }}>next rush: {nextRush.window.label}</Text>
                 <View style={{ flex: 1 }} />
-                <View style={{ backgroundColor: Palette.brandTint, borderRadius: Radius.pill, paddingHorizontal: 10, paddingVertical: 4 }}>
+                <View style={{ backgroundColor: ORANGE + '22', borderRadius: Radius.pill, paddingHorizontal: 10, paddingVertical: 4 }}>
                   <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: ORANGE }}>in ~{nextRush.inMins}m</Text>
                 </View>
               </View>
-              <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary, lineHeight: 19 }}>{nextRush.window.prepperPrepTip}</Text>
+              <Text style={{ fontFamily: Font.body, fontSize: 13, color: TEXT2, lineHeight: 19 }}>{nextRush.window.prepperPrepTip}</Text>
             </View>
           ) : (
-            <View style={{ backgroundColor: Palette.surface, borderRadius: Radius.lg, padding: 18, gap: 6 }}>
+            <View style={{ backgroundColor: CARD, borderRadius: Radius.lg, padding: 18, gap: 6 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                 <Star size={17} color='#8b5cf6' />
                 <Text style={{ fontFamily: Font.heading, fontSize: 15, color: INK }}>quiet window — prep for tomorrow</Text>
               </View>
-              <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary, lineHeight: 19 }}>Morning rush starts at 7 am. Use downtime to batch-cook, update photos, and reply to reviews.</Text>
+              <Text style={{ fontFamily: Font.body, fontSize: 13, color: TEXT2, lineHeight: 19 }}>Morning rush starts at 7 am. Use downtime to batch-cook, update photos, and reply to reviews.</Text>
             </View>
           )}
+          </MotiView>
+
+          {/* Kitchen Open / Closed banner */}
+          <MotiView
+            animate={{ backgroundColor: isOpen ? GREEN + '18' : Palette.danger + '18', borderColor: isOpen ? GREEN + '55' : Palette.danger + '55' }}
+            transition={{ type: 'spring', damping: 20, stiffness: 260 }}
+            style={{ borderRadius: Radius.lg, borderWidth: 1.5, overflow: 'hidden' }}>
+            <PressableScale
+              onPress={() => {
+                feedback.tap();
+                const next = !isOpen;
+                setAccepting(next);
+                toggleAvailability.mutate(next, { onSuccess: () => feedback.success(), onError: () => { feedback.error(); setAccepting(!next); } });
+              }}
+              accessibilityRole="switch"
+              accessibilityState={{ checked: isOpen }}
+              accessibilityLabel={isOpen ? 'Kitchen is open for preorders — tap to close' : 'Kitchen is closed — tap to open'}
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 18, paddingVertical: 14 }}>
+              <MotiView
+                animate={{ backgroundColor: isOpen ? GREEN : Palette.danger }}
+                transition={{ type: 'spring', damping: 20, stiffness: 260 }}
+                style={{ width: 12, height: 12, borderRadius: 6 }} />
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontFamily: Font.heading, fontSize: 16, color: isOpen ? GREEN : Palette.danger }}>
+                  {isOpen ? 'Kitchen Open' : 'Kitchen Closed'}
+                </Text>
+                <Text style={{ fontFamily: Font.body, fontSize: 12, color: TEXT2, marginTop: 2 }}>
+                  {isOpen ? 'Accepting preorders — tap to pause' : 'Not accepting preorders — tap to open'}
+                </Text>
+              </View>
+              <View style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: Radius.pill, backgroundColor: isOpen ? GREEN + '25' : Palette.danger + '25' }}>
+                <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: isOpen ? GREEN : Palette.danger }}>
+                  {isOpen ? 'Open' : 'Closed'}
+                </Text>
+              </View>
+            </PressableScale>
           </MotiView>
 
           {/* Active orders alert */}
@@ -146,7 +202,7 @@ export default function PrepperHubScreen() {
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={{ fontFamily: Font.heading, fontSize: 14.5, color: INK }}>{activeCount} preorder{activeCount === 1 ? '' : 's'} in queue</Text>
-                <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary, marginTop: 1 }}>Tap to review and advance</Text>
+                <Text style={{ fontFamily: Font.body, fontSize: 12, color: TEXT2, marginTop: 1 }}>Tap to review and advance</Text>
               </View>
               <ChevronRight size={16} color={ORANGE} />
             </PressableScale>
@@ -154,7 +210,7 @@ export default function PrepperHubScreen() {
           ) : null}
 
           {ordersError ? (
-            <View style={{ backgroundColor: Palette.danger + '14', borderRadius: Radius.md, padding: 12, flexDirection: 'row', alignItems: 'center', gap: 10, borderWidth: 1, borderColor: Palette.danger + '40' }}>
+            <View style={{ backgroundColor: Palette.danger + '1A', borderRadius: Radius.md, padding: 12, flexDirection: 'row', alignItems: 'center', gap: 10, borderWidth: 1, borderColor: Palette.danger + '40' }}>
               <Text style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.danger, flex: 1 }}>couldn't load order stats — pull down to retry</Text>
             </View>
           ) : null}
@@ -175,13 +231,13 @@ export default function PrepperHubScreen() {
               { label: 'avg preorder', value: `$${avgOrder.toFixed(0)}`, sub: undefined, Icon: TrendingUp, color: ORANGE },
             ].map(({ label, value, sub, Icon, color }, i) => (
               <MotiView key={label} from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 240, delay: 100 + i * 50 }} style={{ flex: 1 }}>
-              <View style={{ backgroundColor: Palette.surface, borderRadius: 14, padding: 12, alignItems: 'center', gap: 4 }}>
-                <View style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: color + '18', alignItems: 'center', justifyContent: 'center' }}>
+              <View style={{ backgroundColor: CARD, borderRadius: 14, padding: 12, alignItems: 'center', gap: 4 }}>
+                <View style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: color + '22', alignItems: 'center', justifyContent: 'center' }}>
                   <Icon size={15} color={color} />
                 </View>
                 <Text style={{ fontFamily: Font.display, fontSize: 19, color: INK, fontVariant: ['tabular-nums'] }}>{value}</Text>
                 {sub ? <Text style={{ fontFamily: Font.medium, fontSize: 10, color: Palette.success, textAlign: 'center' }}>{sub}</Text> : null}
-                <Text style={{ fontFamily: Font.body, fontSize: 10.5, color: Palette.textMuted, textAlign: 'center' }}>{label}</Text>
+                <Text style={{ fontFamily: Font.body, fontSize: 10.5, color: MUTED, textAlign: 'center' }}>{label}</Text>
               </View>
               </MotiView>
             ))}
@@ -191,16 +247,16 @@ export default function PrepperHubScreen() {
 
           {/* Market insights */}
           <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 140 }}>
-          <Text style={{ fontFamily: Font.display, fontSize: 15, color: INK, letterSpacing: -0.3, marginBottom: 12 }}>market insights</Text>
-          <View style={{ backgroundColor: Palette.surface, borderRadius: Radius.lg, overflow: 'hidden' }}>
+          <Text style={{ fontFamily: Font.display, fontSize: 15, color: '#E5E7EB', letterSpacing: -0.3, marginBottom: 12 }}>market insights</Text>
+          <View style={{ backgroundColor: CARD, borderRadius: Radius.lg, overflow: 'hidden' }}>
             {hubInsights.map(({ label, trend, note }, i) => (
               <MotiView key={label} from={{ opacity: 0, translateX: -6 }} animate={{ opacity: 1, translateX: 0 }} transition={{ type: 'timing', duration: 220, delay: 160 + i * 40 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 13, borderTopWidth: i === 0 ? 0 : 1, borderTopColor: Palette.divider }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 13, borderTopWidth: i === 0 ? 0 : 1, borderTopColor: '#1E2330' }}>
                 <View style={{ flex: 1 }}>
                   <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: INK }}>{label}</Text>
-                  <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary, marginTop: 2 }}>{note}</Text>
+                  <Text style={{ fontFamily: Font.body, fontSize: 12, color: TEXT2, marginTop: 2 }}>{note}</Text>
                 </View>
-                <View style={{ backgroundColor: Palette.brandTint, borderRadius: Radius.pill, paddingHorizontal: 10, paddingVertical: 5 }}>
+                <View style={{ backgroundColor: ORANGE + '22', borderRadius: Radius.pill, paddingHorizontal: 10, paddingVertical: 5 }}>
                   <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: ORANGE }}>{trend}</Text>
                 </View>
               </View>
@@ -209,38 +265,73 @@ export default function PrepperHubScreen() {
           </View>
           </MotiView>
 
+          {/* Create content */}
+          <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 180 }}>
+          <Text style={{ fontFamily: Font.display, fontSize: 15, color: '#E5E7EB', letterSpacing: -0.3, marginBottom: 12 }}>create content</Text>
+          <PressableScale onPress={() => { feedback.tap(); router.push('/post-video' as any); }} accessibilityRole="button" accessibilityLabel="Post Video"
+            style={{ backgroundColor: CARD, borderRadius: 16, height: 80, alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+            <View style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: ORANGE + '22', alignItems: 'center', justifyContent: 'center' }}>
+              <Video size={16} color={ORANGE} />
+            </View>
+            <Text style={{ fontFamily: Font.heading, fontSize: 13, color: INK }}>Post Video</Text>
+            <Text style={{ fontFamily: Font.body, fontSize: 11, color: MUTED }}>share a meal drop</Text>
+          </PressableScale>
+          </MotiView>
+
+          {/* Live session */}
+          {application?.id ? (
+            <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 200 }}>
+              <LiveSessionBanner prepperId={application.id} />
+            </MotiView>
+          ) : null}
+
+          {/* Today panel */}
+          {application?.id ? <PrepperTodayPanel prepperId={application.id} prepperUserId={user?.id} /> : null}
+
+          {/* Weekly earnings chart */}
+          <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 215 }}>
+            <PrepperEarningsChart prepperId={user?.id} />
+          </MotiView>
+
           {/* Action items */}
-          <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 200 }}>
-          <Text style={{ fontFamily: Font.display, fontSize: 15, color: INK, letterSpacing: -0.3, marginBottom: 12 }}>action items</Text>
+          <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 220 }}>
+          <Text style={{ fontFamily: Font.display, fontSize: 15, color: '#E5E7EB', letterSpacing: -0.3, marginBottom: 12 }}>action items</Text>
           <View style={isDesktop ? { flexDirection: 'row', flexWrap: 'wrap', gap: 10 } : { gap: 10 }}>
             {ACTIONS.map(({ label, desc, Icon, color, route }, i) => (
               <MotiView key={label} style={isDesktop ? { flex: 1, minWidth: 280, maxWidth: '48%' } : undefined} from={{ opacity: 0, translateY: 6 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 220, delay: 220 + i * 40 }}>
               <PressableScale onPress={() => { feedback.tap(); router.push(route as any); }} accessibilityRole="button" accessibilityLabel={label}
-                style={{ backgroundColor: Palette.surface, borderRadius: 14, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                <View style={{ width: 38, height: 38, borderRadius: 12, backgroundColor: color + '18', alignItems: 'center', justifyContent: 'center' }}>
+                style={{ backgroundColor: CARD, borderRadius: 14, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                <View style={{ width: 38, height: 38, borderRadius: 12, backgroundColor: color + '22', alignItems: 'center', justifyContent: 'center' }}>
                   <Icon size={17} color={color} />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: INK }}>{label}</Text>
-                  <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary, marginTop: 2 }}>{desc}</Text>
+                  <Text style={{ fontFamily: Font.body, fontSize: 12, color: TEXT2, marginTop: 2 }}>{desc}</Text>
                 </View>
-                <ChevronRight size={16} color={Palette.textMuted} />
+                <ChevronRight size={16} color={MUTED} />
               </PressableScale>
               </MotiView>
             ))}
           </View>
           </MotiView>
 
+          {/* Performance insights */}
+          {application?.id ? (
+            <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 340 }}>
+              <PrepperInsightsCard prepperId={application.id} />
+            </MotiView>
+          ) : null}
+
           {/* Daily tip */}
           <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 360 }}>
-          <View style={{ backgroundColor: INK, borderRadius: Radius.lg, padding: 18, gap: 10 }}>
+          <View style={{ backgroundColor: CARD, borderRadius: Radius.lg, padding: 18, gap: 10, borderWidth: 1, borderColor: ORANGE + '30' }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
                 <Sparkles size={14} color="#fff" />
               </View>
-              <Text style={{ fontFamily: Font.heading, fontSize: 14, color: '#fff' }}>tip of the day</Text>
+              <Text style={{ fontFamily: Font.heading, fontSize: 14, color: INK }}>tip of the day</Text>
             </View>
-            <Text style={{ fontFamily: Font.body, fontSize: 13.5, color: 'rgba(255,255,255,0.85)', lineHeight: 21 }}>{todayTip}</Text>
+            <Text style={{ fontFamily: Font.body, fontSize: 13.5, color: TEXT2, lineHeight: 21 }}>{todayTip}</Text>
           </View>
           </MotiView>
 

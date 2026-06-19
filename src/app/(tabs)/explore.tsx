@@ -1,102 +1,70 @@
 import { useRouter } from 'expo-router';
-import {
-  AlertCircle,
-  ChevronDown,
-  Coffee,
-  Compass,
-  Cookie,
-  Flame,
-  IceCream,
-  LayoutGrid,
-  List,
-  Moon,
-  MoreHorizontal,
-  QrCode,
-  Search,
-  Shuffle,
-  SlidersHorizontal,
-  Sparkles,
-  Star,
-  UtensilsCrossed,
-  X,
-  Zap,
-} from 'lucide-react-native';
-import type { ComponentType } from 'react';
+import { AlertCircle, ChevronDown, Compass, Flame, LayoutGrid, List, MapPin, QrCode, Search, Shuffle, SlidersHorizontal, Sparkles, Star, UtensilsCrossed, X, Zap } from 'lucide-react-native';
 import { MotiView } from 'moti';
-import { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Platform, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ActivityIndicator, Animated, Linking, Platform, RefreshControl, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { CuisineCard } from '@/components/cuisine-card';
+import { ActiveFilterBar, CuisineTabsRow } from '@/components/cuisine-tabs';
 import { type AdvancedFilters, countActiveFilters, ExploreFilterSheet, FILTER_DEFAULTS } from '@/components/explore-filter-sheet';
-import { QuickAddButton } from '@/components/home-feed';
 import { MealCard } from '@/components/meal-card';
 import { PrepperCard } from '@/components/prepper-card';
 import { PressableScale } from '@/components/ui/pressable-scale';
-import { CardRowSkeleton } from '@/components/ui/skeleton';
+import { CardSkeleton } from '@/components/ui/skeleton';
 import { Font } from '@/constants/fonts';
 import { Palette, Radius, Shadow } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
 import { CUISINES, SEARCH_PLACEHOLDERS } from '@/lib/explore-constants';
-import {
-  gridCardWidth,
-  useBreakpoint,
-  useCarouselCardWidth,
-  useContentWidth,
-  usePagePadding,
-} from '@/lib/layout';
+import { gridCardWidth, useBreakpoint, useCarouselCardWidth, useContentWidth, usePagePadding } from '@/lib/layout';
 import { useRankedPreppers } from '@/lib/match';
 import { useAddresses } from '@/lib/queries/addresses';
 import { useDeviceLocation, usePurgeGpsAddresses } from '@/lib/use-location';
+import { sortByDistance } from '@/lib/distance';
 import { useFeaturedMeals, useLimitedDrops } from '@/lib/queries/meals';
-import { useTopPreppers } from '@/lib/queries/preppers';
+import { useActiveLiveSessions, useTopPreppers } from '@/lib/queries/preppers';
 import { usePersonalizedMeals } from '@/lib/queries/recommend';
+import { useTodayStock } from '@/lib/queries/stock';
 import { useAuth } from '@/providers/auth-provider';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const CATEGORY_CIRCLES = [
-  { key: 'all',       label: 'all',       Icon: LayoutGrid,      color: Palette.ink },
-  { key: 'breakfast', label: 'breakfast', Icon: Coffee,          color: Palette.amber },
-  { key: 'lunch',     label: 'lunch',     Icon: UtensilsCrossed, color: Palette.success },
-  { key: 'dinner',    label: 'dinner',    Icon: Moon,            color: Palette.brand },
-  { key: 'snacks',    label: 'snacks',    Icon: Cookie,          color: '#F97316' },
-  { key: 'desserts',  label: 'desserts',  Icon: IceCream,        color: '#EC4899' },
-  { key: 'more',      label: 'more',      Icon: MoreHorizontal,  color: Palette.textSecondary },
-];
+const CHIP_CATEGORIES = [
+  { key: 'all', label: 'All' }, { key: 'nearby', label: 'Nearby' }, { key: 'trending', label: 'Trending' },
+  { key: 'new', label: 'New' }, { key: 'vegan', label: 'Vegan' }, { key: 'gluten-free', label: 'Gluten-Free' },
+  { key: 'high-protein', label: 'High Protein' },
+] as const;
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function SectionHeader({ title, pad, Icon, onSeeAll }: { title: string; pad: number; Icon?: ComponentType<{ size?: number; color?: string }>; onSeeAll?: () => void }) {
+type SH = { title: string; pad: number; Icon?: React.ComponentType<{ size?: number; color?: string }>; onSeeAll?: () => void };
+function SectionHeader({ title, pad, Icon, onSeeAll }: SH) {
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: pad, marginTop: 12, marginBottom: 10 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
         {Icon ? <Icon size={16} color={Palette.brand} /> : null}
-        <Text style={{ fontFamily: Font.display, fontSize: 17, color: Palette.ink, letterSpacing: -0.35 }}>{title}</Text>
+        <Text style={{ fontFamily: Font.display, fontSize: 20, color: Palette.ink, letterSpacing: -0.4 }}>{title}</Text>
       </View>
       {onSeeAll ? (
         <PressableScale onPress={() => { feedback.tap(); onSeeAll(); }} accessibilityRole="button" accessibilityLabel={`See all ${title}`}>
-          <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: Palette.brand }}>see all →</Text>
+          <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: Palette.brand }}>See all</Text>
         </PressableScale>
       ) : null}
     </View>
   );
 }
 
-function CategoryCircles({ active, pad, onSelect }: { active: string; pad: number; onSelect: (key: string) => void }) {
+function CategoryChips({ active, pad, onSelect }: { active: string; pad: number; onSelect: (key: string) => void }) {
   return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: pad, gap: 12, paddingVertical: 8 }}>
-      {CATEGORY_CIRCLES.map((c) => {
-        const isActive = c.key === active;
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: pad, gap: 8, paddingVertical: 8 }}>
+      {CHIP_CATEGORIES.map((c) => {
+        const on = c.key === active;
         return (
-          <PressableScale key={c.key} onPress={() => { feedback.tap(); onSelect(c.key); }} accessibilityRole="button" accessibilityLabel={`Filter by ${c.label}`} style={{ alignItems: 'center', gap: 5 }}>
-            <MotiView
-              animate={{ backgroundColor: isActive ? Palette.brandTint : Palette.surface, borderColor: isActive ? '#F6C6AC' : 'transparent' }}
-              transition={{ type: 'timing', duration: 180 }}
-              style={{ width: 52, height: 52, borderRadius: 16, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, ...(!isActive ? Shadow.card : {}) }}>
-              <c.Icon size={22} color={isActive ? Palette.brand : c.color} />
+          <PressableScale key={c.key} onPress={() => { feedback.tap(); onSelect(c.key); }} accessibilityRole="button" accessibilityLabel={`Filter by ${c.label}`}>
+            <MotiView animate={{ scale: on ? 1 : 0.97 }} transition={{ type: 'spring', damping: 20, stiffness: 260 }}
+              style={{ height: 36, borderRadius: 18, paddingHorizontal: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: on ? Palette.brand : Palette.surface, borderWidth: on ? 0 : 1, borderColor: Palette.border }}>
+              <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: on ? '#fff' : Palette.textSecondary }}>{c.label}</Text>
             </MotiView>
-            <Text style={{ fontFamily: Font.medium, fontSize: 10.5, color: isActive ? Palette.brand : Palette.textSecondary }}>{c.label}</Text>
           </PressableScale>
         );
       })}
@@ -104,31 +72,46 @@ function CategoryCircles({ active, pad, onSelect }: { active: string; pad: numbe
   );
 }
 
-
-function ActiveFilterBar({
-  activeCategory, dietary, sort, pad, onClearCategory, onClearDietary, onClearSort,
-}: {
-  activeCategory: string; dietary: string[]; sort: string; pad: number;
-  onClearCategory: () => void; onClearDietary: (d: string) => void; onClearSort: () => void;
-}) {
-  const chips: { key: string; label: string; onRemove: () => void }[] = [];
-  if (activeCategory !== 'all') {
-    const cat = CATEGORY_CIRCLES.find((c) => c.key === activeCategory);
-    chips.push({ key: 'cat', label: cat?.label ?? activeCategory, onRemove: onClearCategory });
-  }
-  dietary.forEach((d) => chips.push({ key: `diet-${d}`, label: d, onRemove: () => onClearDietary(d) }));
-  if (sort !== FILTER_DEFAULTS.sort) chips.push({ key: 'sort', label: sort, onRemove: onClearSort });
-  if (chips.length === 0) return null;
+function SearchBar({ value, onChangeText, onClear, pad, placeholderIdx }: { value: string; onChangeText: (t: string) => void; onClear: () => void; pad: number; placeholderIdx: number }) {
+  const [focused, setFocused] = useState(false);
+  const anim = useRef(new Animated.Value(0)).current;
+  useEffect(() => { Animated.timing(anim, { toValue: focused ? 1 : 0, duration: 220, useNativeDriver: false }).start(); }, [focused, anim]);
+  const border = anim.interpolate({ inputRange: [0, 1], outputRange: [Palette.border, Palette.brand] });
   return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: pad, gap: 6, paddingBottom: 6 }}>
-      {chips.map((chip) => (
-        <PressableScale key={chip.key} onPress={() => { feedback.tap(); chip.onRemove(); }} accessibilityRole="button" accessibilityLabel={`Remove filter: ${chip.label}`}
-          style={{ flexDirection: 'row', alignItems: 'center', gap: 4, height: 26, paddingHorizontal: 10, borderRadius: 13, backgroundColor: Palette.brandTint, borderWidth: 1, borderColor: '#F6C6AC' }}>
-          <Text style={{ fontFamily: Font.medium, fontSize: 11.5, color: Palette.brand }}>{chip.label}</Text>
-          <X size={10} color={Palette.brand} />
-        </PressableScale>
-      ))}
-    </ScrollView>
+    <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'spring', damping: 20, stiffness: 260 }} style={{ paddingHorizontal: pad, paddingBottom: 4 }}>
+      <Animated.View style={{ flexDirection: 'row', alignItems: 'center', height: 52, borderRadius: 26, backgroundColor: Palette.surface, borderWidth: 1, borderColor: border, paddingLeft: 14, paddingRight: 12, gap: 10, ...Shadow.card }}>
+        <Search size={18} color={focused ? Palette.brand : Palette.textMuted} />
+        {value.length === 0 && !focused ? (
+          <MotiView key={placeholderIdx} from={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ type: 'timing', duration: 400 }} style={{ flex: 1 }}>
+            <Text numberOfLines={1} style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textMuted }}>{SEARCH_PLACEHOLDERS[placeholderIdx]}</Text>
+          </MotiView>
+        ) : (
+          <TextInput style={{ flex: 1, fontFamily: Font.body, fontSize: 14, color: Palette.ink, padding: 0, margin: 0 }} value={value} onChangeText={onChangeText}
+            onFocus={() => setFocused(true)} onBlur={() => setFocused(false)} autoCorrect={false} autoCapitalize="none" returnKeyType="search" accessibilityLabel="Search meals or kitchens" />
+        )}
+        {value.length > 0 ? (
+          <PressableScale onPress={() => { feedback.tap(); onClear(); }} accessibilityRole="button" accessibilityLabel="Clear search"><X size={16} color={Palette.textSecondary} /></PressableScale>
+        ) : (
+          <PressableScale onPress={() => { feedback.tap(); }} accessibilityRole="button" accessibilityLabel="Scan QR code" style={{ width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' }}>
+            <QrCode size={16} color={Palette.textMuted} />
+          </PressableScale>
+        )}
+      </Animated.View>
+    </MotiView>
+  );
+}
+
+function SearchEmptyState({ query }: { query: string }) {
+  return (
+    <MotiView from={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'spring', damping: 20, stiffness: 260 }} style={{ alignItems: 'center', paddingVertical: 48, paddingHorizontal: 32 }}>
+      <Search size={64} color={Palette.border} />
+      <Text style={{ fontFamily: Font.display, fontSize: 20, color: Palette.ink, letterSpacing: -0.4, marginTop: 16, textAlign: 'center' }}>
+        No results for &ldquo;{query}&rdquo;
+      </Text>
+      <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, marginTop: 8, textAlign: 'center', lineHeight: 20 }}>
+        Try a different search or browse by category
+      </Text>
+    </MotiView>
   );
 }
 
@@ -143,21 +126,26 @@ export default function ExploreScreen() {
   const carouselCardWidth = useCarouselCardWidth();
 
   const { data: preppers, isLoading: preppersLoading, isError: preppersError, refetch: refetchPreppers } = useTopPreppers();
+  const { data: liveSet = new Set<string>() } = useActiveLiveSessions();
   const { data: meals, isLoading: mealsLoading, isError: mealsError, refetch: refetchMeals } = useFeaturedMeals();
   const { data: drops, refetch: refetchDrops } = useLimitedDrops(6);
   const forYou = usePersonalizedMeals(meals ?? [], user?.id, user?.user_metadata ?? null).slice(0, 6);
+
+  // Batch stock query for all visible meal IDs across sections
+  const allMealIds = useMemo(() => [...new Set([...(meals ?? []), ...(drops ?? [])].map((m) => m.id).concat(forYou.map((s) => s.meal.id)))], [meals, drops, forYou]);
+  const { data: stockMap = {} } = useTodayStock(allMealIds);
   const rankedPreppers = useRankedPreppers(preppers ?? [], user?.id);
 
   const { data: addresses = [] } = useAddresses(user?.id);
   const { loc, requestDeviceLocation } = useDeviceLocation();
   const locCapturing = loc.status === 'requesting';
+  const locDenied = loc.status === 'denied';
   usePurgeGpsAddresses(user?.id);
-  // Label: prefer live device location, fall back to saved default address, then 'near you'
   const locationLabel = loc.status === 'granted' && loc.city
     ? [loc.city, loc.state].filter(Boolean).join(', ')
     : (() => {
-        const defaultAddress = addresses.find((a) => a.isDefault) ?? addresses[0];
-        return defaultAddress ? [defaultAddress.city, defaultAddress.state].filter(Boolean).join(', ') : 'near you';
+        const def = addresses.find((a) => a.isDefault) ?? addresses[0];
+        return def ? [def.city, def.state].filter(Boolean).join(', ') : 'near you';
       })();
 
   async function handleGpsTap() {
@@ -166,30 +154,26 @@ export default function ExploreScreen() {
     const result = await requestDeviceLocation();
     if (result === 'denied' && user && addresses.length > 0) router.push('/addresses');
   }
-
   function handleAddressTap() {
     feedback.tap();
     if (!user) { router.push('/auth?mode=signin'); return; }
     router.push('/addresses');
   }
 
-  const [refreshing, setRefreshing]     = useState(false);
-  const [filterOpen, setFilterOpen]     = useState(false);
-  const [activeCategory, setActiveCategory] = useState('all');
-  const [viewMode, setViewMode]         = useState<'list' | 'grid'>('grid');
+  const [refreshing, setRefreshing]         = useState(false);
+  const [filterOpen, setFilterOpen]         = useState(false);
+  const [activeCategory, setActiveCategory] = useState<string>('all');
+  const [searchQuery, setSearchQuery]       = useState('');
+  const [viewMode, setViewMode]             = useState<'list' | 'grid'>('grid');
   const userDietary = (user?.user_metadata?.dietary as string[] | undefined) ?? [];
-  const [advFilters, setAdvFilters]     = useState<AdvancedFilters>(() => ({
-    ...FILTER_DEFAULTS,
-    dietary: userDietary.map((d: string) => d.toLowerCase()),
-  }));
+  const [advFilters, setAdvFilters] = useState<AdvancedFilters>(() => ({ ...FILTER_DEFAULTS, dietary: userDietary.map((d: string) => d.toLowerCase()) }));
   const [placeholderIdx, setPlaceholderIdx] = useState(0);
 
-  const isTabletUp = bp !== 'mobile';
-  const isDesktop  = bp === 'desktop';
+  const isTabletUp  = bp !== 'mobile';
+  const isDesktop   = bp === 'desktop';
   const prepperCols = bp === 'desktop' ? 3 : bp === 'tablet' ? 2 : 0;
   const mealCardW   = gridCardWidth(contentWidth, pad);
 
-  // Rotate intent-driven placeholder text
   useEffect(() => {
     const id = setInterval(() => setPlaceholderIdx((i) => (i + 1) % SEARCH_PLACEHOLDERS.length), 3400);
     return () => clearInterval(id);
@@ -197,32 +181,68 @@ export default function ExploreScreen() {
 
   const activeFilterCount = countActiveFilters(advFilters);
 
-  function handleCategorySelect(key: string) {
-    if (key === 'more') { feedback.tap(); router.push('/search'); return; }
-    setActiveCategory(key);
-  }
+  const displayPreppers = useMemo(() => {
+    if (advFilters.sort !== 'nearest' || !loc.coords) return rankedPreppers;
+    return sortByDistance(rankedPreppers, loc.coords.lat, loc.coords.lng);
+  }, [rankedPreppers, advFilters.sort, loc.coords]);
 
   const filteredMeals = useMemo(() => {
-    const catKey = activeCategory === 'all' ? null : activeCategory;
-    const afterCat = catKey
+    const q = searchQuery.trim().toLowerCase();
+    const noFilterCats = new Set(['all', 'nearby', 'trending', 'new']);
+    const catKey = noFilterCats.has(activeCategory) ? null : activeCategory;
+
+    let result = catKey
       ? (meals ?? []).filter((m) => [m.title, m.category ?? ''].join(' ').toLowerCase().includes(catKey.replace('-', ' ')))
       : (meals ?? []);
-    const afterDiet = advFilters.dietary.length === 0
-      ? afterCat
-      : afterCat.filter((m) => {
-          const hay = [m.title, m.category ?? ''].join(' ').toLowerCase();
-          return advFilters.dietary.every((d) => hay.includes(d.replace('-', ' ')));
-        });
-    if (advFilters.sort === 'rating') return [...afterDiet].sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
-    if (advFilters.sort === 'newest') return [...afterDiet].reverse();
-    return afterDiet;
-  }, [meals, activeCategory, advFilters.dietary, advFilters.sort]);
 
-  async function handleRefresh() {
+    if (q.length >= 2) {
+      result = result.filter((m) => [m.title, m.prepper, m.category ?? ''].join(' ').toLowerCase().includes(q));
+    }
+
+    // Cuisine: match against category key (best effort on client-side data)
+    if (advFilters.cuisines.length > 0) {
+      result = result.filter((m) =>
+        advFilters.cuisines.some((c) => (m.category ?? '').toLowerCase().includes(c.toLowerCase()))
+      );
+    }
+
+    // Dietary: every selected restriction must appear in title or category text
+    if (advFilters.dietary.length > 0) {
+      result = result.filter((m) =>
+        advFilters.dietary.every((d) => [m.title, m.category ?? ''].join(' ').toLowerCase().includes(d.replace('-', ' ')))
+      );
+    }
+
+    // Max price
+    if (advFilters.maxPrice !== null) {
+      result = result.filter((m) => m.price <= advFilters.maxPrice!);
+    }
+
+    // Min rating
+    if (advFilters.minRating !== null) {
+      result = result.filter((m) => (m.rating ?? 0) >= advFilters.minRating!);
+    }
+
+    // Fulfillment
+    if (advFilters.fulfillment === 'pickup') {
+      result = result.filter((m) => m.pickup !== false);
+    } else if (advFilters.fulfillment === 'delivery') {
+      result = result.filter((m) => m.delivers === true);
+    }
+
+    // Sort
+    if (advFilters.sort === 'rating') return [...result].sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
+    if (advFilters.sort === 'price_asc') return [...result].sort((a, b) => a.price - b.price);
+    if (advFilters.sort === 'price_desc') return [...result].sort((a, b) => b.price - a.price);
+    if (advFilters.sort === 'newest') return [...result].reverse();
+    return result;
+  }, [meals, activeCategory, searchQuery, advFilters]);
+
+  const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     await Promise.all([refetchPreppers(), refetchMeals(), refetchDrops()]);
     setRefreshing(false);
-  }
+  }, [refetchPreppers, refetchMeals, refetchDrops]);
 
   const stickyStyle = Platform.OS === 'web'
     ? ({ position: 'sticky', top: 0, zIndex: 10, backgroundColor: Palette.canvas } as object)
@@ -235,21 +255,15 @@ export default function ExploreScreen() {
         {/* ── Sticky header ── */}
         <View style={stickyStyle}>
 
-          {/* Top row: title | location | filter | [tablet: view toggle] */}
+          {/* Top row */}
           <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: pad, paddingTop: 8, paddingBottom: 2, gap: 10 }}>
             <Text numberOfLines={1} style={{ flex: 1, fontFamily: Font.display, fontSize: 26, color: Palette.ink, letterSpacing: -0.9 }}>explore</Text>
             <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: Palette.surface, borderRadius: Radius.pill, height: 40, maxWidth: 200, overflow: 'hidden', ...Shadow.card }}>
-              <PressableScale onPress={handleGpsTap} accessibilityRole="button" accessibilityLabel="Detect my location"
-                style={{ paddingLeft: 11, paddingRight: 7, height: 40, alignItems: 'center', justifyContent: 'center' }}>
-                {locCapturing
-                  ? <ActivityIndicator size="small" color={Palette.brand} />
-                  : <Compass size={13} color={loc.status === 'granted' ? Palette.brand : Palette.textMuted} />}
+              <PressableScale onPress={handleGpsTap} accessibilityRole="button" accessibilityLabel="Detect my location" style={{ paddingLeft: 11, paddingRight: 7, height: 40, alignItems: 'center', justifyContent: 'center' }}>
+                {locCapturing ? <ActivityIndicator size="small" color={Palette.brand} /> : <Compass size={13} color={loc.status === 'granted' ? Palette.brand : Palette.textMuted} />}
               </PressableScale>
-              <PressableScale onPress={handleAddressTap} accessibilityRole="button" accessibilityLabel={`Location: ${locationLabel}. Tap to change.`}
-                style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 3, paddingRight: 10, height: 40, minWidth: 0 }}>
-                <Text numberOfLines={1} style={{ fontFamily: Font.medium, fontSize: 13, color: locationLabel !== 'near you' ? Palette.inkSoft : Palette.textMuted, flexShrink: 1 }}>
-                  {locCapturing ? 'detecting...' : locationLabel}
-                </Text>
+              <PressableScale onPress={handleAddressTap} accessibilityRole="button" accessibilityLabel={`Location: ${locationLabel}. Tap to change.`} style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 3, paddingRight: 10, height: 40, minWidth: 0 }}>
+                <Text numberOfLines={1} style={{ fontFamily: Font.medium, fontSize: 13, color: locationLabel !== 'near you' ? Palette.inkSoft : Palette.textMuted, flexShrink: 1 }}>{locCapturing ? 'detecting...' : locationLabel}</Text>
                 <ChevronDown size={12} color={Palette.textSecondary} style={{ flexShrink: 0 }} />
               </PressableScale>
             </View>
@@ -270,39 +284,32 @@ export default function ExploreScreen() {
             ) : null}
           </View>
 
-          {/* Search + QR */}
-          <View style={{ paddingHorizontal: pad, paddingBottom: 4, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            <PressableScale onPress={() => { feedback.tap(); router.push('/search'); }} accessibilityRole="search" accessibilityLabel="Search meals or kitchens"
-              style={{ flex: 1, flexDirection: 'row', alignItems: 'center', height: 44, borderRadius: 22, backgroundColor: Palette.surface, paddingHorizontal: 14, gap: 10, overflow: 'hidden', ...Shadow.card }}>
-              <Search size={18} color={Palette.textMuted} />
-              <MotiView key={placeholderIdx} from={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ type: 'timing', duration: 400 }} style={{ flex: 1 }}>
-                <Text numberOfLines={1} style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textMuted }}>
-                  {SEARCH_PLACEHOLDERS[placeholderIdx]}
-                </Text>
-              </MotiView>
-            </PressableScale>
-            <PressableScale onPress={() => { feedback.tap(); router.push('/qr-scan' as never); }} accessibilityRole="button" accessibilityLabel="Scan QR code"
-              style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center', ...Shadow.card }}>
-              <QrCode size={18} color={Palette.textMuted} />
-            </PressableScale>
-          </View>
+          {/* Search bar */}
+          <SearchBar value={searchQuery} onChangeText={setSearchQuery} onClear={() => setSearchQuery('')} pad={pad} placeholderIdx={placeholderIdx} />
 
-          {/* Category icon circles */}
-          <CategoryCircles active={activeCategory} pad={pad} onSelect={handleCategorySelect} />
-          <ActiveFilterBar
-            activeCategory={activeCategory}
-            dietary={advFilters.dietary}
-            sort={advFilters.sort}
+          {/* Category chips */}
+          <CategoryChips active={activeCategory} pad={pad} onSelect={setActiveCategory} />
+
+          {/* Cuisine tabs */}
+          <CuisineTabsRow
+            active={advFilters.cuisines.length === 1 ? advFilters.cuisines[0] : 'all'}
             pad={pad}
-            onClearCategory={() => setActiveCategory('all')}
-            onClearDietary={(d) => setAdvFilters((f) => ({ ...f, dietary: f.dietary.filter((x) => x !== d) }))}
-            onClearSort={() => setAdvFilters((f) => ({ ...f, sort: FILTER_DEFAULTS.sort }))}
+            onSelect={(c) => setAdvFilters((f) => ({ ...f, cuisines: c === 'all' ? [] : [c] }))}
+          />
+
+          <ActiveFilterBar
+            filters={advFilters}
+            pad={pad}
+            onRemoveCuisine={(c) => setAdvFilters((f) => ({ ...f, cuisines: f.cuisines.filter((x) => x !== c) }))}
+            onRemoveDietary={(d) => setAdvFilters((f) => ({ ...f, dietary: f.dietary.filter((x) => x !== d) }))}
+            onRemoveMaxPrice={() => setAdvFilters((f) => ({ ...f, maxPrice: null }))}
+            onRemoveMinRating={() => setAdvFilters((f) => ({ ...f, minRating: null }))}
+            onRemoveSort={() => setAdvFilters((f) => ({ ...f, sort: FILTER_DEFAULTS.sort }))}
           />
         </View>
 
         {/* ── Scrollable content ── */}
-        <ScrollView
-          showsVerticalScrollIndicator={false}
+        <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled"
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={Palette.brand} colors={[Palette.brand]} />}
           contentContainerStyle={{ paddingBottom: 32 }}>
 
@@ -314,24 +321,34 @@ export default function ExploreScreen() {
             </PressableScale>
           ) : null}
 
-          {/* Top Preppers Near You — dynamic/personalized first */}
+          {locDenied && advFilters.sort === 'nearest' ? (
+            <PressableScale onPress={() => { feedback.tap(); void Linking.openSettings(); }} accessibilityRole="button" accessibilityLabel="Enable location for nearby kitchens"
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginHorizontal: pad, marginTop: 8, paddingVertical: 8 }}>
+              <MapPin size={13} color={Palette.brand} />
+              <Text style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.brand }}>Enable location for nearby kitchens</Text>
+            </PressableScale>
+          ) : null}
+
+          {/* Top kitchens */}
           <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260 }}>
             <SectionHeader title="top kitchens near you" pad={pad} Icon={Star} onSeeAll={() => router.push('/kitchens')} />
             {preppersLoading ? (
-              <View style={{ paddingBottom: 20 }}><CardRowSkeleton count={3} width={210} /></View>
+              <View style={{ flexDirection: 'row', gap: 14, paddingHorizontal: pad, paddingBottom: 20 }}>
+                {Array.from({ length: 3 }).map((_, i) => <CardSkeleton key={i} width={210} />)}
+              </View>
             ) : isTabletUp ? (
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: pad, gap: 12, paddingBottom: 20 }}>
-                {rankedPreppers.map((p, i) => (
-                  <MotiView key={p.id} from={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 200, delay: i * 40 }} style={{ width: `${100 / prepperCols}%` as any, flexShrink: 1 }}>
-                    <PrepperCard prepper={p} showRank />
+                {displayPreppers.map((p, i) => (
+                  <MotiView key={p.id} from={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 200, delay: i * 40 }} style={{ width: `${100 / prepperCols}%` as never, flexShrink: 1 }}>
+                    <PrepperCard prepper={p} showRank isLive={liveSet.has(p.id)} />
                   </MotiView>
                 ))}
               </View>
             ) : (
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: pad, gap: 12, paddingBottom: 20 }}>
-                {rankedPreppers.map((p, i) => (
+                {displayPreppers.map((p, i) => (
                   <MotiView key={p.id} from={{ opacity: 0, translateX: 14 }} animate={{ opacity: 1, translateX: 0 }} transition={{ type: 'timing', duration: 220, delay: i * 40 }}>
-                    <PrepperCard prepper={p} showRank />
+                    <PrepperCard prepper={p} showRank isLive={liveSet.has(p.id)} />
                   </MotiView>
                 ))}
               </ScrollView>
@@ -350,22 +367,22 @@ export default function ExploreScreen() {
             </ScrollView>
           </MotiView>
 
-          {/* Meals Grid */}
+          {/* Popular right now */}
           <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 60 }}>
             <SectionHeader title="popular right now" pad={pad} Icon={Flame} onSeeAll={() => router.push('/category?key=all&label=all+meals')} />
             {mealsLoading ? (
-              <View style={{ paddingBottom: 20 }}><CardRowSkeleton count={4} /></View>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: pad, gap: 12, paddingBottom: 20 }}>
+                {Array.from({ length: 3 }).map((_, i) => <CardSkeleton key={i} width={mealCardW} />)}
+              </View>
+            ) : searchQuery.trim().length >= 2 && filteredMeals.length === 0 ? (
+              <SearchEmptyState query={searchQuery.trim()} />
             ) : filteredMeals.length === 0 ? (
               <View style={{ paddingHorizontal: pad, paddingBottom: 24, alignItems: 'flex-start', gap: 12 }}>
                 <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textMuted }}>
-                  {activeCategory !== 'all' && advFilters.dietary.length === 0
-                    ? `No ${activeCategory} meals available right now.`
-                    : 'No meals match your current filters.'}
+                  {activeCategory !== 'all' && countActiveFilters(advFilters) === 0 ? `No ${activeCategory} meals available right now.` : 'No meals match your current filters.'}
                 </Text>
-                <PressableScale
-                  onPress={() => { feedback.tap(); setActiveCategory('all'); setAdvFilters(FILTER_DEFAULTS); }}
-                  accessibilityRole="button"
-                  accessibilityLabel="Clear all filters"
+                <PressableScale onPress={() => { feedback.tap(); setActiveCategory('all'); setAdvFilters({ ...FILTER_DEFAULTS }); setSearchQuery(''); }}
+                  accessibilityRole="button" accessibilityLabel="Clear all filters"
                   style={{ height: 40, paddingHorizontal: 20, borderRadius: Radius.pill, backgroundColor: Palette.brand, alignItems: 'center', justifyContent: 'center' }}>
                   <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: '#fff' }}>reset filters</Text>
                 </PressableScale>
@@ -374,7 +391,7 @@ export default function ExploreScreen() {
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: pad, gap: 12, paddingBottom: 20 }}>
                 {filteredMeals.map((m, i) => (
                   <MotiView key={m.id} from={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 200, delay: i * 35 }}>
-                    <MealCard meal={m} width={mealCardW} action={<QuickAddButton meal={m} />} />
+                    <MealCard meal={{ ...m, stockRemaining: stockMap[m.id]?.qtyRemaining ?? null }} width={mealCardW} />
                   </MotiView>
                 ))}
               </View>
@@ -389,7 +406,7 @@ export default function ExploreScreen() {
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: pad, gap: 12, paddingBottom: 20 }}>
                   {drops.map((m, i) => (
                     <MotiView key={m.id} from={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 200, delay: i * 35 }}>
-                      <MealCard meal={m} width={mealCardW} action={<QuickAddButton meal={m} />} />
+                      <MealCard meal={{ ...m, stockRemaining: stockMap[m.id]?.qtyRemaining ?? null }} width={mealCardW} />
                     </MotiView>
                   ))}
                 </View>
@@ -397,7 +414,7 @@ export default function ExploreScreen() {
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: pad, gap: 12, paddingBottom: 20 }}>
                   {drops.map((m, i) => (
                     <MotiView key={m.id} from={{ opacity: 0, translateX: 14 }} animate={{ opacity: 1, translateX: 0 }} transition={{ type: 'timing', duration: 220, delay: i * 35 }}>
-                      <MealCard meal={m} width={carouselCardWidth} action={<QuickAddButton meal={m} />} />
+                      <MealCard meal={{ ...m, stockRemaining: stockMap[m.id]?.qtyRemaining ?? null }} width={carouselCardWidth} />
                     </MotiView>
                   ))}
                 </ScrollView>
@@ -422,7 +439,7 @@ export default function ExploreScreen() {
                   {forYou.map((s, i) => (
                     <MotiView key={s.meal.id} from={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 200, delay: i * 35 }}>
                       <View>
-                        <MealCard meal={s.meal} width={mealCardW} action={<QuickAddButton meal={s.meal} />} />
+                        <MealCard meal={{ ...s.meal, stockRemaining: stockMap[s.meal.id]?.qtyRemaining ?? null }} width={mealCardW} />
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6, paddingHorizontal: 2 }}>
                           <Sparkles size={11} color={Palette.brand} />
                           <Text numberOfLines={1} style={{ fontFamily: Font.medium, fontSize: 11, color: Palette.textSecondary, flex: 1 }}>{s.reason}</Text>
@@ -436,7 +453,7 @@ export default function ExploreScreen() {
                   {forYou.map((s, i) => (
                     <MotiView key={s.meal.id} from={{ opacity: 0, translateX: 14 }} animate={{ opacity: 1, translateX: 0 }} transition={{ type: 'timing', duration: 220, delay: i * 35 }}>
                       <View>
-                        <MealCard meal={s.meal} width={carouselCardWidth} action={<QuickAddButton meal={s.meal} />} />
+                        <MealCard meal={{ ...s.meal, stockRemaining: stockMap[s.meal.id]?.qtyRemaining ?? null }} width={carouselCardWidth} />
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6, paddingHorizontal: 2 }}>
                           <Sparkles size={11} color={Palette.brand} />
                           <Text numberOfLines={1} style={{ fontFamily: Font.medium, fontSize: 11, color: Palette.textSecondary, flex: 1 }}>{s.reason}</Text>
@@ -451,8 +468,7 @@ export default function ExploreScreen() {
 
           {/* Can't Decide? */}
           <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 140 }}>
-            <PressableScale onPress={() => { feedback.tap(); router.push('/surprise'); }} accessibilityRole="button" accessibilityLabel="Surprise me — let us pick your meal"
-              style={{ marginHorizontal: pad, marginBottom: 20 }}>
+            <PressableScale onPress={() => { feedback.tap(); router.push('/surprise'); }} accessibilityRole="button" accessibilityLabel="Surprise me — let us pick your meal" style={{ marginHorizontal: pad, marginBottom: 20 }}>
               <View style={{ backgroundColor: Palette.surface, borderRadius: 16, padding: 20, gap: 14, borderWidth: 1, borderColor: Palette.border, ...Shadow.card }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
                   <View style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: Palette.brand + '18', alignItems: 'center', justifyContent: 'center' }}>
@@ -473,14 +489,8 @@ export default function ExploreScreen() {
         </ScrollView>
       </SafeAreaView>
 
-      {/* Advanced filter sheet */}
-      <ExploreFilterSheet
-        visible={filterOpen}
-        initial={advFilters}
-        isTabletUp={isTabletUp}
-        onClose={() => setFilterOpen(false)}
-        onApply={(f) => { setAdvFilters(f); setFilterOpen(false); }}
-      />
+      <ExploreFilterSheet visible={filterOpen} initial={advFilters} isTabletUp={isTabletUp}
+        onClose={() => setFilterOpen(false)} onApply={(f) => { setAdvFilters(f); setFilterOpen(false); }} />
     </View>
   );
 }

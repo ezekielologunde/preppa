@@ -1,279 +1,360 @@
-import { BlurView } from 'expo-blur';
-import { Check, SlidersHorizontal, X } from 'lucide-react-native';
-import { useEffect, useState } from 'react';
-import { Modal, Pressable, ScrollView, Switch, Text, View } from 'react-native';
+/**
+ * ExploreFilterSheet — bottom-sheet filter panel for the Explore tab.
+ * Uses Modal + MotiView (no third-party sheet library).
+ * Exports: AdvancedFilters, FILTER_DEFAULTS, countActiveFilters, ExploreFilterSheet
+ */
 
-import { DualRangeSlider, RangeSlider } from '@/components/ui/range-slider';
+import { MotiView } from 'moti';
+import { useState } from 'react';
+import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
+
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
-import { Palette, Radius } from '@/constants/theme';
+import { Palette, Radius, Shadow } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
 
-export type SortKey = 'default' | 'rating' | 'newest';
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 export type AdvancedFilters = {
+  cuisines: string[];
   dietary: string[];
-  sort: SortKey;
-  /** Max distance in miles (1–15); null = any distance. */
-  distance: number | null;
-  /** Price-per-serving band in dollars. */
-  priceMin: number;
-  priceMax: number;
-  mixMatch: boolean;
-  certifications: string[];
+  maxPrice: number | null;
+  minRating: number | null;
+  sort: 'relevance' | 'price_asc' | 'price_desc' | 'rating' | 'newest' | 'nearest';
+  fulfillment: 'any' | 'pickup' | 'delivery';
 };
-
-export const DISTANCE_MAX = 15;
-export const PRICE_FLOOR = 4;
-export const PRICE_CEILING = 40;
 
 export const FILTER_DEFAULTS: AdvancedFilters = {
+  cuisines: [],
   dietary: [],
-  sort: 'default',
-  distance: null,
-  priceMin: PRICE_FLOOR,
-  priceMax: PRICE_CEILING,
-  mixMatch: false,
-  certifications: [],
+  maxPrice: null,
+  minRating: null,
+  sort: 'relevance',
+  fulfillment: 'any',
 };
 
-// ── Shared predicates (single source of truth for "is this filter active?") ──
-export const isNearby = (f: AdvancedFilters) => f.distance != null;
-export const isPriceFiltered = (f: AdvancedFilters) => f.priceMin > PRICE_FLOOR || f.priceMax < PRICE_CEILING;
 export function countActiveFilters(f: AdvancedFilters): number {
   return (
+    f.cuisines.length +
     f.dietary.length +
-    (f.sort !== 'default' ? 1 : 0) +
-    (isNearby(f) ? 1 : 0) +
-    (isPriceFiltered(f) ? 1 : 0) +
-    (f.mixMatch ? 1 : 0) +
-    f.certifications.length
+    (f.maxPrice !== null ? 1 : 0) +
+    (f.minRating !== null ? 1 : 0) +
+    (f.sort !== 'relevance' ? 1 : 0) +
+    (f.fulfillment !== 'any' ? 1 : 0)
   );
 }
-export const isFilterDirty = (f: AdvancedFilters) => countActiveFilters(f) > 0;
 
-const SORT_OPTIONS = [
-  { key: 'default', label: 'Default' },
-  { key: 'rating', label: 'Highest rated' },
-  { key: 'newest', label: 'Newest' },
+// ─── Static data ──────────────────────────────────────────────────────────────
+
+export const CUISINE_FILTER_OPTIONS = [
+  'Nigerian', 'West African', 'Caribbean', 'Soul Food', 'African',
+  'Asian', 'Mediterranean', 'Mexican', 'Italian', 'American',
+];
+
+const CUISINES = CUISINE_FILTER_OPTIONS;
+
+const DIETARY = [
+  'Vegan', 'Vegetarian', 'Gluten-free', 'Halal', 'Kosher',
+  'Dairy-free', 'Nut-free', 'Keto', 'High-protein',
+];
+
+const PRICE_OPTIONS = [
+  { label: 'Under $15', value: 15 },
+  { label: 'Under $25', value: 25 },
+  { label: 'Under $40', value: 40 },
 ] as const;
 
-const DIETARY_TAGS = [
-  { key: 'vegan', label: 'Vegan' },
-  { key: 'vegetarian', label: 'Vegetarian' },
-  { key: 'gluten-free', label: 'Gluten-free' },
-  { key: 'halal', label: 'Halal' },
-  { key: 'dairy-free', label: 'Dairy-free' },
-  { key: 'nut-free', label: 'Nut-free' },
-  { key: 'keto', label: 'Keto' },
-  { key: 'low-carb', label: 'Low-carb' },
+const RATING_OPTIONS = [
+  { label: '★ 3+', value: 3 },
+  { label: '★ 4+', value: 4 },
+  { label: '★ 4.5+', value: 4.5 },
+] as const;
+
+const FULFILLMENT_OPTIONS: { label: string; value: AdvancedFilters['fulfillment'] }[] = [
+  { label: 'Any', value: 'any' },
+  { label: '🏠 Pickup', value: 'pickup' },
+  { label: '🚗 Delivery', value: 'delivery' },
 ];
 
-const CERTIFICATIONS = [
-  { key: 'commercial', label: 'Commercial kitchen verified' },
-  { key: 'home', label: 'Home cook certified' },
-  { key: 'eco', label: 'Eco-friendly packaging' },
+const SORT_OPTIONS: { label: string; value: AdvancedFilters['sort'] }[] = [
+  { label: 'Relevance',  value: 'relevance' },
+  { label: 'Nearest',   value: 'nearest' },
+  { label: 'Price ↑',   value: 'price_asc' },
+  { label: 'Price ↓',   value: 'price_desc' },
+  { label: 'Top rated', value: 'rating' },
+  { label: 'Newest',    value: 'newest' },
 ];
 
-const LABEL_STYLE = { fontFamily: Font.semibold, fontSize: 11, color: Palette.textMuted, textTransform: 'uppercase' as const, letterSpacing: 0.8 };
-const SCALE_STYLE = { fontFamily: Font.medium, fontSize: 11, color: Palette.textMuted };
+// ─── Sub-components ───────────────────────────────────────────────────────────
 
-function FilterLabel({ text }: { text: string }) {
-  return <Text style={{ ...LABEL_STYLE, paddingHorizontal: 22, marginBottom: 10 }}>{text}</Text>;
+function FilterChip({ label, selected, onPress }: { label: string; selected: boolean; onPress: () => void }) {
+  return (
+    <PressableScale onPress={onPress} accessibilityRole="button" accessibilityState={{ selected }} accessibilityLabel={label}>
+      <MotiView
+        animate={{ backgroundColor: selected ? Palette.brand : Palette.canvas }}
+        transition={{ type: 'timing', duration: 160 }}
+        style={{
+          height: 34,
+          borderRadius: 17,
+          paddingHorizontal: 14,
+          alignItems: 'center',
+          justifyContent: 'center',
+          borderWidth: 1,
+          borderColor: selected ? Palette.brand : Palette.border,
+        }}>
+        <Text style={{ fontFamily: Font.medium, fontSize: 13, color: selected ? '#fff' : Palette.inkSoft }}>
+          {label}
+        </Text>
+      </MotiView>
+    </PressableScale>
+  );
 }
 
-function SingleSelectRow({ options, active, onSelect }: { options: { key: string; label: string }[]; active: string; onSelect: (k: string) => void }) {
+function SectionLabel({ children }: { children: string }) {
   return (
-    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingHorizontal: 20, marginBottom: 24 }}>
-      {options.map((opt) => {
-        const isActive = active === opt.key;
-        return (
-          <PressableScale key={opt.key} onPress={() => { feedback.tap(); onSelect(opt.key); }}
-            accessibilityRole="radio" accessibilityState={{ checked: isActive }} accessibilityLabel={opt.label}
-            style={{ paddingHorizontal: 16, height: 36, borderRadius: Radius.pill, backgroundColor: isActive ? Palette.brand : Palette.canvas, borderWidth: 1.5, borderColor: isActive ? Palette.brand : Palette.border, alignItems: 'center', justifyContent: 'center' }}>
-            <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: isActive ? '#fff' : Palette.inkSoft }}>{opt.label}</Text>
-          </PressableScale>
-        );
-      })}
+    <Text style={{
+      fontFamily: Font.semibold,
+      fontSize: 11,
+      color: Palette.textMuted,
+      letterSpacing: 0.7,
+      textTransform: 'uppercase',
+      marginBottom: 10,
+    }}>
+      {children}
+    </Text>
+  );
+}
+
+function ChipGroup({ children }: { children: React.ReactNode }) {
+  return (
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 20 }}>
+      {children}
     </View>
   );
 }
 
-export function ExploreFilterSheet({
-  visible,
-  initial,
-  isTabletUp,
-  onClose,
-  onApply,
-}: {
+// ─── Main sheet ───────────────────────────────────────────────────────────────
+
+type Props = {
   visible: boolean;
   initial: AdvancedFilters;
   isTabletUp: boolean;
   onClose: () => void;
-  onApply: (f: AdvancedFilters) => void;
-}) {
-  const [pending, setPending] = useState<AdvancedFilters>(initial);
+  onApply: (filters: AdvancedFilters) => void;
+};
 
-  useEffect(() => { if (visible) setPending(initial); }, [visible]);
+export function ExploreFilterSheet({ visible, initial, isTabletUp, onClose, onApply }: Props) {
+  const [draft, setDraft] = useState<AdvancedFilters>(initial);
 
-  const dirty = isFilterDirty(pending);
-  const priceText = `$${pending.priceMin} – $${pending.priceMax}${pending.priceMax >= PRICE_CEILING ? '+' : ''}`;
+  function handleOpen() {
+    // Reset draft to current applied filters each time the sheet opens
+    setDraft(initial);
+  }
 
-  function toggleDietary(key: string) {
+  function toggleMulti(field: 'cuisines' | 'dietary', value: string) {
     feedback.tap();
-    setPending((p) => ({ ...p, dietary: p.dietary.includes(key) ? p.dietary.filter((k) => k !== key) : [...p.dietary, key] }));
+    setDraft((prev) => {
+      const arr = prev[field];
+      return {
+        ...prev,
+        [field]: arr.includes(value) ? arr.filter((x) => x !== value) : [...arr, value],
+      };
+    });
   }
-  function toggleCert(key: string) {
+
+  function toggleSingle<K extends 'maxPrice' | 'minRating'>(field: K, value: AdvancedFilters[K]) {
     feedback.tap();
-    setPending((p) => ({ ...p, certifications: p.certifications.includes(key) ? p.certifications.filter((k) => k !== key) : [...p.certifications, key] }));
+    setDraft((prev) => ({ ...prev, [field]: prev[field] === value ? null : value }));
   }
-  function toggleAnyDistance() {
+
+  function toggleSort(value: AdvancedFilters['sort']) {
     feedback.tap();
-    setPending((p) => ({ ...p, distance: p.distance == null ? 5 : null }));
+    setDraft((prev) => ({ ...prev, sort: prev.sort === value ? 'relevance' : value }));
   }
+
+  function handleClearAll() {
+    feedback.tap();
+    setDraft(FILTER_DEFAULTS);
+  }
+
+  function handleApply() {
+    feedback.tap();
+    onApply(draft);
+  }
+
+  const activeCount = countActiveFilters(draft);
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="Close filters" style={{ flex: 1, justifyContent: 'flex-end' }}>
-        <BlurView intensity={18} tint="dark" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
-        <Pressable onPress={(e) => e.stopPropagation()} accessible={false}
-          style={{ backgroundColor: Palette.surface, borderTopLeftRadius: 28, borderTopRightRadius: 28, maxHeight: '90%', ...(isTabletUp ? { maxWidth: 540, alignSelf: 'center', width: '100%' } : {}) }}>
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onShow={handleOpen}
+      statusBarTranslucent
+      onRequestClose={onClose}>
 
-          <View style={{ width: 40, height: 4, borderRadius: 2, backgroundColor: Palette.border, alignSelf: 'center', marginTop: 12 }} />
+      {/* Scrim */}
+      <Pressable
+        style={{ flex: 1, backgroundColor: Palette.overlay }}
+        onPress={onClose}
+        accessibilityLabel="Close filter panel"
+        accessibilityRole="button"
+      />
 
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 22, paddingVertical: 14 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <SlidersHorizontal size={18} color={Palette.brand} />
-              <Text style={{ fontFamily: Font.display, fontSize: 22, color: Palette.ink, letterSpacing: -0.4 }}>filters</Text>
-            </View>
-            <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
-              {dirty ? (
-                <PressableScale onPress={() => { feedback.tap(); setPending(FILTER_DEFAULTS); }} accessibilityRole="button" accessibilityLabel="Clear all filters"
-                  style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: Radius.pill, backgroundColor: Palette.canvas }}>
-                  <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: Palette.textSecondary }}>clear all</Text>
-                </PressableScale>
-              ) : null}
-              <PressableScale onPress={() => { feedback.tap(); onClose(); }} accessibilityRole="button" accessibilityLabel="Close"
-                style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: Palette.chip, alignItems: 'center', justifyContent: 'center' }}>
-                <X size={18} color={Palette.textSecondary} />
-              </PressableScale>
-            </View>
-          </View>
+      {/* Slide-up panel */}
+      <MotiView
+        from={{ translateY: 640 }}
+        animate={{ translateY: 0 }}
+        transition={{ type: 'spring', damping: 26, stiffness: 300 }}
+        style={{
+          position: 'absolute',
+          bottom: 0,
+          left: isTabletUp ? '10%' : 0,
+          right: isTabletUp ? '10%' : 0,
+          backgroundColor: Palette.surface,
+          borderTopLeftRadius: 24,
+          borderTopRightRadius: 24,
+          maxHeight: '88%',
+          ...Shadow.floating,
+        }}>
 
-          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 36 }}>
+        {/* Drag handle */}
+        <View style={{ alignItems: 'center', paddingTop: 12, paddingBottom: 2 }}>
+          <View style={{ width: 36, height: 4, borderRadius: 2, backgroundColor: Palette.border }} />
+        </View>
 
-            <FilterLabel text="sort by" />
-            <SingleSelectRow
-              options={SORT_OPTIONS as unknown as { key: string; label: string }[]}
-              active={pending.sort}
-              onSelect={(k) => setPending((p) => ({ ...p, sort: k as SortKey }))}
-            />
-
-            {/* Module A — proximity & delivery (interactive 1–15 mi slider) */}
-            <View style={{ paddingHorizontal: 22, marginBottom: 24 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-                <Text style={LABEL_STYLE}>proximity & delivery</Text>
-                <PressableScale onPress={toggleAnyDistance} accessibilityRole="button" accessibilityState={{ selected: pending.distance == null }} accessibilityLabel="Any distance"
-                  style={{ paddingHorizontal: 12, height: 28, borderRadius: Radius.pill, alignItems: 'center', justifyContent: 'center', backgroundColor: pending.distance == null ? Palette.brand : Palette.canvas, borderWidth: 1.5, borderColor: pending.distance == null ? Palette.brand : Palette.border }}>
-                  <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: pending.distance == null ? '#fff' : Palette.inkSoft }}>Any</Text>
-                </PressableScale>
-              </View>
-              <Text style={{ fontFamily: Font.heading, fontSize: 15, color: Palette.ink, marginBottom: 2 }}>
-                {pending.distance == null ? 'Any distance' : `Within ${pending.distance} ${pending.distance === 1 ? 'mile' : 'miles'}`}
-              </Text>
-              <RangeSlider
-                min={1}
-                max={DISTANCE_MAX}
-                value={pending.distance ?? DISTANCE_MAX}
-                disabled={pending.distance == null}
-                onChange={(v) => setPending((p) => ({ ...p, distance: v }))}
-              />
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                <Text style={SCALE_STYLE}>1 mi</Text>
-                <Text style={SCALE_STYLE}>{DISTANCE_MAX} mi</Text>
-              </View>
-            </View>
-
-            {/* Module B — price per serving (dual-point range slider) */}
-            <View style={{ paddingHorizontal: 22, marginBottom: 24 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-                <Text style={LABEL_STYLE}>price per serving</Text>
-                <Text style={{ fontFamily: Font.heading, fontSize: 14, color: Palette.brand, fontVariant: ['tabular-nums'] }}>{priceText}</Text>
-              </View>
-              <DualRangeSlider
-                min={PRICE_FLOOR}
-                max={PRICE_CEILING}
-                lo={pending.priceMin}
-                hi={pending.priceMax}
-                onChange={(lo, hi) => setPending((p) => ({ ...p, priceMin: lo, priceMax: hi }))}
-              />
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                <Text style={SCALE_STYLE}>${PRICE_FLOOR}</Text>
-                <Text style={SCALE_STYLE}>${PRICE_CEILING}+</Text>
-              </View>
-            </View>
-
-            {/* Module C — multi-chef capability */}
-            <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 22, marginBottom: 24, gap: 16 }}>
-              <View style={{ flex: 1 }}>
-                <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: Palette.ink }}>Mix & Match friendly</Text>
-                <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: Palette.textSecondary, marginTop: 2, lineHeight: 18 }}>
-                  Chefs whose delivery schedules pair seamlessly with other local creators
-                </Text>
-              </View>
-              <Switch
-                value={pending.mixMatch}
-                onValueChange={(v) => { feedback.tap(); setPending((p) => ({ ...p, mixMatch: v })); }}
-                trackColor={{ false: Palette.border, true: Palette.brand }}
-                thumbColor="#fff"
-                ios_backgroundColor={Palette.border}
-                accessibilityLabel="Mix and match friendly"
-              />
-            </View>
-
-            <FilterLabel text="dietary" />
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingHorizontal: 20, marginBottom: 24 }}>
-              {DIETARY_TAGS.map((tag) => {
-                const active = pending.dietary.includes(tag.key);
-                return (
-                  <PressableScale key={tag.key} onPress={() => toggleDietary(tag.key)}
-                    accessibilityRole="checkbox" accessibilityState={{ checked: active }} accessibilityLabel={tag.label}
-                    style={{ paddingHorizontal: 14, height: 36, borderRadius: Radius.pill, backgroundColor: active ? Palette.brandTint : Palette.canvas, borderWidth: 1.5, borderColor: active ? Palette.brand : Palette.border, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                    {active ? <Check size={13} color={Palette.brand} strokeWidth={2.5} /> : null}
-                    <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: active ? Palette.brand : Palette.inkSoft }}>{tag.label}</Text>
-                  </PressableScale>
-                );
-              })}
-            </View>
-
-            {/* Module D — kitchen certifications */}
-            <FilterLabel text="kitchen certifications" />
-            <View style={{ paddingHorizontal: 20, marginBottom: 28, gap: 14 }}>
-              {CERTIFICATIONS.map((cert) => {
-                const active = pending.certifications.includes(cert.key);
-                return (
-                  <PressableScale key={cert.key} onPress={() => toggleCert(cert.key)}
-                    accessibilityRole="checkbox" accessibilityState={{ checked: active }} accessibilityLabel={cert.label}
-                    style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
-                    <View style={{ width: 24, height: 24, borderRadius: 7, borderWidth: 2, borderColor: active ? Palette.brand : Palette.border, backgroundColor: active ? Palette.brandTint : 'transparent', alignItems: 'center', justifyContent: 'center' }}>
-                      {active ? <Check size={13} color={Palette.brand} strokeWidth={3} /> : null}
-                    </View>
-                    <Text style={{ fontFamily: Font.medium, fontSize: 14, color: Palette.ink }}>{cert.label}</Text>
-                  </PressableScale>
-                );
-              })}
-            </View>
-
-            <PressableScale onPress={() => { feedback.success(); onApply(pending); }} accessibilityRole="button" accessibilityLabel="Apply filters"
-              style={{ marginHorizontal: 20, height: 52, borderRadius: Radius.pill, backgroundColor: Palette.ink, alignItems: 'center', justifyContent: 'center' }}>
-              <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>
-                {dirty ? 'Apply filters' : 'Show all meals'}
+        {/* Header row */}
+        <View style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          paddingHorizontal: 20,
+          paddingVertical: 14,
+        }}>
+          <Text style={{ fontFamily: Font.heading, fontSize: 18, color: Palette.ink, letterSpacing: -0.3 }}>
+            filters
+          </Text>
+          {activeCount > 0 ? (
+            <PressableScale onPress={handleClearAll} accessibilityRole="button" accessibilityLabel="Clear all filters">
+              <Text style={{ fontFamily: Font.semibold, fontSize: 13.5, color: Palette.brand }}>
+                clear all
               </Text>
             </PressableScale>
+          ) : null}
+        </View>
 
-          </ScrollView>
-        </Pressable>
-      </Pressable>
+        <View style={{ height: 1, backgroundColor: Palette.border, marginHorizontal: 20 }} />
+
+        {/* Filter sections */}
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 16 }}>
+
+          <SectionLabel>cuisine</SectionLabel>
+          <ChipGroup>
+            {CUISINES.map((c) => (
+              <FilterChip
+                key={c}
+                label={c}
+                selected={draft.cuisines.includes(c)}
+                onPress={() => toggleMulti('cuisines', c)}
+              />
+            ))}
+          </ChipGroup>
+
+          <SectionLabel>dietary</SectionLabel>
+          <ChipGroup>
+            {DIETARY.map((d) => (
+              <FilterChip
+                key={d}
+                label={d}
+                selected={draft.dietary.includes(d.toLowerCase())}
+                onPress={() => toggleMulti('dietary', d.toLowerCase())}
+              />
+            ))}
+          </ChipGroup>
+
+          <SectionLabel>max price</SectionLabel>
+          <ChipGroup>
+            {PRICE_OPTIONS.map((opt) => (
+              <FilterChip
+                key={opt.value}
+                label={opt.label}
+                selected={draft.maxPrice === opt.value}
+                onPress={() => toggleSingle('maxPrice', opt.value)}
+              />
+            ))}
+          </ChipGroup>
+
+          <SectionLabel>min rating</SectionLabel>
+          <ChipGroup>
+            {RATING_OPTIONS.map((opt) => (
+              <FilterChip
+                key={opt.value}
+                label={opt.label}
+                selected={draft.minRating === opt.value}
+                onPress={() => toggleSingle('minRating', opt.value)}
+              />
+            ))}
+          </ChipGroup>
+
+          <SectionLabel>sort by</SectionLabel>
+          <ChipGroup>
+            {SORT_OPTIONS.map((opt) => (
+              <FilterChip
+                key={opt.value}
+                label={opt.label}
+                selected={draft.sort === opt.value}
+                onPress={() => toggleSort(opt.value)}
+              />
+            ))}
+          </ChipGroup>
+
+          <SectionLabel>fulfillment</SectionLabel>
+          <ChipGroup>
+            {FULFILLMENT_OPTIONS.map((opt) => (
+              <FilterChip
+                key={opt.value}
+                label={opt.label}
+                selected={draft.fulfillment === opt.value}
+                onPress={() => {
+                  feedback.tap();
+                  setDraft((prev) => ({ ...prev, fulfillment: opt.value }));
+                }}
+              />
+            ))}
+          </ChipGroup>
+
+        </ScrollView>
+
+        {/* Apply CTA */}
+        <View style={{
+          paddingHorizontal: 20,
+          paddingBottom: 36,
+          paddingTop: 12,
+          borderTopWidth: 1,
+          borderTopColor: Palette.border,
+        }}>
+          <PressableScale onPress={handleApply} accessibilityRole="button" accessibilityLabel="Apply filters">
+            <View style={{
+              height: 52,
+              borderRadius: Radius.pill,
+              backgroundColor: Palette.brand,
+              alignItems: 'center',
+              justifyContent: 'center',
+              ...Shadow.card,
+            }}>
+              <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#fff' }}>
+                {activeCount > 0
+                  ? `show results  •  ${activeCount} filter${activeCount === 1 ? '' : 's'} active`
+                  : 'show results'}
+              </Text>
+            </View>
+          </PressableScale>
+        </View>
+
+      </MotiView>
     </Modal>
   );
 }

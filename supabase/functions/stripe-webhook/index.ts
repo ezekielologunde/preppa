@@ -255,7 +255,80 @@ Deno.serve(async (req) => {
           break;
         }
 
-        // One-time order payment
+        // ── bid_payment: customer paid an accepted meal-request bid ────────
+        if (s.metadata?.type === 'bid_payment' && s.payment_status === 'paid') {
+          const { bid_id, request_id } = s.metadata ?? {};
+          if (bid_id) {
+            // Mark the winning bid as paid (requires 0076_bid_status_paid migration)
+            await supabase.from('meal_request_bids')
+              .update({ status: 'paid' })
+              .eq('id', bid_id);
+            // Mark the meal request fulfilled
+            if (request_id) {
+              await supabase.from('meal_requests')
+                .update({ status: 'fulfilled' })
+                .eq('id', request_id);
+            }
+            // Find the order created by create_order_from_meal_bid (bid_id stamped in 0078)
+            const { data: orderRow } = await supabase
+              .from('orders')
+              .select('id, prepper_id, total')
+              .eq('bid_id', bid_id)
+              .maybeSingle();
+            if (orderRow) {
+              // Record the Stripe payment against the order
+              await supabase.rpc('record_payment', {
+                p_order_id: orderRow.id,
+                p_txn: String(s.payment_intent),
+                p_status: 'succeeded',
+                p_amount: (s.amount_total ?? 0) / 100,
+              });
+              // Notify the prepper — they need to start prepping
+              const { data: prepperProfile } = await supabase
+                .from('prepper_profiles')
+                .select('user_id')
+                .eq('id', orderRow.prepper_id)
+                .maybeSingle();
+              if (prepperProfile?.user_id) {
+                const { data: customerProfile } = await supabase
+                  .from('profiles')
+                  .select('full_name')
+                  .eq('id', s.metadata?.user_id ?? '')
+                  .maybeSingle();
+                const custName = firstName(customerProfile?.full_name) || 'A customer';
+                await supabase.from('notifications').insert({
+                  user_id: prepperProfile.user_id,
+                  type: 'order_update',
+                  title: 'Bid payment received!',
+                  body: `${custName} paid for their request. Check your orders to start prepping.`,
+                  data: { type: 'order_update', order_id: orderRow.id },
+                });
+              }
+            }
+            console.log('bid_payment fulfilled', { bid_id, request_id, order_id: orderRow?.id, pi: s.payment_intent });
+          }
+          break;
+        }
+
+        // ── boost: record payment_intent_id on the boost row ───────────────
+        if (s.metadata?.type === 'boost' && s.payment_status === 'paid') {
+          const { prepper_id, plan } = s.metadata ?? {};
+          if (prepper_id && s.payment_intent) {
+            // Update the most recent active boost for this prepper+plan that still has no PI recorded
+            await supabase.from('boosts')
+              .update({ stripe_payment_intent_id: String(s.payment_intent) })
+              .eq('prepper_id', prepper_id)
+              .eq('plan', plan ?? '')
+              .eq('status', 'active')
+              .is('stripe_payment_intent_id', null)
+              .order('created_at', { ascending: false })
+              .limit(1);
+            console.log('boost stripe_payment_intent_id recorded', { prepper_id, plan, pi: s.payment_intent });
+          }
+          break;
+        }
+
+        // ── one-time order payment ──────────────────────────────────────────
         const orderId = s.metadata?.order_id ?? s.client_reference_id ?? undefined;
         if (orderId && s.payment_status === 'paid') {
           await supabase.rpc('record_payment', {

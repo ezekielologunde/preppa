@@ -43,18 +43,18 @@ const ICON_MAP = {
   bid_accepted: Handshake,
 } as const;
 
-const COLOR_MAP = {
-  order: Palette.brand,
+const COLOR_MAP: Record<string, string> = {
+  order: '#3B82F6',        // order_update = blue
   payment: Palette.success,
   chat: '#60a5fa',
-  follow: '#a78bfa',
-  review: Palette.amber,
+  follow: '#a78bfa',       // new_follower = purple
+  review: Palette.success, // approved = green
   promotion: '#f472b6',
-  drop: Palette.amber,
+  drop: Palette.brand,     // meal_drop = brand
   live: Palette.danger,
-  bid: Palette.brand,
-  bid_accepted: Palette.success,
-} as const;
+  bid: Palette.amber,      // bid_accepted = amber
+  bid_accepted: Palette.amber,
+};
 
 function relativeTime(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
@@ -86,16 +86,18 @@ function NotifRow({ n, onPress }: { n: AppNotification; onPress: () => void }) {
         style={{
           flexDirection: 'row',
           alignItems: 'flex-start',
-          gap: 14,
-          paddingHorizontal: 20,
+          gap: 12,
+          paddingHorizontal: 14,
           paddingVertical: 14,
           backgroundColor: n.read ? 'transparent' : Palette.brandTint,
+          borderLeftWidth: n.read ? 0 : 3,
+          borderLeftColor: Palette.brand,
         }}>
         <View
           style={{
-            width: 44,
-            height: 44,
-            borderRadius: 14,
+            width: 40,
+            height: 40,
+            borderRadius: 20,
             backgroundColor: color + '20',
             alignItems: 'center',
             justifyContent: 'center',
@@ -121,6 +123,15 @@ function NotifRow({ n, onPress }: { n: AppNotification; onPress: () => void }) {
                 }}
               />
             ) : null}
+            <Text
+              style={{
+                fontFamily: Font.body,
+                fontSize: 11.5,
+                color: Palette.textMuted,
+                flexShrink: 0,
+              }}>
+              {relativeTime(n.created_at)}
+            </Text>
           </View>
           {n.body ? (
             <Text
@@ -134,15 +145,6 @@ function NotifRow({ n, onPress }: { n: AppNotification; onPress: () => void }) {
               {n.body}
             </Text>
           ) : null}
-          <Text
-            style={{
-              fontFamily: Font.body,
-              fontSize: 11.5,
-              color: Palette.textMuted,
-              marginTop: 2,
-            }}>
-            {relativeTime(n.created_at)}
-          </Text>
         </View>
       </View>
     </PressableScale>
@@ -166,14 +168,45 @@ export default function NotificationsScreen() {
   function handlePress(n: AppNotification) {
     feedback.tap();
     if (!n.read) markRead.mutate(n.id, { onError: () => feedback.error() });
-    if (n.type === 'order' || n.type === 'payment') router.push('/orders');
-    else if (n.type === 'chat') router.push('/messages');
-    else if (n.type === 'review') router.push('/reviews');
-    else if (n.type === 'live' || n.type === 'drop') router.push('/explore');
-    else if (n.type === 'follow') router.push('/dashboard');
-    else if (n.type === 'bid') router.push('/experiences');
-    else if (n.type === 'bid_accepted') router.push('/prepper-orders');
-    else if (n.type === 'promotion') router.push('/specials');
+    const type = n.type as string;
+    const actorId = n.data?.actor_id as string | undefined;
+    const refId = n.data?.reference_id as string | undefined;
+    switch (type) {
+      case 'order':
+      case 'payment':
+      case 'order_status':
+        router.push('/orders');
+        break;
+      case 'chat':
+        router.push('/messages');
+        break;
+      case 'review':
+      case 'approved':
+        router.push('/reviews');
+        break;
+      case 'follow':
+        if (actorId) router.push(`/prepper?id=${actorId}` as never);
+        else router.push('/dashboard');
+        break;
+      case 'drop':
+        if (refId) router.push(`/meal?id=${refId}` as never);
+        else router.push('/explore');
+        break;
+      case 'live':
+        router.push('/explore');
+        break;
+      case 'bid':
+        router.push('/experiences');
+        break;
+      case 'bid_accepted':
+        router.push('/prepper-orders' as never);
+        break;
+      case 'promotion':
+        router.push('/specials' as never);
+        break;
+      default:
+        break;
+    }
   }
 
   const unread = (notifs ?? []).filter((n) => !n.read).length;
@@ -219,32 +252,32 @@ export default function NotificationsScreen() {
           <Text
             style={{
               fontFamily: Font.display,
-              fontSize: 26,
+              fontSize: 24,
               color: Palette.ink,
-              letterSpacing: -0.8,
+              letterSpacing: -0.5,
               flex: 1,
             }}>
-            notifications
+            Notifications
           </Text>
-          {unread > 0 ? (
-            <PressableScale
-              onPress={() => {
-                feedback.tap();
-                markRead.mutate(undefined, { onSuccess: () => feedback.success(), onError: () => feedback.error() });
-              }}
-              accessibilityRole="button"
-              accessibilityLabel="Mark all as read"
-              style={{
-                paddingHorizontal: 12,
-                paddingVertical: 7,
-                borderRadius: Radius.pill,
-                backgroundColor: Palette.surface,
-              }}>
-              <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: Palette.brand }}>
-                mark all read
-              </Text>
-            </PressableScale>
-          ) : null}
+          <PressableScale
+            onPress={() => {
+              feedback.tap();
+              markRead.mutate(undefined, { onSuccess: () => feedback.success(), onError: () => feedback.error() });
+            }}
+            disabled={unread === 0}
+            accessibilityRole="button"
+            accessibilityLabel="Mark all as read"
+            style={{
+              paddingHorizontal: 12,
+              paddingVertical: 7,
+              borderRadius: Radius.pill,
+              backgroundColor: Palette.surface,
+              opacity: unread === 0 ? 0.4 : 1,
+            }}>
+            <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: Palette.brand }}>
+              Mark all read
+            </Text>
+          </PressableScale>
         </View>
 
         {/* Unread count chip */}
@@ -303,8 +336,8 @@ export default function NotificationsScreen() {
               }}>
               <Bell size={30} color={Palette.textMuted} />
             </View>
-            <Text style={{ fontFamily: Font.heading, fontSize: 18, color: Palette.ink }}>
-              all caught up
+            <Text style={{ fontFamily: Font.display, fontSize: 20, color: Palette.ink, letterSpacing: -0.4 }}>
+              You're all caught up
             </Text>
             <Text
               style={{
@@ -354,7 +387,7 @@ export default function NotificationsScreen() {
                         key={n.id}
                         from={{ opacity: 0, translateY: 5 }}
                         animate={{ opacity: 1, translateY: 0 }}
-                        transition={{ type: 'timing', duration: 220, delay: Math.min(i * 28, 200) }}>
+                        transition={{ type: 'spring', damping: 20, stiffness: 260, delay: Math.min(i * 35, 240) }}>
                         <NotifRow n={n} onPress={() => handlePress(n)} />
                         {i < groupList.length - 1 ? (
                           <View style={{ height: 1, backgroundColor: Palette.border, marginLeft: 74 }} />

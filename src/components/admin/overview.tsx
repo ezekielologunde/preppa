@@ -1,12 +1,13 @@
-import { AlertTriangle, ClipboardList, DollarSign, Repeat, ShoppingBag, Store, TrendingUp, Users } from 'lucide-react-native';
+import { AlertTriangle, BarChart2, ClipboardList, DollarSign, Repeat, ShoppingBag, Star, Store, TrendingUp, Users } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { Text, View } from 'react-native';
 
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
 import { feedback } from '@/lib/feedback';
-import { useMarketplaceFit, usePlatformStats } from '@/lib/queries/admin';
+import { useAdminGmvChart, useAdminTopPreppers, useMarketplaceFit, usePlatformStats } from '@/lib/queries/admin';
 import { Admin, Card, money, compact, SectionState, StatCard } from './ui';
+import { AdminGmvChart } from './gmv-chart';
 
 /**
  * The one signal that separates a marketplace from a fragile one-time app:
@@ -55,7 +56,118 @@ function MarketplaceFitCard() {
   );
 }
 
-export function AdminOverview({ onReviewPreppers, onNavigate, openDisputeCount }: { onReviewPreppers: () => void; onNavigate?: (section: 'preppers' | 'customers' | 'orders' | 'earnings' | 'disputes') => void; openDisputeCount?: number }) {
+function PlatformHealthRow({ s }: { s: { orders_today: number; approved_preppers: number; total_orders: number; gmv: number } }) {
+  const avgOrder = s.total_orders > 0 && s.gmv > 0 ? money(s.gmv / s.total_orders) : '—';
+  const items = [
+    { label: "today's orders", value: compact(s.orders_today) },
+    { label: 'active kitchens', value: compact(s.approved_preppers) },
+    { label: 'avg order value', value: avgOrder },
+  ];
+  return (
+    <Card>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+        <TrendingUp size={16} color={Admin.success} />
+        <Text style={{ fontFamily: Font.heading, fontSize: 14, color: Admin.text }}>Platform health</Text>
+      </View>
+      <View style={{ flexDirection: 'row' }}>
+        {items.map(({ label, value }, i) => (
+          <View
+            key={label}
+            style={[
+              { flex: 1 },
+              i > 0 && { borderLeftWidth: 1, borderLeftColor: Admin.border, paddingLeft: 12 },
+            ]}
+          >
+            <Text style={{ fontFamily: Font.heading, fontSize: 16, color: Admin.text, fontVariant: ['tabular-nums'] }}>
+              {value}
+            </Text>
+            <Text style={{ fontFamily: Font.body, fontSize: 11, color: Admin.textDim, marginTop: 1 }}>{label}</Text>
+          </View>
+        ))}
+      </View>
+    </Card>
+  );
+}
+
+function GmvSection() {
+  const { data = [] } = useAdminGmvChart();
+  return (
+    <Card>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+        <BarChart2 size={16} color={Admin.brand} />
+        <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: Admin.text }}>GMV (last 8 weeks)</Text>
+      </View>
+      <AdminGmvChart data={data} />
+    </Card>
+  );
+}
+
+function TopPreppersSection({ onPressPrepperRow }: { onPressPrepperRow?: () => void }) {
+  const { data = [] } = useAdminTopPreppers(10);
+  if (!data.length) return null;
+  return (
+    <Card>
+      <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: Admin.text, marginBottom: 12 }}>
+        top kitchens by revenue
+      </Text>
+      <View style={{ gap: 0 }}>
+        {data.map((p, i) => {
+          const isEven = i % 2 === 0;
+          return (
+            <PressableScale
+              key={p.prepperId}
+              onPress={() => { feedback.tap(); onPressPrepperRow?.(); }}
+              accessibilityRole="button"
+              accessibilityLabel={`${p.displayName}, rank ${i + 1}`}
+            >
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 8,
+                  paddingVertical: 9,
+                  paddingHorizontal: 8,
+                  borderRadius: 8,
+                  backgroundColor: isEven ? 'transparent' : Admin.border + '55',
+                }}
+              >
+                {/* Rank */}
+                <Text style={{ fontFamily: Font.display, fontSize: 16, color: Admin.textDim, width: 28, textAlign: 'center', fontVariant: ['tabular-nums'] }}>
+                  {i + 1}
+                </Text>
+
+                {/* Name */}
+                <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: Admin.text, flex: 1 }} numberOfLines={1}>
+                  {p.displayName}
+                </Text>
+
+                {/* Revenue */}
+                <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: Admin.brand, width: 72, textAlign: 'right', fontVariant: ['tabular-nums'] }}>
+                  {money(p.totalRevenue)}
+                </Text>
+
+                {/* Order count */}
+                <Text style={{ fontFamily: Font.body, fontSize: 12, color: Admin.textDim, width: 54, textAlign: 'right', fontVariant: ['tabular-nums'] }}>
+                  {compact(p.orderCount)} orders
+                </Text>
+
+                {/* Rating */}
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2, width: 36, justifyContent: 'flex-end' }}>
+                  <Star size={12} color={Admin.warn} fill={Admin.warn} />
+                  <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: Admin.text, fontVariant: ['tabular-nums'] }}>
+                    {p.avgRating > 0 ? p.avgRating.toFixed(1) : '—'}
+                  </Text>
+                </View>
+              </View>
+            </PressableScale>
+          );
+        })}
+      </View>
+    </Card>
+  );
+}
+
+export function AdminOverview({ onReviewPreppers, onNavigate, onSectionChange, openDisputeCount }: { onReviewPreppers: () => void; onNavigate?: (section: 'preppers' | 'customers' | 'orders' | 'earnings' | 'disputes') => void; onSectionChange?: (section: 'preppers' | 'customers' | 'orders' | 'earnings' | 'features' | 'disputes' | 'overview') => void; openDisputeCount?: number }) {
   const { data, isLoading, isError } = usePlatformStats();
   const s = data;
 
@@ -93,7 +205,7 @@ export function AdminOverview({ onReviewPreppers, onNavigate, openDisputeCount }
                   <Text style={{ fontFamily: Font.heading, fontSize: 15, color: Admin.text }}>
                     {s.pending_preppers} prepper{s.pending_preppers === 1 ? '' : 's'} awaiting approval
                   </Text>
-                  <Text onPress={onReviewPreppers} accessibilityRole="button" style={{ fontFamily: Font.semibold, fontSize: 13, color: Admin.warn, marginTop: 2 }}>
+                  <Text onPress={() => { onSectionChange?.('preppers'); onReviewPreppers(); }} accessibilityRole="button" style={{ fontFamily: Font.semibold, fontSize: 13, color: Admin.warn, marginTop: 2 }}>
                     Review applications →
                   </Text>
                 </View>
@@ -112,7 +224,7 @@ export function AdminOverview({ onReviewPreppers, onNavigate, openDisputeCount }
                   <Text style={{ fontFamily: Font.heading, fontSize: 15, color: Admin.text }}>
                     {openDisputeCount} open dispute{openDisputeCount === 1 ? '' : 's'} need attention
                   </Text>
-                  <Text onPress={() => onNavigate?.('disputes')} accessibilityRole="button" style={{ fontFamily: Font.semibold, fontSize: 13, color: Admin.danger, marginTop: 2 }}>
+                  <Text onPress={() => { onSectionChange?.('disputes'); onNavigate?.('disputes'); }} accessibilityRole="button" style={{ fontFamily: Font.semibold, fontSize: 13, color: Admin.danger, marginTop: 2 }}>
                     Review disputes →
                   </Text>
                 </View>
@@ -121,33 +233,15 @@ export function AdminOverview({ onReviewPreppers, onNavigate, openDisputeCount }
             </MotiView>
           ) : null}
 
-          <Card>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-              <TrendingUp size={16} color={Admin.success} />
-              <Text style={{ fontFamily: Font.heading, fontSize: 14, color: Admin.text }}>Platform health</Text>
-            </View>
-            <View style={{ flexDirection: 'row', gap: 12 }}>
-              <View style={{ flex: 1 }}>
-                <Text style={{ fontFamily: Font.heading, fontSize: 16, color: Admin.text, fontVariant: ['tabular-nums'] }}>
-                  {s.total_orders > 0 && s.gmv > 0 ? money(s.gmv / s.total_orders) : '—'}
-                </Text>
-                <Text style={{ fontFamily: Font.body, fontSize: 11, color: Admin.textDim, marginTop: 1 }}>avg order value</Text>
-              </View>
-              <View style={{ flex: 1, borderLeftWidth: 1, borderLeftColor: Admin.border, paddingLeft: 12 }}>
-                <Text style={{ fontFamily: Font.heading, fontSize: 16, color: Admin.text, fontVariant: ['tabular-nums'] }}>{compact(s.open_orders)}</Text>
-                <Text style={{ fontFamily: Font.body, fontSize: 11, color: Admin.textDim, marginTop: 1 }}>in-flight orders</Text>
-              </View>
-              <View style={{ flex: 1, borderLeftWidth: 1, borderLeftColor: Admin.border, paddingLeft: 12 }}>
-                <Text style={{ fontFamily: Font.heading, fontSize: 16, color: Admin.text, fontVariant: ['tabular-nums'] }}>{compact(s.approved_preppers)}</Text>
-                <Text style={{ fontFamily: Font.body, fontSize: 11, color: Admin.textDim, marginTop: 1 }}>active kitchens</Text>
-              </View>
-            </View>
-            {s.gmv === 0 ? (
-              <Text style={{ fontFamily: Font.body, fontSize: 12, color: Admin.textDim, lineHeight: 18, marginTop: 10 }}>
-                No completed sales yet — revenue appears here once orders complete.
-              </Text>
-            ) : null}
-          </Card>
+          <PlatformHealthRow s={s} />
+
+          <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 280 }}>
+            <GmvSection />
+          </MotiView>
+
+          <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 340 }}>
+            <TopPreppersSection onPressPrepperRow={() => onSectionChange?.('preppers')} />
+          </MotiView>
         </>
       ) : null}
     </View>

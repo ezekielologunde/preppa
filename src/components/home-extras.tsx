@@ -4,7 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import type { ComponentType } from 'react';
 import {
-  CalendarCheck, ChefHat, ChevronRight, Coffee, Gift, LayoutGrid, Leaf, Moon, Sparkles, Sprout, Ticket, UtensilsCrossed, Zap,
+  CalendarCheck, ChefHat, ChevronRight, Coffee, Crown, Gift, LayoutGrid, Leaf, Moon, Sparkles, Sprout, Ticket, UtensilsCrossed, Zap,
 } from 'lucide-react-native';
 import { imgUrl } from '@/lib/img';
 import { MotiView } from 'moti';
@@ -16,6 +16,8 @@ import { Font } from '@/constants/fonts';
 import { Palette, Radius, Shadow } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
 import { useMySubscriptions } from '@/lib/queries/meal-plans';
+import { useRewards } from '@/lib/queries/rewards';
+import { useAuth } from '@/providers/auth-provider';
 
 const ORANGE = Palette.brand;
 const INK = Palette.ink;
@@ -62,14 +64,14 @@ export function SectionHeader({
   title, linkLabel, onLink, Icon,
 }: { title: string; linkLabel?: string; onLink?: () => void; Icon?: ComponentType<{ size?: number; color?: string }> }) {
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, marginTop: 12, marginBottom: 10 }}>
+    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, marginTop: 12, marginBottom: 16 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-        {Icon ? <Icon size={17} color={ORANGE} /> : null}
-        <Text style={{ fontFamily: Font.display, fontSize: 17, color: INK, letterSpacing: -0.35 }}>{title}</Text>
+        {Icon ? <Icon size={18} color={ORANGE} /> : null}
+        <Text style={{ fontFamily: Font.display, fontSize: 20, color: INK, letterSpacing: -0.4 }}>{title}</Text>
       </View>
       {onLink ? (
-        <PressableScale onPress={onLink} accessibilityRole="button" accessibilityLabel={linkLabel ?? 'See all'}>
-          <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: ORANGE }}>{linkLabel ?? 'see all'}</Text>
+        <PressableScale onPress={onLink} accessibilityRole="button" accessibilityLabel={linkLabel ?? 'View all'}>
+          <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: ORANGE }}>{linkLabel ?? 'view all'}</Text>
         </PressableScale>
       ) : null}
     </View>
@@ -108,11 +110,42 @@ export function CategoryIconsRow() {
 
 export function RewardsBanner() {
   const router = useRouter();
+  const { user } = useAuth();
+  const rewards = useRewards(user?.id);
+  const onPress = () => { feedback.tap(); router.push('/rewards'); };
+
+  if (user && !rewards.isLoading) {
+    const tc = rewards.tier.color;
+    return (
+      <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }}
+        transition={{ type: 'timing', duration: 260, delay: 200 }}>
+        <PressableScale onPress={onPress} accessibilityRole="button"
+          accessibilityLabel={`${rewards.points} points, ${rewards.tier.name} member`}
+          style={{ marginHorizontal: 20, backgroundColor: Palette.surface, borderRadius: Radius.md, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12, borderWidth: 1, borderColor: tc + '28' }}>
+          <View style={{ width: 42, height: 42, borderRadius: 21, backgroundColor: tc + '18', alignItems: 'center', justifyContent: 'center' }}>
+            <Crown size={19} color={tc} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+              <Text style={{ fontFamily: Font.display, fontSize: 16, color: INK, letterSpacing: -0.3 }}>{rewards.points.toLocaleString()}</Text>
+              <Text style={{ fontFamily: Font.body, fontSize: 12, color: MUTED }}>pts</Text>
+              <View style={{ width: 1, height: 11, backgroundColor: Palette.border, marginHorizontal: 2 }} />
+              <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: tc }}>{rewards.tier.name}</Text>
+            </View>
+            {rewards.nextTier
+              ? <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary, marginTop: 2 }}>${rewards.toNext.toFixed(0)} to {rewards.nextTier.name}</Text>
+              : <Text style={{ fontFamily: Font.body, fontSize: 12, color: tc, marginTop: 2 }}>top tier · 2× points events</Text>}
+          </View>
+          <ChevronRight size={16} color={tc} />
+        </PressableScale>
+      </MotiView>
+    );
+  }
+
   return (
     <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }}
       transition={{ type: 'timing', duration: 260, delay: 200 }}>
-      <PressableScale onPress={() => { feedback.tap(); router.push('/rewards'); }}
-        accessibilityRole="button" accessibilityLabel="View your rewards"
+      <PressableScale onPress={onPress} accessibilityRole="button" accessibilityLabel="View your rewards"
         style={{ marginHorizontal: 20, backgroundColor: '#EDFBF1', borderRadius: Radius.md, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12, borderWidth: 1, borderColor: '#C6F0D4' }}>
         <View style={{ width: 42, height: 42, borderRadius: 21, backgroundColor: Palette.success, alignItems: 'center', justifyContent: 'center' }}>
           <Gift size={19} color="#fff" />
@@ -378,8 +411,8 @@ export function ActionSplitter({ planImage, dropImage }: { planImage?: string; d
 // ─── ExperiencesBar ───────────────────────────────────────────────────────────
 
 const EXP_TYPES: { key: string; label: string; Icon: React.ComponentType<{ size?: number; color?: string }>; color: string }[] = [
-  { key: 'private-chef', label: 'Private Chef', Icon: ChefHat,         color: '#7C3AED' },
-  { key: 'cook-at-home', label: 'Cook at Mine', Icon: UtensilsCrossed, color: ORANGE    },
+  { key: 'private_chef', label: 'Private Chef', Icon: ChefHat,         color: '#7C3AED' },
+  { key: 'food_service', label: 'Cook at Mine', Icon: UtensilsCrossed, color: ORANGE    },
   { key: 'class',        label: 'Classes',      Icon: Zap,             color: '#22C55E' },
   { key: 'catering',     label: 'Catering',     Icon: CalendarCheck,   color: '#D97706' },
 ];
@@ -397,7 +430,7 @@ export function ExperiencesBar() {
           <MotiView key={exp.key} from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }}
             transition={{ type: 'timing', duration: 200, delay: 60 + i * 45 }}>
             <PressableScale
-              onPress={() => { feedback.tap(); router.push('/experiences' as never); }}
+              onPress={() => { feedback.tap(); router.push(`/experience-request?kind=${exp.key}` as never); }}
               accessibilityRole="button" accessibilityLabel={`Browse ${exp.label} experiences`}
               style={{ alignItems: 'center', gap: 6 }}>
               <View style={{ width: 60, height: 60, borderRadius: 18, backgroundColor: exp.color + '18', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: exp.color + '28' }}>

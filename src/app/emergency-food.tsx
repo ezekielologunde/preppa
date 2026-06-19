@@ -2,13 +2,14 @@ import { useRouter } from 'expo-router';
 import { AlertCircle, ChevronLeft, ChevronRight, Clock, MapPin, Zap } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useState } from 'react';
-import { ScrollView, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
 import { feedback } from '@/lib/feedback';
 import { useAddresses } from '@/lib/queries/addresses';
+import { useCreateEmergencyRequest } from '@/lib/queries/emergency-requests';
 import { useTopPreppers } from '@/lib/queries/preppers';
 import { Palette, Radius } from '@/constants/theme';
 import { useAuth } from '@/providers/auth-provider';
@@ -39,11 +40,29 @@ export default function EmergencyFoodScreen() {
   // TopPrepper carries no availability flag; show the top kitchens as-is.
   const availablePreppers = (preppers ?? []).slice(0, 5);
 
+  const sendRequest = useCreateEmergencyRequest();
+
   function goBack() { feedback.tap(); if (router.canGoBack()) { router.back(); } else { router.replace('/'); } }
 
-  function handleSend() {
-    feedback.success();
-    setSent(true);
+  async function handleSend() {
+    if (!user?.id) return;
+    const addressLine = defaultAddr
+      ? [defaultAddr.street1, defaultAddr.city, defaultAddr.state].filter(Boolean).join(', ')
+      : null;
+    try {
+      await sendRequest.mutateAsync({
+        userId: user.id,
+        cuisine,
+        notes,
+        urgencyMins: urgency.mins,
+        addressLine,
+      });
+      feedback.success();
+      setSent(true);
+    } catch {
+      feedback.error();
+      Alert.alert('Could not send', 'Your request failed to send. Please try again.');
+    }
   }
 
   if (sent) {
@@ -198,11 +217,18 @@ export default function EmergencyFoodScreen() {
           <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 220 }}>
           <PressableScale
             onPress={handleSend}
+            disabled={sendRequest.isPending}
             accessibilityRole="button"
             accessibilityLabel="Send emergency food request"
-            style={{ height: 56, borderRadius: Radius.sm, backgroundColor: urgency.color, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 10 }}>
-            <Zap size={18} color="#fff" />
-            <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>notify preppers · {urgency.label}</Text>
+            style={{ height: 56, borderRadius: Radius.sm, backgroundColor: urgency.color, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 10, opacity: sendRequest.isPending ? 0.7 : 1 }}>
+            {sendRequest.isPending ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <>
+                <Zap size={18} color="#fff" />
+                <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>notify preppers · {urgency.label}</Text>
+              </>
+            )}
           </PressableScale>
           <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted, textAlign: 'center', marginTop: 8 }}>
             Preppers in your area will see your request and respond via messages.

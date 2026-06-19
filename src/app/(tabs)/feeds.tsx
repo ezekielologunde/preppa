@@ -74,8 +74,8 @@ export default function FeedsScreen() {
   }, [prepper?.status, router]);
 
   const [tab, setTab] = useState<'following' | 'explore'>('following');
-  const { data: exploreItems, isLoading: exploreLoading } = useFeed();
-  const { data: followingItems, isLoading: followingLoading } = useFollowingFeed(user?.id);
+  const { data: exploreItems, isLoading: exploreLoading, isError: exploreError } = useFeed();
+  const { data: followingItems, isLoading: followingLoading, isError: followingError } = useFollowingFeed(user?.id);
   const { data: followIds } = useMyFollowIds(user?.id);
   const followSet = useMemo(() => new Set(followIds ?? []), [followIds]);
   const { data: myOrders } = useMyOrders(user?.id);
@@ -92,6 +92,7 @@ export default function FeedsScreen() {
   ], [hasActiveOrder]);
   const items = tab === 'following' ? followingItems : exploreItems;
   const isLoading = tab === 'following' ? followingLoading : exploreLoading;
+  const isError = tab === 'following' ? followingError : exploreError;
   const stream = useMemo(() => buildStream(items ?? [], promoSeq), [items, promoSeq]);
   const { height: windowHeight, width: windowWidth } = useWindowDimensions();
   const isDesktop = windowWidth >= BP.desktop;
@@ -109,6 +110,17 @@ export default function FeedsScreen() {
       <View style={{ flex: 1, backgroundColor: '#000', alignItems: 'center', justifyContent: 'center' }}>
         <FeedTabs tab={tab} onTab={(t) => { setTab(t); setPage(0); }} />
         <ActivityIndicator color={ORANGE} />
+      </View>
+    );
+  }
+
+  if (isError) {
+    return (
+      <View style={{ flex: 1, backgroundColor: '#0B0B0D', alignItems: 'center', justifyContent: 'center', gap: 12, padding: 32 }}>
+        <FeedTabs tab={tab} onTab={(t) => { setTab(t); setPage(0); }} />
+        <Text style={{ fontFamily: Font.body, fontSize: 15, color: 'rgba(255,255,255,0.6)', textAlign: 'center' }}>
+          Could not load feed. Try again.
+        </Text>
       </View>
     );
   }

@@ -5,12 +5,12 @@
 export type TrendingTag = { tag: string; query: string };
 
 const BASE: TrendingTag[] = [
-  { tag: '#MealPrepSunday', query: 'meal prep' },
-  { tag: '#VeganKitchens', query: 'vegan' },
-  { tag: '#HighProtein', query: 'high protein' },
-  { tag: '#LowSodium', query: 'low sodium' },
-  { tag: '#HalalEats', query: 'halal' },
-  { tag: '#KetoFriendly', query: 'keto' },
+  { tag: 'jollof rice',    query: 'jollof rice' },
+  { tag: 'meal prep',      query: 'meal prep' },
+  { tag: 'vegan bowls',    query: 'vegan bowls' },
+  { tag: 'grilled chicken', query: 'grilled chicken' },
+  { tag: 'stir fry',       query: 'stir fry' },
+  { tag: 'smoothie bowls', query: 'smoothie bowls' },
 ];
 
 // A few cities get a localized flavour at the front of the list; everywhere

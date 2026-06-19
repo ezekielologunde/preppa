@@ -2,31 +2,24 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import type { Meal } from '@/components/meal-card';
 import { supabase } from '@/lib/supabase';
+import { isKitchenOpenNow, type CookSchedule } from '@/lib/queries/schedule';
 import type { CustomerBadgeKey, PrepperBadgeKey, PrepperStatus } from '@/types/database.types';
 
 export type TopPrepper = {
-  id: string;
-  name: string;
-  verified: boolean;
-  rating: number;
-  reviews: number;
-  image: string;
-  from: number | null;
-  tags: string[];
-  /** Reputation rank within the "Top kitchens" rail (1 = best). */
-  rank?: number;
+  id: string; name: string; verified: boolean; isPro?: boolean;
+  rating: number; reviews: number; image: string; from: number | null; tags: string[];
+  rank?: number;        // reputation rank within "Top kitchens" rail (1 = best)
+  lat?: number | null;  // kitchen geo-coordinates
+  lng?: number | null;
+  distanceKm?: number;  // client-side computed via sortByDistance()
+  isOpenNow: boolean;
 };
 
 type RankedRow = {
-  id: string;
-  display_name: string;
-  verified: boolean;
-  specialties: string[] | null;
-  average_rating: number | string | null;
-  total_reviews: number | null;
-  from_price: number | string | null;
-  image_url: string | null;
-  rank: number;
+  id: string; display_name: string; verified: boolean; specialties: string[] | null;
+  average_rating: number | string | null; total_reviews: number | null;
+  from_price: number | string | null; image_url: string | null; rank: number;
+  is_pro?: boolean; lat?: number | null; lng?: number | null;
 };
 
 type Row = {
@@ -34,14 +27,17 @@ type Row = {
   display_name: string;
   verified: boolean;
   specialties: string[] | null;
+  cook_schedule: CookSchedule | null;
   rating: { average_rating: number; total_reviews: number } | { average_rating: number; total_reviews: number }[] | null;
   meals: { base_price: number; images: { url: string }[] }[] | null;
+  prepper_memberships: { tier: string; status: string }[] | null;
 };
 
 const SELECT =
-  'id,display_name,verified,specialties,' +
+  'id,display_name,verified,specialties,cook_schedule,' +
   'rating:prepper_rating_summary(average_rating,total_reviews),' +
-  'meals(base_price,images:meal_images(url))';
+  'meals(base_price,images:meal_images(url)),' +
+  'prepper_memberships(tier,status)';
 
 function one<T>(v: T | T[] | null | undefined): T | undefined {
   return Array.isArray(v) ? v[0] : (v ?? undefined);
@@ -52,47 +48,35 @@ function mapPrepper(row: Row): TopPrepper {
   const meals = row.meals ?? [];
   const prices = meals.map((m) => m.base_price).filter((p) => typeof p === 'number');
   const image = meals.flatMap((m) => m.images ?? []).map((i) => i.url)[0] ?? '';
+  const isPro = (row.prepper_memberships ?? []).some((m) => m.tier === 'pro' && m.status === 'active');
   return {
     id: row.id,
     name: row.display_name,
     verified: row.verified,
+    isPro,
     rating: rating?.average_rating ?? 0,
     reviews: rating?.total_reviews ?? 0,
     image,
     from: prices.length ? Math.min(...prices) : null,
     tags: row.specialties ?? [],
+    isOpenNow: isKitchenOpenNow(row.cook_schedule),
   };
 }
 
 export type PrepperStats = {
-  completed_orders: number;
-  unique_customers: number;
-  repeat_customers: number;
-  followers: number;
-  completion_rate: number | null;
-  member_since: string | null;
+  completed_orders: number; unique_customers: number; repeat_customers: number;
+  followers: number; completion_rate: number | null; member_since: string | null;
 };
 
 export type PrepperProfile = {
-  id: string;
-  userId: string;
-  name: string;
-  bio: string | null;
-  avatar: string | null;
-  city: string | null;
-  verified: boolean;
-  specialties: string[];
-  certifications: string[];
-  priceFrom: number | null;
-  delivers: boolean;
-  pickup: boolean;
-  acceptingOrders: boolean;
-  homeCookAvailable: boolean;
-  rating: number;
-  reviews: number;
-  fiveStar: number;
-  stats: PrepperStats | null;
-  meals: Meal[];
+  id: string; userId: string; name: string; bio: string | null; avatar: string | null;
+  city: string | null; lat: number | null; lng: number | null;
+  verified: boolean; isPro: boolean; specialties: string[]; certifications: string[];
+  priceFrom: number | null; delivers: boolean; pickup: boolean;
+  deliveryFee: number; deliveryRadius: number | null;
+  acceptingOrders: boolean; homeCookAvailable: boolean;
+  rating: number; reviews: number; fiveStar: number;
+  stats: PrepperStats | null; meals: Meal[];
 };
 
 /** A public prepper profile: identity, trust stats, and their live menu. */
@@ -101,10 +85,10 @@ export function usePrepperProfile(prepperId?: string | null) {
     queryKey: ['prepper', 'profile', prepperId ?? 'none'],
     enabled: !!prepperId,
     queryFn: async (): Promise<PrepperProfile> => {
-      const [profileRes, mealsRes, statsRes] = await Promise.all([
+      const [profileRes, mealsRes, statsRes, membershipRes] = await Promise.all([
         supabase
           .from('prepper_profiles')
-          .select('id,user_id,display_name,bio,avatar_url,city,verified,specialties,certifications,price_from,delivers,pickup,accepting_orders,home_cook_available,rating:prepper_rating_summary(average_rating,total_reviews,five_star)')
+          .select('id,user_id,display_name,bio,avatar_url,city,lat,lng,verified,specialties,certifications,price_from,delivers,pickup,delivery_fee,delivery_radius_km,accepting_orders,home_cook_available,rating:prepper_rating_summary(average_rating,total_reviews,five_star)')
           .eq('id', prepperId!)
           .single(),
         supabase
@@ -114,8 +98,16 @@ export function usePrepperProfile(prepperId?: string | null) {
           .eq('status', 'published')
           .order('created_at', { ascending: false }),
         supabase.rpc('prepper_public_stats', { p_prepper: prepperId! }),
+        supabase
+          .from('prepper_memberships')
+          .select('tier,status')
+          .eq('prepper_id', prepperId!)
+          .eq('status', 'active')
+          .maybeSingle(),
       ]);
       if (profileRes.error) throw profileRes.error;
+      const membershipRow = membershipRes.data as { tier: string; status: string } | null;
+      const isPro = membershipRow?.tier === 'pro' && membershipRow?.status === 'active';
       const p = profileRes.data as unknown as Record<string, unknown>;
       const rating = one(p.rating as never) as { average_rating: number; total_reviews: number; five_star: number } | undefined;
       const mealRows = (mealsRes.data ?? []) as unknown as {
@@ -145,12 +137,17 @@ export function usePrepperProfile(prepperId?: string | null) {
         bio: (p.bio as string | null) ?? null,
         avatar: (p.avatar_url as string | null) ?? null,
         city: (p.city as string | null) ?? null,
+        lat: (p.lat as number | null) ?? null,
+        lng: (p.lng as number | null) ?? null,
         verified: !!p.verified,
+        isPro,
         specialties: (p.specialties as string[] | null) ?? [],
         certifications: (p.certifications as string[] | null) ?? [],
         priceFrom: (p.price_from as number | null) ?? null,
         delivers: !!p.delivers,
         pickup: !!p.pickup,
+        deliveryFee: Number(p.delivery_fee ?? 0),
+        deliveryRadius: p.delivery_radius_km != null ? Number(p.delivery_radius_km) : null,
         acceptingOrders: p.accepting_orders !== false,
         homeCookAvailable: !!p.home_cook_available,
         rating: rating?.average_rating ?? 0,
@@ -175,12 +172,16 @@ export function useTopPreppers(limit = 10) {
         id: r.id,
         name: r.display_name,
         verified: r.verified,
+        isPro: r.is_pro === true,
         rating: Number(r.average_rating ?? 0),
         reviews: r.total_reviews ?? 0,
         image: r.image_url ?? '',
         from: r.from_price != null ? Number(r.from_price) : null,
         tags: r.specialties ?? [],
         rank: r.rank,
+        lat: r.lat ?? null,
+        lng: r.lng ?? null,
+        isOpenNow: true, // RPC doesn't return schedule; treat as always available
       }));
     },
   });
@@ -223,7 +224,7 @@ export function useKitchensByTag(tag?: string | null) {
 
 /** Search approved preppers by name or specialty (public read). */
 export function usePrepperSearch(query: string) {
-  const q = query.trim().replace(/[,()]/g, ' ').replace(/\s+/g, ' ').trim();
+  const q = query.trim().replace(/[,(){}]/g, ' ').replace(/\s+/g, ' ').trim();
   return useQuery({
     queryKey: ['preppers', 'search', q],
     enabled: q.length >= 2,
@@ -241,70 +242,8 @@ export function usePrepperSearch(query: string) {
   });
 }
 
-/** All prepper IDs the signed-in user follows — one query for the whole feed. */
-export function useMyFollowIds(userId?: string | null) {
-  return useQuery({
-    queryKey: ['follows', 'mine', userId ?? 'anon'],
-    enabled: !!userId,
-    queryFn: async (): Promise<string[]> => {
-      const { data, error } = await supabase
-        .from('follows')
-        .select('prepper_id')
-        .eq('follower_id', userId!);
-      if (error) throw error;
-      return (data ?? []).map((r) => (r as { prepper_id: string }).prepper_id);
-    },
-  });
-}
-
-/** Whether the signed-in user follows this kitchen (own follow row is readable). */
-export function useIsFollowing(prepperId?: string | null, userId?: string | null) {
-  return useQuery({
-    queryKey: ['follow', prepperId ?? 'none', userId ?? 'anon'],
-    enabled: !!prepperId && !!userId,
-    queryFn: async (): Promise<boolean> => {
-      const { count, error } = await supabase
-        .from('follows')
-        .select('prepper_id', { count: 'exact', head: true })
-        .eq('prepper_id', prepperId!)
-        .eq('follower_id', userId!);
-      if (error) throw error;
-      return (count ?? 0) > 0;
-    },
-  });
-}
-
-/** Follow / unfollow a kitchen. Optimistic; refreshes follower count + state. */
-export function useToggleFollow(prepperId: string, userId?: string | null) {
-  const qc = useQueryClient();
-  const key = ['follow', prepperId, userId ?? 'anon'];
-  return useMutation({
-    mutationFn: async (following: boolean): Promise<boolean> => {
-      if (!userId) throw new Error('Sign in to follow kitchens');
-      if (following) {
-        const { error } = await supabase.from('follows').delete().eq('prepper_id', prepperId).eq('follower_id', userId);
-        if (error) throw error;
-        return false;
-      }
-      const { error } = await supabase.from('follows').insert({ prepper_id: prepperId, follower_id: userId });
-      if (error && error.code !== '23505') throw error; // ignore duplicate (already following)
-      return true;
-    },
-    onMutate: async (following) => {
-      await qc.cancelQueries({ queryKey: key });
-      const prev = qc.getQueryData<boolean>(key);
-      qc.setQueryData(key, !following);
-      return { prev };
-    },
-    onError: (_e, _v, ctx) => { if (ctx) qc.setQueryData(key, ctx.prev); },
-    onSettled: () => {
-      qc.invalidateQueries({ queryKey: key });
-      qc.invalidateQueries({ queryKey: ['prepper', 'profile', prepperId] });
-      qc.invalidateQueries({ queryKey: ['follows', 'mine', userId ?? 'anon'] });
-      qc.invalidateQueries({ queryKey: ['follows', 'preppers', userId ?? 'anon'] });
-    },
-  });
-}
+// Follow/unfollow queries live in follows.ts — re-exported here for back-compat.
+export { useMyFollowIds, useIsFollowing, useToggleFollow, useFollowedPreppers } from '@/lib/queries/follows';
 
 export type MyPrepperApplication = {
   id: string;
@@ -377,16 +316,10 @@ export function useCustomerBadges(userId?: string | null) {
 }
 
 export type DeliverySettings = {
-  delivers: boolean;
-  pickup: boolean;
-  fee: number;
-  minOrder: number;
-  radius: number | null;
-  days: number[] | null;
-  windowStart: string | null;
-  windowEnd: string | null;
-  city: string | null;
-  state: string | null;
+  delivers: boolean; pickup: boolean; fee: number; minOrder: number;
+  radius: number | null; days: number[] | null;
+  windowStart: string | null; windowEnd: string | null;
+  city: string | null; state: string | null;
 };
 
 /** Lightweight query for a prepper's delivery configuration — used in cart checkout. */
@@ -418,16 +351,17 @@ export function useDeliverySettings(prepperId?: string | null) {
   });
 }
 
+type UpdateDeliverySettingsInput = {
+  delivers: boolean; pickup: boolean; fee: number; minOrder: number;
+  radius: number | null; days: number[] | null; windowStart: string | null;
+  windowEnd: string | null; city?: string | null; state?: string | null;
+};
+
 /** Save a prepper's fulfillment configuration (full replace — pass all fields). */
 export function useUpdateDeliverySettings() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (v: {
-      delivers: boolean; pickup: boolean; fee: number; minOrder: number;
-      radius: number | null; days: number[] | null;
-      windowStart: string | null; windowEnd: string | null;
-      city?: string | null; state?: string | null;
-    }) => {
+    mutationFn: async (v: UpdateDeliverySettingsInput) => {
       const { error } = await supabase.rpc('update_delivery_settings', {
         p_delivers: v.delivers,
         p_pickup: v.pickup,
@@ -486,23 +420,52 @@ export function useToggleHomeCookAvailability(prepperId?: string | null) {
   });
 }
 
-/** Preppers the signed-in user follows, ordered by when they were followed. */
-export function useFollowedPreppers(userId?: string | null) {
-  return useQuery({
-    queryKey: ['follows', 'preppers', userId ?? 'anon'],
-    enabled: !!userId,
-    queryFn: async (): Promise<TopPrepper[]> => {
-      const { data, error } = await supabase
-        .from('follows')
-        .select(`prepper:prepper_profiles(${SELECT})`)
-        .eq('follower_id', userId!)
-        .order('created_at', { ascending: false });
+type UpdateKitchenProfileInput = {
+  displayName: string; bio: string | null; avatarUrl: string | null;
+  specialties: string[]; city: string | null;
+};
+
+/** Update the signed-in prepper's kitchen profile (name, bio, avatar, specialties, city). */
+export function useUpdateKitchenProfile() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (v: UpdateKitchenProfileInput) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not signed in');
+      const { error } = await supabase
+        .from('prepper_profiles')
+        .update({
+          display_name: v.displayName,
+          bio: v.bio || null,
+          avatar_url: v.avatarUrl,
+          specialties: v.specialties.length ? v.specialties : null,
+          city: v.city || null,
+        })
+        .eq('user_id', user.id);
       if (error) throw error;
-      return (data ?? [])
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .map((r: any) => r.prepper)
-        .filter(Boolean)
-        .map((p: Row) => mapPrepper(p));
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['prepper', 'mine'] });
+      qc.invalidateQueries({ queryKey: ['prepper', 'profile'] });
+      qc.invalidateQueries({ queryKey: ['preppers'] });
     },
   });
 }
+
+/** Set of prepper IDs with an active live session — polled every 30 s. */
+export function useActiveLiveSessions() {
+  return useQuery({
+    queryKey: ['live-sessions-active'],
+    staleTime: 15_000,
+    refetchInterval: 30_000,
+    queryFn: async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data } = await (supabase as any)
+        .from('live_sessions')
+        .select('prepper_id')
+        .is('ended_at', null);
+      return new Set(((data ?? []) as { prepper_id: string }[]).map((r) => r.prepper_id));
+    },
+  });
+}
+

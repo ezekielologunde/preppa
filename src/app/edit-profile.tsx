@@ -1,6 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { Camera, Check, ChevronLeft, Globe, MapPin, User } from 'lucide-react-native';
+import { Camera, Check, ChevronLeft, ChevronRight, Globe, MapPin, Salad, User } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useCallback, useState, type ReactNode } from 'react';
 import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, View } from 'react-native';
@@ -12,7 +12,7 @@ import { Font } from '@/constants/fonts';
 import { Palette, Radius } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
 import { supabase } from '@/lib/supabase';
-import { pickAndUploadImage } from '@/lib/upload';
+import { pickAndUploadImage, pickAndUploadImageNative } from '@/lib/upload';
 import { useAuth } from '@/providers/auth-provider';
 
 const cleanLine = (s: string) => s.replace(/[\x00-\x1F\x7F]/g, '');
@@ -31,7 +31,7 @@ function validate(field: string, value: string): string | null {
     if (!value.trim()) return 'Username is required';
     if (!USERNAME_RE.test(value.trim())) return '3–20 characters, letters, numbers and underscores';
   }
-  if (field === 'bio' && value.length > 160) return 'Bio must be 160 characters or less';
+  if (field === 'bio' && value.length > 200) return 'Bio must be 200 characters or less';
   if (field === 'website' && value && !URL_RE.test(value.trim())) return 'Enter a valid URL starting with https://';
   return null;
 }
@@ -127,7 +127,10 @@ export default function EditProfileScreen() {
   async function handlePickAvatar() {
     setUploadError(null);
     try {
-      const url = await pickAndUploadImage('avatars', user?.id ?? 'anon');
+      const uid = user?.id ?? 'anon';
+      const url = Platform.OS === 'web'
+        ? await pickAndUploadImage('avatars', uid)
+        : await pickAndUploadImageNative('avatars', uid);
       if (url) setAvatarUrl(url);
     } catch (e) {
       feedback.error();
@@ -190,10 +193,10 @@ export default function EditProfileScreen() {
               </ProfileField>
 
               <ProfileField label="bio" error={errors.bio} delay={160}
-                hint={`${fields.bio.length}/160`}>
+                hint={`${fields.bio.length}/200`}>
                 <TextInput value={fields.bio} onChangeText={(v) => set('bio', v)} onBlur={() => onBlur('bio')}
                   placeholder="Tell people a little about yourself…" placeholderTextColor={Palette.textMuted}
-                  multiline numberOfLines={3} maxLength={160} accessibilityLabel="Bio"
+                  multiline numberOfLines={3} maxLength={200} accessibilityLabel="Bio"
                   style={{ ...inputStyle(!!errors.bio), minHeight: 88, textAlignVertical: 'top' }} />
               </ProfileField>
 
@@ -211,6 +214,24 @@ export default function EditProfileScreen() {
                   returnKeyType="done" textContentType="URL" maxLength={200}
                   style={inputStyle(!!errors.website)} />
               </ProfileField>
+            </MotiView>
+
+            {/* Dietary preferences shortcut */}
+            <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 300, delay: 260 }}
+              style={{ marginHorizontal: 20, marginTop: 12 }}>
+              <Text style={{ fontFamily: Font.display, fontSize: 15, color: Palette.ink, letterSpacing: -0.3, marginBottom: 8 }}>preferences</Text>
+              <PressableScale onPress={() => { feedback.tap(); router.push('/dietary-preferences'); }}
+                accessibilityRole="button" accessibilityLabel="Edit dietary preferences"
+                style={{ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: Palette.surface, borderRadius: Radius.md, padding: 14 }}>
+                <View style={{ width: 36, height: 36, borderRadius: 11, backgroundColor: Palette.chip, alignItems: 'center', justifyContent: 'center' }}>
+                  <Salad size={17} color={Palette.textSecondary} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontFamily: Font.heading, fontSize: 14, color: Palette.ink }}>Dietary preferences</Text>
+                  <Text style={{ fontFamily: Font.body, fontSize: 11.5, color: Palette.textMuted, marginTop: 1 }}>Restrictions, allergies & cuisines</Text>
+                </View>
+                <ChevronRight size={15} color={Palette.textSecondary} />
+              </PressableScale>
             </MotiView>
 
             {/* Save */}

@@ -15,32 +15,64 @@ import { Palette } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
 import { BP, contentWidthFor, shouldCenter } from '@/lib/layout';
 import { useDarkMode } from '@/lib/theme-mode';
+import { supabase } from '@/lib/supabase';
+import { registerPushToken, usePushNotificationListeners } from '@/lib/push-notifications';
 
 import { FloatingCartBar } from '@/components/floating-cart-bar';
 import { LoadingSplash } from '@/components/loading-splash';
 import { Onboarding } from '@/components/onboarding';
+import { ErrorBoundary } from '@/components/error-boundary';
 import { AppProviders } from '@/providers/app-providers';
 import { useAuth } from '@/providers/auth-provider';
 
 const ONBOARDED_KEY = 'preppa.onboarded.v1';
 
 // ─── FTUE helpers ────────────────────────────────────────────────────────────
+// FTUE state is persisted in two places so reinstalling the app does not send
+// a returning signed-in user back through onboarding:
+//   1. AsyncStorage (fast, local) — `preppa.ftue.v2.<uid>`
+//   2. Supabase profiles.onboarding_completed_at (durable, survives reinstall)
+// On first check we read the local key; if absent we fall back to the server.
+// On completion we write both.
 
 const FTUE_KEY = (uid: string) => `preppa.ftue.v2.${uid}`;
 
 async function isFirstLogin(uid: string): Promise<boolean> {
   try {
-    const val = await AsyncStorage.getItem(FTUE_KEY(uid));
-    return val !== '1';
+    // Fast path: local cache says already done.
+    const local = await AsyncStorage.getItem(FTUE_KEY(uid));
+    if (local === '1') return false;
+
+    // Slow path: check server in case storage was wiped (reinstall, new device).
+    const { data } = await supabase
+      .from('profiles')
+      .select('onboarding_completed_at')
+      .eq('id', uid)
+      .maybeSingle();
+
+    if (data?.onboarding_completed_at) {
+      // Backfill local cache so subsequent launches skip the network call.
+      await AsyncStorage.setItem(FTUE_KEY(uid), '1').catch(() => {});
+      return false;
+    }
+
+    return true;
   } catch {
     return false; // fail-open: don't trap users in onboarding on storage error
   }
 }
 
 export async function markFtueComplete(uid: string): Promise<void> {
+  // Write local cache first (synchronous feel), then persist to server.
+  await AsyncStorage.setItem(FTUE_KEY(uid), '1').catch(() => {});
   try {
-    await AsyncStorage.setItem(FTUE_KEY(uid), '1');
-  } catch {}
+    await supabase
+      .from('profiles')
+      .update({ onboarding_completed_at: new Date().toISOString() })
+      .eq('id', uid);
+  } catch {
+    // Non-fatal: AsyncStorage is the fast-path guard on the same device.
+  }
 }
 
 // Screens that are dark by design — inverting them would make them light.
@@ -182,6 +214,22 @@ function ResponsiveFrame({ children }: { children: ReactNode }) {
   );
 }
 
+// ─── Push notification setup ─────────────────────────────────────────────────
+// Always rendered (inside AppProviders, never conditional) so hooks are stable.
+
+function PushSetup() {
+  const { session } = useAuth();
+  usePushNotificationListeners();
+
+  useEffect(() => {
+    if (session?.user?.id) {
+      void registerPushToken(session.user.id);
+    }
+  }, [session?.user?.id]);
+
+  return null;
+}
+
 // ─── Auth gate ───────────────────────────────────────────────────────────────
 
 function AuthGate({ children }: { children: ReactNode }) {
@@ -258,28 +306,32 @@ export default function RootLayout() {
   }
 
   return (
-    <AppProviders>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <ResponsiveFrame>
-          <AuthGate>
-            <Stack screenOptions={{ headerShown: false }}>
-              <Stack.Screen name="change-email" options={{ presentation: 'transparentModal', animation: 'slide_from_bottom' }} />
-              <Stack.Screen name="change-password" options={{ presentation: 'transparentModal', animation: 'slide_from_bottom' }} />
-              <Stack.Screen name="review" options={{ presentation: 'modal' }} />
-              <Stack.Screen name="referral" options={{ presentation: 'modal' }} />
-              <Stack.Screen name="notification-settings" options={{ presentation: 'modal' }} />
-              <Stack.Screen name="dietary-preferences" options={{ presentation: 'modal' }} />
-              <Stack.Screen name="boost" options={{ presentation: 'modal' }} />
-              <Stack.Screen name="onboarding" options={{ headerShown: false, gestureEnabled: false, animation: 'fade' }} />
-            </Stack>
-            <FloatingCartBar />
-          </AuthGate>
-          {ready && !onboarded && (
-            <Onboarding onGetStarted={() => goToAuth('signup')} onSignIn={() => goToAuth('signin')} />
-          )}
-          {!ready && <LoadingSplash />}
-        </ResponsiveFrame>
-      </ThemeProvider>
-    </AppProviders>
+    <ErrorBoundary>
+      <AppProviders>
+        <PushSetup />
+        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+          <ResponsiveFrame>
+            <AuthGate>
+              <Stack screenOptions={{ headerShown: false }}>
+                <Stack.Screen name="change-email" options={{ presentation: 'transparentModal', animation: 'slide_from_bottom' }} />
+                <Stack.Screen name="change-password" options={{ presentation: 'transparentModal', animation: 'slide_from_bottom' }} />
+                <Stack.Screen name="review" options={{ presentation: 'modal' }} />
+                <Stack.Screen name="referral" options={{ presentation: 'modal' }} />
+                <Stack.Screen name="notification-settings" options={{ presentation: 'modal' }} />
+                <Stack.Screen name="notification-preferences" options={{ presentation: 'modal' }} />
+                <Stack.Screen name="dietary-preferences" options={{ presentation: 'modal' }} />
+                <Stack.Screen name="boost" options={{ presentation: 'modal' }} />
+                <Stack.Screen name="onboarding" options={{ headerShown: false, gestureEnabled: false, animation: 'fade' }} />
+              </Stack>
+              <FloatingCartBar />
+            </AuthGate>
+            {ready && !onboarded && (
+              <Onboarding onGetStarted={() => goToAuth('signup')} onSignIn={() => goToAuth('signin')} />
+            )}
+            {!ready && <LoadingSplash />}
+          </ResponsiveFrame>
+        </ThemeProvider>
+      </AppProviders>
+    </ErrorBoundary>
   );
 }

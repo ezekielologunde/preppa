@@ -1,17 +1,20 @@
-import { useRouter } from 'expo-router';
-import { Check, ChevronLeft, ShoppingBag, X } from 'lucide-react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import * as WebBrowser from 'expo-web-browser';
+import { Check, ChevronLeft, CreditCard, ShoppingBag, X } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useState } from 'react';
-import { ActivityIndicator, Modal, Pressable, RefreshControl, ScrollView, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Modal, Platform, Pressable, RefreshControl, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { BudgetPerServingPicker, ManageRequestModal, RequestCard, Stepper, cleanBlock, cleanLine } from '@/components/bid-request-widgets';
+import { ManageRequestModal, RequestCard, cleanBlock } from '@/components/bid-request-widgets';
+import { BidMessageThread } from '@/components/bid-message-thread';
+import { PostRequestForm } from '@/components/post-request-form';
 import { ListSkeleton } from '@/components/ui/skeleton';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
 import { Palette, Radius } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
-import { useAcceptMealBid, useMealRequests, useMyRequestsWithBids, usePlaceBid, usePostMealRequest, type MealRequest, type MyMealRequest } from '@/lib/queries/bid-requests';
+import { useAcceptMealBid, useBidStripeCheckout, useMealRequests, useMyRequestsWithBids, usePlaceBid, usePostMealRequest, getBidExpiry, type MealRequest, type MyMealRequest } from '@/lib/queries/bid-requests';
 import { useFeatureEnabled } from '@/lib/queries/feature-flags';
 import { useMyPrepperApplication } from '@/lib/queries/preppers';
 import { useAuth } from '@/providers/auth-provider';
@@ -20,7 +23,6 @@ const ORANGE = Palette.brand;
 const INK = Palette.ink;
 
 type AgreementTarget = { bid: MyMealRequest['bids'][0]; request: MyMealRequest };
-type PostedRequest = { title: string; servings: number; budget: number | null };
 
 export default function BidRequestsScreen() {
   const router = useRouter();
@@ -28,6 +30,8 @@ export default function BidRequestsScreen() {
   const { data: prepper } = useMyPrepperApplication(user?.id);
   const isPrepper = prepper?.status === 'approved';
   const paymentsOn = useFeatureEnabled('payments');
+  const params = useLocalSearchParams<{ kit?: string }>();
+  const kitName = params.kit ? decodeURIComponent(params.kit) : null;
 
   const [activeTab, setActiveTab] = useState<'browse' | 'mine'>('browse');
   const { data: requests = [], isLoading, isError, refetch } = useMealRequests();
@@ -35,8 +39,9 @@ export default function BidRequestsScreen() {
   const postRequest = usePostMealRequest();
   const placeBid = usePlaceBid();
   const acceptBid = useAcceptMealBid();
+  const bidCheckout = useBidStripeCheckout();
 
-  const [showPost, setShowPost] = useState(false);
+  const [showPost, setShowPost] = useState(kitName != null);
   const [bidTarget, setBidTarget] = useState<MealRequest | null>(null);
   const [agreementTarget, setAgreementTarget] = useState<AgreementTarget | null>(null);
   const [agreementError, setAgreementError] = useState<string | null>(null);
@@ -44,39 +49,46 @@ export default function BidRequestsScreen() {
   const [refreshing, setRefreshing] = useState(false);
   async function handleRefresh() { setRefreshing(true); await Promise.all([refetch(), refetchMine()]); setRefreshing(false); }
 
-  const [reqTitle, setReqTitle] = useState('');
-  const [reqDesc, setReqDesc] = useState('');
-  const [reqServings, setReqServings] = useState(4);
-  const [reqBudget, setReqBudget] = useState<number | null>(null);
-  const [postErr, setPostErr] = useState<string | null>(null);
-  const [titleTouched, setTitleTouched] = useState(false);
-  const [postSuccess, setPostSuccess] = useState<PostedRequest | null>(null);
 
   const [bidPrice, setBidPrice] = useState('');
   const [bidNote, setBidNote] = useState('');
   const [bidErr, setBidErr] = useState<string | null>(null);
-
-  async function submitRequest() {
-    setPostErr(null);
-    const t = cleanLine(reqTitle).trim();
-    if (!t || !user) return;
-    if (t.length < 3) { setTitleTouched(true); return setPostErr('Give your request a title (at least 3 characters).'); }
+  const [payingBidId, setPayingBidId] = useState<string | null>(null);
+  const [payErr, setPayErr] = useState<string | null>(null);
+  const [expandedBidId, setExpandedBidId] = useState<string | null>(null);
+  const calcServiceFee = (t: number) => Math.round(t * 0.1 * 100) / 100;
+  async function handleBidPayment(bidId: string, bidTotal: number) {
+    setPayingBidId(bidId); setPayErr(null);
+    const totalWithFee = Math.round((bidTotal + calcServiceFee(bidTotal)) * 100);
     try {
-      await postRequest.mutateAsync({
-        customerId: user.id, title: t.slice(0, 100),
-        description: cleanBlock(reqDesc).trim().slice(0, 500) || undefined,
-        servings: reqServings, budgetPerServing: reqBudget ?? undefined,
-      });
-      feedback.success();
-      setPostSuccess({ title: t.slice(0, 100), servings: reqServings, budget: reqBudget });
-      setReqTitle(''); setReqDesc(''); setReqServings(4); setReqBudget(null);
+      const url = await bidCheckout.mutateAsync({ bidId, amountCents: totalWithFee });
+      if (Platform.OS === 'web') { window.location.assign(url); }
+      else { await WebBrowser.openBrowserAsync(url); await refetchMine(); }
     } catch (e) {
       feedback.error();
-      setPostErr(e instanceof Error ? e.message : 'Could not post request.');
-    }
+      setPayErr(e instanceof Error ? e.message : 'Could not start payment. Please try again.');
+    } finally { setPayingBidId(null); }
   }
 
-  function closePostModal() { setShowPost(false); setPostSuccess(null); setTitleTouched(false); setPostErr(null); }
+  async function submitRequest(args: {
+    title: string;
+    description?: string;
+    servings: number;
+    budgetPerServing?: number;
+    diets: string[];
+  }) {
+    if (!user) throw new Error('Not authenticated');
+    await postRequest.mutateAsync({
+      customerId: user.id,
+      title: args.title,
+      description: args.description,
+      servings: args.servings,
+      budgetPerServing: args.budgetPerServing,
+    });
+    await refetch();
+  }
+
+  function closePostModal() { setShowPost(false); }
   function closeBidModal() { setBidTarget(null); setBidErr(null); }
 
   async function submitBid() {
@@ -198,28 +210,100 @@ export default function BidRequestsScreen() {
                   <Text style={{ fontFamily: Font.heading, fontSize: 12, color: Palette.textMuted, textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 4 }}>
                     {r.bids.length ? `${r.bids.length} bid${r.bids.length === 1 ? '' : 's'} received` : 'Waiting for bids'}
                   </Text>
-                  {r.bids.map((b) => (
-                    <View key={b.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingTop: 10, borderTopWidth: 1, borderTopColor: Palette.divider }}>
-                      <View style={{ flex: 1 }}>
-                        <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: INK }}>{b.prepperName}</Text>
-                        <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: ORANGE }}>${(b.pricePerServing * r.servings).toFixed(2)} total · ${b.pricePerServing}/serving</Text>
-                        {b.note ? <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary, marginTop: 2 }} numberOfLines={2}>{b.note}</Text> : null}
-                      </View>
-                      {b.status === 'accepted' ? (
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                          <Check size={15} color={Palette.success} strokeWidth={3} />
-                          <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: Palette.success }}>Agreed</Text>
+                  {r.bids.map((b) => {
+                    const bidTotal = b.pricePerServing * r.servings;
+                    const fee = calcServiceFee(bidTotal);
+                    const grandTotal = bidTotal + fee;
+                    const isPaying = payingBidId === b.id;
+                    const expiry = getBidExpiry(b.created_at ?? r.created_at, null);
+                    const isThreadOpen = expandedBidId === b.id;
+                    return (
+                      <View key={b.id} style={{ paddingTop: 10, borderTopWidth: 1, borderTopColor: Palette.divider, gap: 10, opacity: expiry.expired ? 0.6 : 1 }}>
+                        {/* Expiry chip */}
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                          <View style={{
+                            borderRadius: Radius.pill, paddingHorizontal: 8, paddingVertical: 3,
+                            backgroundColor: expiry.expired ? Palette.divider : expiry.urgent ? '#FEF3C7' : Palette.chip,
+                          }}>
+                            <Text style={{ fontFamily: Font.semibold, fontSize: 10.5, color: expiry.expired ? Palette.textMuted : expiry.urgent ? '#B45309' : Palette.textSecondary }}>
+                              {expiry.expired ? 'expired' : `⏱ ${expiry.label}`}
+                            </Text>
+                          </View>
                         </View>
-                      ) : r.status === 'open' && b.status === 'pending' ? (
-                        <PressableScale onPress={() => { feedback.tap(); setAgreementTarget({ bid: b, request: r }); }} accessibilityRole="button" accessibilityLabel={`Review bid from ${b.prepperName}`}
-                          style={{ paddingHorizontal: 14, height: 38, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
-                          <Text style={{ fontFamily: Font.heading, fontSize: 13, color: '#fff' }}>Review</Text>
-                        </PressableScale>
-                      ) : (
-                        <Text style={{ fontFamily: Font.medium, fontSize: 12, color: Palette.textMuted, textTransform: 'capitalize' }}>{b.status}</Text>
-                      )}
-                    </View>
-                  ))}
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                          <View style={{ flex: 1 }}>
+                            <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: INK }}>{b.prepperName}</Text>
+                            <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: ORANGE }}>${bidTotal.toFixed(2)} total · ${b.pricePerServing}/serving</Text>
+                            {b.note ? <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary, marginTop: 2 }} numberOfLines={2}>{b.note}</Text> : null}
+                          </View>
+                          {b.status !== 'accepted' ? (
+                            r.status === 'open' && b.status === 'pending' ? (
+                              <PressableScale onPress={() => { feedback.tap(); setAgreementTarget({ bid: b, request: r }); }} accessibilityRole="button" accessibilityLabel={`Review bid from ${b.prepperName}`}
+                                style={{ paddingHorizontal: 14, height: 38, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
+                                <Text style={{ fontFamily: Font.heading, fontSize: 13, color: '#fff' }}>Review</Text>
+                              </PressableScale>
+                            ) : (
+                              <Text style={{ fontFamily: Font.medium, fontSize: 12, color: Palette.textMuted, textTransform: 'capitalize' }}>{b.status}</Text>
+                            )
+                          ) : null}
+                        </View>
+                        {/* Message thread toggle */}
+                        {!expiry.expired ? (
+                          <PressableScale
+                            onPress={() => { feedback.tap(); setExpandedBidId(isThreadOpen ? null : b.id); }}
+                            accessibilityRole="button"
+                            accessibilityLabel={isThreadOpen ? 'Close message thread' : 'Open message thread'}
+                            style={{ alignSelf: 'flex-start', paddingHorizontal: 12, height: 32, borderRadius: Radius.pill, backgroundColor: Palette.canvas, borderWidth: 1, borderColor: Palette.border, alignItems: 'center', justifyContent: 'center' }}>
+                            <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: INK }}>
+                              {isThreadOpen ? 'Close thread' : 'Message'}
+                            </Text>
+                          </PressableScale>
+                        ) : null}
+                        {isThreadOpen && user ? (
+                          <BidMessageThread bidId={b.id} currentUserId={user.id} />
+                        ) : null}
+                        {b.status === 'accepted' && paymentsOn ? (
+                          <View style={{ backgroundColor: Palette.canvas, borderRadius: 14, padding: 14, gap: 8 }}>
+                            <Text style={{ fontFamily: Font.heading, fontSize: 11, color: Palette.textMuted, textTransform: 'uppercase', letterSpacing: 0.5 }}>payment summary</Text>
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                              <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary }}>Bid price</Text>
+                              <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: INK }}>${bidTotal.toFixed(2)}</Text>
+                            </View>
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                              <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary }}>Platform fee (10%)</Text>
+                              <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: INK }}>${fee.toFixed(2)}</Text>
+                            </View>
+                            <View style={{ height: 1, backgroundColor: Palette.divider }} />
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <Text style={{ fontFamily: Font.heading, fontSize: 14, color: INK }}>Total</Text>
+                              <Text style={{ fontFamily: Font.display, fontSize: 17, color: ORANGE, letterSpacing: -0.3 }}>${grandTotal.toFixed(2)}</Text>
+                            </View>
+                            {payErr && payingBidId === null ? (
+                              <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.danger }}>{payErr}</Text>
+                            ) : null}
+                            <PressableScale
+                              onPress={() => { feedback.tap(); void handleBidPayment(b.id, bidTotal); }}
+                              disabled={isPaying}
+                              accessibilityRole="button"
+                              accessibilityLabel="Pay to unlock proposal"
+                              style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, height: 46, borderRadius: Radius.pill, backgroundColor: ORANGE, opacity: isPaying ? 0.65 : 1, marginTop: 2 }}>
+                              {isPaying
+                                ? <ActivityIndicator color="#fff" size="small" />
+                                : <>
+                                    <CreditCard size={16} color="#fff" strokeWidth={2.2} />
+                                    <Text style={{ fontFamily: Font.heading, fontSize: 14, color: '#fff' }}>Pay to unlock proposal</Text>
+                                  </>}
+                            </PressableScale>
+                          </View>
+                        ) : b.status === 'accepted' ? (
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                            <Check size={15} color={Palette.success} strokeWidth={3} />
+                            <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: Palette.success }}>Agreed</Text>
+                          </View>
+                        ) : null}
+                      </View>
+                    );
+                  })}
                 </PressableScale>
               </MotiView>
             ))
@@ -229,81 +313,13 @@ export default function BidRequestsScreen() {
         {/* Post request modal */}
         <Modal visible={showPost} transparent animationType="slide" onRequestClose={closePostModal}>
           <Pressable onPress={closePostModal} accessibilityRole="button" accessibilityLabel="Close" style={{ flex: 1, backgroundColor: Palette.overlay, justifyContent: 'flex-end' }}>
-            <Pressable onPress={(e) => e.stopPropagation()} accessible={false} style={{ backgroundColor: Palette.surface, borderTopLeftRadius: 28, borderTopRightRadius: 28, maxHeight: '90%' }}>
-              {postSuccess ? (
-                <MotiView from={{ opacity: 0, translateY: 12 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 300 }}
-                  style={{ padding: 28, gap: 20, alignItems: 'center' }}>
-                  <MotiView from={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 260, damping: 20 }}>
-                    <View style={{ width: 72, height: 72, borderRadius: 36, backgroundColor: Palette.success + '18', alignItems: 'center', justifyContent: 'center' }}>
-                      <Check size={34} color={Palette.success} strokeWidth={2.5} />
-                    </View>
-                  </MotiView>
-                  <Text style={{ fontFamily: Font.display, fontSize: 24, color: INK, letterSpacing: -0.6, textAlign: 'center' }}>Request posted!</Text>
-                  <View style={{ width: '100%', backgroundColor: Palette.canvas, borderRadius: 18, padding: 16, gap: 10 }}>
-                    <Text style={{ fontFamily: Font.heading, fontSize: 11, color: Palette.textMuted, textTransform: 'uppercase', letterSpacing: 0.6 }}>your request</Text>
-                    <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>{postSuccess.title}</Text>
-                    <View style={{ flexDirection: 'row', gap: 12, flexWrap: 'wrap' }}>
-                      <Text style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.textSecondary }}>{postSuccess.servings} servings</Text>
-                      {postSuccess.budget != null ? <Text style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.textSecondary }}>${postSuccess.budget}/serving budget</Text> : null}
-                    </View>
-                    <View style={{ backgroundColor: Palette.brandTint, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 5, alignSelf: 'flex-start' }}>
-                      <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: ORANGE }}>Open · accepting bids</Text>
-                    </View>
-                  </View>
-                  <Text style={{ fontFamily: Font.body, fontSize: 13.5, color: Palette.textSecondary, textAlign: 'center', lineHeight: 20 }}>
-                    Preppers in your area will see your request and send bids. You'll be notified when one arrives.
-                  </Text>
-                  <PressableScale onPress={() => { feedback.tap(); closePostModal(); setActiveTab('mine'); }} accessibilityRole="button" accessibilityLabel="View my requests"
-                    style={{ width: '100%', height: 54, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
-                    <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>view my requests →</Text>
-                  </PressableScale>
-                </MotiView>
-              ) : (
-                <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 24, gap: 16 }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <Text style={{ fontFamily: Font.display, fontSize: 22, color: INK, letterSpacing: -0.5 }}>post a meal request</Text>
-                    <PressableScale onPress={closePostModal} accessibilityRole="button" accessibilityLabel="Close"
-                      style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: Palette.canvas, alignItems: 'center', justifyContent: 'center' }}>
-                      <X size={17} color={Palette.inkSoft} />
-                    </PressableScale>
-                  </View>
-                  <View style={{ gap: 4 }}>
-                    <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: INK }}>Title <Text style={{ color: Palette.danger }}>*</Text></Text>
-                    <TextInput value={reqTitle} onChangeText={(t) => setReqTitle(cleanLine(t))} onBlur={() => setTitleTouched(true)}
-                      maxLength={100} placeholder="e.g. Jerk chicken meal prep for 4" placeholderTextColor={Palette.textMuted}
-                      accessibilityLabel="Request title"
-                      style={{ height: 50, backgroundColor: Palette.canvas, borderRadius: 14, paddingHorizontal: 14, fontFamily: Font.body, fontSize: 15, color: INK, borderWidth: 1.5, borderColor: titleTouched && reqTitle.trim().length < 3 ? Palette.danger : Palette.border }} />
-                    {titleTouched && reqTitle.trim().length < 3
-                      ? <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.danger }}>At least 3 characters required</Text>
-                      : <Text style={{ fontFamily: Font.body, fontSize: 11.5, color: Palette.textMuted, textAlign: 'right' }}>{reqTitle.length}/100</Text>}
-                  </View>
-                  <View style={{ gap: 4 }}>
-                    <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: INK }}>Details <Text style={{ fontFamily: Font.body, color: Palette.textMuted }}>(optional)</Text></Text>
-                    <TextInput value={reqDesc} onChangeText={(t) => setReqDesc(cleanBlock(t))} multiline maxLength={500}
-                      placeholder="Dietary needs, preferred cuisine, deadline…" placeholderTextColor={Palette.textMuted}
-                      accessibilityLabel="Request details"
-                      style={{ minHeight: 80, backgroundColor: Palette.canvas, borderRadius: 14, padding: 14, fontFamily: Font.body, fontSize: 14, color: INK, textAlignVertical: 'top', borderWidth: 1, borderColor: Palette.border }} />
-                    <Text style={{ fontFamily: Font.body, fontSize: 11.5, color: Palette.textMuted, textAlign: 'right' }}>{reqDesc.length}/500</Text>
-                  </View>
-                  <View style={{ gap: 6 }}>
-                    <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: INK }}>Number of servings</Text>
-                    <Stepper value={reqServings} onChange={setReqServings} min={1} max={100} />
-                  </View>
-                  <View style={{ gap: 6 }}>
-                    <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: INK }}>Budget per serving <Text style={{ fontFamily: Font.body, color: Palette.textMuted }}>(optional)</Text></Text>
-                    <BudgetPerServingPicker value={reqBudget} onChange={setReqBudget} />
-                  </View>
-                  {postErr ? (
-                    <View style={{ backgroundColor: '#FEF2F2', borderRadius: 12, padding: 12, borderWidth: 1, borderColor: '#FECACA' }}>
-                      <Text style={{ fontFamily: Font.medium, fontSize: 13, color: '#991B1B' }}>{postErr}</Text>
-                    </View>
-                  ) : null}
-                  <PressableScale onPress={submitRequest} disabled={postRequest.isPending || reqTitle.trim().length < 3} accessibilityRole="button" accessibilityLabel="Submit request"
-                    style={{ height: 54, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', opacity: postRequest.isPending || reqTitle.trim().length < 3 ? 0.5 : 1 }}>
-                    {postRequest.isPending ? <ActivityIndicator color="#fff" /> : <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>post request</Text>}
-                  </PressableScale>
-                </ScrollView>
-              )}
+            <Pressable onPress={(e) => e.stopPropagation()} accessible={false} style={{ backgroundColor: Palette.surface, borderTopLeftRadius: 28, borderTopRightRadius: 28, maxHeight: '92%' }}>
+              <PostRequestForm
+                kitName={kitName}
+                onClose={() => { closePostModal(); setActiveTab('mine'); }}
+                onSubmit={submitRequest}
+                isPending={postRequest.isPending}
+              />
             </Pressable>
           </Pressable>
         </Modal>
@@ -385,13 +401,35 @@ export default function BidRequestsScreen() {
                     <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary }}>Servings</Text>
                     <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: INK }}>×{agreementTarget?.request.servings}</Text>
                   </View>
-                  <View style={{ height: 1, backgroundColor: Palette.divider }} />
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Text style={{ fontFamily: Font.heading, fontSize: 15, color: INK }}>Total</Text>
-                    <Text style={{ fontFamily: Font.display, fontSize: 20, color: ORANGE, letterSpacing: -0.4 }}>
-                      ${((agreementTarget?.bid.pricePerServing ?? 0) * (agreementTarget?.request.servings ?? 1)).toFixed(2)}
-                    </Text>
-                  </View>
+                  {(() => {
+                    const bt = (agreementTarget?.bid.pricePerServing ?? 0) * (agreementTarget?.request.servings ?? 1);
+                    const fee = paymentsOn ? calcServiceFee(bt) : 0;
+                    return paymentsOn ? (
+                      <>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                          <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary }}>Bid price</Text>
+                          <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: INK }}>${bt.toFixed(2)}</Text>
+                        </View>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                          <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary }}>Platform fee (10%)</Text>
+                          <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: INK }}>${fee.toFixed(2)}</Text>
+                        </View>
+                        <View style={{ height: 1, backgroundColor: Palette.divider }} />
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <Text style={{ fontFamily: Font.heading, fontSize: 15, color: INK }}>Total</Text>
+                          <Text style={{ fontFamily: Font.display, fontSize: 20, color: ORANGE, letterSpacing: -0.4 }}>${(bt + fee).toFixed(2)}</Text>
+                        </View>
+                      </>
+                    ) : (
+                      <>
+                        <View style={{ height: 1, backgroundColor: Palette.divider }} />
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <Text style={{ fontFamily: Font.heading, fontSize: 15, color: INK }}>Total</Text>
+                          <Text style={{ fontFamily: Font.display, fontSize: 20, color: ORANGE, letterSpacing: -0.4 }}>${bt.toFixed(2)}</Text>
+                        </View>
+                      </>
+                    );
+                  })()}
                 </View>
                 {agreementTarget?.bid.note ? (
                   <View style={{ backgroundColor: Palette.canvas, borderRadius: 14, padding: 14 }}>
@@ -425,7 +463,12 @@ export default function BidRequestsScreen() {
                       try {
                         await acceptBid.mutateAsync({ bidId: agreementTarget.bid.id, requestId: agreementTarget.request.id });
                         feedback.success();
+                        const target = agreementTarget;
                         setAgreementTarget(null);
+                        if (paymentsOn) {
+                          const bidTotal = target.bid.pricePerServing * target.request.servings;
+                          await handleBidPayment(target.bid.id, bidTotal);
+                        }
                       } catch (e) {
                         feedback.error();
                         const msg = e instanceof Error ? e.message : '';
@@ -435,9 +478,9 @@ export default function BidRequestsScreen() {
                         else setAgreementError('Could not accept bid. Please try again.');
                       }
                     }}
-                    disabled={acceptBid.isPending} accessibilityRole="button" accessibilityLabel={paymentsOn ? 'Agree and pay' : 'Agree and book'}
-                    style={{ flex: 2, height: 52, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', opacity: acceptBid.isPending ? 0.7 : 1 }}>
-                    {acceptBid.isPending ? <ActivityIndicator color="#fff" /> : <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#fff' }}>{paymentsOn ? 'Agree & Pay' : 'Agree & Book'}</Text>}
+                    disabled={acceptBid.isPending || bidCheckout.isPending} accessibilityRole="button" accessibilityLabel={paymentsOn ? 'Agree and pay' : 'Agree and book'}
+                    style={{ flex: 2, height: 52, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', opacity: (acceptBid.isPending || bidCheckout.isPending) ? 0.7 : 1 }}>
+                    {(acceptBid.isPending || bidCheckout.isPending) ? <ActivityIndicator color="#fff" /> : <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#fff' }}>{paymentsOn ? 'Agree & Pay' : 'Agree & Book'}</Text>}
                   </PressableScale>
                 </View>
               </ScrollView>

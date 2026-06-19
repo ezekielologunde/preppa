@@ -1,133 +1,175 @@
-import { useRouter } from 'expo-router';
-import { CheckCircle2 } from 'lucide-react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { ChevronLeft } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useState } from 'react';
-import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { markFtueComplete } from '@/app/_layout';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
-import { Palette, Radius, Shadow } from '@/constants/theme';
+import { Palette, Radius } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
-import { supabase } from '@/lib/supabase';
-import { useAuth } from '@/providers/auth-provider';
 
-const DIETARY = ['Vegan', 'Vegetarian', 'Pescatarian', 'Halal', 'Kosher', 'Gluten-free', 'Dairy-free', 'Keto', 'Paleo', 'No pork'];
-const ALLERGIES = ['Peanuts', 'Tree nuts', 'Dairy', 'Eggs', 'Fish', 'Shellfish', 'Wheat', 'Soy', 'Sesame'];
-const SPICE = ['None', 'Mild', 'Medium', 'Hot', 'Extra hot'] as const;
-type SpiceLevel = typeof SPICE[number];
+const TOTAL = 4;
 
-function Chip({ label, active, onToggle }: { label: string; active: boolean; onToggle: () => void }) {
+const CUISINE_OPTIONS = [
+  'Nigerian', 'Caribbean', 'Soul Food', 'African',
+  'Mediterranean', 'Asian', 'Mexican', 'American',
+  'Middle Eastern', 'Jamaican', 'Ethiopian', 'Indian',
+];
+
+function ProgressDots({ current }: { current: number }) {
   return (
-    <MotiView animate={{ backgroundColor: active ? Palette.brand : Palette.surface, borderColor: active ? Palette.brand : Palette.border }}
-      transition={{ type: 'timing', duration: 180 }}
-      style={{ borderRadius: Radius.pill, borderWidth: 1.5 }}>
-      <PressableScale onPress={onToggle} accessibilityRole="checkbox" accessibilityState={{ checked: active }} accessibilityLabel={label}
-        style={{ paddingHorizontal: 14, paddingVertical: 9 }}>
-        <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: active ? '#fff' : Palette.textSecondary }}>{label}</Text>
+    <View style={{ flexDirection: 'row', gap: 8, justifyContent: 'center', paddingTop: 20, paddingBottom: 8 }}>
+      {Array.from({ length: TOTAL }, (_, i) => (
+        <MotiView
+          key={i}
+          animate={{
+            width: i === current ? 10 : 8,
+            height: i === current ? 10 : 8,
+            backgroundColor: i === current ? Palette.brand : Palette.border,
+          }}
+          transition={{ type: 'spring', damping: 16, stiffness: 200 }}
+          style={{ borderRadius: 5 }}
+        />
+      ))}
+    </View>
+  );
+}
+
+function CuisineChip({ label, active, onToggle }: { label: string; active: boolean; onToggle: () => void }) {
+  return (
+    <MotiView
+      animate={{
+        backgroundColor: active ? Palette.brand : Palette.surface,
+        borderColor: active ? Palette.brand : Palette.border,
+      }}
+      transition={{ type: 'spring', damping: 14, stiffness: 260 }}
+      style={{ borderRadius: 19, borderWidth: 1.5, overflow: 'hidden' }}>
+      <PressableScale
+        onPress={onToggle}
+        accessibilityRole="checkbox"
+        accessibilityState={{ checked: active }}
+        accessibilityLabel={label}
+        style={{ height: 38, paddingHorizontal: 16, alignItems: 'center', justifyContent: 'center' }}>
+        <Text
+          style={{
+            fontFamily: active ? Font.semibold : Font.medium,
+            fontSize: 13.5,
+            color: active ? '#fff' : Palette.inkSoft,
+          }}>
+          {label}
+        </Text>
       </PressableScale>
     </MotiView>
   );
 }
 
-export default function OnboardingStep3() {
+export default function Step3Cuisines() {
   const router = useRouter();
-  const { user } = useAuth();
+  const params = useLocalSearchParams<{ name?: string; dietary?: string }>();
+  const name = params.name ?? '';
+  const dietary = params.dietary ?? '';
 
-  const meta = user?.user_metadata ?? {};
-  const [dietary, setDietary] = useState<string[]>((meta.dietary as string[] | undefined) ?? []);
-  const [allergies, setAllergies] = useState<string[]>((meta.allergies as string[] | undefined) ?? []);
-  const [spice, setSpice] = useState<SpiceLevel>((meta.spice as SpiceLevel | undefined) ?? 'Medium');
-  const [saving, setSaving] = useState(false);
+  const [selected, setSelected] = useState<string[]>([]);
 
-  function toggle(arr: string[], set: (v: string[]) => void, val: string) {
-    set(arr.includes(val) ? arr.filter((x) => x !== val) : [...arr, val]);
+  function toggle(key: string) {
+    feedback.tap();
+    setSelected((s) => s.includes(key) ? s.filter((k) => k !== key) : [...s, key]);
   }
 
-  async function handleSave() {
+  function handleNext() {
     feedback.tap();
-    setSaving(true);
-    const { error } = await supabase.auth.updateUser({ data: { dietary, allergies, spice } });
-    if (!error && user) {
-      await markFtueComplete(user.id);
-      feedback.success();
-      router.replace('/');
-    } else {
-      feedback.error();
-      setSaving(false);
-    }
-  }
-
-  async function handleSkip() {
-    feedback.tap();
-    if (user) await markFtueComplete(user.id);
-    router.replace('/');
+    router.push({
+      pathname: '/onboarding/step-4' as never,
+      params: { name, dietary, cuisines: selected.join(',') },
+    });
   }
 
   return (
     <View style={{ flex: 1, backgroundColor: Palette.canvas }}>
-      <SafeAreaView edges={['top']} style={{ flex: 1 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingTop: 12, paddingBottom: 4 }}>
-          <View style={{ flex: 1 }}>
-            <Text style={{ fontFamily: Font.display, fontSize: 26, color: Palette.ink, letterSpacing: -0.8 }}>your food preferences</Text>
-            <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary, marginTop: 2 }}>
-              helps us personalise your feed — 30 seconds
-            </Text>
-          </View>
-          <PressableScale onPress={handleSkip} accessibilityRole="button" accessibilityLabel="Skip dietary preferences"
-            style={{ paddingHorizontal: 12, paddingVertical: 7, borderRadius: Radius.pill, backgroundColor: Palette.surface }}>
-            <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: Palette.textSecondary }}>skip</Text>
-          </PressableScale>
-        </View>
+      <SafeAreaView edges={['top', 'bottom']} style={{ flex: 1 }}>
+        <ProgressDots current={2} />
 
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 120 }}>
-          <Text style={{ fontFamily: Font.heading, fontSize: 13, color: Palette.textSecondary, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 10 }}>
-            dietary restrictions
-          </Text>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 28 }}>
-            {DIETARY.map((d) => <Chip key={d} label={d} active={dietary.includes(d)} onToggle={() => toggle(dietary, setDietary, d)} />)}
-          </View>
+        {/* Header */}
+        <MotiView
+          from={{ opacity: 0, translateX: 40 }}
+          animate={{ opacity: 1, translateX: 0 }}
+          transition={{ type: 'spring', damping: 18, stiffness: 160 }}
+          style={{ paddingHorizontal: 24, paddingTop: 12 }}>
+          <Pressable
+            onPress={() => router.back()}
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            style={{ width: 36, height: 36, alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+            <ChevronLeft size={22} color={Palette.inkSoft} strokeWidth={2} />
+          </Pressable>
 
-          <Text style={{ fontFamily: Font.heading, fontSize: 13, color: Palette.textSecondary, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 10 }}>
-            allergies
+          <Text
+            style={{
+              fontFamily: Font.display,
+              fontSize: 30,
+              color: Palette.ink,
+              letterSpacing: -0.8,
+              lineHeight: 38,
+              marginBottom: 6,
+            }}>
+            what cuisines do you love?
           </Text>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 28 }}>
-            {ALLERGIES.map((a) => <Chip key={a} label={a} active={allergies.includes(a)} onToggle={() => toggle(allergies, setAllergies, a)} />)}
-          </View>
+          <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, lineHeight: 21, marginBottom: 24 }}>
+            Pick your favourites — choose any.
+          </Text>
+        </MotiView>
 
-          <Text style={{ fontFamily: Font.heading, fontSize: 13, color: Palette.textSecondary, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 10 }}>
-            spice tolerance
-          </Text>
-          <View style={{ flexDirection: 'row', backgroundColor: Palette.surface, borderRadius: Radius.md, padding: 4, gap: 4 }}>
-            {SPICE.map((level) => {
-              const active = spice === level;
-              return (
-                <MotiView key={level} animate={{ backgroundColor: active ? Palette.brand : Palette.surface }} transition={{ type: 'timing', duration: 200 }}
-                  style={{ flex: 1, borderRadius: Radius.sm }}>
-                  <PressableScale onPress={() => { feedback.tap(); setSpice(level); }} accessibilityRole="radio" accessibilityState={{ selected: active }} accessibilityLabel={level}
-                    style={{ paddingVertical: 10, alignItems: 'center' }}>
-                    <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: active ? '#fff' : Palette.textSecondary }} numberOfLines={1}>{level}</Text>
-                  </PressableScale>
-                </MotiView>
-              );
-            })}
+        {/* Chips grid */}
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 24 }}>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+            {CUISINE_OPTIONS.map((opt) => (
+              <CuisineChip
+                key={opt}
+                label={opt}
+                active={selected.includes(opt)}
+                onToggle={() => toggle(opt)}
+              />
+            ))}
           </View>
         </ScrollView>
 
-        <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: Palette.canvas, paddingHorizontal: 20, paddingTop: 12, paddingBottom: 32 }}>
-          <MotiView animate={{ backgroundColor: Palette.brand }} style={{ height: 56, borderRadius: Radius.pill, overflow: 'hidden', ...Shadow.floating }}>
-            <PressableScale onPress={handleSave} disabled={saving} accessibilityRole="button" accessibilityLabel="Save preferences and start"
-              style={{ flex: 1, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8, opacity: saving ? 0.7 : 1 }}>
-              {saving ? <ActivityIndicator color="#fff" /> : (
-                <>
-                  <CheckCircle2 size={18} color="#fff" />
-                  <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>save & get started</Text>
-                </>
-              )}
-            </PressableScale>
-          </MotiView>
-        </View>
+        {/* CTA */}
+        <MotiView
+          from={{ opacity: 0, translateY: 12 }}
+          animate={{ opacity: 1, translateY: 0 }}
+          transition={{ type: 'spring', damping: 20, stiffness: 260, delay: 160 }}
+          style={{ paddingHorizontal: 24, paddingBottom: 24, gap: 8 }}>
+          <PressableScale
+            onPress={handleNext}
+            accessibilityRole="button"
+            accessibilityLabel={selected.length ? `Continue with ${selected.length} selected` : 'Continue'}
+            style={{
+              height: 54,
+              borderRadius: Radius.pill,
+              backgroundColor: Palette.brand,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+            <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>
+              {selected.length ? `Continue (${selected.length} selected)` : 'Continue'}
+            </Text>
+          </PressableScale>
+
+          <PressableScale
+            onPress={() => {
+              feedback.tap();
+              router.push({ pathname: '/onboarding/step-4' as never, params: { name, dietary, cuisines: '' } });
+            }}
+            accessibilityRole="button"
+            accessibilityLabel="Skip cuisine preferences"
+            style={{ height: 44, alignItems: 'center', justifyContent: 'center' }}>
+            <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: Palette.textMuted }}>Skip</Text>
+          </PressableScale>
+        </MotiView>
       </SafeAreaView>
     </View>
   );

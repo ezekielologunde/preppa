@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
+import { feedback } from '@/lib/feedback';
 import { supabase } from '@/lib/supabase';
 
 const one = <T,>(v: T | T[] | null | undefined): T | undefined => (Array.isArray(v) ? v[0] : v ?? undefined);
@@ -70,6 +71,8 @@ export type ReviewCard = {
   author: string;
   created_at: string;
   photos: string[];
+  prepper_reply: string | null;
+  replied_at: string | null;
 };
 
 type ReviewRow = {
@@ -78,6 +81,8 @@ type ReviewRow = {
   body: string | null;
   photos: string[] | null;
   created_at: string;
+  prepper_reply: string | null;
+  replied_at: string | null;
   author: { display_name: string } | { display_name: string }[] | null;
 };
 
@@ -89,7 +94,7 @@ export function usePrepperReviews(prepperId?: string | null, limit = 20) {
     queryFn: async (): Promise<ReviewCard[]> => {
       const { data, error } = await supabase
         .from('reviews')
-        .select('id,rating,body,photos,created_at,author:profiles(display_name:full_name)')
+        .select('id,rating,body,photos,created_at,prepper_reply,replied_at,author:profiles(display_name:full_name)')
         .eq('prepper_id', prepperId!)
         .order('created_at', { ascending: false })
         .limit(limit);
@@ -101,8 +106,78 @@ export function usePrepperReviews(prepperId?: string | null, limit = 20) {
         author: maskName(one(r.author)?.display_name) ?? 'a customer',
         created_at: r.created_at,
         photos: r.photos ?? [],
+        prepper_reply: r.prepper_reply,
+        replied_at: r.replied_at,
       }));
     },
+  });
+}
+
+/** Prepper posts or edits a public reply on one of their reviews. */
+export function useSubmitReply(reviewId?: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (reply: string) => {
+      const { error } = await supabase
+        .from('reviews')
+        .update({ prepper_reply: reply.trim(), replied_at: new Date().toISOString() })
+        .eq('id', reviewId!);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['reviews'] });
+      feedback.success();
+    },
+    onError: () => feedback.error(),
+  });
+}
+
+export type ReviewDraft = {
+  orderId: string;
+  mealId: string;
+  prepperId: string;
+  rating: number;
+  body: string;
+  photos: string[];
+};
+
+/** Submit a review for a completed order — used by the review-order screen. */
+export function useSubmitOrderReview(userId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (draft: ReviewDraft) => {
+      const { error } = await supabase.from('reviews').insert({
+        order_id: draft.orderId,
+        meal_id: draft.mealId || null,
+        prepper_id: draft.prepperId,
+        author_id: userId,
+        rating: draft.rating,
+        body: draft.body.trim() || null,
+        photos: draft.photos.length ? draft.photos : [],
+      });
+      if (error) throw error;
+    },
+    onSuccess: (_d, draft) => {
+      qc.invalidateQueries({ queryKey: ['reviews'] });
+      qc.invalidateQueries({ queryKey: ['orders'] });
+      qc.invalidateQueries({ queryKey: ['order-review', draft.orderId] });
+    },
+  });
+}
+
+/** Check whether the signed-in customer already reviewed a specific order. */
+export function useOrderReview(orderId: string) {
+  return useQuery({
+    queryKey: ['order-review', orderId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('reviews')
+        .select('id, rating, body')
+        .eq('order_id', orderId)
+        .maybeSingle();
+      return data;
+    },
+    staleTime: 60_000,
   });
 }
 

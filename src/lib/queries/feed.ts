@@ -9,6 +9,7 @@ export type FeedItem = {
   prepper: string;
   prepper_id?: string;
   verified: boolean;
+  isPro?: boolean;
   rating: number;
   reviews: number;
   image: string;
@@ -34,8 +35,8 @@ type Row = {
   is_limited: boolean;
   expires_at: string | null;
   prepper:
-    | { id: string; display_name: string; verified: boolean; rating: { average_rating: number; total_reviews: number } | { average_rating: number; total_reviews: number }[] | null }
-    | { id: string; display_name: string; verified: boolean; rating: unknown }[]
+    | { id: string; display_name: string; verified: boolean; rating: { average_rating: number; total_reviews: number } | { average_rating: number; total_reviews: number }[] | null; prepper_memberships: { tier: string; status: string }[] | null }
+    | { id: string; display_name: string; verified: boolean; rating: unknown; prepper_memberships: { tier: string; status: string }[] | null }[]
     | null;
   images: { url: string }[] | null;
   videos: { video_url: string; thumbnail_url: string | null }[] | null;
@@ -43,13 +44,13 @@ type Row = {
 
 const SELECT =
   'id,title,base_price,created_at,is_limited,expires_at,' +
-  'prepper:prepper_profiles(id,display_name,verified,rating:prepper_rating_summary(average_rating,total_reviews)),' +
+  'prepper:prepper_profiles(id,display_name,verified,rating:prepper_rating_summary(average_rating,total_reviews),prepper_memberships(tier,status)),' +
   'images:meal_images(url),' +
   'videos:meal_videos(video_url,thumbnail_url)';
 
 const POST_SELECT =
   'id,caption,thumbnail_url,video_url,tags,created_at,' +
-  'prepper:prepper_profiles(id,display_name,verified)';
+  'prepper:prepper_profiles(id,display_name,verified,prepper_memberships(tier,status))';
 
 type PostRow = {
   id: string;
@@ -58,7 +59,7 @@ type PostRow = {
   video_url: string | null;
   tags: string[];
   created_at: string;
-  prepper: { id: string; display_name: string; verified: boolean } | { id: string; display_name: string; verified: boolean }[] | null;
+  prepper: { id: string; display_name: string; verified: boolean; prepper_memberships: { tier: string; status: string }[] | null } | { id: string; display_name: string; verified: boolean; prepper_memberships: { tier: string; status: string }[] | null }[] | null;
 };
 
 async function buildFeedItems(
@@ -78,9 +79,10 @@ async function buildFeedItems(
 function mapMealRows(rows: Row[]): FeedItem[] {
   return (rows as unknown as Row[])
     .map((r): FeedItem => {
-      const prepper = one(r.prepper as never) as { id?: string; display_name?: string; verified?: boolean; rating?: unknown } | undefined;
+      const prepper = one(r.prepper as never) as { id?: string; display_name?: string; verified?: boolean; rating?: unknown; prepper_memberships?: { tier: string; status: string }[] | null } | undefined;
       const rating = one(prepper?.rating as never) as { average_rating: number; total_reviews: number } | undefined;
       const video = one(r.videos);
+      const isPro = (prepper?.prepper_memberships ?? []).some((m) => m.tier === 'pro' && m.status === 'active');
       return {
         id: r.id,
         title: r.title,
@@ -88,6 +90,7 @@ function mapMealRows(rows: Row[]): FeedItem[] {
         prepper: prepper?.display_name ?? 'preppa',
         prepper_id: prepper?.id,
         verified: !!prepper?.verified,
+        isPro,
         rating: rating?.average_rating ?? 0,
         reviews: rating?.total_reviews ?? 0,
         image: r.images?.[0]?.url ?? '',
@@ -105,7 +108,8 @@ function mapPostRows(rows: PostRow[]): FeedItem[] {
   return rows
     .filter((p) => p.thumbnail_url || p.video_url)
     .map((p): FeedItem => {
-      const prepper = one(p.prepper as never) as { id?: string; display_name: string; verified: boolean } | undefined;
+      const prepper = one(p.prepper as never) as { id?: string; display_name: string; verified: boolean; prepper_memberships?: { tier: string; status: string }[] | null } | undefined;
+      const isPro = (prepper?.prepper_memberships ?? []).some((m) => m.tier === 'pro' && m.status === 'active');
       return {
         id: `post:${p.id}`,
         title: p.caption ?? '',
@@ -113,6 +117,7 @@ function mapPostRows(rows: PostRow[]): FeedItem[] {
         prepper: prepper?.display_name ?? 'preppa',
         prepper_id: prepper?.id,
         verified: !!prepper?.verified,
+        isPro,
         rating: 0,
         reviews: 0,
         image: p.thumbnail_url ?? '',
@@ -137,9 +142,10 @@ export function useFeed(limit = 30) {
         supabase.from('feed_posts').select(POST_SELECT).order('created_at', { ascending: false }).limit(Math.floor(limit / 3)),
       ]);
       if (mealsRes.error) throw mealsRes.error;
+      if (postsRes.error) throw postsRes.error;
       return buildFeedItems(
         mapMealRows(mealsRes.data as unknown as Row[]),
-        mapPostRows((postsRes.data ?? []) as unknown as PostRow[]),
+        mapPostRows(postsRes.data as unknown as PostRow[]),
       );
     },
   });
@@ -166,9 +172,10 @@ export function useFollowingFeed(userId?: string | null, limit = 30) {
         supabase.from('feed_posts').select(POST_SELECT).in('prepper_id', ids).order('created_at', { ascending: false }).limit(Math.floor(limit / 3)),
       ]);
       if (mealsRes.error) throw mealsRes.error;
+      if (postsRes.error) throw postsRes.error;
       return buildFeedItems(
         mapMealRows(mealsRes.data as unknown as Row[]),
-        mapPostRows((postsRes.data ?? []) as unknown as PostRow[]),
+        mapPostRows(postsRes.data as unknown as PostRow[]),
       );
     },
   });

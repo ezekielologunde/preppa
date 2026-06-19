@@ -19,7 +19,11 @@ export type FlagKey =
   | 'prepper_signups'
   | 'reviews'
   | 'payments'
-  | 'home_cook';
+  | 'home_cook'
+  | 'require_govt_id'
+  | 'require_food_safety'
+  | 'require_kitchen_photos'
+  | 'require_fridge_photos';
 
 /**
  * All feature flags as a { key: enabled } map. Public read (RLS allows select).

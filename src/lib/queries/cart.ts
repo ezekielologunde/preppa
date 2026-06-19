@@ -12,6 +12,7 @@ export type CartItem = {
   prepper: string;
   prepperId: string | null;
   prepTime: number | null;
+  available: boolean;
 };
 
 type PrepperCol = { id: string; display_name: string; delivery_fee: number | null; delivery_min_order: number | null; delivers: boolean; pickup: boolean };
@@ -23,6 +24,7 @@ type CartItemRow = {
   created_at: string;
   meal: {
     title: string;
+    status: string | null;
     prep_time_min: number | null;
     images: { url: string }[] | null;
     prepper: PrepperCol | PrepperCol[] | null;
@@ -49,7 +51,7 @@ export function useCart(userId?: string | null) {
     queryFn: async (): Promise<Cart> => {
       const { data, error } = await supabase
         .from('carts')
-        .select('id,cart_items(id,created_at,meal_id,quantity,price_snapshot,meal:meals(title,prep_time_min,images:meal_images(url),prepper:prepper_profiles(id,display_name,delivery_fee,delivery_min_order,delivers,pickup)))')
+        .select('id,cart_items(id,created_at,meal_id,quantity,price_snapshot,meal:meals(title,status,prep_time_min,images:meal_images(url),prepper:prepper_profiles(id,display_name,delivery_fee,delivery_min_order,delivers,pickup)))')
         .eq('user_id', userId!)
         .maybeSingle();
       if (error) throw error;
@@ -68,6 +70,7 @@ export function useCart(userId?: string | null) {
           prepper: prepper?.display_name ?? 'preppa',
           prepperId: prepper?.id ?? null,
           prepTime: r.meal?.prep_time_min ?? null,
+          available: r.meal?.status === 'published',
         };
       });
       const subtotal = items.reduce((s, i) => s + i.price_snapshot * i.quantity, 0);
@@ -146,12 +149,19 @@ export function useUpdateCartItem(userId?: string | null) {
   });
 }
 
+function isAlreadyPaid(error: unknown): boolean {
+  return (error as { context?: { status?: number } })?.context?.status === 409;
+}
+
 /** Start a Stripe Checkout for an order; returns the hosted payment-page URL. */
 export function useStripeCheckout() {
   return useMutation({
     mutationFn: async (orderId: string): Promise<string> => {
       const { data, error } = await supabase.functions.invoke('stripe-checkout', { body: { orderId } });
-      if (error) throw error;
+      if (error) {
+        if (isAlreadyPaid(error)) throw Object.assign(new Error('Order already paid'), { alreadyPaid: true });
+        throw error;
+      }
       const url = (data as { url?: string; error?: string })?.url;
       if (!url) throw new Error((data as { error?: string })?.error || 'Could not start checkout.');
       return url;
@@ -168,7 +178,10 @@ export function useEmbeddedCheckout() {
   return useMutation({
     mutationFn: async (orderId: string): Promise<EmbeddedPay> => {
       const { data, error } = await supabase.functions.invoke('stripe-checkout', { body: { orderId, embedded: true } });
-      if (error) throw error;
+      if (error) {
+        if (isAlreadyPaid(error)) throw Object.assign(new Error('Order already paid'), { alreadyPaid: true });
+        throw error;
+      }
       const d = data as { clientSecret?: string; pk?: string; url?: string; error?: string };
       if (d?.clientSecret && d?.pk) return { clientSecret: d.clientSecret, pk: d.pk };
       if (d?.url) return { url: d.url };
@@ -181,7 +194,8 @@ export function useEmbeddedCheckout() {
 export function useRefundOrder() {
   return useMutation({
     mutationFn: async (orderId: string) => {
-      await supabase.functions.invoke('stripe-refund', { body: { orderId } });
+      const { error } = await supabase.functions.invoke('stripe-refund', { body: { orderId } });
+      if (error) throw error;
     },
   });
 }
@@ -199,6 +213,73 @@ export function useRemoveItems(userId?: string | null) {
   });
 }
 
+export type MultiOrderGroup = {
+  prepperId: string;
+  prepperName: string;
+  items: CartItem[];
+  fulfillment: import('@/types/database.types').FulfillmentType;
+  addressId?: string | null;
+  note?: string | null;
+  tip?: number;
+  scheduledAt?: string | null;
+};
+
+export type MultiOrderResult = { prepperId: string; prepperName: string; orderId: string };
+
+/**
+ * Place one sub-order per kitchen group sequentially.
+ * Each group calls create_order once; results are returned in order.
+ * On failure, throws with a `failedKitchen` property so the caller
+ * can show which kitchen failed and allow retry.
+ */
+export function usePlaceMultipleOrders() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (v: {
+      userId: string;
+      groups: MultiOrderGroup[];
+      onProgress?: (completed: number, total: number, kitchenName: string) => void;
+    }): Promise<MultiOrderResult[]> => {
+      const results: MultiOrderResult[] = [];
+      for (let i = 0; i < v.groups.length; i++) {
+        const g = v.groups[i];
+        v.onProgress?.(i, v.groups.length, g.prepperName);
+        const { data, error } = await supabase.rpc('create_order', {
+          p_fulfillment: g.fulfillment,
+          p_address_id: g.addressId ?? null,
+          p_note: g.note ?? null,
+          p_tip: g.tip ?? 0,
+          p_scheduled_at: g.scheduledAt ?? null,
+        });
+        if (error) {
+          const err = new Error(`Could not place order with ${g.prepperName}: ${error.message}`) as Error & { failedKitchen: string };
+          err.failedKitchen = g.prepperName;
+          throw err;
+        }
+        const orderId = data as string;
+        supabase.rpc('record_event', { p_event: 'order_created', p_props: { order_id: orderId, fulfillment: g.fulfillment, prepper_id: g.prepperId } }).then(() => {}, () => {});
+        // Fire-and-forget push notification to the prepper.
+        void supabase.functions.invoke('notify-order-placed', {
+          body: {
+            order_id: orderId,
+            prepper_id: g.prepperId,
+            customer_name: 'A customer',
+            meal_count: g.items.reduce((s, it) => s + it.quantity, 0),
+            total: g.items.reduce((s, it) => s + it.price_snapshot * it.quantity, 0),
+          },
+        });
+        results.push({ prepperId: g.prepperId, prepperName: g.prepperName, orderId });
+      }
+      return results;
+    },
+    onSuccess: (_d, v) => {
+      qc.invalidateQueries({ queryKey: ['cart', v.userId] });
+      qc.invalidateQueries({ queryKey: ['orders'] });
+      qc.invalidateQueries({ queryKey: ['meals'] });
+    },
+  });
+}
+
 /** Place the order from the cart via the create_order RPC (server-priced). */
 export function usePlaceOrder() {
   const qc = useQueryClient();
@@ -209,17 +290,60 @@ export function usePlaceOrder() {
       addressId?: string | null;
       note?: string | null;
       tip?: number;
+      scheduledAt?: string | null;
+      /** Caller-supplied hints for the new-order push notification (optional). */
+      notifyHints?: { prepperId: string; customerName: string; mealCount: number; total: number };
     }): Promise<string> => {
       const { data, error } = await supabase.rpc('create_order', {
         p_fulfillment: v.fulfillment,
         p_address_id: v.addressId ?? null,
         p_note: v.note ?? null,
         p_tip: v.tip ?? 0,
+        p_scheduled_at: v.scheduledAt ?? null,
       });
       if (error) throw error;
+      const orderId = data as string;
       // Fire-and-forget analytics — never block or fail the order on telemetry.
-      supabase.rpc('record_event', { p_event: 'order_created', p_props: { order_id: data, fulfillment: v.fulfillment } }).then(() => {}, () => {});
-      return data as string;
+      supabase.rpc('record_event', { p_event: 'order_created', p_props: { order_id: orderId, fulfillment: v.fulfillment } }).then(() => {}, () => {});
+      // Fire-and-forget push notification to the prepper.
+      void (async () => {
+        try {
+          const hints = v.notifyHints;
+          if (hints) {
+            void supabase.functions.invoke('notify-order-placed', {
+              body: {
+                order_id: orderId,
+                prepper_id: hints.prepperId,
+                customer_name: hints.customerName,
+                meal_count: hints.mealCount,
+                total: hints.total,
+              },
+            });
+          } else {
+            // Fetch the minimal fields needed when hints weren't provided.
+            const { data: row } = await supabase
+              .from('orders')
+              .select('prepper_id, total, items:order_items(quantity)')
+              .eq('id', orderId)
+              .single();
+            if (row) {
+              const r = row as unknown as { prepper_id: string; total: number; items: { quantity: number }[] };
+              void supabase.functions.invoke('notify-order-placed', {
+                body: {
+                  order_id: orderId,
+                  prepper_id: r.prepper_id,
+                  customer_name: 'A customer',
+                  meal_count: r.items.reduce((s, i) => s + i.quantity, 0),
+                  total: r.total,
+                },
+              });
+            }
+          }
+        } catch {
+          // Notification errors are non-fatal.
+        }
+      })();
+      return orderId;
     },
     onSuccess: (_d, v) => {
       qc.invalidateQueries({ queryKey: ['cart', v.userId] });

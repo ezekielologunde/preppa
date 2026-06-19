@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { supabase } from '@/lib/supabase';
@@ -26,10 +27,22 @@ const one = <T,>(v: T | T[] | null | undefined): T | undefined => (Array.isArray
 
 /** Inbox: the user's conversations with the other participant + last message. */
 export function useConversations(userId?: string | null) {
+  const qc = useQueryClient();
+
+  useEffect(() => {
+    if (!userId) return;
+    const channel = supabase
+      .channel(`conversations:${userId}`)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, () => {
+        qc.invalidateQueries({ queryKey: ['conversations', userId] });
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [userId, qc]);
+
   return useQuery({
     queryKey: ['conversations', userId ?? 'anon'],
     enabled: !!userId,
-    refetchInterval: 15_000,
     queryFn: async (): Promise<Conversation[]> => {
       const { data, error } = await supabase
         .from('conversation_participants')
@@ -62,12 +75,29 @@ export function useConversations(userId?: string | null) {
 
 export type Message = { id: string; body: string | null; created_at: string; sender_id: string; mine: boolean };
 
-/** Thread: messages in a conversation (polled). */
+/** Thread: messages in a conversation (realtime). */
 export function useMessages(conversationId?: string, userId?: string | null) {
+  const qc = useQueryClient();
+
+  useEffect(() => {
+    if (!conversationId) return;
+    const channel = supabase
+      .channel(`messages:${conversationId}`)
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'messages',
+        filter: `conversation_id=eq.${conversationId}`,
+      }, () => {
+        qc.invalidateQueries({ queryKey: ['messages', conversationId] });
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [conversationId, qc]);
+
   return useQuery({
     queryKey: ['messages', conversationId ?? 'none'],
     enabled: !!conversationId,
-    refetchInterval: 6_000,
     queryFn: async (): Promise<Message[]> => {
       const { data, error } = await supabase
         .from('messages')
@@ -83,7 +113,7 @@ export function useMessages(conversationId?: string, userId?: string | null) {
 export function useSendMessage() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (v: { conversationId: string; senderId: string; body: string }) => {
+    mutationFn: async (v: { conversationId: string; senderId: string; body: string; senderName?: string }) => {
       const { error } = await supabase.from('messages').insert({
         conversation_id: v.conversationId,
         sender_id: v.senderId,
@@ -94,6 +124,29 @@ export function useSendMessage() {
     onSuccess: (_d, v) => {
       qc.invalidateQueries({ queryKey: ['messages', v.conversationId] });
       qc.invalidateQueries({ queryKey: ['conversations', v.senderId] });
+      // Notify the other participant (fire-and-forget)
+      void (async () => {
+        try {
+          const { data } = await supabase
+            .from('conversation_participants')
+            .select('user_id')
+            .eq('conversation_id', v.conversationId)
+            .neq('user_id', v.senderId)
+            .limit(1)
+            .maybeSingle();
+          if (!data?.user_id) return;
+          await supabase.functions.invoke('notify', {
+            body: {
+              user_id: data.user_id,
+              title: `New message from ${v.senderName ?? 'Preppa user'}`,
+              body: v.body.slice(0, 100),
+              data: { type: 'message', conversation_id: v.conversationId },
+            },
+          });
+        } catch {
+          // Non-critical — swallow errors
+        }
+      })();
     },
   });
 }
@@ -133,8 +186,9 @@ export function useChatContext(conversationId?: string, userId?: string | null) 
         .from('conversation_participants')
         .select('user_id')
         .eq('conversation_id', conversationId!);
+      const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
       const other = (parts ?? []).map((p) => p.user_id).find((u) => u !== userId) ?? null;
-      if (!other) return { otherUserId: null, otherPhone: null, order: null, homeCookRequest: null };
+      if (!other || !UUID_RE.test(other)) return { otherUserId: null, otherPhone: null, order: null, homeCookRequest: null };
 
       const [{ data: prof }, { data: preps }] = await Promise.all([
         supabase.from('profiles').select('phone').eq('id', other).maybeSingle(),

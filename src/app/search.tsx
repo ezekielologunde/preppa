@@ -12,6 +12,7 @@ import { useBreakpoint } from '@/lib/layout';
 import { QuickAddButton } from '@/components/home-feed';
 import { MealCard } from '@/components/meal-card';
 import { PrepperCard } from '@/components/prepper-card';
+import { SearchSuggestionsPanel } from '@/components/search-suggestions';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { CardSkeleton } from '@/components/ui/skeleton';
 import { Font } from '@/constants/fonts';
@@ -89,6 +90,7 @@ export default function SearchScreen() {
   const { user } = useAuth();
   const [text, setText] = useState(initial);
   const [debounced, setDebounced] = useState(initial);
+  const [isFocused, setIsFocused] = useState(false);
   const [categoryId, setCategoryId] = useState<number | null>(null);
   const [priceKey, setPriceKey] = useState<PriceKey>(null);
   const [sortKey, setSortKey] = useState<SortKey>('default');
@@ -135,6 +137,18 @@ export default function SearchScreen() {
   const suggestions = useMemo(() => getSuggestions(text), [text]);
   const loading = active && (isLoading || isFetching);
 
+  // Show the suggestions panel when the input is focused AND either:
+  //   (a) the user has typed 2+ chars (live autocomplete), or
+  //   (b) the input is empty (recent + trending)
+  const showSuggestions = isFocused && (text.trim().length === 0 || text.trim().length >= 2);
+
+  function handleSelectSuggestion(term: string) {
+    setText(term);
+    setDebounced(term);
+    setIsFocused(false);
+    recordSearch(term);
+  }
+
   return (
     <View style={{ flex: 1, backgroundColor: Palette.canvas }}>
       <SafeAreaView edges={['top']} style={{ flex: 1 }}>
@@ -153,7 +167,9 @@ export default function SearchScreen() {
               placeholder="search meals, cuisines, preppers"
               placeholderTextColor={Palette.textMuted}
               returnKeyType="search"
-              onSubmitEditing={() => recordSearch(text)}
+              onFocus={() => setIsFocused(true)}
+              onBlur={() => setIsFocused(false)}
+              onSubmitEditing={() => { recordSearch(text); setIsFocused(false); }}
               autoCapitalize="none"
               autoCorrect={false}
               maxLength={200}
@@ -167,6 +183,15 @@ export default function SearchScreen() {
             ) : null}
           </View>
         </View>
+
+        {/* Live suggestions / recent / trending panel */}
+        {showSuggestions ? (
+          <SearchSuggestionsPanel
+            query={text}
+            recent={recent}
+            onSelectTerm={handleSelectSuggestion}
+          />
+        ) : null}
 
         {/* Filters — categories then price; tap again to clear */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexGrow: 0 }} contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 4, gap: 8, alignItems: 'center' }}>
@@ -356,20 +381,29 @@ export default function SearchScreen() {
             from={{ opacity: 0, translateY: 8 }}
             animate={{ opacity: 1, translateY: 0 }}
             transition={{ type: 'timing', duration: 240 }}
-            style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 8 }}>
-            <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>nothing found</Text>
+            style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 10 }}>
+            <Text style={{ fontSize: 60 }}>😔</Text>
+            <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK, textAlign: 'center' }}>
+              {debounced.trim() ? `No results for "${debounced.trim()}"` : 'nothing found'}
+            </Text>
             <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textMuted, textAlign: 'center' }}>
               {hasFilters ? 'try removing a filter, or search something else' : 'try a meal, cuisine, or kitchen — like "bowl" or "Kelsey"'}
             </Text>
-            {hasFilters ? (
-              <PressableScale onPress={() => { feedback.tap(); setCategoryId(null); setPriceKey(null); setSortKey('default'); }} accessibilityRole="button" accessibilityLabel="Clear all filters" style={{ marginTop: 6, paddingHorizontal: 18, height: 42, borderRadius: 12, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
-                <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: ORANGE }}>clear filters</Text>
+            {trending.length >= 2 ? (
+              <Text style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.textSecondary, textAlign: 'center', marginTop: 4 }}>
+                Try searching for {trending[0].query}, {trending[1].query}…
+              </Text>
+            ) : null}
+            <View style={{ flexDirection: 'row', gap: 10, marginTop: 6 }}>
+              {hasFilters ? (
+                <PressableScale onPress={() => { feedback.tap(); setCategoryId(null); setPriceKey(null); setSortKey('default'); }} accessibilityRole="button" accessibilityLabel="Clear all filters" style={{ paddingHorizontal: 18, height: 42, borderRadius: 12, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
+                  <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: ORANGE }}>clear filters</Text>
+                </PressableScale>
+              ) : null}
+              <PressableScale onPress={() => { feedback.tap(); router.push('/emergency-food'); }} accessibilityRole="button" accessibilityLabel="Post a food request" style={{ paddingHorizontal: 20, height: 44, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
+                <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: '#fff' }}>post a food request</Text>
               </PressableScale>
-            ) : (
-              <PressableScale onPress={() => { feedback.tap(); router.push('/explore'); }} accessibilityRole="button" accessibilityLabel="Browse all cuisines" style={{ marginTop: 6, paddingHorizontal: 20, height: 44, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
-                <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: '#fff' }}>browse cuisines →</Text>
-              </PressableScale>
-            )}
+            </View>
           </MotiView>
         )}
         </View>

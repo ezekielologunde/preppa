@@ -12,20 +12,38 @@ import { toggleDarkMode } from '@/lib/theme-mode';
 
 // ─── StatChip ────────────────────────────────────────────────────────────────
 
-export function StatChip({ value, label, Icon, color, onPress }: {
-  value: number; label: string; Icon: LucideIcon; color: string; onPress: () => void;
+export function StatChip({ value, label, Icon, color, onPress, index = 0 }: {
+  value: number; label: string; Icon: LucideIcon; color: string; onPress: () => void; index?: number;
 }) {
   return (
-    <PressableScale onPress={onPress} accessibilityRole="button" accessibilityLabel={`${value} ${label}`}
-      style={{ flex: 1, backgroundColor: Palette.surface, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 11, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-      <View style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: color + '20', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-        <Icon size={15} color={color} />
-      </View>
-      <View>
-        <Text style={{ fontFamily: Font.display, fontSize: 18, color: Palette.ink, letterSpacing: -0.4 }}>{value}</Text>
-        <Text style={{ fontFamily: Font.body, fontSize: 11, color: Palette.textMuted }}>{label}</Text>
-      </View>
-    </PressableScale>
+    <MotiView
+      from={{ opacity: 0, translateY: 12, scale: 0.94 }}
+      animate={{ opacity: 1, translateY: 0, scale: 1 }}
+      transition={{ type: 'spring', damping: 18, stiffness: 220, mass: 0.8, delay: 40 + index * 55 }}
+      style={{ flex: 1 }}>
+      <PressableScale
+        onPress={onPress}
+        accessibilityRole="button"
+        accessibilityLabel={`${value} ${label}`}
+        style={{
+          backgroundColor: Palette.surface,
+          borderRadius: 16,
+          paddingHorizontal: 8,
+          paddingVertical: 16,
+          alignItems: 'center',
+          gap: 6,
+          overflow: 'hidden',
+          borderWidth: 1,
+          borderColor: color + '1A',
+        }}>
+        <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 2.5, backgroundColor: color + '55' }} />
+        <View style={{ width: 36, height: 36, borderRadius: 11, backgroundColor: color + '20', alignItems: 'center', justifyContent: 'center' }}>
+          <Icon size={16} color={color} />
+        </View>
+        <Text style={{ fontFamily: Font.display, fontSize: 22, color: Palette.ink, letterSpacing: -0.5, lineHeight: 26 }}>{value}</Text>
+        <Text numberOfLines={1} style={{ fontFamily: Font.medium, fontSize: 11, color: Palette.textSecondary }}>{label}</Text>
+      </PressableScale>
+    </MotiView>
   );
 }
 
@@ -183,7 +201,7 @@ export function MealPlansSection({ subs, onViewAll, onPress }: {
 
 // ─── RewardsCard ─────────────────────────────────────────────────────────────
 
-type RewardsData = { points: number; tier: { name: string }; nextTier: unknown; toNext: number; progress: number };
+type RewardsData = { points: number; tier: { name: string; color: string }; nextTier: unknown; toNext: number; progress: number };
 
 export function RewardsCard({ rewards, isLoading, onPress }: { rewards: RewardsData; isLoading?: boolean; onPress: () => void }) {
   if (isLoading) {
@@ -207,7 +225,7 @@ export function RewardsCard({ rewards, isLoading, onPress }: { rewards: RewardsD
             ${(rewards.points * 0.01).toFixed(2)} in rewards ›
           </Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 12 }}>
-            <Crown size={15} color="#d97706" />
+            <Crown size={15} color={rewards.tier.color} />
             <Text style={{ fontFamily: Font.heading, fontSize: 14, color: Palette.ink }}>{rewards.tier.name.toLowerCase()} member</Text>
             {rewards.nextTier ? (
               <Text style={{ fontFamily: Font.body, fontSize: 12, color: '#7c5a42' }}>· {Math.round(rewards.toNext * 10).toLocaleString()} pts to go</Text>

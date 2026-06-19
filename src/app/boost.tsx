@@ -1,13 +1,18 @@
+import * as WebBrowser from 'expo-web-browser';
 import { useRouter } from 'expo-router';
-import { ChevronLeft, Eye, Flame, Sparkles, Star, TrendingUp, Zap } from 'lucide-react-native';
+import { ChevronLeft, Crown, Eye, Flame, Sparkles, Star, TrendingUp, Zap } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useState } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
 import { feedback } from '@/lib/feedback';
+import { usePrepperMembership } from '@/lib/queries/memberships';
+import { useMyPrepperApplication } from '@/lib/queries/preppers';
+import { useBoostCheckout, useInsertBoost } from '@/lib/queries/boosts';
+import { useAuth } from '@/providers/auth-provider';
 import { Palette, Radius } from '@/constants/theme';
 
 const ORANGE = Palette.brand;
@@ -61,6 +66,11 @@ const DURATIONS = [
 
 export default function BoostScreen() {
   const router = useRouter();
+  const { user } = useAuth();
+  const { data: prepper } = useMyPrepperApplication(user?.id);
+  const { data: prepperMembership } = usePrepperMembership(prepper?.id);
+  const isPro = prepperMembership?.isPro === true;
+
   const [plan, setPlan] = useState<string>('search');
   const [duration, setDuration] = useState(1);
   const [activated, setActivated] = useState(false);
@@ -69,11 +79,38 @@ export default function BoostScreen() {
   const selectedDuration = DURATIONS[duration];
   const estimatedViews = selectedPlan.impressions;
 
+  const boostCheckout = useBoostCheckout();
+  const insertBoost = useInsertBoost();
+  const isPending = boostCheckout.isPending || insertBoost.isPending;
+
   function goBack() { feedback.tap(); if (router.canGoBack()) { router.back(); } else { router.replace('/prepper-hub'); } }
 
-  function handleActivate() {
-    feedback.success();
-    setActivated(true);
+  async function handleActivate() {
+    if (!prepper?.id) return;
+    const amountCents = selectedDuration.price * 100;
+    try {
+      const url = await boostCheckout.mutateAsync({
+        prepperId: prepper.id,
+        plan: selectedPlan.name,
+        amountCents,
+        durationLabel: selectedDuration.label,
+      });
+      const result = await WebBrowser.openBrowserAsync(url);
+      // Insert optimistically when the user closes the browser (any result type).
+      if (result.type === 'cancel' || result.type === 'dismiss') {
+        await insertBoost.mutateAsync({
+          prepperId: prepper.id,
+          plan: selectedPlan.name,
+          amountCents,
+          durationLabel: selectedDuration.label,
+        });
+      }
+      feedback.success();
+      setActivated(true);
+    } catch {
+      feedback.error();
+      Alert.alert('Boost failed', 'Could not start the boost payment. Please try again.');
+    }
   }
 
   if (activated) {
@@ -95,6 +132,34 @@ export default function BoostScreen() {
             </Text>
             <PressableScale onPress={goBack} accessibilityRole="button" accessibilityLabel="Back to kitchen hub" style={{ paddingHorizontal: 24, height: 48, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
               <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#fff' }}>back to kitchen hub</Text>
+            </PressableScale>
+          </MotiView>
+        </SafeAreaView>
+      </View>
+    );
+  }
+
+  if (!isPro) {
+    return (
+      <View style={{ flex: 1, backgroundColor: Palette.prepperBg }}>
+        <SafeAreaView edges={['top']} style={{ flex: 1 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingTop: 8 }}>
+            <PressableScale onPress={goBack} accessibilityRole="button" accessibilityLabel="Go back" style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: Palette.prepperCard, alignItems: 'center', justifyContent: 'center' }}>
+              <ChevronLeft size={22} color="#fff" />
+            </PressableScale>
+          </View>
+          <MotiView from={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', damping: 18, stiffness: 200 }}
+            style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 36, gap: 16 }}>
+            <View style={{ width: 72, height: 72, borderRadius: 36, backgroundColor: '#F59E0B22', alignItems: 'center', justifyContent: 'center' }}>
+              <Crown size={40} color="#F59E0B" />
+            </View>
+            <Text style={{ fontFamily: Font.display, fontSize: 26, color: '#fff', letterSpacing: -0.6, textAlign: 'center' }}>Boost is a Pro feature</Text>
+            <Text style={{ fontFamily: Font.body, fontSize: 14.5, color: 'rgba(255,255,255,0.65)', textAlign: 'center', lineHeight: 22 }}>
+              Upgrade to Go Pro to promote your meals and get priority placement.
+            </Text>
+            <PressableScale onPress={() => { feedback.tap(); router.push('/prepper-premium'); }} accessibilityRole="button" accessibilityLabel="Upgrade to Pro"
+              style={{ marginTop: 8, height: 52, paddingHorizontal: 32, borderRadius: Radius.pill, backgroundColor: Palette.brand, alignItems: 'center', justifyContent: 'center' }}>
+              <Text style={{ fontFamily: Font.heading, fontSize: 15.5, color: '#fff' }}>Upgrade to Pro</Text>
             </PressableScale>
           </MotiView>
         </SafeAreaView>
@@ -210,10 +275,16 @@ export default function BoostScreen() {
               <Text style={{ fontFamily: Font.display, fontSize: 22, color: ORANGE, letterSpacing: -0.5 }}>${selectedDuration.price}</Text>
             </View>
           </View>
-          <PressableScale onPress={handleActivate} accessibilityRole="button" accessibilityLabel="Activate boost"
-            style={{ height: 54, borderRadius: Radius.sm, backgroundColor: selectedPlan.color, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 10 }}>
-            <Zap size={18} color="#fff" />
-            <Text style={{ fontFamily: Font.heading, fontSize: 15.5, color: '#fff' }}>activate boost · ${selectedDuration.price}</Text>
+          <PressableScale onPress={handleActivate} disabled={isPending} accessibilityRole="button" accessibilityLabel="Activate boost"
+            style={{ height: 54, borderRadius: Radius.sm, backgroundColor: selectedPlan.color, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 10, opacity: isPending ? 0.7 : 1 }}>
+            {isPending ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <>
+                <Zap size={18} color="#fff" />
+                <Text style={{ fontFamily: Font.heading, fontSize: 15.5, color: '#fff' }}>activate boost · ${selectedDuration.price}</Text>
+              </>
+            )}
           </PressableScale>
           </MotiView>
 

@@ -1,71 +1,52 @@
-import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { MotiView } from 'moti';
 import { useState } from 'react';
 import {
-  Bell,
-  Boxes,
-  Briefcase,
-  ChefHat,
-  ChevronLeft,
-  ChevronRight,
-  Check,
-  Crown,
-  Gift,
-  Home,
-  MessageSquare,
-  Plus,
-  Search,
-  Share2,
-  ShoppingBag,
-  Star,
-  TrendingUp,
-  Truck,
-  User,
-  Users,
-  UtensilsCrossed,
-  Video,
-  type LucideIcon,
-} from 'lucide-react-native';
-import { Platform, RefreshControl, ScrollView, Share, Text, View } from 'react-native';
+  ActivityIndicator,
+  Platform,
+  RefreshControl,
+  ScrollView,
+  Share,
+  Text,
+  View,
+} from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ChefHat, ChevronLeft, Clock, ShieldX } from 'lucide-react-native';
 
-import { Ring, Sparkline, StatCard } from '@/components/dashboard-widgets';
+import { Ring } from '@/components/dashboard-widgets';
 import { PrepperBadgeShelf } from '@/components/badge-shelf';
+import { TabletDashboardColumns } from '@/components/tablet/dashboard-columns';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ProfileHealthCard } from '@/components/profile-health-card';
-import { Avatar } from '@/components/ui/avatar';
 import { PressableScale } from '@/components/ui/pressable-scale';
+import { DashboardHeader } from '@/components/dashboard/dashboard-header';
+import { DashboardFloatingBar } from '@/components/dashboard/dashboard-nav';
+import { PrepperNextOrder } from '@/components/dashboard/prepper-next-order';
+import { PrepperQuickActions } from '@/components/dashboard/prepper-quick-actions';
+import { PrepperStatCards } from '@/components/dashboard/prepper-stat-cards';
 import { Font } from '@/constants/fonts';
-import { Palette, Radius, Shadow } from '@/constants/theme';
+import { Palette, Radius } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
-import { greeting } from '@/lib/greeting';
 import { useBreakpoint } from '@/lib/layout';
 import { usePrepperMembership } from '@/lib/queries/memberships';
 import { useAdvanceOrder, usePrepperOrders, type OrderSummary } from '@/lib/queries/orders';
-import { useMyPrepperApplication, usePrepperBadges, usePrepperProfile, useToggleAvailability, useToggleHomeCookAvailability } from '@/lib/queries/preppers';
+import {
+  useMyPrepperApplication,
+  usePrepperBadges,
+  usePrepperProfile,
+  useToggleAvailability,
+  useToggleHomeCookAvailability,
+} from '@/lib/queries/preppers';
 import { usePrepperReviews } from '@/lib/queries/reviews';
 import { useAuth } from '@/providers/auth-provider';
-import type { FulfillmentType, OrderStatus } from '@/types/database.types';
+import type { OrderStatus } from '@/types/database.types';
 
 const ORANGE = Palette.brand;
 const GREEN = Palette.success;
-const PURPLE = '#a78bfa';
 const YELLOW = Palette.amber;
-const PINK = '#f472b6';
-const CARD = Palette.surface;
 const BG = Palette.canvas;
 const INK = Palette.ink;
 const MUTED = Palette.textMuted;
-
-const money = (n: number) => (n >= 1000 ? `$${(n / 1000).toFixed(1)}k` : `$${Math.round(n)}`);
-
-const FULFILLMENT_LABEL: Record<FulfillmentType, string> = {
-  pickup: 'pickup', delivery: 'delivery', meetup: 'meetup', home_cook: 'home cook',
-};
-const FULFILLMENT_COLOR: Record<FulfillmentType, string> = {
-  pickup: '#f59e0b', delivery: '#06b6d4', meetup: '#a78bfa', home_cook: '#22c55e',
-};
 
 const NEXT: Partial<Record<OrderStatus, { next: OrderStatus; cta: string }>> = {
   pending: { next: 'confirmed', cta: 'confirm preorder' },
@@ -75,37 +56,62 @@ const NEXT: Partial<Record<OrderStatus, { next: OrderStatus; cta: string }>> = {
   out_for_delivery: { next: 'completed', cta: 'mark complete' },
 };
 
-function buildDailySpark(orders: OrderSummary[], n: number, getValue: (grp: OrderSummary[]) => number): number[] {
+function buildDailySpark(
+  orders: OrderSummary[],
+  n: number,
+  getValue: (grp: OrderSummary[]) => number,
+): number[] {
   const now = new Date();
   now.setHours(0, 0, 0, 0);
   return Array.from({ length: n }, (_, i) => {
     const start = now.getTime() - (n - 1 - i) * 86400000;
     const end = start + 86400000;
-    return getValue(orders.filter((o) => { const t = new Date(o.created_at).getTime(); return t >= start && t < end; }));
+    return getValue(
+      orders.filter((o) => {
+        const t = new Date(o.created_at).getTime();
+        return t >= start && t < end;
+      }),
+    );
   });
 }
 
 export default function DashboardScreen() {
   const router = useRouter();
-  const desktop = useBreakpoint() === 'desktop';
+  const breakpoint = useBreakpoint();
+  const desktop = breakpoint === 'desktop';
+  const isTablet = breakpoint === 'tablet';
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
-  const { data: prepper, isLoading: appLoading, refetch: refetchPrepper } = useMyPrepperApplication(user?.id);
+
+  const { data: prepper, isLoading: appLoading, refetch: refetchPrepper } =
+    useMyPrepperApplication(user?.id);
   const { data: prepperProfile } = usePrepperProfile(prepper?.id);
-  const { data: prepperMembership, refetch: refetchMembership } = usePrepperMembership(prepper?.id);
+  const { data: prepperMembership, refetch: refetchMembership } =
+    usePrepperMembership(prepper?.id);
   const isPro = prepperMembership?.isPro === true;
   const { data: prepperBadges, refetch: refetchBadges } = usePrepperBadges(prepper?.id);
-  const { data: orders, isLoading: ordersLoading, refetch: refetchOrders } = usePrepperOrders(prepper?.id);
+  const { data: orders, isLoading: ordersLoading, refetch: refetchOrders } =
+    usePrepperOrders(prepper?.id);
   const statsLoading = appLoading || (prepper?.id != null && ordersLoading);
   const { data: reviews, refetch: refetchReviews } = usePrepperReviews(prepper?.id);
+
   const advance = useAdvanceOrder();
   const toggleAvailability = useToggleAvailability(prepper?.id);
   const toggleHomeCook = useToggleHomeCookAvailability(prepper?.id);
+
   const [accepting, setAccepting] = useState<boolean | null>(null);
   const [homeCook, setHomeCook] = useState<boolean | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [advanceErr, setAdvanceErr] = useState<string | null>(null);
-  async function handleRefresh() { setRefreshing(true); await Promise.all([refetchPrepper(), refetchMembership(), refetchBadges(), refetchOrders(), refetchReviews()]); setRefreshing(false); }
+
+  async function handleRefresh() {
+    setRefreshing(true);
+    await Promise.all([
+      refetchPrepper(), refetchMembership(), refetchBadges(), refetchOrders(), refetchReviews(),
+    ]);
+    setRefreshing(false);
+  }
+
   async function shareKitchen() {
     if (!prepper?.id) return;
     feedback.tap();
@@ -125,8 +131,74 @@ export default function DashboardScreen() {
     }
   }
 
-  const isOpen = accepting !== null ? accepting : ((prepper as unknown as { accepting_orders?: boolean })?.accepting_orders !== false);
-  const isHomeCookAvailable = homeCook !== null ? homeCook : (prepperProfile?.homeCookAvailable ?? false);
+  // ── Loading state ─────────────────────────────────────────────────────────
+  if (appLoading) {
+    return (
+      <View style={{ flex: 1, backgroundColor: BG, alignItems: 'center', justifyContent: 'center' }}>
+        <ActivityIndicator size="large" color={ORANGE} />
+      </View>
+    );
+  }
+
+  // ── Application status guard ──────────────────────────────────────────────
+  if (!prepper || prepper.status !== 'approved') {
+    const cfg =
+      prepper?.status === 'pending'
+        ? { Icon: Clock, tint: YELLOW, title: 'Application under review', body: "Our team is reviewing your kitchen. We'll notify you once you're approved — usually within 48 hours." }
+        : prepper?.status === 'rejected'
+          ? { Icon: ShieldX, tint: Palette.danger, title: 'Application not approved', body: prepper.rejection_note ?? 'Your application was not approved. Contact support to learn more or submit a new application.' }
+          : prepper?.status === 'suspended'
+            ? { Icon: ShieldX, tint: Palette.textSecondary, title: 'Kitchen paused', body: 'Your prepper account is currently paused. Contact support to reactivate.' }
+            : { Icon: ChefHat, tint: ORANGE, title: 'Become a Prepper', body: "You haven't applied yet. Submit an application to start earning with your cooking." };
+
+    return (
+      <View style={{ flex: 1, backgroundColor: BG }}>
+        <SafeAreaView edges={['top']} style={{ flex: 1 }}>
+          <View style={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 4 }}>
+            <PressableScale
+              onPress={() => { feedback.tap(); router.canGoBack() ? router.back() : router.replace('/profile'); }}
+              accessibilityRole="button" accessibilityLabel="Go back"
+              style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center', alignSelf: 'flex-start' }}
+            >
+              <ChevronLeft size={22} color={INK} />
+            </PressableScale>
+          </View>
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 16 }}>
+            <MotiView from={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'spring', damping: 18, stiffness: 200 }}>
+              <View style={{ width: 82, height: 82, borderRadius: 28, backgroundColor: cfg.tint + '1F', alignItems: 'center', justifyContent: 'center' }}>
+                <cfg.Icon size={36} color={cfg.tint} />
+              </View>
+            </MotiView>
+            <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280, delay: 80 }}>
+              <Text style={{ fontFamily: Font.display, fontSize: 24, color: INK, textAlign: 'center', letterSpacing: -0.6 }}>{cfg.title}</Text>
+            </MotiView>
+            <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280, delay: 140 }}>
+              <Text style={{ fontFamily: Font.body, fontSize: 15, color: Palette.textSecondary, textAlign: 'center', lineHeight: 22, maxWidth: 320 }}>{cfg.body}</Text>
+            </MotiView>
+            <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280, delay: 200 }}>
+              <PressableScale
+                onPress={() => { feedback.tap(); router.replace('/become-prepper'); }}
+                accessibilityRole="button" accessibilityLabel="View application status"
+                style={{ marginTop: 8, paddingHorizontal: 28, height: 52, borderRadius: Radius.pill, backgroundColor: cfg.tint, alignItems: 'center', justifyContent: 'center' }}
+              >
+                <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>
+                  {prepper ? 'view application status' : 'apply now'}
+                </Text>
+              </PressableScale>
+            </MotiView>
+          </View>
+        </SafeAreaView>
+      </View>
+    );
+  }
+  // ─────────────────────────────────────────────────────────────────────────
+
+  const isOpen =
+    accepting !== null
+      ? accepting
+      : ((prepper as unknown as { accepting_orders?: boolean })?.accepting_orders !== false);
+  const isHomeCookAvailable =
+    homeCook !== null ? homeCook : (prepperProfile?.homeCookAvailable ?? false);
 
   const list: OrderSummary[] = orders ?? [];
   const newCount = list.filter((o) => o.status === 'pending').length;
@@ -135,374 +207,219 @@ export default function DashboardScreen() {
   const reviewCount = reviews?.length ?? 0;
   const avgRating = reviewCount ? reviews!.reduce((s, r) => s + r.rating, 0) / reviewCount : 0;
 
-  const revenueSpark = buildDailySpark(list, 8, (g) => g.filter((o) => o.status === 'completed').reduce((s, o) => s + o.total, 0));
+  const revenueSpark = buildDailySpark(list, 8, (g) =>
+    g.filter((o) => o.status === 'completed').reduce((s, o) => s + o.total, 0),
+  );
   const ordersSpark = buildDailySpark(list, 8, (g) => g.length);
   const customersSpark = buildDailySpark(list, 8, (g) => new Set(g.map((o) => o.customerId)).size);
   const ratingSpark = reviews && reviews.length >= 2 ? reviews.slice(-8).map((r) => r.rating) : [0];
 
-  // Oldest still-active order = the one to act on next.
-  const active = list.filter((o) => o.status === 'pending' || o.status === 'confirmed' || o.status === 'preparing' || o.status === 'ready');
+  const active = list.filter((o) =>
+    ['pending', 'confirmed', 'preparing', 'ready'].includes(o.status),
+  );
   const next = active.length ? active[active.length - 1] : null;
   const step = next ? NEXT[next.status] : undefined;
 
-  // Start of current ISO week (Monday 00:00:00).
   const weekStart = new Date();
   weekStart.setDate(weekStart.getDate() - (weekStart.getDay() === 0 ? 6 : weekStart.getDay() - 1));
   weekStart.setHours(0, 0, 0, 0);
   const weekCount = list.filter((o) => new Date(o.created_at) >= weekStart).length;
 
-  // Today's revenue (start of calendar day).
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
   const todayRevenue = list
     .filter((o) => o.status === 'completed' && new Date(o.created_at) >= todayStart)
     .reduce((s, o) => s + o.total, 0);
 
-  // Daily goal: 25% above 8-day avg revenue, rounded to nearest $50, min $50.
   const avgDaily = revenueSpark.reduce((s, v) => s + v, 0) / (revenueSpark.length || 1);
   const dailyGoal = Math.max(50, Math.ceil((avgDaily * 1.25) / 50) * 50);
   const goalPct = Math.min(Math.round((todayRevenue / dailyGoal) * 100), 100);
 
-  // Which days of the current ISO week have at least one completed order (Mon=0, Sun=6).
   const weekDays = new Array<boolean>(7).fill(false);
   list
     .filter((o) => o.status === 'completed' && new Date(o.created_at) >= weekStart)
-    .forEach((o) => {
-      const dayIdx = (new Date(o.created_at).getDay() + 6) % 7;
-      weekDays[dayIdx] = true;
-    });
+    .forEach((o) => { weekDays[(new Date(o.created_at).getDay() + 6) % 7] = true; });
 
+  const money = (n: number) => (n >= 1000 ? `$${(n / 1000).toFixed(1)}k` : `$${Math.round(n)}`);
+
+  const headerProps = {
+    displayName:
+      prepper?.display_name ?? (user?.user_metadata?.full_name as string | undefined),
+    avatarUrl: user?.user_metadata?.avatar_url as string | undefined,
+    newCount,
+    isOpen,
+    isHomeCookAvailable,
+    router,
+    onToggleOpen: () => {
+      feedback.tap();
+      const nxt = !isOpen;
+      setAccepting(nxt);
+      toggleAvailability.mutate(nxt, {
+        onSuccess: () => feedback.success(),
+        onError: () => { feedback.error(); setAccepting(!nxt); },
+      });
+    },
+    onToggleHomeCook: () => {
+      feedback.tap();
+      const nxt = !isHomeCookAvailable;
+      setHomeCook(nxt);
+      toggleHomeCook.mutate(nxt, {
+        onSuccess: () => feedback.success(),
+        onError: () => { feedback.error(); setHomeCook(!nxt); },
+      });
+    },
+  };
+
+  // ── Tablet layout ─────────────────────────────────────────────────────────
+  if (isTablet) {
+    return (
+      <View style={{ flex: 1, backgroundColor: BG }}>
+        <SafeAreaView edges={['top']} style={{ flex: 1 }}>
+          <DashboardHeader size="tablet" {...headerProps} />
+          <TabletDashboardColumns
+            isPro={isPro} prepper={prepper} revenue={revenue} orderCount={list.length}
+            subscribers={subscribers} avgRating={avgRating} reviewCount={reviewCount}
+            newCount={newCount} revenueSpark={revenueSpark} ordersSpark={ordersSpark}
+            customersSpark={customersSpark} ratingSpark={ratingSpark} todayRevenue={todayRevenue}
+            dailyGoal={dailyGoal} goalPct={goalPct} weekCount={weekCount} weekDays={weekDays}
+            next={next} active={active} statsLoading={statsLoading}
+            advancePending={advance.isPending} advanceErr={advanceErr}
+            onAdvanceNext={(nextStatus) => {
+              setAdvanceErr(null);
+              advance.mutate({ orderId: next!.id, next: nextStatus }, {
+                onSuccess: () => feedback.success(),
+                onError: () => { feedback.error(); setAdvanceErr('Could not update order status. Please try again.'); },
+              });
+            }}
+            onShareKitchen={() => void shareKitchen()}
+            onDismissAdvanceErr={() => setAdvanceErr(null)}
+            prepperBadges={prepperBadges} prepperProfile={prepperProfile}
+          />
+        </SafeAreaView>
+      </View>
+    );
+  }
+
+  // ── Mobile layout ─────────────────────────────────────────────────────────
   return (
     <View style={{ flex: 1, backgroundColor: BG }}>
       <SafeAreaView edges={['top']} style={{ flex: 1 }}>
-        <ScrollView showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={Palette.brand} colors={[Palette.brand]} />} contentContainerStyle={{ paddingTop: Platform.OS === 'web' ? 20 : 14, paddingBottom: Math.max(insets.bottom, 16) + 140 }}>
-          {/* Header */}
-          <MotiView from={{ opacity: 0, translateY: -8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 300 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, gap: 12 }}>
-            <PressableScale onPress={() => { feedback.tap(); if (router.canGoBack()) { router.back(); } else { router.replace('/profile'); } }} accessibilityRole="button" accessibilityLabel="Back to customer view" style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
-              <ChevronLeft size={22} color={INK} />
-            </PressableScale>
-            <View style={{ width: 46, height: 46, borderRadius: 23, borderWidth: 2, borderColor: ORANGE, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-              <Avatar
-                name={prepper?.display_name ?? (user?.user_metadata?.full_name as string | undefined) ?? 'chef'}
-                url={user?.user_metadata?.avatar_url as string | undefined}
-                size={42}
-              />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={{ fontFamily: Font.body, fontSize: 13, color: MUTED }}>{greeting()}, chef</Text>
-              <Text style={{ fontFamily: Font.display, fontSize: 22, color: INK, letterSpacing: -0.6 }}>my kitchen</Text>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 3 }}>
-                <MotiView
-                  animate={{ backgroundColor: isOpen ? GREEN + '22' : Palette.chip }}
-                  transition={{ type: 'timing', duration: 200 }}
-                  style={{ borderRadius: Radius.pill, overflow: 'hidden' }}>
-                  <PressableScale
-                    onPress={() => {
-                      feedback.tap();
-                      const next = !isOpen;
-                      setAccepting(next);
-                      toggleAvailability.mutate(next, { onSuccess: () => feedback.success(), onError: () => { feedback.error(); setAccepting(!next); } });
-                    }}
-                    accessibilityRole="switch"
-                    accessibilityState={{ checked: isOpen }}
-                    accessibilityLabel={isOpen ? 'Kitchen is open — tap to close' : 'Kitchen is closed — tap to open'}
-                    style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 10, paddingVertical: 4 }}>
-                    <MotiView
-                      animate={{ backgroundColor: isOpen ? GREEN : MUTED }}
-                      transition={{ type: 'timing', duration: 200 }}
-                      style={{ width: 8, height: 8, borderRadius: 4 }} />
-                    <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: isOpen ? GREEN : Palette.textSecondary }}>{isOpen ? 'Open' : 'Closed'}</Text>
-                  </PressableScale>
-                </MotiView>
-                <MotiView
-                  animate={{ backgroundColor: isHomeCookAvailable ? '#EDE9FE' : Palette.chip }}
-                  transition={{ type: 'timing', duration: 200 }}
-                  style={{ borderRadius: Radius.pill, overflow: 'hidden' }}>
-                  <PressableScale
-                    onPress={() => {
-                      feedback.tap();
-                      const next = !isHomeCookAvailable;
-                      setHomeCook(next);
-                      toggleHomeCook.mutate(next, { onSuccess: () => feedback.success(), onError: () => { feedback.error(); setHomeCook(!next); } });
-                    }}
-                    accessibilityRole="switch"
-                    accessibilityState={{ checked: isHomeCookAvailable }}
-                    accessibilityLabel={isHomeCookAvailable ? 'Home cooking on — tap to disable' : 'Home cooking off — tap to enable'}
-                    style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 10, paddingVertical: 4 }}>
-                    <ChefHat size={11} color={isHomeCookAvailable ? '#5B21B6' : Palette.textSecondary} />
-                    <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: isHomeCookAvailable ? '#5B21B6' : Palette.textSecondary }}>Home cook</Text>
-                  </PressableScale>
-                </MotiView>
-              </View>
-            </View>
-            <PressableScale onPress={() => { feedback.tap(); router.push('/search'); }} accessibilityRole="button" accessibilityLabel="Search" style={{ width: 42, height: 42, borderRadius: 21, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center', ...Shadow.card }}>
-              <Search size={19} color={INK} />
-            </PressableScale>
-            <PressableScale onPress={() => { feedback.tap(); router.push('/prepper-orders'); }} accessibilityRole="button" accessibilityLabel="New orders" style={{ width: 42, height: 42, borderRadius: 21, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center', ...Shadow.card }}>
-              <Bell size={19} color={INK} />
-              {newCount > 0 ? (
-                <View style={{ position: 'absolute', top: -2, right: -2, minWidth: 18, height: 18, borderRadius: 9, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 }}>
-                  <Text style={{ fontFamily: Font.semibold, fontSize: 10, color: '#fff' }}>{newCount}</Text>
-                </View>
-              ) : null}
-            </PressableScale>
-          </View>
-          </MotiView>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={Palette.brand} colors={[Palette.brand]} />
+          }
+          contentContainerStyle={{
+            paddingTop: Platform.OS === 'web' ? 20 : 14,
+            paddingBottom: Math.max(insets.bottom, 16) + 140,
+          }}
+        >
+          <DashboardHeader size="mobile" {...headerProps} />
 
-          {/* Next order — most urgent operational info, shown first */}
-          <MotiView from={{ opacity: 0, translateY: 12 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 320, delay: 80 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 20, marginTop: 16, marginBottom: 10 }}>
-            <Text style={{ fontFamily: Font.display, fontSize: 15, color: INK, letterSpacing: -0.3 }}>next preorder</Text>
-            {next ? (
-              <View style={{ backgroundColor: ORANGE + '26', borderRadius: Radius.pill, paddingHorizontal: 10, paddingVertical: 3 }}>
-                <Text style={{ fontFamily: Font.semibold, fontSize: 11.5, color: ORANGE }}>{next.status === 'pending' ? 'new' : next.status}</Text>
-              </View>
-            ) : null}
-          </View>
-          {next ? (
-            <View style={{ marginHorizontal: 20, backgroundColor: CARD, borderRadius: 22, padding: 16, gap: 14 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
-                {next.items[0]?.image ? (
-                  <Image source={next.items[0].image} style={{ width: 76, height: 76, borderRadius: 18 }} contentFit="cover" accessibilityLabel={next.items[0].title} />
-                ) : (
-                  <View style={{ width: 76, height: 76, borderRadius: 18, backgroundColor: Palette.canvas, alignItems: 'center', justifyContent: 'center' }}>
-                    <UtensilsCrossed size={26} color={MUTED} />
-                  </View>
-                )}
-                <View style={{ flex: 1, gap: 3 }}>
-                  <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }} numberOfLines={1}>{next.customer}</Text>
-                  <Text style={{ fontFamily: Font.body, fontSize: 13, color: MUTED }} numberOfLines={1}>
-                    {next.items[0]?.title ?? 'preorder'}{next.items.length > 1 ? ` +${next.items.length - 1}` : ''}
-                  </Text>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2, flexWrap: 'wrap' }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: next.paymentStatus === 'succeeded' ? GREEN + '24' : Palette.chip, borderRadius: Radius.pill, paddingHorizontal: 9, paddingVertical: 3 }}>
-                      {next.paymentStatus === 'succeeded' ? <Check size={11} color={GREEN} strokeWidth={2.5} /> : null}
-                      <Text style={{ fontFamily: Font.semibold, fontSize: 11.5, color: next.paymentStatus === 'succeeded' ? GREEN : MUTED }}>{next.paymentStatus === 'succeeded' ? 'paid' : 'unpaid'}</Text>
-                    </View>
-                    <View style={{ backgroundColor: FULFILLMENT_COLOR[next.fulfillment] + '22', borderRadius: Radius.pill, paddingHorizontal: 8, paddingVertical: 3 }}>
-                      <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: FULFILLMENT_COLOR[next.fulfillment] }}>{FULFILLMENT_LABEL[next.fulfillment]}</Text>
-                    </View>
-                    <Text style={{ fontFamily: Font.display, fontSize: 16, color: INK, fontVariant: ['tabular-nums'] }}>${next.total.toFixed(2)}</Text>
-                  </View>
-                </View>
-              </View>
-              {step ? (
-                <>
-                  <PressableScale
-                    onPress={() => { feedback.tap(); setAdvanceErr(null); advance.mutate({ orderId: next.id, next: step.next }, { onSuccess: () => feedback.success(), onError: () => { feedback.error(); setAdvanceErr('Could not update order status. Please try again.'); } }); }}
-                    disabled={advance.isPending}
-                    accessibilityRole="button"
-                    accessibilityLabel={step.cta}
-                    style={{ height: 50, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 6, opacity: advance.isPending ? 0.7 : 1 }}>
-                    <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>{step.cta}</Text>
-                  </PressableScale>
-                  {advanceErr ? (
-                    <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: Palette.danger, textAlign: 'center' }}>{advanceErr}</Text>
-                  ) : null}
-                </>
-              ) : null}
-              {active.length > 1 ? (
-                <PressableScale onPress={() => { feedback.tap(); router.push('/prepper-orders'); }} accessibilityRole="button" accessibilityLabel={`See all ${active.length} active orders`}
-                  style={{ alignItems: 'center', paddingVertical: 4 }}>
-                  <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: ORANGE }}>+{active.length - 1} more in queue — see all →</Text>
-                </PressableScale>
-              ) : null}
-            </View>
-          ) : statsLoading ? (
-            <View style={{ marginHorizontal: 20 }}>
-              <Skeleton width="100%" height={108} radius={22} />
-            </View>
-          ) : (
-            <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }}
-              style={{ marginHorizontal: 20, backgroundColor: CARD, borderRadius: 22, padding: 24, alignItems: 'center', gap: 10 }}>
-              <View style={{ width: 52, height: 52, borderRadius: 16, backgroundColor: '#ffffff10', alignItems: 'center', justifyContent: 'center' }}>
-                <ShoppingBag size={24} color={Palette.textSecondary} />
-              </View>
-              <Text style={{ fontFamily: Font.heading, fontSize: 15, color: INK, textAlign: 'center' }}>No active preorders</Text>
-              <Text style={{ fontFamily: Font.body, fontSize: 13, color: MUTED, textAlign: 'center', lineHeight: 19 }}>New preorders land here instantly once customers check out.</Text>
-              <PressableScale onPress={() => { feedback.tap(); router.push('/prepper-orders'); }} accessibilityRole="button" accessibilityLabel="View all preorders"
-                style={{ marginTop: 2, backgroundColor: ORANGE, borderRadius: Radius.pill, paddingHorizontal: 22, paddingVertical: 10 }}>
-                <Text style={{ fontFamily: Font.semibold, fontSize: 13.5, color: '#fff' }}>view all orders →</Text>
-              </PressableScale>
-            </MotiView>
-          )}
-          </MotiView>
+          <PrepperQuickActions
+            isOpen={isOpen}
+            isPro={isPro}
+            hasPrepperId={!!prepper?.id}
+            router={router}
+            onToggleOpen={headerProps.onToggleOpen}
+            onGoLive={() => router.push('/go-live')}
+            onShareKitchen={() => void shareKitchen()}
+          />
 
-          {/* Stat cards — KPI row on desktop, 2x2 grid on mobile */}
+          <PrepperNextOrder
+            next={next}
+            step={step}
+            activeCount={active.length}
+            statsLoading={statsLoading}
+            advancePending={advance.isPending}
+            advanceErr={advanceErr}
+            router={router}
+            onAdvance={() => {
+              setAdvanceErr(null);
+              advance.mutate({ orderId: next!.id, next: step!.next }, {
+                onSuccess: () => feedback.success(),
+                onError: () => { feedback.error(); setAdvanceErr('Could not update order status. Please try again.'); },
+              });
+            }}
+            onDismissErr={() => setAdvanceErr(null)}
+          />
+
           <MotiView from={{ opacity: 0, translateY: 12 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 320, delay: 140 }}>
-          <Text style={{ fontFamily: Font.display, fontSize: 15, color: INK, paddingHorizontal: 20, marginTop: 16, marginBottom: 8, letterSpacing: -0.3 }}>your stats</Text>
-          {statsLoading ? (
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 20, gap: 10, paddingTop: 8, paddingBottom: 6 }}>
-              <Skeleton height={88} radius={16} style={{ flex: 1, minWidth: '40%' }} />
-              <Skeleton height={88} radius={16} style={{ flex: 1, minWidth: '40%' }} />
-              <Skeleton height={88} radius={16} style={{ flex: 1, minWidth: '40%' }} />
-              <Skeleton height={88} radius={16} style={{ flex: 1, minWidth: '40%' }} />
-            </View>
-          ) : desktop ? (
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 10, gap: 10 }}>
-              <StatCard Icon={ShoppingBag} value={money(revenue)} label="total sales" trend={revenue > 0 ? 'earned' : '—'} color={ORANGE} spark={revenueSpark} onPress={() => router.push('/earnings')} />
-              <StatCard Icon={Boxes} value={String(list.length)} label="preorders" trend={`${newCount} new`} color={GREEN} spark={ordersSpark} onPress={() => router.push('/prepper-orders')} />
-              <StatCard Icon={Users} value={String(subscribers)} label="customers" trend="unique" color={PURPLE} spark={customersSpark} onPress={() => router.push('/customers')} />
-              <StatCard Icon={Star} value={avgRating ? avgRating.toFixed(1) : '—'} label="rating" trend={`${reviewCount} reviews`} color={YELLOW} spark={ratingSpark} onPress={() => router.push('/prepper-analytics')} />
-            </View>
-          ) : (
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 20, gap: 10, paddingTop: 8, paddingBottom: 6 }}>
-              <StatCard Icon={ShoppingBag} value={money(revenue)} label="total sales" trend={revenue > 0 ? 'earned' : '—'} color={ORANGE} spark={revenueSpark} onPress={() => router.push('/earnings')} flex />
-              <StatCard Icon={Boxes} value={String(list.length)} label="orders" trend={`${newCount} new`} color={GREEN} spark={ordersSpark} onPress={() => router.push('/prepper-orders')} flex />
-              <StatCard Icon={Users} value={String(subscribers)} label="customers" trend="unique" color={PURPLE} spark={customersSpark} onPress={() => router.push('/customers')} flex />
-              <StatCard Icon={Star} value={avgRating ? avgRating.toFixed(1) : '—'} label="rating" trend={`${reviewCount} reviews`} color={YELLOW} spark={ratingSpark} onPress={() => router.push('/prepper-analytics')} flex />
-            </View>
-          )}
+            <PrepperStatCards
+              statsLoading={statsLoading} isDesktop={desktop} revenue={revenue}
+              orderCount={list.length} newCount={newCount} subscribers={subscribers}
+              avgRating={avgRating} reviewCount={reviewCount} revenueSpark={revenueSpark}
+              ordersSpark={ordersSpark} customersSpark={customersSpark} ratingSpark={ratingSpark}
+              router={router}
+            />
           </MotiView>
 
-          {/* Goal + this week */}
+          {/* Today's progress */}
           <MotiView from={{ opacity: 0, translateY: 12 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 320, delay: 180 }}>
-          <Text style={{ fontFamily: Font.display, fontSize: 15, color: INK, paddingHorizontal: 20, marginTop: 16, marginBottom: 6, letterSpacing: -0.3 }}>today's progress</Text>
-          {statsLoading ? (
-            <View style={{ marginHorizontal: 20, marginBottom: 8 }}>
-              <Skeleton width="100%" height={100} radius={20} />
-            </View>
-          ) : (
-            <View style={{ marginHorizontal: 20, marginBottom: 8, backgroundColor: CARD, borderRadius: 20, padding: 16, gap: 14 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
-                <View style={{ position: 'relative', alignItems: 'center', justifyContent: 'center', width: 68, height: 68, flexShrink: 0 }}>
-                  <Ring pct={goalPct} color={ORANGE} size={68} stroke={7} />
-                  <View style={{ position: 'absolute', alignItems: 'center' }}>
-                    <Text style={{ fontFamily: Font.display, fontSize: 14, color: INK }}>{goalPct}%</Text>
+            <Text style={{ fontFamily: Font.display, fontSize: 15, color: INK, paddingHorizontal: 20, marginTop: 16, marginBottom: 6, letterSpacing: -0.3 }}>
+              today's progress
+            </Text>
+            {statsLoading ? (
+              <View style={{ marginHorizontal: 20, marginBottom: 8 }}>
+                <Skeleton width="100%" height={100} radius={20} />
+              </View>
+            ) : (
+              <PressableScale
+                onPress={() => { feedback.tap(); router.push('/prepper-analytics'); }}
+                accessibilityRole="button"
+                accessibilityLabel="View analytics"
+                style={{ marginHorizontal: 20, marginBottom: 8 }}
+              >
+                <View style={{ backgroundColor: Palette.surface, borderRadius: 20, padding: 16, gap: 14 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
+                    <View style={{ position: 'relative', alignItems: 'center', justifyContent: 'center', width: 68, height: 68, flexShrink: 0 }}>
+                      <Ring pct={goalPct} color={ORANGE} size={68} stroke={7} />
+                      <View style={{ position: 'absolute', alignItems: 'center' }}>
+                        <Text style={{ fontFamily: Font.display, fontSize: 14, color: INK }}>{goalPct}%</Text>
+                      </View>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontFamily: Font.body, fontSize: 12, color: MUTED }}>today's goal</Text>
+                      <Text style={{ fontFamily: Font.display, fontSize: 20, color: INK, letterSpacing: -0.4, fontVariant: ['tabular-nums'] }}>{money(todayRevenue)}</Text>
+                      <Text style={{ fontFamily: Font.body, fontSize: 11.5, color: MUTED }}>of {money(dailyGoal)}</Text>
+                    </View>
+                    <View style={{ alignItems: 'center', gap: 2 }}>
+                      <Text style={{ fontFamily: Font.display, fontSize: 26, color: ORANGE, letterSpacing: -0.5, fontVariant: ['tabular-nums'] }}>{weekCount}</Text>
+                      <Text style={{ fontFamily: Font.semibold, fontSize: 10.5, color: MUTED }}>this week</Text>
+                    </View>
+                  </View>
+                  <View style={{ flexDirection: 'row', gap: 6, paddingTop: 12, borderTopWidth: 1, borderTopColor: Palette.chip }}>
+                    {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => (
+                      <View key={i} style={{ flex: 1, height: 24, borderRadius: 6, backgroundColor: weekDays[i] ? ORANGE + '22' : Palette.chip, alignItems: 'center', justifyContent: 'center' }}>
+                        <Text style={{ fontFamily: Font.semibold, fontSize: 10, color: weekDays[i] ? ORANGE : MUTED }}>{d}</Text>
+                      </View>
+                    ))}
                   </View>
                 </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={{ fontFamily: Font.body, fontSize: 12, color: MUTED }}>today's goal</Text>
-                  <Text style={{ fontFamily: Font.display, fontSize: 20, color: INK, letterSpacing: -0.4, fontVariant: ['tabular-nums'] }}>{money(todayRevenue)}</Text>
-                  <Text style={{ fontFamily: Font.body, fontSize: 11.5, color: MUTED }}>of {money(dailyGoal)}</Text>
-                </View>
-                <View style={{ alignItems: 'center', gap: 2 }}>
-                  <Text style={{ fontFamily: Font.display, fontSize: 26, color: ORANGE, letterSpacing: -0.5, fontVariant: ['tabular-nums'] }}>{weekCount}</Text>
-                  <Text style={{ fontFamily: Font.semibold, fontSize: 10.5, color: MUTED }}>this week</Text>
-                </View>
-              </View>
-              <View style={{ flexDirection: 'row', gap: 6, paddingTop: 12, borderTopWidth: 1, borderTopColor: Palette.chip }}>
-                {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => (
-                  <View key={i} style={{ flex: 1, height: 24, borderRadius: 6, backgroundColor: weekDays[i] ? ORANGE + '22' : Palette.chip, alignItems: 'center', justifyContent: 'center' }}>
-                    <Text style={{ fontFamily: Font.semibold, fontSize: 10, color: weekDays[i] ? ORANGE : MUTED }}>{d}</Text>
-                  </View>
-                ))}
-              </View>
-            </View>
-          )}
+              </PressableScale>
+            )}
           </MotiView>
 
-          {/* Badges earned */}
-          {prepperBadges && prepperBadges.length > 0 ? (
+          {prepperBadges && prepperBadges.length > 0 && (
             <View style={{ paddingHorizontal: 20, marginTop: 8, marginBottom: 8 }}>
               <PrepperBadgeShelf badges={prepperBadges} />
             </View>
-          ) : null}
+          )}
 
-          {/* Pro upgrade nudge — shown only on free tier */}
-          {!isPro ? (
-            <MotiView from={{ opacity: 0, translateY: 6 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 240, delay: 220 }}>
-              <PressableScale onPress={() => { feedback.tap(); router.push('/prepper-premium'); }} accessibilityRole="button" accessibilityLabel="Upgrade to Prepper Pro"
-                style={{ marginHorizontal: 20, marginBottom: 10, backgroundColor: CARD, borderRadius: 14, paddingVertical: 10, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 10, borderWidth: 1, borderColor: ORANGE + '28' }}>
-                <Crown size={15} color={ORANGE} />
-                <Text style={{ flex: 1, fontFamily: Font.medium, fontSize: 13, color: MUTED }}>Go Pro — boosts, livestream & AI tools · $29/mo</Text>
-                <ChevronRight size={14} color={ORANGE} />
-              </PressableScale>
-            </MotiView>
-          ) : null}
-
-          {/* Share kitchen link */}
-          {prepper?.id ? (
-            <MotiView from={{ opacity: 0, translateY: 6 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 240, delay: 230 }}>
-              <PressableScale onPress={() => { void shareKitchen(); }} accessibilityRole="button" accessibilityLabel="Share your kitchen"
-                style={{ marginHorizontal: 20, marginBottom: 10, backgroundColor: CARD, borderRadius: 14, paddingVertical: 10, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 10, borderWidth: 1, borderColor: ORANGE + '28' }}>
-                <Share2 size={15} color={ORANGE} />
-                <Text style={{ flex: 1, fontFamily: Font.medium, fontSize: 13, color: MUTED }}>Share your kitchen with friends & followers</Text>
-                <ChevronRight size={14} color={ORANGE} />
-              </PressableScale>
-            </MotiView>
-          ) : null}
-
-          {/* Delivery & pickup settings */}
-          {prepper?.id ? (
-            <MotiView from={{ opacity: 0, translateY: 6 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 240, delay: 240 }}>
-              <PressableScale onPress={() => { feedback.tap(); router.push('/delivery-settings'); }} accessibilityRole="button" accessibilityLabel="Delivery and pickup settings"
-                style={{ marginHorizontal: 20, marginBottom: 10, backgroundColor: CARD, borderRadius: 14, paddingVertical: 10, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 10, borderWidth: 1, borderColor: ORANGE + '28' }}>
-                <Truck size={15} color={ORANGE} />
-                <Text style={{ flex: 1, fontFamily: Font.medium, fontSize: 13, color: MUTED }}>Delivery & pickup settings</Text>
-                <ChevronRight size={14} color={ORANGE} />
-              </PressableScale>
-            </MotiView>
-          ) : null}
-
-          {/* Profile health score */}
-          {prepperProfile ? (
+          {prepperProfile && (
             <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 260 }}>
               <ProfileHealthCard profile={prepperProfile} />
             </MotiView>
-          ) : null}
-
+          )}
         </ScrollView>
 
-        {/* Floating action bar (add meal · go live · + · new drop · opportunity) */}
-        <MotiView
-          from={{ translateY: 80, opacity: 0 }}
-          animate={{ translateY: 0, opacity: 1 }}
-          transition={{ type: 'spring', damping: 20, stiffness: 220, delay: 300 }}
-          style={[{ position: 'absolute', left: 16, right: 16, bottom: Math.max(insets.bottom, 16) + (desktop ? 0 : 56), flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: CARD, borderRadius: 26, paddingVertical: 12, paddingHorizontal: 18, ...Shadow.floating }, desktop && { left: undefined, right: undefined, alignSelf: 'center', width: 520 }]}>
-          <ActionItem Icon={TrendingUp} label="earnings" color={Palette.inkSoft} onPress={() => router.push('/earnings')} />
-          {isPro
-            ? <ActionItem Icon={Video} label="go live" color={PINK} onPress={() => router.push('/post-video')} />
-            : <ActionItem Icon={Crown} label="go pro" color={ORANGE} onPress={() => router.push('/prepper-premium')} />}
-          <PressableScale accessibilityRole="button" accessibilityLabel="Add new meal" onPress={() => { feedback.tap(); router.push('/meal-editor'); }}>
-            <View style={{ width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center', marginTop: -26, backgroundColor: ORANGE, ...Shadow.floating, shadowColor: ORANGE, shadowOpacity: 0.45 }}>
-              <Plus size={28} color="#fff" />
-            </View>
-          </PressableScale>
-          <ActionItem Icon={Gift} label="new drop" color={PURPLE} onPress={() => router.push('/meal-editor?drop=1')} />
-          <ActionItem Icon={Briefcase} label="opportunity" color={ORANGE} onPress={() => router.push('/opportunities')} />
-        </MotiView>
+        <DashboardFloatingBar
+          isPro={isPro} isDesktop={desktop} newCount={newCount}
+          bottomInset={insets.bottom} router={router}
+          onGoLive={() => router.push('/go-live')}
+        />
 
-        {/* Prepper tab nav (dark) — hidden on desktop; sidebar handles nav there */}
-        {!desktop && (
-          <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', backgroundColor: Palette.surface, paddingTop: 10, paddingBottom: Math.max(insets.bottom, 16), borderTopLeftRadius: 24, borderTopRightRadius: 24, ...Shadow.navBar }}>
-            <NavTab Icon={Home} label="home" onPress={() => router.push('/')} />
-            <NavTab Icon={ShoppingBag} label="preorders" badge={newCount || undefined} onPress={() => router.push('/prepper-orders')} />
-            <NavTab Icon={ChefHat} label="kitchen" active />
-            <NavTab Icon={MessageSquare} label="messages" onPress={() => router.push('/messages')} />
-            <NavTab Icon={User} label="profile" onPress={() => router.push('/profile')} />
-          </View>
-        )}
       </SafeAreaView>
     </View>
-  );
-}
-
-function ActionItem({ Icon, label, color, onPress }: { Icon: LucideIcon; label: string; color: string; onPress?: () => void }) {
-  return (
-    <PressableScale onPress={onPress ? () => { feedback.tap(); onPress(); } : undefined} accessibilityRole="button" accessibilityLabel={label} style={{ alignItems: 'center', gap: 5, width: 58 }}>
-      <View style={{ width: 38, height: 38, borderRadius: 19, borderWidth: 1.5, borderColor: color === Palette.inkSoft ? Palette.border : color + '66', alignItems: 'center', justifyContent: 'center' }}>
-        <Icon size={18} color={color} />
-      </View>
-      <Text style={{ fontFamily: Font.medium, fontSize: 10, color: Palette.textMuted }} numberOfLines={1}>{label}</Text>
-    </PressableScale>
-  );
-}
-
-function NavTab({ Icon, label, active, badge, onPress }: { Icon: LucideIcon; label: string; active?: boolean; badge?: number; onPress?: () => void }) {
-  const color = active ? ORANGE : Palette.textSecondary;
-  return (
-    <PressableScale onPress={onPress ? () => { feedback.tap(); onPress(); } : undefined} accessibilityRole="button" accessibilityState={{ selected: !!active }} accessibilityLabel={label} style={{ alignItems: 'center', gap: 3 }}>
-      <View>
-        <Icon size={22} color={color} strokeWidth={active ? 2.4 : 2} />
-        {badge ? (
-          <View style={{ position: 'absolute', top: -5, right: -8, minWidth: 16, height: 16, borderRadius: 8, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3 }}>
-            <Text style={{ fontFamily: Font.semibold, fontSize: 9, color: '#fff' }}>{badge}</Text>
-          </View>
-        ) : null}
-      </View>
-      <Text style={{ fontFamily: Font.medium, fontSize: 10, color }}>{label}</Text>
-    </PressableScale>
   );
 }

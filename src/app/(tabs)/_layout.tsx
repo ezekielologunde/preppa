@@ -10,6 +10,7 @@ import { Font } from '@/constants/fonts';
 import { Palette } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
 import { BP } from '@/lib/layout';
+import { useConversations } from '@/lib/queries/messages';
 import { usePrepperOrders } from '@/lib/queries/orders';
 import { useMyPrepperApplication } from '@/lib/queries/preppers';
 import { useNotifications } from '@/lib/queries/notifications';
@@ -72,8 +73,12 @@ function PreppaTabBar({ state, navigation }: TabBarProps) {
   const isPrepper = prepper?.status === 'approved';
   const { data: pendingOrders } = usePrepperOrders(isPrepper ? prepper?.id : undefined, 'pending');
   const pendingCount = pendingOrders?.length ?? 0;
-  const { data: notifications } = useNotifications(!isPrepper ? user?.id : undefined);
+  const { data: notifications } = useNotifications(user?.id);
   const unreadBids = (notifications ?? []).filter((n) => !n.read && n.type === 'bid').length;
+  const unreadNotifs = (notifications ?? []).filter((n) => !n.read).length;
+  const { data: conversations } = useConversations(user?.id);
+  const unreadMessages = (conversations ?? []).filter((c) => c.unread).length;
+  const profileBadge = unreadNotifs + unreadMessages;
 
   // Tablet+ uses the AppSidebar rail; hide the bottom bar there.
   if (width >= BP.tablet) return null;
@@ -156,6 +161,19 @@ function PreppaTabBar({ state, navigation }: TabBarProps) {
                   }}>
                     <Text style={{ fontFamily: Font.semibold, fontSize: 9.5, color: '#fff', lineHeight: 13 }}>
                       {unreadBids > 9 ? '9+' : unreadBids}
+                    </Text>
+                  </View>
+                ) : null}
+                {tab.name === 'profile' && profileBadge > 0 ? (
+                  <View style={{
+                    position: 'absolute', top: -4, right: -8,
+                    minWidth: 16, height: 16, borderRadius: 8,
+                    backgroundColor: Palette.danger, paddingHorizontal: 3,
+                    alignItems: 'center', justifyContent: 'center',
+                    borderWidth: 1.5, borderColor: Palette.surface,
+                  }}>
+                    <Text style={{ fontFamily: Font.semibold, fontSize: 9.5, color: '#fff', lineHeight: 13 }}>
+                      {profileBadge > 9 ? '9+' : profileBadge}
                     </Text>
                   </View>
                 ) : null}

@@ -2,6 +2,21 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { supabase } from '@/lib/supabase';
 
+// ─── Bid expiry helper ────────────────────────────────────────────────────────
+
+export type BidExpiry = { label: string; urgent: boolean; expired: boolean };
+
+/** Returns expiry state for a bid. Falls back to created_at + 48 h when no expires_at. */
+export function getBidExpiry(createdAt: string, expiresAt: string | null): BidExpiry {
+  const expiry = expiresAt ? new Date(expiresAt) : new Date(new Date(createdAt).getTime() + 48 * 3600 * 1000);
+  const diffMs = expiry.getTime() - Date.now();
+  if (diffMs <= 0) return { label: 'expired', urgent: false, expired: true };
+  const diffH = diffMs / 3600000;
+  if (diffH < 24) return { label: `expires in ${Math.ceil(diffH)}h`, urgent: true, expired: false };
+  const diffD = Math.floor(diffH / 24);
+  return { label: `expires in ${diffD}d`, urgent: false, expired: false };
+}
+
 export type MealRequest = {
   id: string;
   customer_id: string;
@@ -193,13 +208,14 @@ export type MyMealRequest = Omit<MealRequest, 'bid_count'> & {
     note: string | null;
     status: RequestBid['status'];
     prepperName: string;
+    created_at: string;
   }>;
 };
 
 const MY_REQUEST_SELECT =
   'id,customer_id,title,description,servings,budget_per_serving,cuisine,deadline,status,created_at,' +
   'poster:profiles(full_name,email),' +
-  'bids:meal_request_bids(id,prepper_id,price_per_serving,note,status,prepper:prepper_profiles(display_name))';
+  'bids:meal_request_bids(id,prepper_id,price_per_serving,note,status,created_at,prepper:prepper_profiles(display_name))';
 
 /** Customer's own requests including all incoming bids. */
 export function useMyRequestsWithBids(userId?: string | null) {
@@ -213,7 +229,7 @@ export function useMyRequestsWithBids(userId?: string | null) {
         .eq('customer_id', userId!)
         .order('created_at', { ascending: false });
       if (error) throw error;
-      type BidRow = { id: string; prepper_id: string; price_per_serving: number; note: string | null; status: string; prepper: { display_name: string } | { display_name: string }[] | null };
+      type BidRow = { id: string; prepper_id: string; price_per_serving: number; note: string | null; status: string; created_at: string; prepper: { display_name: string } | { display_name: string }[] | null };
       type Row = Omit<RequestRow, 'bid_count'> & { bids: BidRow[] };
       return ((data ?? []) as unknown as Row[]).map((r) => {
         const poster = Array.isArray(r.poster) ? r.poster[0] : r.poster;
@@ -236,6 +252,7 @@ export function useMyRequestsWithBids(userId?: string | null) {
             note: b.note,
             status: b.status as RequestBid['status'],
             prepperName: (Array.isArray(b.prepper) ? b.prepper[0]?.display_name : b.prepper?.display_name) ?? 'Prepper',
+            created_at: b.created_at,
           })),
         };
       });
@@ -247,7 +264,7 @@ export function useMyRequestsWithBids(userId?: string | null) {
 export function useAcceptMealBid() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (v: { bidId: string; requestId: string }) => {
+    mutationFn: async (v: { bidId: string; requestId: string; customerId?: string }) => {
       const { error } = await supabase.rpc('create_order_from_meal_bid', { p_bid_id: v.bidId });
       if (error) throw error;
     },
@@ -255,6 +272,69 @@ export function useAcceptMealBid() {
       qc.invalidateQueries({ queryKey: ['meal-requests', 'mine-bids'] });
       qc.invalidateQueries({ queryKey: ['meal-request-bids', v.requestId] });
       qc.invalidateQueries({ queryKey: ['orders'] });
+      if (v.customerId) {
+        supabase.functions.invoke('notify', {
+          body: {
+            user_id: v.customerId,
+            title: 'Bid accepted!',
+            body: 'Your bid was accepted — pay now to unlock the proposal.',
+            data: { type: 'bid_accepted', bid_id: v.bidId },
+          },
+        }).catch(() => {});
+      }
     },
+  });
+}
+
+/** Start a Stripe Checkout for a bid payment (bid price + 10% service fee).
+ *  Returns the hosted checkout URL to open in an in-app browser.
+ *  The edge function receives the bidId and computes the amount server-side. */
+export function useBidStripeCheckout() {
+  return useMutation({
+    mutationFn: async (v: { bidId: string; amountCents: number }): Promise<string> => {
+      const { data, error } = await supabase.functions.invoke('stripe-checkout', {
+        body: { type: 'bid_payment', bidId: v.bidId, amount: v.amountCents },
+      });
+      if (error) throw error;
+      const d = data as { url?: string; error?: string };
+      if (!d?.url) throw new Error(d?.error ?? 'Could not start checkout.');
+      return d.url;
+    },
+  });
+}
+
+// ─── Bid message thread ───────────────────────────────────────────────────────
+
+export type BidMessage = { id: string; sender_id: string; body: string; created_at: string };
+
+/** Fetches messages for a single bid, polling every 15 s when expanded. */
+export function useBidMessages(bidId?: string | null) {
+  return useQuery({
+    queryKey: ['bid-messages', bidId ?? 'none'],
+    enabled: !!bidId,
+    refetchInterval: 15_000,
+    queryFn: async (): Promise<BidMessage[]> => {
+      const { data, error } = await supabase
+        .from('bid_messages')
+        .select('id,sender_id,body,created_at')
+        .eq('bid_id', bidId!)
+        .order('created_at', { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as BidMessage[];
+    },
+  });
+}
+
+/** Sends a message in a bid thread and invalidates the message list. */
+export function useSendBidMessage(bidId?: string | null) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ senderId, body }: { senderId: string; body: string }) => {
+      const { error } = await supabase
+        .from('bid_messages')
+        .insert({ bid_id: bidId!, sender_id: senderId, body });
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['bid-messages', bidId] }),
   });
 }

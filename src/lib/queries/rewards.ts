@@ -1,3 +1,6 @@
+import { useQuery } from '@tanstack/react-query';
+
+import { supabase } from '@/lib/supabase';
 import { useMyOrders, type OrderSummary } from '@/lib/queries/orders';
 
 /** Points earned per $1 of completed spend. */
@@ -53,4 +56,65 @@ export function rewardsFromOrders(orders: OrderSummary[] | undefined): Rewards {
 export function useRewards(userId?: string | null): Rewards & { refetch: ReturnType<typeof useMyOrders>['refetch']; isLoading: boolean; isError: boolean } {
   const { data: orders, isLoading, isError, refetch } = useMyOrders(userId);
   return { ...rewardsFromOrders(orders), isLoading, isError, refetch };
+}
+
+// ─── reward_points table queries ─────────────────────────────────────────────
+
+export type PointsEntry = {
+  id: string;
+  points: number;
+  reason: string;
+  createdAt: string;
+  orderId: string | null;
+};
+
+export type BalanceSummary = {
+  points: number;
+  dollarValue: number;
+  tier: 'Bronze' | 'Silver' | 'Gold';
+  nextTierAt: number | null;
+};
+
+export function useRewardsBalance(userId?: string | null) {
+  return useQuery<BalanceSummary>({
+    queryKey: ['rewards-balance', userId ?? 'anon'],
+    enabled: !!userId,
+    staleTime: 60_000,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('reward_points')
+        .select('points')
+        .eq('user_id', userId!);
+      const total = (data ?? []).reduce((s, r) => s + (r.points ?? 0), 0);
+      return {
+        points: total,
+        dollarValue: total / 100,
+        nextTierAt: total < 500 ? 500 : total < 1000 ? 1000 : total < 5000 ? 5000 : null,
+        tier: total >= 5000 ? 'Gold' : total >= 1000 ? 'Silver' : 'Bronze',
+      };
+    },
+  });
+}
+
+export function useRewardsHistory(userId?: string | null) {
+  return useQuery<PointsEntry[]>({
+    queryKey: ['rewards-history', userId ?? 'anon'],
+    enabled: !!userId,
+    staleTime: 60_000,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('reward_points')
+        .select('id, points, reason, created_at, order_id')
+        .eq('user_id', userId!)
+        .order('created_at', { ascending: false })
+        .limit(50);
+      return (data ?? []).map((r) => ({
+        id: r.id,
+        points: r.points,
+        reason: r.reason,
+        createdAt: r.created_at,
+        orderId: r.order_id,
+      }));
+    },
+  });
 }

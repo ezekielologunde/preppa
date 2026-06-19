@@ -1,65 +1,144 @@
 import { useRouter } from 'expo-router';
-import { ChefHat, Clock, MapPin } from 'lucide-react-native';
 import { MotiView } from 'moti';
-import { Text, View } from 'react-native';
+import { useRef, useState } from 'react';
+import { KeyboardAvoidingView, Platform, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
-import { Palette, Radius, Shadow } from '@/constants/theme';
+import { Palette, Radius } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
 
-const BULLETS = [
-  { Icon: ChefHat, title: 'Local chefs, real kitchens', body: 'Hand-picked preppers in your neighbourhood cook fresh, every day.' },
-  { Icon: MapPin,  title: 'Delivered to your door', body: 'Order once, eat all week. Meal plans from $8 per serving.' },
-  { Icon: Clock,   title: 'Skip the Sunday chaos', body: 'Set your preferences, we handle the rest. Done in minutes.' },
-] as const;
+const TOTAL = 4;
 
-export default function OnboardingStep1() {
+function ProgressDots({ current }: { current: number }) {
+  return (
+    <View style={{ flexDirection: 'row', gap: 8, justifyContent: 'center', paddingTop: 20, paddingBottom: 8 }}>
+      {Array.from({ length: TOTAL }, (_, i) => (
+        <MotiView
+          key={i}
+          animate={{
+            width: i === current ? 10 : 8,
+            height: i === current ? 10 : 8,
+            backgroundColor: i === current ? Palette.brand : Palette.border,
+          }}
+          transition={{ type: 'spring', damping: 16, stiffness: 200 }}
+          style={{ borderRadius: 5 }}
+        />
+      ))}
+    </View>
+  );
+}
+
+export default function Step1Name() {
   const router = useRouter();
+  const [name, setName] = useState('');
+  const inputRef = useRef<TextInput>(null);
+
+  function handleContinue() {
+    feedback.tap();
+    router.push({ pathname: '/onboarding/step-2', params: { name: name.trim() } });
+  }
 
   return (
     <View style={{ flex: 1, backgroundColor: Palette.canvas }}>
-      <SafeAreaView edges={['top', 'bottom']} style={{ flex: 1, paddingHorizontal: 24 }}>
+      <SafeAreaView edges={['top', 'bottom']} style={{ flex: 1 }}>
+        <ProgressDots current={0} />
 
-        <View style={{ flex: 1, justifyContent: 'center', gap: 32 }}>
-          <MotiView from={{ opacity: 0, translateY: 16 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 380 }}>
-            <Text style={{ fontFamily: Font.display, fontSize: 38, color: Palette.ink, letterSpacing: -1.2, lineHeight: 44 }}>
-              {'Welcome to\nPreppa.'}
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={{ flex: 1, paddingHorizontal: 24 }}>
+
+          <MotiView
+            from={{ opacity: 0, translateX: 40 }}
+            animate={{ opacity: 1, translateX: 0 }}
+            transition={{ type: 'spring', damping: 18, stiffness: 160 }}
+            style={{ flex: 1, justifyContent: 'center', gap: 0 }}>
+
+            <Text
+              style={{
+                fontFamily: Font.display,
+                fontSize: 34,
+                color: Palette.ink,
+                letterSpacing: -1,
+                lineHeight: 42,
+                marginBottom: 10,
+              }}>
+              {'hey, what should\nwe call you?'}
             </Text>
-            <Text style={{ fontFamily: Font.body, fontSize: 16, color: Palette.textSecondary, marginTop: 10, lineHeight: 24 }}>
-              Your local meal-prep marketplace.
+
+            <Text
+              style={{
+                fontFamily: Font.body,
+                fontSize: 15,
+                color: Palette.textSecondary,
+                lineHeight: 23,
+                marginBottom: 32,
+              }}>
+              Your first name is how chefs and the community will know you.
             </Text>
+
+            <TextInput
+              ref={inputRef}
+              value={name}
+              onChangeText={setName}
+              placeholder="First name"
+              placeholderTextColor={Palette.textMuted}
+              maxLength={50}
+              autoFocus
+              autoCapitalize="words"
+              returnKeyType="done"
+              accessibilityLabel="First name"
+              onSubmitEditing={handleContinue}
+              style={{
+                height: 54,
+                borderRadius: 14,
+                backgroundColor: Palette.surface,
+                borderWidth: 1.5,
+                borderColor: name ? Palette.brand : Palette.border,
+                paddingHorizontal: 16,
+                fontSize: 17,
+                fontFamily: Font.body,
+                color: Palette.ink,
+                marginBottom: 16,
+              }}
+            />
+
+            <PressableScale
+              onPress={handleContinue}
+              accessibilityRole="button"
+              accessibilityLabel="Continue"
+              style={{
+                height: 54,
+                borderRadius: Radius.pill,
+                backgroundColor: name.trim() ? Palette.brand : Palette.divider,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}>
+              <Text
+                style={{
+                  fontFamily: Font.heading,
+                  fontSize: 16,
+                  color: name.trim() ? '#fff' : Palette.textMuted,
+                }}>
+                Continue
+              </Text>
+            </PressableScale>
+
+            <PressableScale
+              onPress={() => {
+                feedback.tap();
+                router.push({ pathname: '/onboarding/step-2', params: { name: '' } });
+              }}
+              accessibilityRole="button"
+              accessibilityLabel="Skip name"
+              style={{ height: 44, alignItems: 'center', justifyContent: 'center', marginTop: 4 }}>
+              <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: Palette.textMuted }}>
+                Skip for now
+              </Text>
+            </PressableScale>
           </MotiView>
-
-          <View style={{ gap: 16 }}>
-            {BULLETS.map(({ Icon, title, body }, i) => (
-              <MotiView key={title} from={{ opacity: 0, translateX: -16 }} animate={{ opacity: 1, translateX: 0 }} transition={{ type: 'timing', duration: 320, delay: 120 + i * 80 }}>
-                <View style={{ flexDirection: 'row', gap: 16, alignItems: 'flex-start', backgroundColor: Palette.surface, borderRadius: Radius.md, padding: 16, ...Shadow.card }}>
-                  <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: Palette.brandTint, alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <Icon size={20} color={Palette.brand} />
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <Text style={{ fontFamily: Font.heading, fontSize: 15, color: Palette.ink }}>{title}</Text>
-                    <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary, marginTop: 3, lineHeight: 19 }}>{body}</Text>
-                  </View>
-                </View>
-              </MotiView>
-            ))}
-          </View>
-        </View>
-
-        <MotiView from={{ opacity: 0, translateY: 12 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 300, delay: 480 }}
-          style={{ paddingBottom: 12 }}>
-          <PressableScale
-            onPress={() => { feedback.tap(); router.replace('/onboarding/step-2'); }}
-            accessibilityRole="button"
-            accessibilityLabel="Continue to set up your account"
-            style={{ height: 56, borderRadius: Radius.pill, backgroundColor: Palette.brand, alignItems: 'center', justifyContent: 'center', ...Shadow.floating }}>
-            <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>let's set you up →</Text>
-          </PressableScale>
-        </MotiView>
-
+        </KeyboardAvoidingView>
       </SafeAreaView>
     </View>
   );

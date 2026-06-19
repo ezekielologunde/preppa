@@ -1,7 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { useSyncExternalStore } from 'react';
 
 import { feedback } from '@/lib/feedback';
+import type { Database } from '@/types/database.types';
 
 // Tiny persistent favorites store. Keys are namespaced ("meal:<id>",
 // "prepper:<id>", "cuisine:<id>") so one store serves every heart in the app.
@@ -40,18 +42,52 @@ function subscribe(listener: () => void) {
   return () => listeners.delete(listener);
 }
 
-export function toggleFavorite(key: string) {
-  if (favorites.has(key)) {
-    favorites = new Set(favorites);
-    favorites.delete(key);
-    feedback.tap();
-  } else {
-    favorites = new Set(favorites);
+export function toggleFavorite(key: string, userId?: string, supabaseClient?: SupabaseClient<Database>) {
+  const added = !favorites.has(key);
+  favorites = new Set(favorites);
+  if (added) {
     favorites.add(key);
     feedback.success();
+  } else {
+    favorites.delete(key);
+    feedback.tap();
   }
   persist();
   listeners.forEach((l) => l());
+  if (userId && supabaseClient) {
+    _syncToggle(key, added, userId, supabaseClient).catch(() => {});
+  }
+}
+
+/** Sync a toggle to the server (fire-and-forget via caller). */
+async function _syncToggle(key: string, added: boolean, userId: string, supabaseClient: SupabaseClient<Database>) {
+  if (!key.startsWith('meal:')) return;
+  const mealId = key.slice(5);
+  if (added) {
+    await supabaseClient
+      .from('saved_meals')
+      .upsert({ user_id: userId, meal_id: mealId }, { onConflict: 'user_id,meal_id' });
+  } else {
+    await supabaseClient
+      .from('saved_meals')
+      .delete()
+      .eq('user_id', userId)
+      .eq('meal_id', mealId);
+  }
+}
+
+/** Hydrate favorites from the server on sign-in — call once after auth. */
+export async function hydrateFromServer(userId: string, supabaseClient: SupabaseClient<Database>) {
+  const { data } = await supabaseClient
+    .from('saved_meals')
+    .select('meal_id')
+    .eq('user_id', userId);
+  if (data && data.length > 0) {
+    favorites = new Set(favorites);
+    data.forEach((row) => favorites.add(`meal:${row.meal_id}`));
+    persist();
+    listeners.forEach((l) => l());
+  }
 }
 
 /** Is this item hearted? Re-renders on toggle from anywhere in the app. */

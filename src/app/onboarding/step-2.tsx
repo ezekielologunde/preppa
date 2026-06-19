@@ -1,70 +1,173 @@
-import { useRouter } from 'expo-router';
-import { MapPin } from 'lucide-react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { ChevronLeft } from 'lucide-react-native';
 import { MotiView } from 'moti';
-import { Text, View } from 'react-native';
+import { useState } from 'react';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
-import { Palette, Radius, Shadow } from '@/constants/theme';
+import { Palette, Radius } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
-import { useDeviceLocation } from '@/lib/use-location';
 
-export default function OnboardingStep2() {
+const TOTAL = 4;
+
+const DIETARY_OPTIONS = [
+  'Vegan', 'Vegetarian', 'Halal', 'Gluten-free',
+  'Dairy-free', 'Kosher', 'Nut-free', 'No pork', 'No shellfish', 'Pescatarian',
+];
+
+function ProgressDots({ current }: { current: number }) {
+  return (
+    <View style={{ flexDirection: 'row', gap: 8, justifyContent: 'center', paddingTop: 20, paddingBottom: 8 }}>
+      {Array.from({ length: TOTAL }, (_, i) => (
+        <MotiView
+          key={i}
+          animate={{
+            width: i === current ? 10 : 8,
+            height: i === current ? 10 : 8,
+            backgroundColor: i === current ? Palette.brand : Palette.border,
+          }}
+          transition={{ type: 'spring', damping: 16, stiffness: 200 }}
+          style={{ borderRadius: 5 }}
+        />
+      ))}
+    </View>
+  );
+}
+
+function DietChip({ label, active, onToggle }: { label: string; active: boolean; onToggle: () => void }) {
+  return (
+    <MotiView
+      animate={{
+        backgroundColor: active ? Palette.brand : Palette.surface,
+        borderColor: active ? Palette.brand : Palette.border,
+      }}
+      transition={{ type: 'spring', damping: 14, stiffness: 260 }}
+      style={{ borderRadius: 19, borderWidth: 1.5, overflow: 'hidden' }}>
+      <PressableScale
+        onPress={onToggle}
+        accessibilityRole="checkbox"
+        accessibilityState={{ checked: active }}
+        accessibilityLabel={label}
+        style={{ height: 38, paddingHorizontal: 16, alignItems: 'center', justifyContent: 'center' }}>
+        <Text
+          style={{
+            fontFamily: active ? Font.semibold : Font.medium,
+            fontSize: 13.5,
+            color: active ? '#fff' : Palette.inkSoft,
+          }}>
+          {label}
+        </Text>
+      </PressableScale>
+    </MotiView>
+  );
+}
+
+export default function Step2Dietary() {
   const router = useRouter();
-  const { loc, requestDeviceLocation } = useDeviceLocation();
+  const params = useLocalSearchParams<{ name?: string }>();
+  const name = params.name ?? '';
 
-  async function handleAllow() {
+  const [selected, setSelected] = useState<string[]>([]);
+
+  function toggle(key: string) {
     feedback.tap();
-    await requestDeviceLocation();
-    // Proceed regardless of result — denied is handled gracefully downstream
-    router.replace('/onboarding/step-3');
+    setSelected((s) => s.includes(key) ? s.filter((k) => k !== key) : [...s, key]);
+  }
+
+  function handleNext() {
+    feedback.tap();
+    router.push({
+      pathname: '/onboarding/step-3',
+      params: { name, dietary: selected.join(',') },
+    });
   }
 
   return (
     <View style={{ flex: 1, backgroundColor: Palette.canvas }}>
-      <SafeAreaView edges={['top', 'bottom']} style={{ flex: 1, paddingHorizontal: 24 }}>
+      <SafeAreaView edges={['top', 'bottom']} style={{ flex: 1 }}>
+        <ProgressDots current={1} />
 
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', gap: 32 }}>
-          <MotiView from={{ opacity: 0, scale: 0.85 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'spring', damping: 18, stiffness: 180 }}>
-            <View style={{ width: 120, height: 120, borderRadius: 36, backgroundColor: Palette.brandTint, alignItems: 'center', justifyContent: 'center' }}>
-              <MapPin size={56} color={Palette.brand} />
-            </View>
-          </MotiView>
-
-          <MotiView from={{ opacity: 0, translateY: 12 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 320, delay: 120 }}
-            style={{ alignItems: 'center', gap: 10 }}>
-            <Text style={{ fontFamily: Font.display, fontSize: 28, color: Palette.ink, letterSpacing: -0.8, textAlign: 'center' }}>
-              Find chefs near you
-            </Text>
-            <Text style={{ fontFamily: Font.body, fontSize: 15, color: Palette.textSecondary, textAlign: 'center', lineHeight: 23, maxWidth: 280 }}>
-              We use your location to show local preppers and fresh meals within your area.
-            </Text>
-          </MotiView>
-        </View>
-
-        <MotiView from={{ opacity: 0, translateY: 12 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 300, delay: 240 }}
-          style={{ gap: 12, paddingBottom: 12 }}>
-          <PressableScale
-            onPress={handleAllow}
-            disabled={loc.status === 'requesting'}
+        {/* Header */}
+        <MotiView
+          from={{ opacity: 0, translateX: 40 }}
+          animate={{ opacity: 1, translateX: 0 }}
+          transition={{ type: 'spring', damping: 18, stiffness: 160 }}
+          style={{ paddingHorizontal: 24, paddingTop: 12 }}>
+          <Pressable
+            onPress={() => router.back()}
             accessibilityRole="button"
-            accessibilityLabel="Allow location access"
-            style={{ height: 56, borderRadius: Radius.pill, backgroundColor: Palette.brand, alignItems: 'center', justifyContent: 'center', ...Shadow.floating, opacity: loc.status === 'requesting' ? 0.7 : 1 }}>
-            <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>
-              {loc.status === 'requesting' ? 'requesting...' : 'allow location access'}
-            </Text>
-          </PressableScale>
+            accessibilityLabel="Go back"
+            style={{ width: 36, height: 36, alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+            <ChevronLeft size={22} color={Palette.inkSoft} strokeWidth={2} />
+          </Pressable>
 
-          <PressableScale
-            onPress={() => { feedback.tap(); router.replace('/onboarding/step-3'); }}
-            accessibilityRole="button"
-            accessibilityLabel="Skip location access"
-            style={{ height: 48, alignItems: 'center', justifyContent: 'center' }}>
-            <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: Palette.textSecondary }}>skip for now</Text>
-          </PressableScale>
+          <Text
+            style={{
+              fontFamily: Font.display,
+              fontSize: 30,
+              color: Palette.ink,
+              letterSpacing: -0.8,
+              lineHeight: 38,
+              marginBottom: 6,
+            }}>
+            what do you eat?
+          </Text>
+          <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, lineHeight: 21, marginBottom: 24 }}>
+            Select everything that applies — we'll filter your feed accordingly.
+          </Text>
         </MotiView>
 
+        {/* Chips grid */}
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 24 }}>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+            {DIETARY_OPTIONS.map((opt) => (
+              <DietChip
+                key={opt}
+                label={opt}
+                active={selected.includes(opt)}
+                onToggle={() => toggle(opt)}
+              />
+            ))}
+          </View>
+        </ScrollView>
+
+        {/* CTA */}
+        <MotiView
+          from={{ opacity: 0, translateY: 12 }}
+          animate={{ opacity: 1, translateY: 0 }}
+          transition={{ type: 'spring', damping: 20, stiffness: 260, delay: 160 }}
+          style={{ paddingHorizontal: 24, paddingBottom: 24, gap: 8 }}>
+          <PressableScale
+            onPress={handleNext}
+            accessibilityRole="button"
+            accessibilityLabel={selected.length ? `Continue with ${selected.length} selected` : 'Continue'}
+            style={{
+              height: 54,
+              borderRadius: Radius.pill,
+              backgroundColor: Palette.brand,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+            <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>
+              {selected.length ? `Continue (${selected.length} selected)` : 'Continue'}
+            </Text>
+          </PressableScale>
+
+          <PressableScale
+            onPress={() => {
+              feedback.tap();
+              router.push({ pathname: '/onboarding/step-3', params: { name, dietary: '' } });
+            }}
+            accessibilityRole="button"
+            accessibilityLabel="Skip dietary preferences"
+            style={{ height: 44, alignItems: 'center', justifyContent: 'center' }}>
+            <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: Palette.textMuted }}>Skip</Text>
+          </PressableScale>
+        </MotiView>
       </SafeAreaView>
     </View>
   );

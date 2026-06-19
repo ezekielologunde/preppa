@@ -1,7 +1,11 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Session, User } from '@supabase/supabase-js';
+import * as Notifications from 'expo-notifications';
+import { useRouter } from 'expo-router';
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 
+import { hydrateFromServer } from '@/lib/favorites';
+import { clearPushToken, registerPushToken } from '@/lib/push-notifications';
 import { supabase } from '@/lib/supabase';
 
 /** Which app the user is currently in. Customer and Prepper are two distinct navigators. */
@@ -54,6 +58,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // switched) user can never see a previous user's roles — no reset effect needed.
   const [rolesFor, setRolesFor] = useState<{ uid: string; keys: string[] } | null>(null);
   const [statusBlock, setStatusBlock] = useState<'deleted' | 'suspended' | null>(null);
+  const router = useRouter();
+  const lastNotificationResponse = Notifications.useLastNotificationResponse();
 
   useEffect(() => {
     async function boot() {
@@ -79,9 +85,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         AsyncStorage.getItem(SESSION_START_KEY).then((existing) => {
           if (!existing) AsyncStorage.setItem(SESSION_START_KEY, String(Date.now())).catch(() => {});
         }).catch(() => {});
+        if (next?.user?.id) {
+          hydrateFromServer(next.user.id, supabase).catch(() => {});
+          registerPushToken(next.user.id).catch(() => {});
+        }
       }
       if (event === 'SIGNED_OUT') {
+        if (session?.user?.id) {
+          clearPushToken(session.user.id).catch(() => {});
+        }
         AsyncStorage.removeItem(SESSION_START_KEY).catch(() => {});
+        AsyncStorage.removeItem(ROLE_KEY).catch(() => {});
+        AsyncStorage.removeItem('preppa.favorites.v1').catch(() => {});
+        AsyncStorage.removeItem('preppa.recent-searches.v1').catch(() => {});
+        AsyncStorage.removeItem('preppa.recently-viewed.v1').catch(() => {});
       }
       setSession(next);
     });
@@ -144,6 +161,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       cancelled = true;
     };
   }, [userId]);
+
+  // Route the user to the relevant screen when they tap a push notification.
+  useEffect(() => {
+    if (!lastNotificationResponse) return;
+    const data = lastNotificationResponse.notification.request.content.data as Record<string, string> | undefined;
+    if (!data?.type) return;
+
+    switch (data.type) {
+      case 'message':
+        if (data.conversation_id) router.push(`/chat?id=${data.conversation_id}` as never);
+        break;
+      case 'bid_accepted':
+        router.push('/bid-requests' as never);
+        break;
+      case 'order_update':
+        if (data.order_id) router.push(`/orders/${data.order_id}` as never);
+        break;
+      case 'order_cancelled':
+        if (data.order_id) router.push(`/prepper-orders` as never);
+        break;
+      case 'new_follower':
+        router.push('/followers' as never);
+        break;
+      case 'meal_drop':
+        if (data.prepper_id) router.push(`/prepper/${data.prepper_id}` as never);
+        break;
+      case 'approved':
+        router.push('/dashboard' as never);
+        break;
+      case 'rejected':
+        router.push('/become-prepper' as never);
+        break;
+      default:
+        break;
+    }
+  }, [lastNotificationResponse]);
 
   function setActiveRole(role: ActiveRole) {
     setActiveRoleState(role);

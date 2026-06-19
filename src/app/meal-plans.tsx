@@ -1,11 +1,12 @@
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { AlertTriangle, CalendarCheck, Check, ChefHat, ChevronLeft, ChevronRight, Plus, RefreshCw, Users } from 'lucide-react-native';
+import { AlertTriangle, CalendarCheck, Check, ChefHat, ChevronLeft, ChevronRight, Plus, RefreshCw, Users, X } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useEffect, useState } from 'react';
 import { Modal, Platform, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { PlanComparisonTable } from '@/components/plan-comparison-table';
 import { SubscribePlanSheet } from '@/components/subscribe-sheet';
 import { Button } from '@/components/ui/button';
 import { PressableScale } from '@/components/ui/pressable-scale';
@@ -17,10 +18,11 @@ import { useMyCustomPlans, useUpdateCustomPlan, type CustomMealPlan } from '@/li
 import {
   nextDeliveryDate,
   useMealPlans,
+  useMyBillingHistory,
   useMySubscriptions,
   useSkipDelivery,
-  useSubscribeToPlan,
   useUpdateSubscription,
+  type BillingRecord,
   type DeliveryDay,
   type MealPlan,
   type MySubscription,
@@ -135,6 +137,73 @@ function FeaturedCard({ plan, onSubscribe }: { plan: MealPlan; onSubscribe: () =
   );
 }
 
+function ActiveSubscriptionBanner({ sub, onManage, onCancel }: { sub: MySubscription; onManage: () => void; onCancel: () => void }) {
+  const nextDate = sub.next_billing_at ? new Date(sub.next_billing_at) : null;
+  return (
+    <View style={{ marginHorizontal: 20, marginBottom: 16, backgroundColor: Palette.surface, borderRadius: Radius.md, borderLeftWidth: 4, borderLeftColor: Palette.success, padding: 16, gap: 6 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+        <Check size={15} color={Palette.success} />
+        <Text style={{ fontFamily: Font.heading, fontSize: 14, color: INK, flex: 1 }}>You're on the {sub.plan_name}</Text>
+      </View>
+      {nextDate ? (
+        <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary }}>
+          Next billing: {nextDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+        </Text>
+      ) : null}
+      <View style={{ flexDirection: 'row', gap: 8, marginTop: 4 }}>
+        <Button title="Manage" onPress={onManage} variant="secondary" size="sm" style={{ flex: 1 }} />
+        <Button title="Cancel" onPress={onCancel} variant="danger" size="sm" style={{ flex: 1 }} />
+      </View>
+    </View>
+  );
+}
+
+const fmt = (d: string) => new Date(d).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+const fmtMoney = (n: number) => `$${n.toFixed(2)}`;
+
+function StatusChip({ status }: { status: string }) {
+  const s = status.toLowerCase();
+  const color = s === 'paid' ? Palette.success : s === 'pending' ? Palette.amber : Palette.danger;
+  return (
+    <View style={{ backgroundColor: color + '1A', borderRadius: Radius.pill, paddingHorizontal: 8, paddingVertical: 3 }}>
+      <Text style={{ fontFamily: Font.semibold, fontSize: 11, color, textTransform: 'capitalize' }}>{status}</Text>
+    </View>
+  );
+}
+
+function BillingHistorySection({ records, onSeeAll }: { records: BillingRecord[]; onSeeAll?: () => void }) {
+  const shown = records.slice(0, 6);
+  return (
+    <View style={{ marginTop: 24, marginBottom: 4 }}>
+      <Text style={{ fontFamily: Font.display, fontSize: 16, color: Palette.ink, letterSpacing: -0.4, paddingHorizontal: 20, marginBottom: 12 }}>billing history</Text>
+      {shown.length === 0 ? (
+        <View style={{ marginHorizontal: 20, backgroundColor: Palette.surface, borderRadius: Radius.md, padding: 20, alignItems: 'center', gap: 8 }}>
+          <X size={22} color={Palette.textMuted} />
+          <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary, textAlign: 'center' }}>Your billing history will appear here once you subscribe.</Text>
+        </View>
+      ) : (
+        <View style={{ paddingHorizontal: 20, gap: 8 }}>
+          {shown.map((r) => (
+            <View key={r.id} style={{ backgroundColor: Palette.surface, borderRadius: Radius.md, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: Palette.ink }}>{fmt(r.billing_date)}</Text>
+                <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary }}>{r.plan_name}</Text>
+              </View>
+              <View style={{ alignItems: 'flex-end', gap: 4 }}>
+                <Text style={{ fontFamily: Font.heading, fontSize: 14, color: Palette.ink }}>{fmtMoney(r.amount)}</Text>
+                <StatusChip status={r.status} />
+              </View>
+            </View>
+          ))}
+          {records.length > 6 && onSeeAll ? (
+            <Button title="see all" onPress={onSeeAll} variant="secondary" size="sm" style={{ marginTop: 4 }} />
+          ) : null}
+        </View>
+      )}
+    </View>
+  );
+}
+
 export default function MealPlansScreen() {
   const router = useRouter();
   const { openPlanId } = useLocalSearchParams<{ openPlanId?: string }>();
@@ -142,10 +211,10 @@ export default function MealPlansScreen() {
   const { data: livePlans, isLoading, isError: livePlansError, refetch: refetchPlans } = useMealPlans();
   const { data: subs, refetch: refetchSubs } = useMySubscriptions(user?.id);
   const { data: customPlans, refetch: refetchCustom } = useMyCustomPlans(user?.id);
+  const { data: billingHistory = [] } = useMyBillingHistory(user?.id);
   const updateSub = useUpdateSubscription(user?.id);
   const updateCustomPlan = useUpdateCustomPlan(user?.id);
   const skipDelivery = useSkipDelivery(user?.id);
-  const subscribeToPlan = useSubscribeToPlan();
 
   // Subscribe sheet — the chosen plan (null = closed).
   const [sheetPlan, setSheetPlan] = useState<MealPlan | null>(null);
@@ -174,6 +243,7 @@ export default function MealPlansScreen() {
   }
 
   const subscribedPlanNames = new Set((subs ?? []).filter((s) => s.status !== 'cancelled').map((s) => s.plan_name));
+  const activeSub = (subs ?? []).find((s) => s.status === 'active') ?? null;
 
   return (
     <View style={{ flex: 1, backgroundColor: Palette.canvas }}>
@@ -195,6 +265,17 @@ export default function MealPlansScreen() {
           </PressableScale>
         ) : null}
         <ScrollView showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={ORANGE} colors={[ORANGE]} />} contentContainerStyle={{ paddingTop: Platform.OS === 'web' ? 12 : 6, paddingBottom: 32 }}>
+          {/* Active subscription banner */}
+          {activeSub ? (
+            <MotiView from={{ opacity: 0, translateY: -6 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260 }}>
+              <ActiveSubscriptionBanner
+                sub={activeSub}
+                onManage={() => { feedback.tap(); router.push('/meal-plans?action=manage' as never); }}
+                onCancel={() => setCancelTarget({ id: activeSub.id, name: activeSub.plan_name })}
+              />
+            </MotiView>
+          ) : null}
+
           {/* Build your own plan CTA */}
           <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260 }}>
             <PressableScale onPress={() => { feedback.tap(); router.push('/create-meal-plan'); }} accessibilityRole="button" accessibilityLabel="Build your own meal plan"
@@ -354,6 +435,20 @@ export default function MealPlansScreen() {
               </ScrollView>
             </>
           ) : null}
+
+          {/* Plan comparison table */}
+          {(livePlans ?? []).length > 0 ? (
+            <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280, delay: 60 }}>
+              <PlanComparisonTable plans={livePlans ?? []} />
+            </MotiView>
+          ) : null}
+
+          {/* Billing history — only shown to signed-in users */}
+          {user ? (
+            <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280, delay: 100 }}>
+              <BillingHistorySection records={billingHistory} />
+            </MotiView>
+          ) : null}
         </ScrollView>
       </SafeAreaView>
 
@@ -375,31 +470,18 @@ export default function MealPlansScreen() {
               </Text>
             </View>
             <View style={{ flexDirection: 'row', gap: 10, width: '100%' }}>
+              <Button title="Keep plan" onPress={() => setCancelTarget(null)} variant="secondary" size="md" style={{ flex: 1 }} />
               <Button
-                title="Keep plan"
-                onPress={() => setCancelTarget(null)}
-                variant="secondary"
-                size="md"
-                style={{ flex: 1 }}
-              />
-              <Button
-                title="Yes, cancel"
+                title="Yes, cancel" variant="danger" size="md" style={{ flex: 1 }}
+                disabled={updateSub.isPending || updateCustomPlan.isPending}
                 onPress={() => {
                   if (!cancelTarget) return;
-                  feedback.warning();
-                  setActionErr(null);
+                  feedback.warning(); setActionErr(null);
                   const onCancelErr = (e: unknown) => { feedback.error(); setActionErr(e instanceof Error ? e.message : 'Could not cancel plan. Please try again.'); };
-                  if (cancelTarget.isCustom) {
-                    updateCustomPlan.mutate({ id: cancelTarget.id, status: 'cancelled' }, { onError: onCancelErr });
-                  } else {
-                    updateSub.mutate({ id: cancelTarget.id, status: 'cancelled' }, { onError: onCancelErr });
-                  }
+                  if (cancelTarget.isCustom) { updateCustomPlan.mutate({ id: cancelTarget.id, status: 'cancelled' }, { onError: onCancelErr }); }
+                  else { updateSub.mutate({ id: cancelTarget.id, status: 'cancelled' }, { onError: onCancelErr }); }
                   setCancelTarget(null);
                 }}
-                disabled={updateSub.isPending || updateCustomPlan.isPending}
-                variant="danger"
-                size="md"
-                style={{ flex: 1 }}
               />
             </View>
           </Pressable>

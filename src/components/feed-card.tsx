@@ -1,10 +1,11 @@
+import { BlurView } from 'expo-blur';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { BadgeCheck, CheckCircle, Heart, Play, Share2, ShoppingCart, Star, UserCheck, UserPlus, Zap } from 'lucide-react-native';
+import { BadgeCheck, CheckCircle, Crown, Heart, Play, Share2, ShoppingCart, Star, UserCheck, UserPlus, Zap } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Share, Text, View } from 'react-native';
+import { ActivityIndicator, Share, StyleSheet, Text, View } from 'react-native';
 
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
@@ -109,6 +110,7 @@ export function FeedCard({ item, height, bottomInset, followSet }: { item: FeedI
   const { user } = useAuth();
   const isSaved = useFavorite(`meal:${item.id}`);
   const [addState, setAddState] = useState<'idle' | 'adding' | 'added' | 'error'>('idle');
+  const [pillPressed, setPillPressed] = useState(false);
   const addToCart = useAddToCart();
   const source = item.thumbnail ?? item.image;
   const countdown = useCountdownLabel(item.isLimited && !item.isPost ? (item.expiresAt ?? null) : null);
@@ -187,17 +189,55 @@ export function FeedCard({ item, height, bottomInset, followSet }: { item: FeedI
         </View>
       ) : null}
 
-      <View style={{ position: 'absolute', right: 14, bottom: bottomInset + 56, gap: 16, alignItems: 'center' }}>
+      <View style={{ position: 'absolute', right: 14, bottom: item.isPost ? bottomInset + 56 : bottomInset + 96, gap: 16, alignItems: 'center' }}>
         <ActionBtn icon={Heart} label={isSaved ? 'Unsave' : 'Save meal'} caption={isSaved ? 'saved' : 'save'} active={isSaved} onPress={handleSave} />
         {item.prepper_id ? <FollowBtn prepperId={item.prepper_id} followSet={followSet} /> : null}
         <ActionBtn icon={Share2} label="Share" caption="share" onPress={handleShare} />
       </View>
 
-      <View style={{ position: 'absolute', left: 16, right: 80, bottom: bottomInset + 16, gap: 9 }}>
+      {/* Floating add-to-cart pill — only for meal listings (not plain posts) */}
+      {!item.isPost ? (
+        <View style={[styles.pillWrap, { bottom: bottomInset + 16 }]}>
+          <BlurView intensity={60} tint="dark" style={styles.pill}>
+            <Text style={styles.pillName} numberOfLines={1}>{item.title}</Text>
+            <Text style={styles.pillPrice}>${item.price.toFixed(2)}</Text>
+            <MotiView
+              animate={{ scale: pillPressed ? 0.84 : 1 }}
+              transition={{ type: 'spring', damping: 14, stiffness: 280 }}>
+              <PressableScale
+                onPress={() => {
+                  setPillPressed(true);
+                  setTimeout(() => setPillPressed(false), 160);
+                  void handleAddToCart();
+                }}
+                disabled={addState === 'adding'}
+                accessibilityRole="button"
+                accessibilityLabel={`Add ${item.title} to cart`}
+                style={[
+                  styles.pillBtn,
+                  addState === 'added' && { backgroundColor: '#16a34a' },
+                  addState === 'error' && { backgroundColor: Palette.danger },
+                ]}>
+                {addState === 'adding'
+                  ? <ActivityIndicator size="small" color="#fff" />
+                  : <Text style={styles.pillBtnLabel}>{addState === 'added' ? '✓' : '+'}</Text>}
+              </PressableScale>
+            </MotiView>
+          </BlurView>
+        </View>
+      ) : null}
+
+      <View style={{ position: 'absolute', left: 16, right: 80, bottom: item.isPost ? bottomInset + 16 : bottomInset + 88, gap: 9 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
           <PressableScale onPress={goToPrepper} accessibilityRole="button" accessibilityLabel={`View ${item.prepper}'s kitchen`} style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
             <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: 'rgba(255,255,255,0.95)' }}>{item.prepper}</Text>
             {item.verified ? <BadgeCheck size={14} color="#fff" fill={ORANGE} stroke="#fff" /> : null}
+            {item.isPro ? (
+              <View accessibilityLabel="Pro kitchen" accessibilityRole="image" style={{ flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: '#F59E0B18', borderRadius: 8, paddingHorizontal: 6, paddingVertical: 2 }}>
+                <Crown size={11} color="#F59E0B" fill="#F59E0B" />
+                <Text style={{ fontFamily: Font.semibold, fontSize: 10, color: '#F59E0B' }}>pro</Text>
+              </View>
+            ) : null}
           </PressableScale>
           {!item.isPost && item.rating > 0 ? (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3, marginLeft: 2 }}>
@@ -275,3 +315,47 @@ export function FeedCard({ item, height, bottomInset, followSet }: { item: FeedI
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  pillWrap: {
+    position: 'absolute',
+    left: 16,
+    right: 16,
+    height: 56,
+    borderRadius: 28,
+    overflow: 'hidden',
+  },
+  pill: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    gap: 10,
+  },
+  pillName: {
+    flex: 1,
+    fontFamily: Font.heading,
+    fontSize: 14,
+    color: '#fff',
+  },
+  pillPrice: {
+    fontFamily: Font.display,
+    fontSize: 15,
+    color: '#fff',
+    letterSpacing: -0.3,
+  },
+  pillBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: Palette.brand,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pillBtnLabel: {
+    fontFamily: Font.heading,
+    fontSize: 20,
+    color: '#fff',
+    lineHeight: 22,
+  },
+});

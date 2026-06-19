@@ -20,7 +20,9 @@ export type OrderSummary = {
   subtotal: number;
   tip: number;
   total: number;
+  service_fee: number | null;
   created_at: string;
+  scheduled_at: string | null;
   prepperId: string;
   prepperUserId: string;
   prepper: string;
@@ -57,10 +59,12 @@ type Row = {
   subtotal: number;
   tip: number;
   total: number;
+  service_fee: number | null;
   delivery_fee: number;
   fulfillment_type: FulfillmentType;
   fulfillment_note: string | null;
   created_at: string;
+  scheduled_at: string | null;
   prepper: { display_name: string; user_id: string } | { display_name: string; user_id: string }[] | null;
   customer: { display_name: string } | { display_name: string }[] | null;
   payment: { status: string } | { status: string }[] | null;
@@ -79,7 +83,7 @@ type Row = {
 };
 
 const SELECT =
-  'id,prepper_id,customer_id,status,subtotal,tip,total,delivery_fee,fulfillment_type,fulfillment_note,created_at,' +
+  'id,prepper_id,customer_id,status,subtotal,tip,total,service_fee,delivery_fee,fulfillment_type,fulfillment_note,created_at,scheduled_at,' +
   'prepper:prepper_profiles(display_name,user_id),' +
   'customer:profiles(display_name:full_name),' +
   'payment:payments(status),' +
@@ -99,7 +103,9 @@ function toSummary(r: Row): OrderSummary {
     subtotal: r.subtotal,
     tip: r.tip,
     total: r.total,
+    service_fee: r.service_fee ?? null,
     created_at: r.created_at,
+    scheduled_at: r.scheduled_at ?? null,
     prepperId: r.prepper_id,
     prepperUserId: prepper?.user_id ?? '',
     prepper: prepper?.display_name ?? 'preppa',
@@ -122,11 +128,30 @@ function toSummary(r: Row): OrderSummary {
   };
 }
 
+/** A single order by ID — same shape as the list query. */
+export function useOrder(orderId?: string | null) {
+  return useQuery({
+    queryKey: ['orders', 'single', orderId ?? 'none'],
+    enabled: !!orderId,
+    queryFn: async (): Promise<OrderSummary> => {
+      const { data, error } = await supabase
+        .from('orders')
+        .select(SELECT)
+        .eq('id', orderId!)
+        .single();
+      if (error) throw error;
+      return toSummary(data as unknown as Row);
+    },
+  });
+}
+
 /** The signed-in customer's order history, newest first. */
 export function useMyOrders(userId?: string | null) {
   return useQuery({
     queryKey: ['orders', 'mine', userId ?? 'anon'],
     enabled: !!userId,
+    // Poll every 30 s so active order status stays fresh without a realtime socket.
+    refetchInterval: 30_000,
     queryFn: async (): Promise<OrderSummary[]> => {
       const { data, error } = await supabase
         .from('orders')
@@ -135,6 +160,28 @@ export function useMyOrders(userId?: string | null) {
         .order('created_at', { ascending: false });
       if (error) throw error;
       return ((data ?? []) as unknown as Row[]).map(toSummary);
+    },
+  });
+}
+
+export type OrderItem = { id: string; quantity: number; price_at_time: number; title: string };
+
+/** Line items for a single order, used in the expanded receipt panel. Cached forever — items never change after placement. */
+export function useOrderItems(orderId?: string | null) {
+  return useQuery({
+    queryKey: ['order-items', orderId ?? 'none'],
+    enabled: !!orderId,
+    staleTime: Infinity,
+    queryFn: async (): Promise<OrderItem[]> => {
+      const { data, error } = await supabase
+        .from('order_items')
+        .select('id,quantity,price_at_time,meal:meals(title)')
+        .eq('order_id', orderId!);
+      if (error) throw error;
+      return ((data ?? []) as unknown as { id: string; quantity: number; price_at_time: number; meal: { title: string } | { title: string }[] | null }[]).map((it) => {
+        const meal = Array.isArray(it.meal) ? it.meal[0] : it.meal;
+        return { id: it.id, quantity: it.quantity, price_at_time: it.price_at_time, title: meal?.title ?? 'meal' };
+      });
     },
   });
 }
@@ -178,6 +225,8 @@ export function useOrdersRealtime(column: 'customer_id' | 'prepper_id', value?: 
   }, [column, value, qc]);
 }
 
+const NOTIFIABLE_STATUSES = new Set<OrderStatus>(['confirmed', 'preparing', 'ready', 'completed', 'cancelled']);
+
 /** Move an order to the next legal status (prepper/admin only — enforced server-side). */
 export function useAdvanceOrder() {
   const qc = useQueryClient();
@@ -185,22 +234,164 @@ export function useAdvanceOrder() {
     mutationFn: async (v: { orderId: string; next: OrderStatus }) => {
       const { error } = await supabase.rpc('advance_order', { p_order_id: v.orderId, p_next: v.next });
       if (error) throw error;
+      // Fire-and-forget push notification to the customer — never blocks the status update.
+      if (NOTIFIABLE_STATUSES.has(v.next)) {
+        void (async () => {
+          try {
+            const { data: row } = await supabase
+              .from('orders')
+              .select('customer_id, prepper:prepper_profiles(display_name)')
+              .eq('id', v.orderId)
+              .single();
+            if (!row) return;
+            const prepper = Array.isArray(row.prepper) ? row.prepper[0] : row.prepper;
+            void supabase.functions.invoke('notify-order-status', {
+              body: {
+                order_id: v.orderId,
+                customer_id: (row as { customer_id: string }).customer_id,
+                status: v.next,
+                kitchen_name: (prepper as { display_name: string } | null)?.display_name ?? null,
+              },
+            });
+          } catch {
+            // Notification errors are non-fatal.
+          }
+        })();
+      }
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['orders'] }),
   });
 }
 
-/** Cancel an order (customer while pending; prepper before preparing; admin always). */
+/** Cancel an order (customer while pending/confirmed; prepper before preparing; admin always). */
 export function useCancelOrder() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (orderId: string) => {
-      const { error } = await supabase.rpc('cancel_order', { p_order_id: orderId });
+    mutationFn: async (v: { orderId: string; prepperUserId: string; customerName: string }) => {
+      const { error } = await supabase.rpc('cancel_order', { p_order_id: v.orderId });
       if (error) throw error;
+      // Notify the prepper so they don't prepare food that won't be picked up.
+      void supabase.functions.invoke('notify', {
+        body: {
+          userId: v.prepperUserId,
+          title: '❌ Order cancelled',
+          body: `${v.customerName} cancelled their order #${v.orderId.slice(-6).toUpperCase()}`,
+          data: { type: 'order_cancelled', order_id: v.orderId },
+        },
+      });
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['orders'] }),
   });
 }
+
+export type OrderStatusStep = {
+  key: string;
+  label: string;
+  description: string;
+  icon: string;
+};
+
+export const STATUS_STEPS: OrderStatusStep[] = [
+  { key: 'pending',          label: 'Order placed',      description: 'Waiting for kitchen to confirm',  icon: 'Clock' },
+  { key: 'confirmed',        label: 'Order confirmed',   description: 'Kitchen has accepted your order', icon: 'CheckCircle' },
+  { key: 'preparing',        label: 'Being prepared',    description: 'Chef is cooking your meal',       icon: 'UtensilsCrossed' },
+  { key: 'out_for_delivery', label: 'On the way',        description: 'Your order is on its way!',       icon: 'Truck' },
+  { key: 'ready',            label: 'Ready for pickup',  description: 'Your order is ready!',            icon: 'Package' },
+  { key: 'completed',        label: 'Delivered',         description: 'Enjoy your meal!',                icon: 'Heart' },
+];
+
+/**
+ * Wraps the existing useOrder hook and adds a real-time subscription that
+ * invalidates the cache the moment the order row changes in Supabase.
+ */
+export function useOrderStatus(orderId: string | undefined | null) {
+  const qc = useQueryClient();
+  const query = useOrder(orderId);
+
+  useEffect(() => {
+    if (!orderId) return;
+    const channel = supabase
+      .channel(`order-status-${orderId}`)
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'orders',
+        filter: `id=eq.${orderId}`,
+      }, () => {
+        void qc.invalidateQueries({ queryKey: ['orders', 'single', orderId] });
+      })
+      .subscribe();
+    return () => { void supabase.removeChannel(channel); };
+  }, [orderId, qc]);
+
+  return { ...query, steps: STATUS_STEPS };
+}
+
+export type TodayOrderSummary = {
+  totalOrders: number;
+  pendingOrders: number;
+  preparingOrders: number;
+  completedOrders: number;
+  todayRevenue: number;
+  urgentOrders: Array<{
+    id: string;
+    customerName: string;
+    mealTitles: string[];
+    total: number;
+    createdAt: string;
+    status: string;
+  }>;
+};
+
+export function useTodayOrders(prepperId?: string | null) {
+  return useQuery({
+    queryKey: ['today-orders', prepperId ?? 'none'],
+    enabled: !!prepperId,
+    staleTime: 30_000,
+    refetchInterval: 60_000,
+    queryFn: async (): Promise<TodayOrderSummary> => {
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+
+      const { data: orders } = await supabase
+        .from('orders')
+        .select(`
+          id, status, total, created_at,
+          customer:profiles(display_name:full_name),
+          items:order_items(meal:meals(title))
+        `)
+        .eq('prepper_id', prepperId!)
+        .gte('created_at', todayStart.toISOString())
+        .order('created_at', { ascending: true });
+
+      const rows = (orders ?? []) as any[];
+
+      const pending = rows.filter(o => o.status === 'pending');
+      const preparing = rows.filter(o => ['confirmed', 'preparing'].includes(o.status));
+      const completed = rows.filter(o => o.status === 'completed');
+      const todayRevenue = completed.reduce((s, o) => s + (o.total ?? 0), 0);
+
+      const urgentOrders = [...pending, ...preparing].map(o => ({
+        id: o.id,
+        customerName: maskName((Array.isArray(o.customer) ? o.customer[0] : o.customer)?.display_name) ?? 'Customer',
+        mealTitles: (o.items ?? []).map((it: any) => (Array.isArray(it.meal) ? it.meal[0] : it.meal)?.title ?? '').filter(Boolean),
+        total: o.total,
+        createdAt: o.created_at,
+        status: o.status,
+      }));
+
+      return {
+        totalOrders: rows.length,
+        pendingOrders: pending.length,
+        preparingOrders: preparing.length,
+        completedOrders: completed.length,
+        todayRevenue,
+        urgentOrders,
+      };
+    },
+  });
+}
+
 
 export type HandoffResult = { ok: boolean; completed?: boolean; attempts_left?: number; locked?: boolean; reason?: string; order_id?: string };
 
@@ -227,6 +418,38 @@ export function useVerifyHandoffToken() {
       return data as unknown as HandoffResult;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['orders'] }),
+  });
+}
+
+export type OrderForReview = {
+  id: string;
+  status: string;
+  prepper: { id: string; display_name: string; avatar_url: string | null } | null;
+  items: { meal_id: string; qty: number; meal: { id: string; title: string; image: string | null } | null }[];
+};
+
+/** Minimal order detail used by the review-order screen. Cached forever. */
+export function useOrderForReview(orderId: string) {
+  return useQuery({
+    queryKey: ['order-for-review', orderId],
+    staleTime: Infinity,
+    queryFn: async (): Promise<OrderForReview> => {
+      const { data, error } = await supabase
+        .from('orders')
+        .select('id,status,prepper:prepper_profiles(id,display_name,avatar_url),items:order_items(meal_id,qty:quantity,meal:meals(id,title,images:meal_images(url)))')
+        .eq('id', orderId)
+        .single();
+      if (error) throw error;
+      const row = data as any;
+      const prepper = Array.isArray(row.prepper) ? row.prepper[0] : row.prepper;
+      const items = (row.items ?? []).map((it: any) => {
+        const meal = Array.isArray(it.meal) ? it.meal[0] : it.meal;
+        const imgs = meal?.images ?? [];
+        const img = Array.isArray(imgs) ? imgs[0]?.url ?? null : null;
+        return { meal_id: it.meal_id, qty: it.qty, meal: meal ? { id: meal.id, title: meal.title, image: img } : null };
+      });
+      return { id: row.id, status: row.status, prepper: prepper ?? null, items };
+    },
   });
 }
 

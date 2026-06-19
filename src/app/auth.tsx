@@ -10,13 +10,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PreppaLogo } from '@/components/preppa-logo';
 import { PressableScale } from '@/components/ui/pressable-scale';
+import { AuthForm } from '@/components/auth/auth-form';
 import { Font } from '@/constants/fonts';
-import { Palette, Radius } from '@/constants/theme';
+import { Palette } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
 import { useAuth } from '@/providers/auth-provider';
-
-const ORANGE = Palette.brand;
-const INK = Palette.ink;
 
 type Mode = 'signin' | 'signup';
 type Intent = 'signup' | 'signin-otp' | 'recovery';
@@ -36,8 +34,8 @@ export default function AuthScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
-  const [code, setCode] = useState('');
   const [showPw, setShowPw] = useState(false);
+  const [code, setCode] = useState('');
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ text: string; ok: boolean } | null>(null);
   const codeRef = useRef<TextInput>(null);
@@ -54,13 +52,8 @@ export default function AuthScreen() {
     );
   }
 
-  const tap = () => feedback.impact();
-  const fail = (text: string) => {
-    feedback.error();
-    shake();
-    setBusy(false);
-    setMsg({ text, ok: false });
-  };
+  const fail = (text: string) => { feedback.error(); shake(); setBusy(false); setMsg({ text, ok: false }); };
+
   const goCode = (next: Intent, text: string) => {
     feedback.success();
     setBusy(false);
@@ -77,7 +70,7 @@ export default function AuthScreen() {
     if (!emailOk(email)) return fail('Enter a valid email.');
     if (password.length < 8) return fail('Password must be at least 8 characters.');
     setBusy(true);
-    tap();
+    feedback.impact();
     if (mode === 'signup') {
       const { error, needsConfirmation } = await signUp(email.trim().toLowerCase(), password, name.trim());
       if (error) return fail(error);
@@ -95,7 +88,7 @@ export default function AuthScreen() {
     setMsg(null);
     if (!emailOk(email)) return fail('Enter your email first.');
     setBusy(true);
-    tap();
+    feedback.impact();
     const { error } = await sendCode(email.trim().toLowerCase(), mode === 'signup' ? name.trim() : undefined);
     if (error) return fail(error);
     goCode('signin-otp', `We sent a 6-digit sign-in code to ${email.trim().toLowerCase()}.`);
@@ -105,7 +98,7 @@ export default function AuthScreen() {
     setMsg(null);
     if (!emailOk(email)) return fail('Enter your email first, then tap reset.');
     setBusy(true);
-    tap();
+    feedback.impact();
     const { error } = await resetPassword(email.trim().toLowerCase());
     if (error) return fail(error);
     goCode('recovery', `We sent a reset code to ${email.trim().toLowerCase()}.`);
@@ -117,7 +110,7 @@ export default function AuthScreen() {
     if (c.length !== 6) return fail('Enter the 6-digit code.');
     if (intent === 'recovery' && newPassword.length < 8) return fail('Choose a password (8+ characters).');
     setBusy(true);
-    tap();
+    feedback.impact();
     const type = intent === 'signup' ? 'signup' : intent === 'recovery' ? 'recovery' : 'email';
     const { error } = await verifyCode(email.trim().toLowerCase(), c, type);
     if (error) return fail(error);
@@ -144,196 +137,203 @@ export default function AuthScreen() {
     setMsg(error ? { text: error, ok: false } : { text: 'New code sent.', ok: true });
   }
 
-  const input = {
-    height: 54,
-    borderRadius: 16,
-    backgroundColor: 'rgba(255,255,255,0.07)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
-    paddingHorizontal: 16,
-    fontSize: 16,
-    fontFamily: Font.body,
-    color: '#fff',
-  } as const;
+  const hasError = !!(msg && !msg.ok);
 
-  const errorInput = msg && !msg.ok ? { borderColor: Palette.danger + '80' } : {};
-
-  const title = step === 'code'
+  const screenTitle = step === 'code'
     ? intent === 'recovery' ? 'reset password' : intent === 'signup' ? 'verify email' : 'enter code'
     : mode === 'signin' ? 'welcome back' : 'join preppa';
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#0b0604' }}>
-      {/* Ambient brand glow */}
-      <MotiView from={{ opacity: 0.6, translateY: -10 }} animate={{ opacity: 1, translateY: 14 }}
-        transition={{ type: 'timing', duration: 5000, loop: true, repeatReverse: true }}
-        pointerEvents="none"
-        style={{ position: 'absolute', top: -140, alignSelf: 'center', width: 440, height: 440, borderRadius: 220,
-          experimental_backgroundImage: 'radial-gradient(circle, rgba(232,97,26,0.2), transparent 70%)' }} />
-
+    <View style={{ flex: 1, backgroundColor: Palette.canvas }}>
       <SafeAreaView style={{ flex: 1, paddingHorizontal: 24 }}>
-        {/* Logo — slides down from splash position */}
-        <MotiView from={{ opacity: 0, translateY: -24 }} animate={{ opacity: 1, translateY: 0 }}
-          transition={{ type: 'spring', damping: 15, stiffness: 130, delay: 80 }}
-          style={{ alignItems: 'center', paddingTop: 24, paddingBottom: 20 }}>
-          <PreppaLogo size={72} glow />
-          <MotiView key={title} from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }}
-            transition={{ type: 'timing', duration: 200 }} style={{ alignItems: 'center', gap: 6, marginTop: 14 }}>
-            <Text style={{ fontFamily: Font.display, fontSize: 28, color: '#fff', letterSpacing: -0.8 }}>{title}</Text>
-            {step === 'form' ? (
-              <Text style={{ fontFamily: Font.body, fontSize: 14.5, color: 'rgba(255,255,255,0.55)', textAlign: 'center', maxWidth: 280 }}>
-                {mode === 'signin' ? 'sign in to your account' : 'real food from real local preppas'}
+
+        {/* Wordmark + tagline */}
+        <MotiView
+          from={{ opacity: 0, translateY: -20 }}
+          animate={{ opacity: 1, translateY: 0 }}
+          transition={{ type: 'spring', damping: 20, stiffness: 260, delay: 60 }}
+          style={{ alignItems: 'center', paddingTop: 32, paddingBottom: 28 }}>
+          <PreppaLogo size={64} glow={false} />
+          <MotiView
+            key={screenTitle}
+            from={{ opacity: 0, translateY: 6 }}
+            animate={{ opacity: 1, translateY: 0 }}
+            transition={{ type: 'timing', duration: 200 }}
+            style={{ alignItems: 'center', marginTop: 16, gap: 4 }}>
+            <Text style={{ fontFamily: Font.display, fontSize: 32, color: Palette.ink, letterSpacing: -1 }}>
+              {screenTitle}
+            </Text>
+            {step === 'form' && (
+              <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, letterSpacing: 0.2 }}>
+                fresh. local. yours.
               </Text>
-            ) : null}
+            )}
           </MotiView>
         </MotiView>
 
-        {/* Social OAuth buttons — shown on form step only */}
-        {step === 'form' ? (
-          <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }}
+        {/* Social auth buttons */}
+        {step === 'form' && (
+          <MotiView
+            from={{ opacity: 0, translateY: 10 }}
+            animate={{ opacity: 1, translateY: 0 }}
             transition={{ type: 'timing', duration: 260, delay: 120 }}
-            style={{ gap: 10, marginBottom: 18 }}>
-            <PressableScale onPress={() => { feedback.tap(); setMsg({ text: 'Apple Sign In launching soon — use email for now.', ok: true }); }}
-              accessibilityRole="button" accessibilityLabel="Continue with Apple"
-              style={{ height: 52, borderRadius: Radius.pill, backgroundColor: '#000', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
-              <Text style={{ fontSize: 20, color: '#fff', lineHeight: 24 }}></Text>
-              <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#fff' }}>Continue with Apple</Text>
+            style={{ gap: 10, marginBottom: 20 }}>
+            <PressableScale
+              onPress={() => { feedback.tap(); setMsg({ text: 'Apple Sign In launching soon — use email for now.', ok: true }); }}
+              accessibilityRole="button"
+              accessibilityLabel="Continue with Apple"
+              style={{ height: 50, borderRadius: 14, borderWidth: 1, borderColor: Palette.border, backgroundColor: Palette.surface, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
+              <Text style={{ fontSize: 20, color: Palette.ink, lineHeight: 24 }}></Text>
+              <Text style={{ fontFamily: Font.heading, fontSize: 15, color: Palette.ink }}>Continue with Apple</Text>
             </PressableScale>
-            <PressableScale onPress={() => { feedback.tap(); setMsg({ text: 'Google Sign In launching soon — use email for now.', ok: true }); }}
-              accessibilityRole="button" accessibilityLabel="Continue with Google"
-              style={{ height: 52, borderRadius: Radius.pill, backgroundColor: '#fff', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
-              <Text style={{ fontSize: 18, lineHeight: 22 }}>G</Text>
-              <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#111' }}>Continue with Google</Text>
+            <PressableScale
+              onPress={() => { feedback.tap(); setMsg({ text: 'Google Sign In launching soon — use email for now.', ok: true }); }}
+              accessibilityRole="button"
+              accessibilityLabel="Continue with Google"
+              style={{ height: 50, borderRadius: 14, borderWidth: 1, borderColor: Palette.border, backgroundColor: Palette.surface, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
+              <Text style={{ fontSize: 18, color: Palette.ink, lineHeight: 22 }}>G</Text>
+              <Text style={{ fontFamily: Font.heading, fontSize: 15, color: Palette.ink }}>Continue with Google</Text>
             </PressableScale>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 4 }}>
-              <View style={{ flex: 1, height: 1, backgroundColor: 'rgba(255,255,255,0.12)' }} />
-              <Text style={{ fontFamily: Font.medium, fontSize: 13, color: 'rgba(255,255,255,0.4)' }}>or with email</Text>
-              <View style={{ flex: 1, height: 1, backgroundColor: 'rgba(255,255,255,0.12)' }} />
+              <View style={{ flex: 1, height: 1, backgroundColor: Palette.border }} />
+              <Text style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.textMuted }}>or with email</Text>
+              <View style={{ flex: 1, height: 1, backgroundColor: Palette.border }} />
             </View>
           </MotiView>
-        ) : null}
+        )}
 
-        {/* Form */}
+        {/* Form / Code step */}
         <Animated.View style={shakeStyle}>
           {step === 'form' ? (
-            <MotiView key={`form-${mode}`} from={{ opacity: 0, translateX: 22 }} animate={{ opacity: 1, translateX: 0 }}
-              transition={{ type: 'spring', damping: 17, stiffness: 170 }} style={{ gap: 12 }}>
-              {statusBlock ? (
-                <View style={{ backgroundColor: 'rgba(239,68,68,0.12)', borderColor: 'rgba(239,68,68,0.4)', borderWidth: 1, borderRadius: 14, padding: 14 }}>
-                  <Text style={{ fontFamily: Font.heading, fontSize: 14, color: '#fff', marginBottom: 4 }}>
-                    {statusBlock === 'deleted' ? 'Account deleted' : 'Account suspended'}
-                  </Text>
-                  <Text style={{ fontFamily: Font.body, fontSize: 13, color: 'rgba(255,255,255,0.7)', lineHeight: 19 }}>
-                    {statusBlock === 'deleted'
-                      ? 'This account is scheduled for deletion. Contact support@preppa.live within 30 days to restore it.'
-                      : 'This account is suspended. Contact support@preppa.live for help.'}
-                  </Text>
-                </View>
-              ) : null}
-              {mode === 'signup' ? (
-                <TextInput style={[input, errorInput]} placeholder="full name" placeholderTextColor="rgba(255,255,255,0.3)"
-                  autoCapitalize="words" textContentType="name" maxLength={80} value={name} onChangeText={setName}
-                  editable={!busy} accessibilityLabel="Full name" />
-              ) : null}
-              <TextInput style={[input, errorInput]} placeholder="you@email.com" placeholderTextColor="rgba(255,255,255,0.3)"
-                autoCapitalize="none" autoComplete="email" textContentType="emailAddress" keyboardType="email-address"
-                maxLength={254} value={email} onChangeText={setEmail} editable={!busy}
-                accessibilityLabel="Email address" />
-              <View style={{ justifyContent: 'center' }}>
-                <TextInput style={[input, errorInput, { paddingRight: 52 }]} placeholder="password"
-                  placeholderTextColor="rgba(255,255,255,0.3)" autoCapitalize="none" secureTextEntry={!showPw}
-                  textContentType={mode === 'signup' ? 'newPassword' : 'password'}
-                  maxLength={128} value={password} onChangeText={setPassword} onSubmitEditing={submit}
-                  returnKeyType={mode === 'signup' ? 'next' : 'go'} editable={!busy}
-                  accessibilityLabel="Password" />
-                <Pressable onPress={() => setShowPw((v) => !v)} hitSlop={10} style={{ position: 'absolute', right: 16 }}
-                  accessibilityRole="button" accessibilityLabel={showPw ? 'Hide password' : 'Show password'}>
-                  {showPw ? <EyeOff size={20} color="rgba(255,255,255,0.4)" /> : <Eye size={20} color="rgba(255,255,255,0.4)" />}
-                </Pressable>
-              </View>
-              {mode === 'signin' ? (
-                <Pressable onPress={forgot} disabled={busy} style={{ alignSelf: 'flex-end' }}
-                  accessibilityRole="button" accessibilityLabel="Forgot password">
-                  <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: 'rgba(255,255,255,0.45)' }}>Forgot password?</Text>
-                </Pressable>
-              ) : null}
-              {msg ? (
-                <MotiView from={{ opacity: 0, translateY: 4 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 160 }}>
-                  <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: msg.ok ? Palette.success : Palette.danger, paddingHorizontal: 2 }}>{msg.text}</Text>
-                </MotiView>
-              ) : null}
-              <PressableScale onPress={submit} disabled={busy} accessibilityRole="button"
-                accessibilityLabel={mode === 'signup' ? 'Create account' : 'Sign in'}
-                style={{ height: 54, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', marginTop: 4, opacity: busy ? 0.7 : 1 }}>
-                {busy ? <ActivityIndicator color="#fff" /> : <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>{mode === 'signup' ? 'Create account' : 'Sign in'}</Text>}
-              </PressableScale>
-              <PressableScale onPress={sendOtp} disabled={busy}
-                accessibilityRole="button" accessibilityLabel="Email me a sign-in code instead"
-                style={{ alignItems: 'center', paddingVertical: 10 }}>
-                <Text style={{ fontFamily: Font.medium, fontSize: 14, color: 'rgba(255,255,255,0.45)' }}>
-                  Email me a sign-in code <Text style={{ fontFamily: Font.heading, color: ORANGE }}>instead</Text>
-                </Text>
-              </PressableScale>
-            </MotiView>
+            <AuthForm
+              mode={mode}
+              busy={busy}
+              statusBlock={statusBlock}
+              onSubmit={submit}
+              onForgot={forgot}
+              onSendOtp={sendOtp}
+              msg={msg}
+              name={name}
+              setName={setName}
+              email={email}
+              setEmail={setEmail}
+              password={password}
+              setPassword={setPassword}
+            />
           ) : (
-            <MotiView key="code" from={{ opacity: 0, translateX: 22 }} animate={{ opacity: 1, translateX: 0 }}
-              transition={{ type: 'spring', damping: 17, stiffness: 170 }} style={{ gap: 12 }}>
-              <TextInput ref={codeRef}
-                style={[input, errorInput, { textAlign: 'center', fontSize: 30, letterSpacing: 14, fontFamily: Font.display, height: 64 }]}
-                placeholder="••••••" placeholderTextColor="rgba(255,255,255,0.3)"
-                keyboardType="number-pad" autoComplete="one-time-code" textContentType="oneTimeCode" maxLength={6}
-                editable={!busy} value={code} accessibilityLabel="6-digit verification code"
+            <MotiView
+              key="code"
+              from={{ opacity: 0, translateX: 20 }}
+              animate={{ opacity: 1, translateX: 0 }}
+              transition={{ type: 'spring', damping: 20, stiffness: 260 }}
+              style={{ gap: 12 }}>
+              <TextInput
+                ref={codeRef}
+                style={{
+                  height: 64,
+                  borderRadius: 16,
+                  borderWidth: 1,
+                  borderColor: hasError ? Palette.danger : Palette.border,
+                  backgroundColor: Palette.surface,
+                  textAlign: 'center',
+                  fontSize: 30,
+                  letterSpacing: 14,
+                  fontFamily: Font.display,
+                  color: Palette.ink,
+                }}
+                placeholder="••••••"
+                placeholderTextColor={Palette.textMuted}
+                keyboardType="number-pad"
+                autoComplete="one-time-code"
+                textContentType="oneTimeCode"
+                maxLength={6}
+                editable={!busy}
+                value={code}
+                accessibilityLabel="6-digit verification code"
                 onChangeText={(t) => {
                   const digits = t.replace(/\D/g, '').slice(0, 6);
                   setCode(digits);
                   if (digits.length === 6 && intent !== 'recovery') verify(digits);
-                }} />
-              {intent === 'recovery' ? (
-                <View style={{ justifyContent: 'center' }}>
-                  <TextInput style={[input, errorInput, { paddingRight: 52 }]} placeholder="new password"
-                    placeholderTextColor="rgba(255,255,255,0.3)" autoCapitalize="none" secureTextEntry={!showPw}
-                    textContentType="newPassword" maxLength={128} value={newPassword} onChangeText={setNewPassword}
-                    editable={!busy} accessibilityLabel="New password" />
-                  <Pressable onPress={() => setShowPw((v) => !v)} hitSlop={10} style={{ position: 'absolute', right: 16 }}
-                    accessibilityRole="button" accessibilityLabel={showPw ? 'Hide password' : 'Show password'}>
-                    {showPw ? <EyeOff size={20} color="rgba(255,255,255,0.4)" /> : <Eye size={20} color="rgba(255,255,255,0.4)" />}
+                }}
+              />
+
+              {intent === 'recovery' && (
+                <View style={{ height: 56, borderRadius: 16, borderWidth: 1, borderColor: hasError ? Palette.danger : Palette.border, backgroundColor: Palette.surface, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16 }}>
+                  <TextInput
+                    placeholder="new password"
+                    value={newPassword}
+                    onChangeText={setNewPassword}
+                    secureTextEntry={!showPw}
+                    autoCapitalize="none"
+                    textContentType="newPassword"
+                    maxLength={128}
+                    editable={!busy}
+                    placeholderTextColor={Palette.textMuted}
+                    accessibilityLabel="New password"
+                    style={{ flex: 1, fontSize: 16, fontFamily: Font.body, color: Palette.ink, height: 56 }}
+                  />
+                  <Pressable onPress={() => setShowPw((v) => !v)} hitSlop={10} accessibilityRole="button" accessibilityLabel={showPw ? 'Hide password' : 'Show password'}>
+                    {showPw ? <EyeOff size={20} color={Palette.textSecondary} /> : <Eye size={20} color={Palette.textSecondary} />}
                   </Pressable>
                 </View>
-              ) : null}
+              )}
+
               {msg ? (
                 <MotiView from={{ opacity: 0, translateY: 4 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 160 }}>
-                  <Text style={{ fontFamily: Font.medium, fontSize: 14, color: msg.ok ? Palette.success : Palette.danger, textAlign: 'center' }}>{msg.text}</Text>
+                  <Text style={{ fontFamily: Font.medium, fontSize: 14, color: msg.ok ? Palette.success : Palette.danger, textAlign: 'center' }}>
+                    {msg.text}
+                  </Text>
                 </MotiView>
               ) : null}
-              <PressableScale onPress={() => verify()} disabled={busy} accessibilityRole="button"
+
+              <PressableScale
+                onPress={() => verify()}
+                disabled={busy}
+                accessibilityRole="button"
                 accessibilityLabel={intent === 'recovery' ? 'Reset and sign in' : 'Verify and continue'}
-                style={{ height: 54, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', marginTop: 4, opacity: busy ? 0.7 : 1 }}>
-                {busy ? <ActivityIndicator color="#fff" /> : <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>{intent === 'recovery' ? 'Reset & sign in' : 'Verify & continue'}</Text>}
+                style={{ height: 54, borderRadius: 14, backgroundColor: Palette.brand, alignItems: 'center', justifyContent: 'center', marginTop: 4, opacity: busy ? 0.7 : 1 }}>
+                {busy
+                  ? <ActivityIndicator color="#fff" />
+                  : <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>
+                      {intent === 'recovery' ? 'Reset & sign in' : 'Verify & continue'}
+                    </Text>}
               </PressableScale>
-              <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 18, marginTop: 8 }}>
-                <Pressable onPress={() => { feedback.tap(); setStep('form'); setCode(''); setMsg(null); }}
-                  accessibilityRole="button" accessibilityLabel="Back to form">
-                  <Text style={{ fontFamily: Font.medium, fontSize: 14, color: 'rgba(255,255,255,0.45)' }}>← back</Text>
+
+              <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 24, marginTop: 8 }}>
+                <Pressable
+                  onPress={() => { feedback.tap(); setStep('form'); setCode(''); setMsg(null); }}
+                  accessibilityRole="button"
+                  accessibilityLabel="Back to form">
+                  <Text style={{ fontFamily: Font.medium, fontSize: 14, color: Palette.textSecondary }}>back</Text>
                 </Pressable>
-                <Pressable onPress={resend} disabled={busy}
-                  accessibilityRole="button" accessibilityLabel="Resend code">
-                  <Text style={{ fontFamily: Font.heading, fontSize: 14, color: ORANGE }}>Resend code</Text>
+                <Pressable
+                  onPress={resend}
+                  disabled={busy}
+                  accessibilityRole="button"
+                  accessibilityLabel="Resend code">
+                  <Text style={{ fontFamily: Font.heading, fontSize: 14, color: Palette.brand }}>Resend code</Text>
                 </Pressable>
               </View>
             </MotiView>
           )}
         </Animated.View>
 
-        {step === 'form' ? (
-          <Pressable onPress={() => { feedback.tap(); setMode(mode === 'signin' ? 'signup' : 'signin'); setMsg(null); }}
-            style={{ alignItems: 'center', marginTop: 20 }}
-            accessibilityRole="button" accessibilityLabel={mode === 'signin' ? 'Create account' : 'Sign in to existing account'}>
-            <Text style={{ fontFamily: Font.body, fontSize: 14, color: 'rgba(255,255,255,0.45)' }}>
+        {/* Toggle signin / signup */}
+        {step === 'form' && (
+          <Pressable
+            onPress={() => { feedback.tap(); setMode(mode === 'signin' ? 'signup' : 'signin'); setMsg(null); }}
+            style={{ alignItems: 'center', marginTop: 24 }}
+            accessibilityRole="button"
+            accessibilityLabel={mode === 'signin' ? 'Create account' : 'Sign in to existing account'}>
+            <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary }}>
               {mode === 'signin' ? 'New here? ' : 'Already a member? '}
-              <Text style={{ fontFamily: Font.heading, color: ORANGE }}>{mode === 'signin' ? 'Create account' : 'Sign in'}</Text>
+              <Text style={{ fontFamily: Font.heading, color: Palette.brand }}>
+                {mode === 'signin' ? 'Create account' : 'Sign in'}
+              </Text>
             </Text>
           </Pressable>
-        ) : null}
+        )}
+
       </SafeAreaView>
     </View>
   );

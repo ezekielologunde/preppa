@@ -28,7 +28,69 @@ Deno.serve(async (req) => {
     const { data: { user }, error: uerr } = await supabase.auth.getUser(token);
     if (uerr || !user) return json({ error: 'Not authenticated' }, 401);
 
-    const { orderId, embedded } = await req.json().catch(() => ({}));
+    const body = await req.json().catch(() => ({}));
+    const { type } = body as { type?: string };
+
+    // ── bid_payment: customer pays an accepted meal-request bid ──────────────
+    if (type === 'bid_payment') {
+      const { bidId } = body as { bidId?: string };
+      if (!bidId) return json({ error: 'Missing bidId' }, 400);
+
+      const { data: bid, error: berr } = await supabase
+        .from('meal_request_bids')
+        .select('id, request_id, prepper_id, price_per_serving, status')
+        .eq('id', bidId)
+        .single();
+      if (berr || !bid) return json({ error: 'Bid not found' }, 404);
+      if (bid.status !== 'accepted') return json({ error: 'Bid is not in accepted state' }, 409);
+
+      const { data: mealReq, error: rerr } = await supabase
+        .from('meal_requests')
+        .select('id, customer_id, title, servings')
+        .eq('id', bid.request_id)
+        .single();
+      if (rerr || !mealReq) return json({ error: 'Meal request not found' }, 404);
+      if (mealReq.customer_id !== user.id) return json({ error: 'Not your request' }, 403);
+
+      const bidTotal = bid.price_per_serving * mealReq.servings;
+      const serviceFee = Math.max(Math.round(bidTotal * 0.10 * 100) / 100, 1.50);
+
+      const line_items = [
+        {
+          price_data: {
+            currency: 'usd',
+            product_data: { name: mealReq.title ?? 'Meal prep bid' },
+            unit_amount: Math.round(bidTotal * 100),
+          },
+          quantity: 1,
+        },
+        {
+          price_data: {
+            currency: 'usd',
+            product_data: { name: 'Platform fee (10%)' },
+            unit_amount: Math.round(serviceFee * 100),
+          },
+          quantity: 1,
+        },
+      ];
+
+      const session = await stripe.checkout.sessions.create({
+        payment_method_types: ['card'],
+        mode: 'payment',
+        line_items,
+        success_url: `preppa://bid-payment-success?bid_id=${bidId}`,
+        cancel_url: `preppa://bid-payment-cancel?bid_id=${bidId}`,
+        client_reference_id: bidId,
+        metadata: { type: 'bid_payment', bid_id: bidId, user_id: user.id, request_id: bid.request_id },
+        payment_intent_data: { metadata: { type: 'bid_payment', bid_id: bidId, user_id: user.id, request_id: bid.request_id } },
+        customer_email: user.email ?? undefined,
+      });
+
+      return json({ url: session.url });
+    }
+
+    // ── default: hosted checkout for a regular order ─────────────────────────
+    const { orderId, embedded } = body as { orderId?: string; embedded?: boolean };
     if (!orderId) return json({ error: 'Missing orderId' }, 400);
 
     const { data: order, error: oerr } = await supabase

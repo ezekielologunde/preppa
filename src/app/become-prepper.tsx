@@ -1,18 +1,12 @@
-import { decode } from 'base64-arraybuffer';
-import * as FileSystem from 'expo-file-system';
-import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import {
-  Award, ChefHat, ChevronLeft, Clock, ExternalLink,
-  Lock, Plus, ShieldCheck, ShieldX, Sparkles, TrendingUp, Users, X,
+  Award, Box, Camera, ChefHat, ChevronLeft, Clock, ExternalLink,
+  FileText, Lock, ShieldCheck, ShieldX, Sparkles, TrendingUp, Users,
 } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useState } from 'react';
-import {
-  ActivityIndicator, Image, Linking, ScrollView,
-  Text, TextInput, View, useWindowDimensions,
-} from 'react-native';
+import { Linking, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PressableScale } from '@/components/ui/pressable-scale';
@@ -22,8 +16,10 @@ import { Palette, Radius, Shadow } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
 import { useApplyAsPrepper, useMyPrepperApplication } from '@/lib/queries/preppers';
 import { useFeatureEnabled } from '@/lib/queries/feature-flags';
-import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/providers/auth-provider';
+import { PrepperTermsModal } from '@/components/prepper-terms-modal';
+import { CertificationsStep, DocState, emptyDoc } from '@/components/prepper-application/certifications-step';
+import { DocUploadGrid, UploadItem } from '@/components/prepper-application/doc-upload-grid';
 
 const ORANGE = Palette.brand;
 const INK = Palette.ink;
@@ -37,111 +33,6 @@ const CERT_RESOURCES = [
 
 const cleanLine = (s: string) => s.replace(/[\x00-\x1F\x7F]/g, '');
 const cleanBlock = (s: string) => s.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
-
-type UploadItem = { localUri: string; storagePath: string | null; uploading: boolean; error: boolean };
-
-async function uploadDoc(localUri: string, userId: string, label: string): Promise<string> {
-  const ext = (localUri.split('.').pop() ?? 'jpg').toLowerCase().replace('jpeg', 'jpg');
-  const path = `${userId}/application/${label}_${Date.now()}.${ext}`;
-  const base64 = await FileSystem.readAsStringAsync(localUri, { encoding: FileSystem.EncodingType.Base64 });
-  const { data, error } = await supabase.storage
-    .from('certifications')
-    .upload(path, decode(base64), { contentType: `image/${ext === 'jpg' ? 'jpeg' : ext}`, upsert: false });
-  if (error) throw error;
-  return data.path;
-}
-
-// ─── Upload grid ──────────────────────────────────────────────────────────────
-
-function DocUploadGrid({ label, items, setItems, max, userId, allowMultiple }: {
-  label: string;
-  items: UploadItem[];
-  setItems: React.Dispatch<React.SetStateAction<UploadItem[]>>;
-  max: number;
-  userId: string;
-  allowMultiple?: boolean;
-}) {
-  const { width } = useWindowDimensions();
-  const thumbW = Math.floor((width - 48 - 20) / 3); // 24px side pad × 2, 10px gap × 2
-  const thumbH = Math.round(thumbW * 1.3);           // portrait ratio — shows cert text
-
-  async function pick() {
-    const remaining = max - items.length;
-    if (remaining <= 0) return;
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      quality: 0.88,
-      allowsMultipleSelection: !!allowMultiple,
-    });
-    if (result.canceled || !result.assets.length) return;
-    const assets = result.assets.slice(0, remaining);
-    const startIdx = items.length;
-    setItems((prev) => [
-      ...prev,
-      ...assets.map((a) => ({ localUri: a.uri, storagePath: null, uploading: true, error: false })),
-    ]);
-    await Promise.all(
-      assets.map(async (asset, i) => {
-        try {
-          const path = await uploadDoc(asset.uri, userId, label.toLowerCase().replace(/\s+/g, '-'));
-          setItems((prev) => prev.map((d, idx) => idx === startIdx + i ? { ...d, storagePath: path, uploading: false } : d));
-        } catch {
-          setItems((prev) => prev.map((d, idx) => idx === startIdx + i ? { ...d, uploading: false, error: true } : d));
-          feedback.error();
-        }
-      })
-    );
-  }
-
-  return (
-    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 14 }}>
-      {items.map((item, idx) => (
-        <View key={`${idx}-${item.localUri}`}
-          style={{ width: thumbW, height: thumbH, borderRadius: 16, overflow: 'hidden', backgroundColor: Palette.canvas }}>
-          <Image source={{ uri: item.localUri }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
-
-          {item.uploading && (
-            <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.48)', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-              <ActivityIndicator color="#fff" size="small" />
-              <Text style={{ fontFamily: Font.medium, fontSize: 10, color: '#fff' }}>uploading…</Text>
-            </View>
-          )}
-          {item.error && (
-            <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(220,38,38,0.52)', alignItems: 'center', justifyContent: 'center' }}>
-              <Text style={{ color: '#fff', fontFamily: Font.semibold, fontSize: 11 }}>Failed</Text>
-            </View>
-          )}
-          {item.storagePath && !item.uploading && (
-            <View style={{ position: 'absolute', bottom: 7, right: 7, width: 22, height: 22, borderRadius: 11, backgroundColor: Palette.success, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#fff' }}>
-              <ShieldCheck size={11} color="#fff" />
-            </View>
-          )}
-
-          <PressableScale onPress={() => { feedback.tap(); setItems((p) => p.filter((_, i) => i !== idx)); }}
-            accessibilityRole="button" accessibilityLabel={`Remove ${label} photo`}
-            style={{ position: 'absolute', top: 6, right: 6, width: 26, height: 26, borderRadius: 13, backgroundColor: 'rgba(0,0,0,0.62)', alignItems: 'center', justifyContent: 'center' }}>
-            <X size={13} color="#fff" />
-          </PressableScale>
-        </View>
-      ))}
-
-      {items.length < max && (
-        <PressableScale onPress={() => { feedback.tap(); void pick(); }}
-          accessibilityRole="button" accessibilityLabel={`Add ${label} photo`}
-          style={{ width: thumbW, height: thumbH, borderRadius: 16, borderWidth: 1.5, borderColor: Palette.border, alignItems: 'center', justifyContent: 'center', backgroundColor: Palette.canvas, gap: 8 }}>
-          <View style={{ width: 42, height: 42, borderRadius: 21, backgroundColor: Palette.brandTint, alignItems: 'center', justifyContent: 'center' }}>
-            <Plus size={20} color={ORANGE} />
-          </View>
-          <Text style={{ fontFamily: Font.medium, fontSize: 11.5, color: Palette.textSecondary, textAlign: 'center' }}>
-            {allowMultiple ? 'Add photos' : 'Add photo'}
-          </Text>
-        </PressableScale>
-      )}
-    </View>
-  );
-}
-
-// ─── Section card ─────────────────────────────────────────────────────────────
 
 function SectionCard({ step, title, icon, children, delay = 0 }: {
   step: string; title: string; icon: React.ReactNode; children: React.ReactNode; delay?: number;
@@ -174,6 +65,10 @@ export default function BecomePrepperScreen() {
   const router = useRouter();
   const { user } = useAuth();
   const signupsOpen = useFeatureEnabled('prepper_signups');
+  const requireGovtId = useFeatureEnabled('require_govt_id');
+  const requireFoodSafety = useFeatureEnabled('require_food_safety');
+  const requireKitchenPhotos = useFeatureEnabled('require_kitchen_photos');
+  const requireFridgePhotos = useFeatureEnabled('require_fridge_photos');
   const { data: application, isLoading, isError, refetch } = useMyPrepperApplication(user?.id);
   const apply = useApplyAsPrepper();
 
@@ -182,20 +77,49 @@ export default function BecomePrepperScreen() {
   const [picked, setPicked] = useState<string[]>([]);
   const [idDocs, setIdDocs] = useState<UploadItem[]>([]);
   const [certDocs, setCertDocs] = useState<UploadItem[]>([]);
+  const [kitchenDocs, setKitchenDocs] = useState<UploadItem[]>([]);
+  const [fridgeDocs, setFridgeDocs] = useState<UploadItem[]>([]);
+  const [foodHandler, setFoodHandler] = useState<DocState>(emptyDoc());
+  const [insurance, setInsurance] = useState<DocState>(emptyDoc());
+  const [bizLicense, setBizLicense] = useState<DocState>(emptyDoc());
+  const [showTerms, setShowTerms] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
   function goBack() { feedback.tap(); if (router.canGoBack()) { router.back(); } else { router.replace('/profile'); } }
   function toggle(s: string) { setPicked((p) => (p.includes(s) ? p.filter((x) => x !== s) : [...p, s])); }
+  function validate(): string | null {
+    if (name.trim().length < 2) return 'Enter your kitchen or chef name.';
+    if ([...idDocs, ...certDocs, ...kitchenDocs, ...fridgeDocs].some((d) => d.uploading))
+      return 'Please wait for all uploads to finish.';
+    if ([foodHandler, insurance, bizLicense].some((d) => d.uploading))
+      return 'Please wait for document uploads to finish.';
+    if (requireGovtId && !idDocs.some((d) => d.storagePath))
+      return 'Government ID is required — upload at least one photo.';
+    if (requireFoodSafety && !certDocs.some((d) => d.storagePath))
+      return 'Food safety certificate is required — upload at least one photo.';
+    if (requireKitchenPhotos && !kitchenDocs.some((d) => d.storagePath))
+      return 'Kitchen photos are required — upload at least one photo.';
+    if (requireFridgePhotos && !fridgeDocs.some((d) => d.storagePath))
+      return 'Fridge/equipment photo is required — upload at least one photo.';
+    return null;
+  }
   function submit() {
-    setErr(null);
     if (!user) return router.push('/auth?mode=signup');
-    if (name.trim().length < 2) { feedback.error(); return setErr('Enter your kitchen or chef name.'); }
-    if ([...idDocs, ...certDocs].some((d) => d.uploading)) { feedback.warning(); return setErr('Please wait for uploads to finish.'); }
-    const docs = [...idDocs, ...certDocs].filter((d) => d.storagePath).map((d) => d.storagePath!);
+    const photoDocs = [...idDocs, ...certDocs, ...kitchenDocs, ...fridgeDocs].filter((d) => d.storagePath).map((d) => d.storagePath!);
+    const certDocs2 = [foodHandler.url, insurance.url, bizLicense.url].filter((u): u is string => !!u);
+    const docs = [...photoDocs, ...certDocs2];
     apply.mutate(
       { userId: user.id, displayName: cleanLine(name).trim(), bio: cleanBlock(bio).trim(), specialties: picked, applicationDocuments: docs },
-      { onSuccess: () => feedback.success(), onError: (e) => { feedback.error(); setErr(e instanceof Error ? e.message : 'Something went wrong.'); } },
+      { onSuccess: () => { feedback.success(); setShowTerms(false); }, onError: (e) => { feedback.error(); setShowTerms(false); setErr(e instanceof Error ? e.message : 'Something went wrong.'); } },
     );
+  }
+  function handleReview() {
+    setErr(null);
+    if (!user) return router.push('/auth?mode=signup');
+    const e = validate();
+    if (e) { feedback.error(); setErr(e); return; }
+    feedback.tap();
+    setShowTerms(true);
   }
 
   const backBtn = (
@@ -373,16 +297,16 @@ export default function BecomePrepperScreen() {
               <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10, backgroundColor: Palette.canvas, borderRadius: 14, padding: 14, marginBottom: 2 }}>
                 <Lock size={15} color={Palette.textSecondary} style={{ marginTop: 1 }} />
                 <Text style={{ flex: 1, fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary, lineHeight: 19 }}>
-                  Upload the front of your driver's license, passport, or state ID. Kept private — only our review team can see it.
+                  Upload the front and back of your driver's license, passport, or state ID. Kept private — only our review team can see it.{!requireGovtId ? ' (optional)' : ''}
                 </Text>
               </View>
-              {user && <DocUploadGrid label="Government ID" items={idDocs} setItems={setIdDocs} max={2} userId={user.id} />}
+              {user && <DocUploadGrid label="Government ID" items={idDocs} setItems={setIdDocs} max={4} userId={user.id} allowMultiple />}
             </SectionCard>
 
             {/* ── 03 Food safety certificates ───────────────────────────────── */}
             <SectionCard step="step 03" title="Food safety certificates" icon={<Award size={22} color={ORANGE} />} delay={220}>
               <Text style={{ fontFamily: Font.body, fontSize: 13.5, color: Palette.textSecondary, lineHeight: 20, marginBottom: 16 }}>
-                Upload photos of your food handler's permit or food safety certificate. Multiple photos accepted — upload front and back, or several certs.
+                Upload photos of your food handler's permit or food safety certificate. Multiple photos accepted — front and back, or several certs.{!requireFoodSafety ? ' (optional)' : ''}
               </Text>
 
               <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: Palette.textSecondary, letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 8 }}>
@@ -405,20 +329,53 @@ export default function BecomePrepperScreen() {
               )}
             </SectionCard>
 
-            {/* ── Submit ────────────────────────────────────────────────────── */}
+            {/* ── 04 Kitchen photos ──────────────────────────────────────── */}
+            <SectionCard step="step 04" title="Kitchen photos" icon={<Camera size={22} color={ORANGE} />} delay={300}>
+              <Text style={{ fontFamily: Font.body, fontSize: 13.5, color: Palette.textSecondary, lineHeight: 20, marginBottom: 2 }}>
+                Show us your cooking space. Clear, well-lit photos help reviewers verify your setup.{!requireKitchenPhotos ? ' (optional)' : ''}
+              </Text>
+              {user && (
+                <DocUploadGrid label="Kitchen" items={kitchenDocs} setItems={setKitchenDocs} max={8} userId={user.id} allowMultiple />
+              )}
+            </SectionCard>
+
+            {/* ── 05 Fridge & equipment ──────────────────────────────────── */}
+            <SectionCard step="step 05" title="Fridge & equipment" icon={<Box size={22} color={ORANGE} />} delay={380}>
+              <Text style={{ fontFamily: Font.body, fontSize: 13.5, color: Palette.textSecondary, lineHeight: 20, marginBottom: 2 }}>
+                Photos of your fridge interior and key cooking equipment. Confirms proper storage and safety standards.{!requireFridgePhotos ? ' (optional)' : ''}
+              </Text>
+              {user && (
+                <DocUploadGrid label="Fridge" items={fridgeDocs} setItems={setFridgeDocs} max={6} userId={user.id} allowMultiple />
+              )}
+            </SectionCard>
+
+            {/* ── 06 Certifications & documents ──────────────────────────── */}
+            {user && (
+              <SectionCard step="step 06" title="certifications" icon={<FileText size={22} color={ORANGE} />} delay={460}>
+                <CertificationsStep
+                  userId={user.id}
+                  foodHandler={foodHandler}
+                  setFoodHandler={setFoodHandler}
+                  insurance={insurance}
+                  setInsurance={setInsurance}
+                  bizLicense={bizLicense}
+                  setBizLicense={setBizLicense}
+                />
+              </SectionCard>
+            )}
+
+            {/* ── Review & submit ─────────────────────────────────────────── */}
             {err ? (
               <MotiView from={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ type: 'timing', duration: 200 }}>
                 <Text style={{ fontFamily: Font.medium, fontSize: 14, color: Palette.danger, marginBottom: 14, textAlign: 'center' }}>{err}</Text>
               </MotiView>
             ) : null}
 
-            <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280, delay: 300 }}>
-              <PressableScale onPress={() => { feedback.tap(); submit(); }} disabled={apply.isPending}
-                accessibilityRole="button" accessibilityLabel="Submit application"
-                style={{ height: 56, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', opacity: apply.isPending ? 0.72 : 1, ...Shadow.floating }}>
-                {apply.isPending
-                  ? <ActivityIndicator color="#fff" />
-                  : <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>Submit application</Text>}
+            <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280, delay: 540 }}>
+              <PressableScale onPress={() => { void handleReview(); }}
+                accessibilityRole="button" accessibilityLabel="Review and accept terms"
+                style={{ height: 56, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', ...Shadow.floating }}>
+                <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>Review & accept terms</Text>
               </PressableScale>
               <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted, textAlign: 'center', marginTop: 12, lineHeight: 18 }}>
                 Reviewed within 1–2 days. You'll be notified once approved.
@@ -428,6 +385,13 @@ export default function BecomePrepperScreen() {
           </View>
         </ScrollView>
       </SafeAreaView>
+
+      <PrepperTermsModal
+        visible={showTerms}
+        isPending={apply.isPending}
+        onClose={() => setShowTerms(false)}
+        onAccept={submit}
+      />
     </View>
   );
 }

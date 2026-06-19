@@ -1,118 +1,262 @@
 import { useRouter } from 'expo-router';
-import { Bell, ChevronLeft, Mail, MessageSquare } from 'lucide-react-native';
+import { ChevronLeft } from 'lucide-react-native';
 import { MotiView } from 'moti';
-import { useEffect, useState } from 'react';
-import { Switch, Text, View } from 'react-native';
+import { ScrollView, Switch, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
 import { Palette, Radius } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
-import { supabase } from '@/lib/supabase';
+import { useNotifPrefs, useUpdateNotifPrefs, usePushToken, type NotifPrefs } from '@/lib/queries/notification-prefs';
 import { useAuth } from '@/providers/auth-provider';
 
-type ChannelId = 'push' | 'email' | 'sms';
-type Channel = { id: ChannelId; label: string; desc: string; Icon: typeof Bell; color: string };
+// ─── Sub-components ──────────────────────────────────────────────────────────
 
-const CHANNELS: Channel[] = [
-  { id: 'push', label: 'Push notifications', desc: 'Rush hours, new drops, order updates, and rewards on your device', Icon: Bell, color: Palette.brand },
-  { id: 'email', label: 'Email', desc: 'Order status updates, weekly digest, and prepper recommendations', Icon: Mail, color: '#0891b2' },
-  { id: 'sms', label: 'SMS', desc: 'Time-sensitive delivery alerts and order status texts', Icon: MessageSquare, color: '#16a34a' },
-];
+function SectionLabel({ title }: { title: string }) {
+  return (
+    <Text
+      style={{
+        fontFamily: Font.semibold,
+        fontSize: 12,
+        color: Palette.textMuted,
+        textTransform: 'uppercase',
+        letterSpacing: 0.7,
+        paddingHorizontal: 16,
+        paddingTop: 20,
+        paddingBottom: 4,
+      }}>
+      {title}
+    </Text>
+  );
+}
 
-const DEFAULTS: Record<ChannelId, boolean> = { push: true, email: true, sms: false };
+type PrefRowProps = {
+  label: string;
+  value: boolean;
+  onChange: (v: boolean) => void;
+  disabled?: boolean;
+  isLast?: boolean;
+};
+
+function PrefRow({ label, value, onChange, disabled = false, isLast = false }: PrefRowProps) {
+  return (
+    <>
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          paddingVertical: 14,
+          paddingHorizontal: 16,
+        }}>
+        <Text
+          style={{
+            fontFamily: Font.body,
+            fontSize: 15,
+            color: disabled ? Palette.textMuted : Palette.ink,
+            flex: 1,
+            marginRight: 12,
+          }}>
+          {label}
+        </Text>
+        <Switch
+          value={value}
+          onValueChange={(v) => {
+            feedback.tap();
+            onChange(v);
+          }}
+          trackColor={{ false: Palette.border, true: Palette.brand + '60' }}
+          thumbColor={value ? Palette.brand : '#f4f3f4'}
+          ios_backgroundColor={Palette.border}
+          disabled={disabled}
+          accessibilityLabel={label}
+          accessibilityRole="switch"
+          accessibilityState={{ checked: value, disabled }}
+        />
+      </View>
+      {!isLast ? <View style={{ height: 1, backgroundColor: Palette.border, marginHorizontal: 16 }} /> : null}
+    </>
+  );
+}
+
+type SectionCardProps = { children: React.ReactNode; delay?: number };
+
+function SectionCard({ children, delay = 0 }: SectionCardProps) {
+  return (
+    <MotiView
+      from={{ opacity: 0, translateY: 8 }}
+      animate={{ opacity: 1, translateY: 0 }}
+      transition={{ type: 'timing', duration: 260, delay }}>
+      <View
+        style={{
+          backgroundColor: Palette.surface,
+          borderRadius: 16,
+          overflow: 'hidden',
+          marginHorizontal: 16,
+        }}>
+        {children}
+      </View>
+    </MotiView>
+  );
+}
+
+// ─── Screen ──────────────────────────────────────────────────────────────────
 
 export default function NotificationSettingsScreen() {
   const router = useRouter();
   const { user } = useAuth();
-  const [prefs, setPrefs] = useState<Record<ChannelId, boolean>>(DEFAULTS);
+  const { data: prefs, isLoading } = useNotifPrefs(user?.id);
+  const updatePrefs = useUpdateNotifPrefs(user?.id);
+  const { data: pushToken } = usePushToken(user?.id);
 
-  // Load the server-stored preferences (canonical, per-user, cross-device).
-  useEffect(() => {
-    if (!user?.id) return;
-    let cancelled = false;
-    supabase
-      .from('notification_preferences')
-      .select('email,sms,push')
-      .eq('user_id', user.id)
-      .maybeSingle()
-      .then(({ data }) => {
-        if (cancelled || !data) return;
-        setPrefs({ push: data.push, email: data.email, sms: data.sms });
-      });
-    return () => { cancelled = true; };
-  }, [user?.id]);
-
-  function goBack() { feedback.tap(); if (router.canGoBack()) { router.back(); } else { router.replace('/settings'); } }
-
-  async function toggle(id: ChannelId) {
-    if (!user?.id) return;
-    feedback.tap();
-    const next = { ...prefs, [id]: !prefs[id] };
-    setPrefs(next); // optimistic
-    const { error } = await supabase
-      .from('notification_preferences')
-      .upsert({ user_id: user.id, ...next }, { onConflict: 'user_id' });
-    if (error) {
-      setPrefs((p) => ({ ...p, [id]: !next[id] })); // revert on failure
-      feedback.error();
-    }
+  function toggle(key: keyof NotifPrefs) {
+    if (!prefs) return;
+    updatePrefs.mutate({ [key]: !prefs[key] });
   }
+
+  function goBack() {
+    feedback.tap();
+    if (router.canGoBack()) { router.back(); } else { router.replace('/settings'); }
+  }
+
+  const pushOn = prefs?.push_enabled ?? true;
+  // All category toggles are disabled when push master is off or prefs are loading
+  const catDisabled = isLoading || !pushOn;
 
   return (
     <View style={{ flex: 1, backgroundColor: Palette.canvas }}>
       <SafeAreaView edges={['top']} style={{ flex: 1 }}>
 
         {/* Header */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingTop: 8, paddingBottom: 16 }}>
-          <PressableScale onPress={goBack} accessibilityRole="button" accessibilityLabel="Go back"
-            style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 12,
+            paddingHorizontal: 16,
+            paddingTop: 8,
+            paddingBottom: 16,
+          }}>
+          <PressableScale
+            onPress={goBack}
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 20,
+              backgroundColor: Palette.surface,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
             <ChevronLeft size={22} color={Palette.ink} />
           </PressableScale>
           <View style={{ flex: 1 }}>
-            <Text style={{ fontFamily: Font.display, fontSize: 24, color: Palette.ink, letterSpacing: -0.6 }}>notifications</Text>
+            <Text style={{ fontFamily: Font.display, fontSize: 24, color: Palette.ink, letterSpacing: -0.6 }}>
+              notifications
+            </Text>
             <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: Palette.textSecondary, marginTop: 1 }}>
-              Choose how Preppa reaches you
+              Choose what Preppa sends to your device
             </Text>
           </View>
         </View>
 
-        <View style={{ paddingHorizontal: 20, gap: 14 }}>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 48 }}>
 
-          {/* Channel toggles */}
-          <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260 }}
-            style={{ backgroundColor: Palette.surface, borderRadius: Radius.lg, overflow: 'hidden' }}>
-            {CHANNELS.map(({ id, label, desc, Icon, color }, i) => (
-              <View key={id} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 16, borderTopWidth: i === 0 ? 0 : 1, borderTopColor: Palette.divider }}>
-                <View style={{ width: 40, height: 40, borderRadius: 13, backgroundColor: color + '1A', alignItems: 'center', justifyContent: 'center' }}>
-                  <Icon size={18} color={color} />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: Palette.ink }}>{label}</Text>
-                  <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: Palette.textSecondary, marginTop: 2, lineHeight: 17 }}>{desc}</Text>
-                </View>
-                <Switch
-                  value={prefs[id]}
-                  onValueChange={() => toggle(id)}
-                  disabled={!user?.id}
-                  trackColor={{ false: Palette.border, true: Palette.brand }}
-                  thumbColor="#fff"
-                  ios_backgroundColor={Palette.border}
-                  accessibilityLabel={`Toggle ${label}`}
-                />
-              </View>
-            ))}
-          </MotiView>
+          {/* Push master toggle */}
+          <SectionLabel title="Push notifications" />
+          <SectionCard delay={0}>
+            <PrefRow
+              label="Push notifications"
+              value={prefs?.push_enabled ?? true}
+              onChange={() => toggle('push_enabled')}
+              disabled={isLoading}
+              isLast
+            />
+          </SectionCard>
+
+          {/* Order & delivery */}
+          <SectionLabel title="Order & delivery" />
+          <SectionCard delay={60}>
+            <PrefRow
+              label="Order status updates"
+              value={prefs?.order_updates ?? true}
+              onChange={() => toggle('order_updates')}
+              disabled={catDisabled}
+            />
+            <PrefRow
+              label="Bid & custom meal updates"
+              value={prefs?.bid_updates ?? true}
+              onChange={() => toggle('bid_updates')}
+              disabled={catDisabled}
+              isLast
+            />
+          </SectionCard>
+
+          {/* Social */}
+          <SectionLabel title="Social" />
+          <SectionCard delay={120}>
+            <PrefRow
+              label="New followers"
+              value={prefs?.new_followers ?? true}
+              onChange={() => toggle('new_followers')}
+              disabled={catDisabled}
+            />
+            <PrefRow
+              label="Meal drops from kitchens you follow"
+              value={prefs?.meal_drops ?? true}
+              onChange={() => toggle('meal_drops')}
+              disabled={catDisabled}
+              isLast
+            />
+          </SectionCard>
+
+          {/* Marketing */}
+          <SectionLabel title="Marketing" />
+          <SectionCard delay={180}>
+            <PrefRow
+              label="Promotions & discounts"
+              value={prefs?.promotions ?? true}
+              onChange={() => toggle('promotions')}
+              disabled={catDisabled}
+            />
+            <PrefRow
+              label="Preppa news & tips"
+              value={prefs?.prepper_news ?? false}
+              onChange={() => toggle('prepper_news')}
+              disabled={catDisabled}
+              isLast
+            />
+          </SectionCard>
 
           {/* Footer note */}
-          <MotiView from={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ type: 'timing', duration: 300, delay: 200 }}>
-            <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted, textAlign: 'center', lineHeight: 18, paddingHorizontal: 8 }}>
-              Payment receipts are always sent. We respect quiet hours (10 pm – 7 am). To fully silence alerts, also use your device&apos;s system settings.
+          <MotiView
+            from={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ type: 'timing', duration: 300, delay: 240 }}>
+            <Text
+              style={{
+                fontFamily: Font.body,
+                fontSize: 12,
+                color: Palette.textMuted,
+                textAlign: 'center',
+                lineHeight: 18,
+                paddingHorizontal: 28,
+                marginTop: 20,
+              }}>
+              Payment receipts are always sent regardless of these settings. To fully silence
+              alerts, also use your device&apos;s system notification settings.
             </Text>
           </MotiView>
 
-        </View>
+          {__DEV__ && (
+            <Text style={{ fontSize: 10, color: Palette.textMuted, textAlign: 'center', marginTop: 8 }}>
+              {pushToken ? `token: ${pushToken.slice(-8)}` : 'no token registered'}
+            </Text>
+          )}
+
+        </ScrollView>
       </SafeAreaView>
     </View>
   );

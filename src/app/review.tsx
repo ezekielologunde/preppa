@@ -50,6 +50,7 @@ export default function ReviewScreen() {
   const { orderId, prepperId, mealId, prepper } = useLocalSearchParams<{ orderId?: string; prepperId?: string; mealId?: string; prepper?: string }>();
   const submit = useSubmitReview();
   const [rating, setRating] = useState(0);
+  const [tapped, setTapped] = useState(0); // tracks which star was last tapped for bounce
   const [body, setBody] = useState('');
   const [photos, setPhotos] = useState<PhotoItem[]>([]);
   const [done, setDone] = useState(false);
@@ -137,14 +138,20 @@ export default function ReviewScreen() {
             <View style={{ alignItems: 'center', gap: 8 }}>
               <View style={{ flexDirection: 'row', gap: 8 }}>
                 {[1, 2, 3, 4, 5].map((n) => (
-                  <PressableScale key={n} onPress={() => { feedback.tap(); setRating(n); }} accessibilityRole="button" accessibilityLabel={`${n} star${n > 1 ? 's' : ''}`} style={{ padding: 4 }}>
-                    <Star size={40} color={n <= rating ? Palette.amber : Palette.border} fill={n <= rating ? Palette.amber : 'transparent'} />
+                  <PressableScale key={n} onPress={() => { feedback.tap(); setRating(n); setTapped(n); }} accessibilityRole="button" accessibilityLabel={`${n} star${n > 1 ? 's' : ''}`} style={{ padding: 4 }}>
+                    <MotiView
+                      key={`star-${n}-${tapped === n ? tapped : 0}`}
+                      from={{ scale: tapped === n ? 1.2 : 1 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: 'spring', damping: 10, stiffness: 300 }}>
+                      <Star size={32} color={n <= rating ? Palette.brand : Palette.chip} fill={n <= rating ? Palette.brand : Palette.chip} />
+                    </MotiView>
                   </PressableScale>
                 ))}
               </View>
               {rating > 0 ? (
                 <MotiView from={{ opacity: 0, translateY: 4 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 180 }}>
-                  <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: Palette.amber }}>{RATING_LABELS[rating]}</Text>
+                  <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: Palette.brand }}>{RATING_LABELS[rating]}</Text>
                 </MotiView>
               ) : null}
             </View>

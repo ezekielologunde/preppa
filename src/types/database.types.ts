@@ -97,15 +97,15 @@ export interface Database {
   public: {
     Tables: {
       profiles: {
-        Row: { id: string; email: string | null; phone: string | null; full_name: string | null; avatar_url: string | null; status: UserStatus } & Timestamps;
-        Insert: { id: string; email?: string | null; full_name?: string | null; avatar_url?: string | null };
-        Update: Partial<{ full_name: string | null; avatar_url: string | null; phone: string | null }>;
+        Row: { id: string; email: string | null; phone: string | null; full_name: string | null; avatar_url: string | null; status: UserStatus; onboarding_completed_at: string | null; referral_code: string | null; referred_by: string | null } & Timestamps;
+        Insert: { id: string; email?: string | null; full_name?: string | null; avatar_url?: string | null; onboarding_completed_at?: string | null; referral_code?: string | null; referred_by?: string | null };
+        Update: Partial<{ full_name: string | null; avatar_url: string | null; phone: string | null; onboarding_completed_at: string | null; referral_code: string | null; referred_by: string | null }>;
         Relationships: [];
       };
       notification_preferences: {
-        Row: { user_id: string; email: boolean; sms: boolean; push: boolean };
-        Insert: { user_id: string; email?: boolean; sms?: boolean; push?: boolean };
-        Update: Partial<{ email: boolean; sms: boolean; push: boolean }>;
+        Row: { user_id: string; order_updates: boolean; new_followers: boolean; meal_drops: boolean; promotions: boolean; bid_updates: boolean; prepper_news: boolean; push_enabled: boolean; updated_at: string };
+        Insert: { user_id: string; order_updates?: boolean; new_followers?: boolean; meal_drops?: boolean; promotions?: boolean; bid_updates?: boolean; prepper_news?: boolean; push_enabled?: boolean; updated_at?: string };
+        Update: Partial<{ order_updates: boolean; new_followers: boolean; meal_drops: boolean; promotions: boolean; bid_updates: boolean; prepper_news: boolean; push_enabled: boolean }>;
         Relationships: [];
       };
       roles: {
@@ -127,9 +127,9 @@ export interface Database {
         Relationships: [];
       };
       prepper_profiles: {
-        Row: { id: string; user_id: string; display_name: string; bio: string | null; verified: boolean; status: PrepperStatus; reviewed_by: string | null; reviewed_at: string | null; rejection_note: string | null; delivery_radius_km: number | null; specialties: string[] | null; certifications: string[]; accepting_orders: boolean; home_cook_available: boolean; application_documents: string[]; delivers: boolean; pickup: boolean; delivery_fee: number; delivery_min_order: number; delivery_days: number[] | null; delivery_window_start: string | null; delivery_window_end: string | null; city: string | null; state: string | null } & Timestamps;
-        Insert: { user_id: string; display_name: string; bio?: string | null; specialties?: string[] | null; certifications?: string[]; accepting_orders?: boolean; application_documents?: string[] };
-        Update: Partial<{ display_name: string; bio: string | null; specialties: string[] | null; certifications: string[]; accepting_orders: boolean; home_cook_available: boolean; delivers: boolean; pickup: boolean; delivery_fee: number; delivery_min_order: number; delivery_radius_km: number | null; delivery_days: number[] | null; delivery_window_start: string | null; delivery_window_end: string | null; city: string | null; state: string | null }>;
+        Row: { id: string; user_id: string; display_name: string; bio: string | null; tagline: string | null; cover_url: string | null; cuisine_type: string | null; verified: boolean; status: PrepperStatus; reviewed_by: string | null; reviewed_at: string | null; rejection_note: string | null; delivery_radius_km: number | null; specialties: string[] | null; certifications: string[]; accepting_orders: boolean; home_cook_available: boolean; application_documents: string[]; delivers: boolean; pickup: boolean; delivery_fee: number; delivery_min_order: number; delivery_days: number[] | null; delivery_window_start: string | null; delivery_window_end: string | null; city: string | null; state: string | null; lat: number | null; lng: number | null; stripe_account_id: string | null; stripe_account_status: string | null; cook_schedule: Json | null; is_featured: boolean; featured_at: string | null } & Timestamps;
+        Insert: { user_id: string; display_name: string; bio?: string | null; tagline?: string | null; cover_url?: string | null; cuisine_type?: string | null; specialties?: string[] | null; certifications?: string[]; accepting_orders?: boolean; application_documents?: string[]; lat?: number | null; lng?: number | null; cook_schedule?: Json | null; is_featured?: boolean; featured_at?: string | null };
+        Update: Partial<{ display_name: string; bio: string | null; tagline: string | null; cover_url: string | null; cuisine_type: string | null; avatar_url: string | null; specialties: string[] | null; certifications: string[]; accepting_orders: boolean; home_cook_available: boolean; delivers: boolean; pickup: boolean; delivery_fee: number; delivery_min_order: number; delivery_radius_km: number | null; delivery_days: number[] | null; delivery_window_start: string | null; delivery_window_end: string | null; city: string | null; state: string | null; lat: number | null; lng: number | null; cook_schedule: Json | null; is_featured: boolean; featured_at: string | null }>;
         Relationships: [];
       };
       order_disputes: {
@@ -151,15 +151,21 @@ export interface Database {
         Relationships: [];
       };
       meals: {
-        Row: { id: string; prepper_id: string; category_id: number | null; title: string; description: string | null; base_price: number; prep_time_min: number | null; status: MealStatus; is_limited: boolean; limited_qty: number | null; drops_at: string | null; expires_at: string | null } & Timestamps & { updated_at: string };
-        Insert: { prepper_id: string; title: string; base_price: number; category_id?: number | null; description?: string | null; prep_time_min?: number | null; status?: MealStatus; is_limited?: boolean; limited_qty?: number | null; drops_at?: string | null; expires_at?: string | null };
-        Update: Partial<{ title: string; description: string | null; base_price: number; category_id: number | null; prep_time_min: number | null; status: MealStatus; is_limited: boolean; limited_qty: number | null; drops_at: string | null; expires_at: string | null }>;
+        Row: { id: string; prepper_id: string; category_id: number | null; title: string; description: string | null; base_price: number; prep_time_min: number | null; status: MealStatus; is_limited: boolean; limited_qty: number | null; drops_at: string | null; expires_at: string | null; allergens: string[]; ingredients: string[]; available_days: string[] | null; dietary_tags: string[] | null } & Timestamps & { updated_at: string };
+        Insert: { prepper_id: string; title: string; base_price: number; category_id?: number | null; description?: string | null; prep_time_min?: number | null; status?: MealStatus; is_limited?: boolean; limited_qty?: number | null; drops_at?: string | null; expires_at?: string | null; allergens?: string[]; ingredients?: string[]; available_days?: string[] | null; dietary_tags?: string[] | null };
+        Update: Partial<{ title: string; description: string | null; base_price: number; category_id: number | null; prep_time_min: number | null; status: MealStatus; is_limited: boolean; limited_qty: number | null; drops_at: string | null; expires_at: string | null; allergens: string[]; ingredients: string[]; available_days: string[] | null; dietary_tags: string[] | null }>;
         Relationships: [];
       };
       meal_images: {
         Row: { id: string; meal_id: string; url: string; order_index: number; alt_text: string | null };
         Insert: { meal_id: string; url: string; order_index?: number; alt_text?: string | null };
         Update: Partial<{ url: string; order_index: number; alt_text: string | null }>;
+        Relationships: [];
+      };
+      meal_videos: {
+        Row: { id: string; meal_id: string; url: string; order_index: number; duration_sec: number | null; thumbnail_url: string | null; created_at: string };
+        Insert: { meal_id: string; url: string; order_index?: number; duration_sec?: number | null; thumbnail_url?: string | null };
+        Update: Partial<{ url: string; order_index: number; duration_sec: number | null; thumbnail_url: string | null }>;
         Relationships: [];
       };
       meal_variants: {
@@ -181,8 +187,8 @@ export interface Database {
         Relationships: [];
       };
       orders: {
-        Row: { id: string; customer_id: string; prepper_id: string; status: OrderStatus; fulfillment_type: FulfillmentType; address_id: string | null; fulfillment_note: string | null; subtotal: number; tax: number; delivery_fee: number; service_fee: number; tip: number; total: number } & Timestamps & { updated_at: string };
-        Insert: never; // created only via create_order() RPC
+        Row: { id: string; customer_id: string; prepper_id: string; status: OrderStatus; fulfillment_type: FulfillmentType; address_id: string | null; fulfillment_note: string | null; subtotal: number; tax: number; delivery_fee: number; service_fee: number; tip: number; total: number; scheduled_at: string | null; source: 'direct' | 'bid' | 'home_cook' | 'experience'; bid_id: string | null } & Timestamps & { updated_at: string };
+        Insert: never; // created only via create_order() / create_order_from_meal_bid() RPCs
         Update: never; // mutated only via advance_order()/cancel_order() RPCs
         Relationships: [];
       };
@@ -193,9 +199,9 @@ export interface Database {
         Relationships: [];
       };
       reviews: {
-        Row: { id: string; order_id: string; author_id: string; prepper_id: string; meal_id: string | null; rating: number; body: string | null; photos: string[] } & Timestamps;
+        Row: { id: string; order_id: string; author_id: string; prepper_id: string; meal_id: string | null; rating: number; body: string | null; photos: string[]; prepper_reply: string | null; replied_at: string | null } & Timestamps;
         Insert: { order_id: string; author_id: string; prepper_id: string; rating: number; meal_id?: string | null; body?: string | null; photos?: string[] };
-        Update: Partial<{ rating: number; body: string | null; photos: string[] }>;
+        Update: Partial<{ rating: number; body: string | null; photos: string[]; prepper_reply: string | null; replied_at: string | null }>;
         Relationships: [];
       };
       follows: {
@@ -265,9 +271,9 @@ export interface Database {
         Relationships: [];
       };
       meal_request_bids: {
-        Row: { id: string; request_id: string; prepper_id: string; price_per_serving: number; note: string | null; status: string } & Timestamps;
+        Row: { id: string; request_id: string; prepper_id: string; price_per_serving: number; note: string | null; status: 'pending' | 'accepted' | 'rejected' | 'paid' } & Timestamps;
         Insert: { request_id: string; prepper_id: string; price_per_serving: number; note?: string | null };
-        Update: Partial<{ price_per_serving: number; note: string | null; status: string }>;
+        Update: Partial<{ price_per_serving: number; note: string | null; status: 'pending' | 'accepted' | 'rejected' | 'paid' }>;
         Relationships: [];
       };
       customer_meal_plans: {
@@ -294,10 +300,122 @@ export interface Database {
         Update: Partial<{ caption: string | null; thumbnail_url: string | null; video_url: string | null; tags: string[] }>;
         Relationships: [];
       };
+      live_sessions: {
+        Row: { id: string; prepper_id: string; title: string | null; started_at: string; ended_at: string | null; viewer_count: number; is_active: boolean };
+        Insert: { prepper_id: string; title?: string | null; started_at?: string; ended_at?: string | null; viewer_count?: number };
+        Update: Partial<{ title: string | null; ended_at: string | null; viewer_count: number }>;
+        Relationships: [];
+      };
+      promo_codes: {
+        Row: { id: string; code: string; description: string | null; discount_type: 'percent' | 'fixed'; discount_value: number; min_order_value: number; max_uses: number | null; uses_count: number; expires_at: string | null; active: boolean; created_at: string };
+        Insert: { code: string; discount_type: 'percent' | 'fixed'; discount_value: number; description?: string | null; min_order_value?: number; max_uses?: number | null; expires_at?: string | null };
+        Update: Partial<{ description: string | null; discount_type: 'percent' | 'fixed'; discount_value: number; min_order_value: number; max_uses: number | null; expires_at: string | null; active: boolean }>;
+        Relationships: [];
+      };
+      saved_meals: {
+        Row: { id: string; user_id: string; meal_id: string; created_at: string };
+        Insert: { id?: string; user_id: string; meal_id: string; created_at?: string };
+        Update: { id?: string; user_id?: string; meal_id?: string; created_at?: string };
+        Relationships: [];
+      };
+      meal_stock: {
+        Row: { id: string; meal_id: string; date: string; qty_total: number; qty_sold: number };
+        Insert: { id?: string; meal_id: string; date?: string; qty_total?: number; qty_sold?: number };
+        Update: Partial<{ qty_total: number; qty_sold: number }>;
+        Relationships: [];
+      };
+      holiday_events: {
+        Row: { id: string; key: string; name: string; emoji: string; date_str: string; description: string; color_hex: string; dishes: string[]; active: boolean; sort_order: number; created_at: string };
+        Insert: { id?: string; key: string; name: string; emoji?: string; date_str: string; description: string; color_hex?: string; dishes?: string[]; active?: boolean; sort_order?: number; created_at?: string };
+        Update: Partial<{ key: string; name: string; emoji: string; date_str: string; description: string; color_hex: string; dishes: string[]; active: boolean; sort_order: number }>;
+        Relationships: [];
+      };
+      boosts: {
+        Row: { id: string; prepper_id: string; meal_id: string | null; plan: string; amount_cents: number; starts_at: string; expires_at: string; status: 'active' | 'expired' | 'cancelled'; stripe_payment_intent_id: string | null } & Timestamps;
+        Insert: { prepper_id: string; plan: string; amount_cents: number; expires_at: string; meal_id?: string | null; starts_at?: string; status?: 'active' | 'expired' | 'cancelled'; stripe_payment_intent_id?: string | null };
+        Update: Partial<{ status: 'active' | 'expired' | 'cancelled'; stripe_payment_intent_id: string | null }>;
+        Relationships: [];
+      };
+      push_tokens: {
+        Row: { id: string; user_id: string; token: string; platform: 'ios' | 'android' | 'web'; updated_at: string };
+        Insert: { id?: string; user_id: string; token: string; platform: 'ios' | 'android' | 'web'; updated_at?: string };
+        Update: Partial<{ token: string; platform: 'ios' | 'android' | 'web'; updated_at: string }>;
+        Relationships: [];
+      };
+      bid_messages: {
+        Row: { id: string; bid_id: string; sender_id: string; body: string; created_at: string };
+        Insert: { bid_id: string; sender_id: string; body: string };
+        Update: never;
+        Relationships: [];
+      };
+      order_messages: {
+        Row: { id: string; order_id: string; sender_id: string | null; body: string; created_at: string };
+        Insert: { order_id: string; sender_id?: string | null; body: string };
+        Update: never;
+        Relationships: [];
+      };
+      referral_codes: {
+        Row: { id: string; user_id: string; code: string; uses_count: number; created_at: string };
+        Insert: { user_id: string; code: string };
+        Update: Partial<{ uses_count: number }>;
+        Relationships: [];
+      };
+      referrals: {
+        Row: { id: string; referrer_id: string; referred_id: string | null; code: string; status: 'pending' | 'completed' | 'paid'; credit_amount: number; created_at: string; completed_at: string | null };
+        Insert: { referrer_id: string; code: string; referred_id?: string | null; status?: 'pending' | 'completed' | 'paid'; credit_amount?: number; completed_at?: string | null };
+        Update: Partial<{ referred_id: string | null; status: 'pending' | 'completed' | 'paid'; credit_amount: number; completed_at: string | null }>;
+        Relationships: [];
+      };
+      reward_points: {
+        Row: { id: string; user_id: string; order_id: string | null; points: number; reason: string; created_at: string };
+        Insert: { user_id: string; points: number; reason?: string; order_id?: string | null };
+        Update: never;
+        Relationships: [];
+      };
+      payout_requests: {
+        Row: {
+          id: string;
+          prepper_id: string;
+          amount: number;
+          status: 'pending' | 'processing' | 'paid' | 'rejected';
+          bank_name: string | null;
+          account_number: string | null;
+          account_name: string | null;
+          note: string | null;
+          created_at: string;
+          processed_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          prepper_id: string;
+          amount: number;
+          status?: 'pending' | 'processing' | 'paid' | 'rejected';
+          bank_name?: string | null;
+          account_number?: string | null;
+          account_name?: string | null;
+          note?: string | null;
+        };
+        Update: Partial<{
+          amount: number;
+          status: 'pending' | 'processing' | 'paid' | 'rejected';
+          bank_name: string | null;
+          account_number: string | null;
+          account_name: string | null;
+          note: string | null;
+          processed_at: string | null;
+        }>;
+        Relationships: [];
+      };
+      gift_cards: {
+        Row: { id: string; code: string; sender_id: string | null; recipient_email: string | null; amount: number; balance: number; message: string | null; redeemed_by: string | null; is_active: boolean; created_at: string; expires_at: string | null };
+        Insert: { sender_id: string; code: string; amount: number; balance: number; recipient_email?: string | null; message?: string | null; expires_at?: string | null };
+        Update: Partial<{ balance: number; redeemed_by: string | null; is_active: boolean }>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
-      create_order: { Args: { p_fulfillment?: FulfillmentType; p_address_id?: string | null; p_note?: string | null; p_tip?: number }; Returns: string };
+      create_order: { Args: { p_fulfillment?: FulfillmentType; p_address_id?: string | null; p_note?: string | null; p_tip?: number; p_scheduled_at?: string | null }; Returns: string };
       update_delivery_settings: { Args: { p_delivers: boolean; p_pickup: boolean; p_delivery_fee: number; p_delivery_min_order: number; p_delivery_radius_km: number | null; p_delivery_days: number[] | null; p_delivery_window_start: string | null; p_delivery_window_end: string | null }; Returns: undefined };
       advance_order: { Args: { p_order_id: string; p_next: OrderStatus }; Returns: undefined };
       cancel_order: { Args: { p_order_id: string }; Returns: undefined };
@@ -341,6 +459,7 @@ export interface Database {
       confirm_home_cook_booking: { Args: { p_request_id: string }; Returns: string };
       cancel_home_cook_request: { Args: { p_request_id: string; p_reason?: string | null }; Returns: undefined };
       set_home_cook_payment_intent: { Args: { p_request_id: string; p_payment_intent_id: string }; Returns: undefined };
+      get_or_create_referral_code: { Args: { uid: string }; Returns: string };
     };
     Enums: {
       order_status: OrderStatus;
