@@ -14,7 +14,7 @@ import { BP } from '@/lib/layout';
 import { useConversations } from '@/lib/queries/messages';
 import { usePrepperOrders } from '@/lib/queries/orders';
 import { useMyPrepperApplication } from '@/lib/queries/preppers';
-import { useNotifications } from '@/lib/queries/notifications';
+import { useNotifications, useNotificationsRealtime } from '@/lib/queries/notifications';
 import { useAuth } from '@/providers/auth-provider';
 
 type TabDef = {
@@ -74,6 +74,7 @@ function PreppaTabBar({ state, navigation }: TabBarProps) {
   const isPrepper = prepper?.status === 'approved';
   const { data: pendingOrders } = usePrepperOrders(isPrepper ? prepper?.id : undefined, 'pending');
   const pendingCount = pendingOrders?.length ?? 0;
+  useNotificationsRealtime(user?.id);
   const { data: notifications } = useNotifications(user?.id);
   const unreadBids = (notifications ?? []).filter((n) => !n.read && n.type === 'bid').length;
   const unreadNotifs = (notifications ?? []).filter((n) => !n.read).length;

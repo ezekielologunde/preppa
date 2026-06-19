@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useEffect } from 'react';
 
 import { supabase } from '@/lib/supabase';
 
@@ -12,7 +13,8 @@ export type AppNotification = {
   created_at: string;
 };
 
-/** The signed-in user's notification rows (bids, reviews, follows, renewals). */
+/** The signed-in user's notification rows (bids, reviews, follows, renewals).
+ *  Call useNotificationsRealtime() once at the app root to get instant updates. */
 export function useNotifications(userId?: string | null) {
   return useQuery({
     queryKey: ['notifications', userId ?? 'anon'],
@@ -28,6 +30,24 @@ export function useNotifications(userId?: string | null) {
       return (data ?? []) as AppNotification[];
     },
   });
+}
+
+/** Mount once at the app root — opens a single Realtime channel that invalidates
+ *  the notifications query instantly on INSERT instead of waiting for the 30s poll. */
+export function useNotificationsRealtime(userId?: string | null) {
+  const qc = useQueryClient();
+  useEffect(() => {
+    if (!userId) return;
+    const channel = supabase
+      .channel(`notifications-${userId}`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${userId}` },
+        () => qc.invalidateQueries({ queryKey: ['notifications', userId] }),
+      )
+      .subscribe();
+    return () => { void supabase.removeChannel(channel); };
+  }, [userId, qc]);
 }
 
 /** Mark one (or all) of the caller's notifications read. */

@@ -179,6 +179,13 @@ export default function NotificationsScreen() {
     const refId = n.data?.reference_id as string | undefined;
     switch (type) {
       case 'order':
+        // Prepper new-order notification has `total` but no `status` in data
+        if (n.data?.status !== undefined) {
+          router.push('/orders');
+        } else {
+          router.push('/prepper-orders' as never);
+        }
+        break;
       case 'payment':
       case 'order_status':
         router.push('/orders');

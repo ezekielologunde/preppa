@@ -359,19 +359,27 @@ Deno.serve(async (req) => {
               const gcAmount = Number(gcRow.gift_card_amount);
               const { data: card } = await supabase
                 .from('gift_cards')
-                .select('id, balance, redeemed_by, is_active')
+                .select('id, balance, redeemed_by, is_active, expires_at')
                 .eq('code', gcRow.gift_card_code)
                 .single();
-              if (card && card.is_active && card.balance > 0) {
+              const expired = card?.expires_at && new Date(card.expires_at) < new Date();
+              if (card && card.is_active && card.balance > 0 && !expired) {
                 const newBalance = Math.max(0, card.balance - gcAmount);
-                await supabase
+                // Atomic: .eq('balance', card.balance) is an optimistic lock —
+                // concurrent redemptions return 0 rows instead of double-spending.
+                const { data: updated } = await supabase
                   .from('gift_cards')
                   .update({
                     balance: newBalance,
                     redeemed_by: card.redeemed_by ?? gcRow.customer_id,
                     is_active: newBalance > 0,
                   })
-                  .eq('id', card.id);
+                  .eq('id', card.id)
+                  .eq('balance', card.balance)
+                  .select('id');
+                if (!updated?.length) {
+                  console.warn('gift card balance changed concurrently — skipping', gcRow.gift_card_code);
+                }
               }
             }
           } catch (e) {
