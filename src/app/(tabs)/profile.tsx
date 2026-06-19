@@ -21,7 +21,7 @@ import { useConversations } from '@/lib/queries/messages';
 import { useCustomerMembership } from '@/lib/queries/memberships';
 import { useMySubscriptions } from '@/lib/queries/meal-plans';
 import { useNotifications } from '@/lib/queries/notifications';
-import { useMyOrders, useOrdersRealtime } from '@/lib/queries/orders';
+import { useMyOrders } from '@/lib/queries/orders';
 import { useFollowedPreppers, useMyPrepperApplication } from '@/lib/queries/preppers';
 import { usePaymentMethods } from '@/lib/queries/payment-methods';
 import { useMyReferralCode } from '@/lib/queries/referral';
@@ -43,7 +43,6 @@ export default function ProfileScreen() {
   const isPendingPrepper = myPrepper?.status === 'pending';
   const { data: followedPreppers, refetch: refetchFollowed } = useFollowedPreppers(user?.id);
   const rewards = useRewards(user?.id);
-  useOrdersRealtime('customer_id', user?.id);
   const { data: notifications, refetch: refetchNotifications } = useNotifications(user?.id);
   const { data: conversations, refetch: refetchConversations } = useConversations(user?.id);
   const { data: orders } = useMyOrders(user?.id);

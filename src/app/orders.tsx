@@ -20,7 +20,7 @@ import { useAddToCart, useEmbeddedCheckout, useRefundOrder, useStripeCheckout, t
 import { useFeatureEnabled } from '@/lib/queries/feature-flags';
 import { feedback } from '@/lib/feedback';
 import { useStartConversation } from '@/lib/queries/messages';
-import { useCancelOrder, useMyOrders, useOrdersRealtime, useReportDispute, type OrderSummary } from '@/lib/queries/orders';
+import { useCancelOrder, useMyOrders, useReportDispute, type OrderSummary } from '@/lib/queries/orders';
 import { BP } from '@/lib/layout';
 import { useAuth } from '@/providers/auth-provider';
 
@@ -33,7 +33,6 @@ export default function OrdersScreen() {
   const { width } = useWindowDimensions();
   const twoCol = Platform.OS === 'web' && width >= BP.desktop;
   const { data: orders, isLoading, isError, refetch } = useMyOrders(user?.id);
-  useOrdersRealtime('customer_id', user?.id);
   const [refreshing, setRefreshing] = useState(false);
   async function handleRefresh() { setRefreshing(true); await refetch(); setRefreshing(false); }
   const cancelOrder = useCancelOrder();

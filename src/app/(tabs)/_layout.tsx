@@ -12,7 +12,7 @@ import { Palette } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
 import { BP } from '@/lib/layout';
 import { useConversations, useConversationsRealtime } from '@/lib/queries/messages';
-import { usePrepperOrders } from '@/lib/queries/orders';
+import { usePrepperOrders, useOrdersRealtime } from '@/lib/queries/orders';
 import { useMyPrepperApplication } from '@/lib/queries/preppers';
 import { useNotifications, useNotificationsRealtime } from '@/lib/queries/notifications';
 import { useAuth } from '@/providers/auth-provider';
@@ -76,6 +76,7 @@ function PreppaTabBar({ state, navigation }: TabBarProps) {
   const pendingCount = pendingOrders?.length ?? 0;
   useNotificationsRealtime(user?.id);
   useConversationsRealtime(user?.id);
+  useOrdersRealtime('customer_id', user?.id);
   const { data: notifications } = useNotifications(user?.id);
   const unreadBids = (notifications ?? []).filter((n) => !n.read && n.type === 'bid').length;
   const unreadNotifs = (notifications ?? []).filter((n) => !n.read).length;

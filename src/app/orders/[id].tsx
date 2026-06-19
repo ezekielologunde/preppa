@@ -34,7 +34,6 @@ import { useStartConversation } from '@/lib/queries/messages';
 import {
   useCancelOrder,
   useOrder,
-  useOrdersRealtime,
   useReportDispute,
   type OrderSummary,
 } from '@/lib/queries/orders';
@@ -83,7 +82,6 @@ export default function OrderDetailScreen() {
   const { user } = useAuth();
 
   const { data: order, isLoading, isError } = useOrder(id);
-  useOrdersRealtime('customer_id', user?.id);
 
   const cancelOrder = useCancelOrder();
   const reportDispute = useReportDispute();
