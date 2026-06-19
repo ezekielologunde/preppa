@@ -151,7 +151,7 @@ function BudgetPicker({ value, onChange }: { value: number | null; onChange: (n:
             <PressableScale key={p} onPress={() => { feedback.tap(); setCustom(false); onChange(p); }}
               accessibilityRole="button" accessibilityLabel={`$${p.toLocaleString('en-US')} budget`} accessibilityState={{ selected: on }}
               style={{ paddingHorizontal: 14, height: 40, borderRadius: Radius.pill, borderWidth: 1.5, borderColor: on ? ORANGE : Palette.border, backgroundColor: on ? Palette.brandTint : Palette.canvas, alignItems: 'center', justifyContent: 'center' }}>
-              <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: on ? ORANGE : INK }}>${(p / 1000).toFixed(p < 1000 ? 0 : 1)}k</Text>
+              <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: on ? ORANGE : INK }}>{p < 1000 ? `$${p}` : `$${(p / 1000).toFixed(1)}k`}</Text>
             </PressableScale>
           );
         })}
