@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Location from 'expo-location';
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { Platform } from 'react-native';
 
 type DeviceLocation = {
   city: string;
@@ -55,6 +56,7 @@ export function LocationProvider({ children }: { children: ReactNode }) {
   }, []);
 
   async function requestDeviceLocation(): Promise<DeviceLocation['status']> {
+    if (Platform.OS === 'web') return 'denied'; // expo-location geolocation is not reliable on web
     if (loc.status === 'granted' && loc.fetchedAt && Date.now() - loc.fetchedAt < LOCATION_STALE_MS) {
       return 'granted';
     }

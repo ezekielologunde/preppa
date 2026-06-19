@@ -3,7 +3,7 @@ import { useRouter } from 'expo-router';
 import { ChevronLeft, Crown, Eye, Flame, Sparkles, Star, TrendingUp, Zap } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useState } from 'react';
-import { ActivityIndicator, Alert, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Platform, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PressableScale } from '@/components/ui/pressable-scale';
@@ -95,15 +95,19 @@ export default function BoostScreen() {
         amountCents,
         durationLabel: selectedDuration.label,
       });
-      const result = await WebBrowser.openBrowserAsync(url);
-      // Insert optimistically when the user closes the browser (any result type).
-      if (result.type === 'cancel' || result.type === 'dismiss') {
-        await insertBoost.mutateAsync({
-          prepperId: prepper.id,
-          plan: selectedPlan.name,
-          amountCents,
-          durationLabel: selectedDuration.label,
-        });
+      if (Platform.OS === 'web' && typeof window !== 'undefined') {
+        window.location.href = url;
+      } else {
+        const result = await WebBrowser.openBrowserAsync(url);
+        // Insert optimistically when the user closes the browser (any result type).
+        if (result.type === 'cancel' || result.type === 'dismiss') {
+          await insertBoost.mutateAsync({
+            prepperId: prepper.id,
+            plan: selectedPlan.name,
+            amountCents,
+            durationLabel: selectedDuration.label,
+          });
+        }
       }
       feedback.success();
       setActivated(true);

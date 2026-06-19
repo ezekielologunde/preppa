@@ -317,7 +317,7 @@ export default function ExploreScreen() {
             </PressableScale>
           ) : null}
 
-          {locDenied && advFilters.sort === 'nearest' ? (
+          {locDenied && advFilters.sort === 'nearest' && Platform.OS !== 'web' ? (
             <PressableScale onPress={() => { feedback.tap(); void Linking.openSettings(); }} accessibilityRole="button" accessibilityLabel="Enable location for nearby kitchens"
               style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginHorizontal: pad, marginTop: 8, paddingVertical: 8 }}>
               <MapPin size={13} color={Palette.brand} />
