@@ -76,10 +76,11 @@ type ModalFormProps = {
   available: number;
   prepperId: string;
   uid: string;
+  stripeActive: boolean;
   onClose: () => void;
 };
 
-function RequestModal({ available, prepperId, uid, onClose }: ModalFormProps) {
+function RequestModal({ available, prepperId, uid, stripeActive, onClose }: ModalFormProps) {
   const [amount, setAmount] = useState('');
   const [bankName, setBankName] = useState('');
   const [accountNumber, setAccountNumber] = useState('');
@@ -88,6 +89,7 @@ function RequestModal({ available, prepperId, uid, onClose }: ModalFormProps) {
   const requestPayout = useRequestPayout(prepperId);
 
   useEffect(() => {
+    if (stripeActive) return; // Stripe has the bank on file — no need to load local cache
     AsyncStorage.getItem(BANK_KEY(uid)).then((saved) => {
       if (saved) {
         const parsed: SavedBank = JSON.parse(saved);
@@ -97,7 +99,7 @@ function RequestModal({ available, prepperId, uid, onClose }: ModalFormProps) {
         setAccountNumber(parsed.accountNumber);
       }
     }).catch(() => {});
-  }, [uid]);
+  }, [uid, stripeActive]);
 
   function clearSavedBank() {
     setSavedBank(null);
@@ -108,20 +110,28 @@ function RequestModal({ available, prepperId, uid, onClose }: ModalFormProps) {
   }
 
   const parsedAmount = parseFloat(amount);
-  const valid =
-    !isNaN(parsedAmount) &&
-    parsedAmount >= MIN_PAYOUT &&
-    parsedAmount <= available &&
+  const amountOk = !isNaN(parsedAmount) && parsedAmount >= MIN_PAYOUT && parsedAmount <= available;
+  const valid = amountOk && (stripeActive || (
     bankName.trim().length > 0 &&
     accountNumber.trim().length > 0 &&
-    accountName.trim().length > 0;
+    accountName.trim().length > 0
+  ));
 
   async function handleSubmit() {
     if (!valid) return;
     feedback.tap();
     try {
-      await requestPayout.mutateAsync({ amount: parsedAmount, bankName: bankName.trim(), accountNumber: accountNumber.trim(), accountName: accountName.trim() });
-      await AsyncStorage.setItem(BANK_KEY(uid), JSON.stringify({ bankName: bankName.trim(), accountName: accountName.trim(), accountNumber: accountNumber.trim() }));
+      await requestPayout.mutateAsync({
+        amount: parsedAmount,
+        bankName: stripeActive ? 'stripe_connect' : bankName.trim(),
+        accountNumber: stripeActive ? 'stripe_connect' : accountNumber.trim(),
+        accountName: stripeActive ? 'stripe_connect' : accountName.trim(),
+      });
+      if (!stripeActive) {
+        await AsyncStorage.setItem(BANK_KEY(uid), JSON.stringify({
+          bankName: bankName.trim(), accountName: accountName.trim(), accountNumber: accountNumber.trim(),
+        }));
+      }
       feedback.success();
       onClose();
     } catch {
@@ -157,7 +167,16 @@ function RequestModal({ available, prepperId, uid, onClose }: ModalFormProps) {
             available: {money(available)} · min {money(MIN_PAYOUT)}
           </Text>
 
-          {savedBank && (
+          {stripeActive && (
+            <View style={{ backgroundColor: '#0d1117', borderRadius: 10, padding: 12, marginBottom: 16, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <Text style={{ fontFamily: Font.medium, fontSize: 12.5, color: '#4ade80' }}>✓</Text>
+              <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: MUTED, flex: 1 }}>
+                Paid directly to your Stripe-linked bank account
+              </Text>
+            </View>
+          )}
+
+          {!stripeActive && savedBank && (
             <View style={{ backgroundColor: '#0d1117', borderRadius: 10, padding: 12, marginBottom: 12 }}>
               <Text style={{ fontFamily: Font.medium, fontSize: 13, color: MUTED }}>
                 Saved account: {savedBank.bankName} — ****{savedBank.accountNumber.slice(-4)}
@@ -170,7 +189,7 @@ function RequestModal({ available, prepperId, uid, onClose }: ModalFormProps) {
 
           <Text style={labelStyle}>Amount</Text>
           <TextInput
-            style={inputStyle}
+            style={stripeActive ? { ...inputStyle, marginBottom: 24 } : inputStyle}
             placeholder={`$${MIN_PAYOUT}.00`}
             placeholderTextColor="#ffffff30"
             keyboardType="decimal-pad"
@@ -179,36 +198,40 @@ function RequestModal({ available, prepperId, uid, onClose }: ModalFormProps) {
             accessibilityLabel="Payout amount"
           />
 
-          <Text style={labelStyle}>Bank name</Text>
-          <TextInput
-            style={inputStyle}
-            placeholder="e.g. Chase, Bank of America"
-            placeholderTextColor="#ffffff30"
-            value={bankName}
-            onChangeText={setBankName}
-            accessibilityLabel="Bank name"
-          />
+          {!stripeActive && (
+            <>
+              <Text style={labelStyle}>Bank name</Text>
+              <TextInput
+                style={inputStyle}
+                placeholder="e.g. Chase, Bank of America"
+                placeholderTextColor="#ffffff30"
+                value={bankName}
+                onChangeText={setBankName}
+                accessibilityLabel="Bank name"
+              />
 
-          <Text style={labelStyle}>Account number</Text>
-          <TextInput
-            style={inputStyle}
-            placeholder="Account number"
-            placeholderTextColor="#ffffff30"
-            keyboardType="number-pad"
-            value={accountNumber}
-            onChangeText={setAccountNumber}
-            accessibilityLabel="Account number"
-          />
+              <Text style={labelStyle}>Account number</Text>
+              <TextInput
+                style={inputStyle}
+                placeholder="Account number"
+                placeholderTextColor="#ffffff30"
+                keyboardType="number-pad"
+                value={accountNumber}
+                onChangeText={setAccountNumber}
+                accessibilityLabel="Account number"
+              />
 
-          <Text style={labelStyle}>Account name</Text>
-          <TextInput
-            style={{ ...inputStyle, marginBottom: 24 }}
-            placeholder="Name on account"
-            placeholderTextColor="#ffffff30"
-            value={accountName}
-            onChangeText={setAccountName}
-            accessibilityLabel="Account name"
-          />
+              <Text style={labelStyle}>Account name</Text>
+              <TextInput
+                style={{ ...inputStyle, marginBottom: 24 }}
+                placeholder="Name on account"
+                placeholderTextColor="#ffffff30"
+                value={accountName}
+                onChangeText={setAccountName}
+                accessibilityLabel="Account name"
+              />
+            </>
+          )}
 
           <PressableScale
             onPress={handleSubmit}
@@ -387,6 +410,7 @@ export default function PrepperPayoutsScreen() {
           available={available}
           prepperId={prepperId}
           uid={user.id}
+          stripeActive={stripeActive}
           onClose={() => setModalOpen(false)}
         />
       ) : null}

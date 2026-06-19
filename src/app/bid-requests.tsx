@@ -114,24 +114,53 @@ export default function BidRequestsScreen() {
       <SafeAreaView edges={['top']} style={{ flex: 1 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 8, paddingBottom: 6, gap: 12 }}>
           <PressableScale onPress={() => { feedback.tap(); if (router.canGoBack()) { router.back(); } else { router.replace('/'); } }} accessibilityRole="button" accessibilityLabel="Back"
-            style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
+            style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
             <ChevronLeft size={22} color={INK} />
           </PressableScale>
-          <Text style={{ fontFamily: Font.display, fontSize: 22, color: INK, letterSpacing: -0.5, flex: 1 }}>{!isPrepper ? 'my requests' : 'meal requests'}</Text>
+          <Text style={{ fontFamily: Font.display, fontSize: 22, color: INK, letterSpacing: -0.5, flex: 1 }}>{isPrepper ? 'meal requests' : 'requests'}</Text>
           {!isPrepper ? (
             <PressableScale onPress={() => { feedback.tap(); setShowPost(true); }} accessibilityRole="button" accessibilityLabel="Post a request"
-              style={{ width: 42, height: 42, borderRadius: 21, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
-              {/* Plus icon inline — keeps import list small */}
+              style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
               <Text style={{ fontFamily: Font.display, fontSize: 24, color: '#fff', lineHeight: 24 }}>+</Text>
             </PressableScale>
           ) : null}
         </View>
 
+        {/* Customer tab bar — Browse open requests OR My requests */}
+        {!isPrepper && (
+          <View accessibilityRole="tablist" style={{ flexDirection: 'row', paddingHorizontal: 16, paddingBottom: 10, gap: 8 }}>
+            {([['browse', 'Browse'], ['mine', 'My requests']] as const).map(([key, label]) => {
+              const active = activeTab === key;
+              return (
+                <PressableScale
+                  key={key}
+                  onPress={() => { feedback.tap(); setActiveTab(key); }}
+                  accessibilityRole="tab"
+                  accessibilityState={{ selected: active }}
+                  accessibilityLabel={label}
+                  style={{
+                    height: 38,
+                    paddingHorizontal: 18,
+                    borderRadius: Radius.pill,
+                    backgroundColor: active ? ORANGE : Palette.surface,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}>
+                  <Text style={{ fontFamily: Font.semibold, fontSize: 13.5, color: active ? '#fff' : Palette.textSecondary }}>
+                    {label}
+                  </Text>
+                </PressableScale>
+              );
+            })}
+          </View>
+        )}
+
 
         <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={ORANGE} colors={[ORANGE]} />}
           contentContainerStyle={{ padding: 16, paddingBottom: 60 }}>
-          {isPrepper ? (
+          {/* Prepper view: browse all open requests to bid on */}
+          {(isPrepper || (!isPrepper && activeTab === 'browse')) ? (
             isLoading ? <ListSkeleton count={4} /> : isError ? (
               <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }}
                 style={{ alignItems: 'center', paddingTop: 60, gap: 12 }}>
@@ -150,8 +179,14 @@ export default function BidRequestsScreen() {
                 style={{ alignItems: 'center', paddingTop: 60, gap: 10 }}>
                 <Text style={{ fontFamily: Font.heading, fontSize: 18, color: INK }}>no open requests</Text>
                 <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center' }}>
-                  {isPrepper ? 'Check back later — customers post new requests daily.' : 'Post the first one! Preppers in your area will bid.'}
+                  {isPrepper ? 'Check back later — customers post new requests daily.' : 'Be the first — post a custom request for local chefs to bid on.'}
                 </Text>
+                {!isPrepper && (
+                  <PressableScale onPress={() => { feedback.tap(); setShowPost(true); }} accessibilityRole="button" accessibilityLabel="Post a request"
+                    style={{ marginTop: 8, backgroundColor: ORANGE, borderRadius: Radius.pill, paddingHorizontal: 24, paddingVertical: 12 }}>
+                    <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: '#fff' }}>Post a request</Text>
+                  </PressableScale>
+                )}
               </MotiView>
             ) : requests.map((r, i) => (
               <MotiView key={r.id} from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 220, delay: i * 50 }}>
@@ -160,7 +195,8 @@ export default function BidRequestsScreen() {
             ))
           ) : null}
 
-          {!isPrepper ? (
+          {/* Customer "mine" tab: their own requests + bids received */}
+          {(!isPrepper && activeTab === 'mine') ? (
             myLoading ? <ListSkeleton count={3} /> : myError ? (
               <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }}
                 style={{ alignItems: 'center', paddingTop: 60, gap: 12 }}>
