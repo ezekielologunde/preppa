@@ -72,8 +72,8 @@ export function useSaveMeal(prepperId?: string | null) {
     mutationFn: async (v: MealDraft): Promise<string> => {
       if (!prepperId) throw new Error('No kitchen for this account');
       const fields = {
-        title: v.title.trim(),
-        description: v.description.trim() || null,
+        title: v.title.trim().slice(0, 100),
+        description: v.description.trim().slice(0, 2000) || null,
         base_price: v.base_price,
         prep_time_min: v.prep_time_min,
         category_id: v.category_id,

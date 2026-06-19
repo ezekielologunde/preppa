@@ -120,7 +120,7 @@ export function useSubmitReply(reviewId?: string) {
     mutationFn: async (reply: string) => {
       const { error } = await supabase
         .from('reviews')
-        .update({ prepper_reply: reply.trim(), replied_at: new Date().toISOString() })
+        .update({ prepper_reply: reply.trim().slice(0, 2000), replied_at: new Date().toISOString() })
         .eq('id', reviewId!);
       if (error) throw error;
     },
@@ -154,7 +154,7 @@ export function useSubmitOrderReview() {
         prepper_id: draft.prepperId,
         author_id: user.id,
         rating: draft.rating,
-        body: draft.body.trim() || null,
+        body: draft.body.trim().slice(0, 2000) || null,
         photos: draft.photos.length ? draft.photos : [],
       });
       if (error) throw error;
@@ -196,7 +196,7 @@ export function useSubmitReview() {
         prepper_id: v.prepperId,
         meal_id: v.mealId,
         rating: v.rating,
-        body: v.body.trim() || null,
+        body: v.body.trim().slice(0, 2000) || null,
         photos: v.photos?.length ? v.photos : [],
       });
       if (error) throw error;

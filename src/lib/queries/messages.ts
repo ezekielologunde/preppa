@@ -119,7 +119,7 @@ export function useSendMessage() {
       const { error } = await supabase.from('messages').insert({
         conversation_id: v.conversationId,
         sender_id: user.id,
-        body: v.body,
+        body: v.body.trim().slice(0, 2000),
       });
       if (error) throw error;
     },

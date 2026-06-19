@@ -79,7 +79,6 @@ export default function BidRequestsScreen() {
   }) {
     if (!user) throw new Error('Not authenticated');
     await postRequest.mutateAsync({
-      customerId: user.id,
       title: args.title,
       description: args.description,
       servings: args.servings,

@@ -122,7 +122,6 @@ export function usePostMealRequest() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (v: {
-      customerId: string;
       title: string;
       description?: string;
       servings: number;
@@ -130,13 +129,15 @@ export function usePostMealRequest() {
       cuisine?: string;
       deadline?: string;
     }) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not signed in');
       const { error } = await supabase.from('meal_requests').insert({
-        customer_id: v.customerId,
-        title: v.title.trim(),
-        description: v.description?.trim() || null,
+        customer_id: user.id,
+        title: v.title.trim().slice(0, 100),
+        description: v.description?.trim().slice(0, 1000) || null,
         servings: v.servings,
         budget_per_serving: v.budgetPerServing ?? null,
-        cuisine: v.cuisine?.trim() || null,
+        cuisine: v.cuisine?.trim().slice(0, 50) || null,
         deadline: v.deadline || null,
       });
       if (error) throw error;
@@ -187,7 +188,7 @@ export function usePlaceBid() {
         request_id: v.requestId,
         prepper_id: v.prepperId,
         price_per_serving: v.pricePerServing,
-        note: v.note?.trim() || null,
+        note: v.note?.trim().slice(0, 500) || null,
       });
       if (error) throw error;
     },
@@ -334,7 +335,7 @@ export function useSendBidMessage(bidId?: string | null) {
       if (!user) throw new Error('Not signed in');
       const { error } = await supabase
         .from('bid_messages')
-        .insert({ bid_id: bidId!, sender_id: user.id, body });
+        .insert({ bid_id: bidId!, sender_id: user.id, body: body.trim().slice(0, 2000) });
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['bid-messages', bidId] }),

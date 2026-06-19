@@ -116,8 +116,8 @@ export function useCreateHomeCookRequest() {
         p_requested_time: v.requestedTime,
         p_address: v.address,
         p_guest_count: v.guestCount,
-        p_cuisine: v.cuisine?.trim() || null,
-        p_menu_ideas: v.menuIdeas?.trim() || null,
+        p_cuisine: v.cuisine?.trim().slice(0, 50) || null,
+        p_menu_ideas: v.menuIdeas?.trim().slice(0, 1000) || null,
         p_ingredient_budget: v.ingredientBudget,
       });
       if (error) throw error;

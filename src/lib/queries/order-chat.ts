@@ -66,7 +66,7 @@ export function useSendOrderMessage(orderId: string | undefined) {
       const { error } = await supabase.from('order_messages').insert({
         order_id: orderId!,
         sender_id: user.id,
-        body: body.trim(),
+        body: body.trim().slice(0, 2000),
       });
       if (error) throw error;
     },

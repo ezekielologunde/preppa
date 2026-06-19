@@ -92,7 +92,7 @@ export type AdminCustomer = {
 
 /** All customer accounts, newest first; optional name/email search. */
 export function useAdminCustomers(search?: string) {
-  const term = search?.trim();
+  const term = search?.trim().slice(0, 100);
   const { isAdmin } = useAuth();
   return useQuery({
     queryKey: ['admin', 'customers', term ?? ''],
@@ -442,7 +442,7 @@ export type AdminUser = {
 
 /** All profiles with their roles, newest first; optional name/email search (min 2 chars). */
 export function useAdminUsers(search: string = '') {
-  const term = search.trim();
+  const term = search.trim().slice(0, 100);
   const { isAdmin } = useAuth();
   return useQuery({
     queryKey: ['admin', 'users', term],
