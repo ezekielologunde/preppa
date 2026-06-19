@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { Meal } from '@/components/meal-card';
 import { supabase } from '@/lib/supabase';
 import { isKitchenOpenNow, type CookSchedule } from '@/lib/queries/schedule';
-import type { CustomerBadgeKey, PrepperBadgeKey, PrepperStatus } from '@/types/database.types';
+import type { CustomerBadgeKey, PrepperBadgeKey, PrepperNearRow, PrepperStatus } from '@/types/database.types';
 
 export type TopPrepper = {
   id: string; name: string; verified: boolean; isPro?: boolean;
@@ -434,6 +434,42 @@ export function useToggleHomeCookAvailability(prepperId?: string | null) {
     onSuccess: () => {
       if (prepperId) qc.invalidateQueries({ queryKey: ['prepper', 'profile', prepperId] });
       qc.invalidateQueries({ queryKey: ['prepper', 'mine'] });
+    },
+  });
+}
+
+/** Find approved kitchens within a radius of the user's location. */
+export function usePrependersNear(lat?: number | null, lng?: number | null, radiusKm = 20) {
+  return useQuery({
+    queryKey: ['preppers', 'near', lat, lng, radiusKm],
+    enabled: lat != null && lng != null,
+    staleTime: 60_000,
+    queryFn: async (): Promise<PrepperNearRow[]> => {
+      const { data, error } = await supabase.rpc('preppers_near', {
+        p_lat: lat!,
+        p_lng: lng!,
+        p_radius_km: radiusKm,
+      });
+      if (error) throw error;
+      return (data ?? []) as PrepperNearRow[];
+    },
+  });
+}
+
+/** Update the signed-in prepper's location from a lat/lng coordinate. */
+export function useSetPrepperLocation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (v: { lat: number; lng: number }) => {
+      const { error } = await supabase.rpc('set_prepper_location', {
+        p_lat: v.lat,
+        p_lng: v.lng,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['prepper', 'profile'] });
+      qc.invalidateQueries({ queryKey: ['preppers'] });
     },
   });
 }

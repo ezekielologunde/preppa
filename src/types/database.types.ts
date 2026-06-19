@@ -54,6 +54,16 @@ export type TopPrepperRankedRow = {
   rank: number;
 };
 
+/** Shape returned by preppers_near() RPC. */
+export type PrepperNearRow = {
+  id: string;
+  display_name: string;
+  city: string | null;
+  avatar_url: string | null;
+  tagline: string | null;
+  distance_km: number;
+};
+
 /** Shape returned by admin_list_disputes(). */
 export type AdminDisputeRow = {
   id: string;
@@ -462,6 +472,8 @@ export interface Database {
       cancel_home_cook_request: { Args: { p_request_id: string; p_reason?: string | null }; Returns: undefined };
       set_home_cook_payment_intent: { Args: { p_request_id: string; p_payment_intent_id: string }; Returns: undefined };
       get_or_create_referral_code: { Args: { uid: string }; Returns: string };
+      preppers_near: { Args: { p_lat: number; p_lng: number; p_radius_km?: number }; Returns: PrepperNearRow[] };
+      set_prepper_location: { Args: { p_lat: number; p_lng: number }; Returns: undefined };
     };
     Enums: {
       order_status: OrderStatus;
