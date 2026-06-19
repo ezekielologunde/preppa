@@ -5,6 +5,7 @@ import type React from 'react';
 import { Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { PrepperWelcomeOverlay } from '@/components/prepper-welcome-overlay';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
 import { Palette } from '@/constants/theme';
@@ -189,16 +190,20 @@ function PreppaTabBar({ state, navigation }: TabBarProps) {
 }
 
 export default function TabLayout() {
+  const { user } = useAuth();
   return (
-    <Tabs
-      tabBar={(props) => <PreppaTabBar {...(props as unknown as TabBarProps)} />}
-      backBehavior="history"
-      screenOptions={{ headerShown: false }}>
-      <Tabs.Screen name="index" />
-      <Tabs.Screen name="explore" />
-      <Tabs.Screen name="feeds" />
-      <Tabs.Screen name="experiences" />
-      <Tabs.Screen name="profile" />
-    </Tabs>
+    <>
+      <Tabs
+        tabBar={(props) => <PreppaTabBar {...(props as unknown as TabBarProps)} />}
+        backBehavior="history"
+        screenOptions={{ headerShown: false }}>
+        <Tabs.Screen name="index" />
+        <Tabs.Screen name="explore" />
+        <Tabs.Screen name="feeds" />
+        <Tabs.Screen name="experiences" />
+        <Tabs.Screen name="profile" />
+      </Tabs>
+      <PrepperWelcomeOverlay userId={user?.id} />
+    </>
   );
 }

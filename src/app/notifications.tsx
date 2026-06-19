@@ -1,7 +1,9 @@
 import { useRouter } from 'expo-router';
 import {
   Bell,
+  ChefHat,
   ChevronLeft,
+  CircleX,
   DollarSign,
   Gift,
   Handshake,
@@ -41,19 +43,23 @@ const ICON_MAP = {
   live: Video,
   bid: Handshake,
   bid_accepted: Handshake,
+  approved: ChefHat,
+  rejected: CircleX,
 } as const;
 
 const COLOR_MAP: Record<string, string> = {
-  order: '#3B82F6',        // order_update = blue
+  order: '#3B82F6',
   payment: Palette.success,
   chat: '#60a5fa',
-  follow: '#a78bfa',       // new_follower = purple
-  review: Palette.success, // approved = green
+  follow: '#a78bfa',
+  review: Palette.success,
   promotion: '#f472b6',
-  drop: Palette.brand,     // meal_drop = brand
+  drop: Palette.brand,
   live: Palette.danger,
-  bid: Palette.amber,      // bid_accepted = amber
+  bid: Palette.amber,
   bid_accepted: Palette.amber,
+  approved: Palette.success,
+  rejected: Palette.danger,
 };
 
 function relativeTime(iso: string): string {
@@ -181,8 +187,13 @@ export default function NotificationsScreen() {
         router.push('/messages');
         break;
       case 'review':
-      case 'approved':
         router.push('/reviews');
+        break;
+      case 'approved':
+        router.push('/meal-editor');
+        break;
+      case 'rejected':
+        router.push('/become-prepper');
         break;
       case 'follow':
         if (actorId) router.push(`/prepper?id=${actorId}` as never);

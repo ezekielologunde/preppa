@@ -352,14 +352,27 @@ Deno.serve(async (req) => {
           try {
             const { data: gcRow } = await supabase
               .from('orders')
-              .select('gift_card_code, gift_card_amount')
+              .select('gift_card_code, gift_card_amount, customer_id')
               .eq('id', orderId)
               .single();
             if (gcRow?.gift_card_code && Number(gcRow.gift_card_amount) > 0) {
-              await supabase.rpc('redeem_gift_card', {
-                p_code: gcRow.gift_card_code,
-                p_amount: Number(gcRow.gift_card_amount),
-              });
+              const gcAmount = Number(gcRow.gift_card_amount);
+              const { data: card } = await supabase
+                .from('gift_cards')
+                .select('id, balance, redeemed_by, is_active')
+                .eq('code', gcRow.gift_card_code)
+                .single();
+              if (card && card.is_active && card.balance > 0) {
+                const newBalance = Math.max(0, card.balance - gcAmount);
+                await supabase
+                  .from('gift_cards')
+                  .update({
+                    balance: newBalance,
+                    redeemed_by: card.redeemed_by ?? gcRow.customer_id,
+                    is_active: newBalance > 0,
+                  })
+                  .eq('id', card.id);
+              }
             }
           } catch (e) {
             console.error('gift card redemption error', e instanceof Error ? e.message : e);
