@@ -186,7 +186,7 @@ export function useLiveFeedItems() {
     queryFn: async (): Promise<FeedItem[]> => {
       const { data } = await supabase
         .from('live_sessions')
-        .select('id, prepper_id, title, viewer_count, started_at, prepper_profiles!inner(display_name, verified, is_pro)')
+        .select('id, prepper_id, title, viewer_count, started_at, prepper_profiles!inner(display_name, verified)')
         .is('ended_at', null)
         .order('started_at', { ascending: false })
         .limit(10);
