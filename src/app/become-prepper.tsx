@@ -139,7 +139,7 @@ export default function BecomePrepperScreen() {
     const certDocs2 = [foodHandler.url, insurance.url, bizLicense.url].filter((u): u is string => !!u);
     const docs = [...photoDocs, ...certDocs2];
     apply.mutate(
-      { userId: user.id, displayName: cleanLine(name).trim(), bio: cleanBlock(bio).trim(), specialties: picked, applicationDocuments: docs },
+      { displayName: cleanLine(name).trim(), bio: cleanBlock(bio).trim(), specialties: picked, applicationDocuments: docs },
       { onSuccess: () => { feedback.success(); setShowTerms(false); if (user?.id) { AsyncStorage.removeItem(DRAFT_KEY(user.id)).catch(() => {}); } }, onError: (e) => { feedback.error(); setShowTerms(false); setErr(e instanceof Error ? e.message : 'Something went wrong.'); } },
     );
   }

@@ -291,17 +291,19 @@ export function useMyPrepperApplication(userId?: string | null) {
 export function useApplyAsPrepper() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (v: { userId: string; displayName: string; bio: string; specialties: string[]; applicationDocuments?: string[] }) => {
+    mutationFn: async (v: { displayName: string; bio: string; specialties: string[]; applicationDocuments?: string[] }) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not signed in');
       const { error } = await supabase.from('prepper_profiles').insert({
-        user_id: v.userId,
-        display_name: v.displayName,
-        bio: v.bio || null,
+        user_id: user.id,
+        display_name: v.displayName.trim().slice(0, 60),
+        bio: v.bio.trim().slice(0, 500) || null,
         specialties: v.specialties.length ? v.specialties : null,
         application_documents: v.applicationDocuments?.length ? v.applicationDocuments : [],
       });
       if (error) throw error;
     },
-    onSuccess: (_d, v) => qc.invalidateQueries({ queryKey: ['prepper', 'mine', v.userId] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['prepper', 'mine'] }),
   });
 }
 

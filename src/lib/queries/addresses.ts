@@ -50,23 +50,25 @@ export function useUpsertAddress(userId: string | undefined) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (form: Omit<Address, 'id'> & { id?: string }) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not signed in');
       // Shared editable fields (no user_id — that's set on insert only;
       // updating it isn't allowed and the Update type rightly omits it).
       const fields = {
         label: form.label === 'Other' ? null : form.label,
-        line1: form.street1,
-        line2: form.street2 || null,
-        city: form.city,
-        state: form.state,
-        postal_code: form.postalCode,
-        country: form.country || 'US',
+        line1: form.street1.trim().slice(0, 200),
+        line2: form.street2?.trim().slice(0, 200) || null,
+        city: form.city.trim().slice(0, 100),
+        state: form.state.trim().slice(0, 50),
+        postal_code: form.postalCode.trim().slice(0, 20),
+        country: (form.country || 'US').trim().slice(0, 10),
         is_default: form.isDefault,
       };
       if (form.id) {
         const { error } = await supabase.from('addresses').update(fields).eq('id', form.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from('addresses').insert({ user_id: userId!, ...fields });
+        const { error } = await supabase.from('addresses').insert({ user_id: user.id, ...fields });
         if (error) throw error;
       }
     },
