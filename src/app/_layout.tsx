@@ -63,8 +63,7 @@ export async function markFtueComplete(uid: string): Promise<void> {
     .from('profiles')
     .update({ onboarding_completed_at: new Date().toISOString() })
     .eq('id', uid)
-    .then(() => {})
-    .catch(() => {});
+    .then(() => {}, () => {});
 }
 
 // Screens that are dark by design — inverting them would make them light.

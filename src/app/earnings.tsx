@@ -270,7 +270,7 @@ export default function EarningsScreen() {
               {/* Payout setup */}
               <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280, delay: 140 }}>
                 <PayoutSetupCard />
-                <PressableScale onPress={() => { feedback.tap(); router.push('/prepper-payouts'); }}
+                <PressableScale onPress={() => { feedback.tap(); router.push('/prepper-payouts' as never); }}
                   accessibilityRole="button" accessibilityLabel="Go to payouts"
                   style={{ marginTop: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7,
                     backgroundColor: CARD, borderRadius: 14, height: 46 }}>

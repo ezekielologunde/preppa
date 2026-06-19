@@ -18,7 +18,7 @@ import { Font } from '@/constants/fonts';
 import { Palette, Radius, Spacing, Type } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
 
-// ─── Brand config (kept — consumed by payment-methods list rendering) ──────────
+// ─── Brand config (kept  -  consumed by payment-methods list rendering) ──────────
 
 export type CardBrand = 'visa' | 'mastercard' | 'amex' | 'other';
 
@@ -29,7 +29,7 @@ export const BRAND_CONFIG: Record<CardBrand, { label: string; bg: string; textCo
   other: { label: 'Card', bg: Palette.chip, textColor: Palette.inkSoft },
 };
 
-// Raw DOM host for Stripe's hosted Card field — web-only by construction (the
+// Raw DOM host for Stripe's hosted Card field  -  web-only by construction (the
 // PAN is entered inside Stripe's iframe and never touches our code → PCI SAQ-A).
 const Div = 'div' as unknown as ComponentType<{ ref?: Ref<HTMLDivElement>; style?: CSSProperties }>;
 
@@ -38,7 +38,7 @@ const Div = 'div' as unknown as ComponentType<{ ref?: Ref<HTMLDivElement>; style
 /**
  * Save a card for off-session use (reorder / subscription billing) via a
  * SetupIntent + Stripe Elements. The card number/CVC live in Stripe's hosted
- * iframe — no raw cardholder data is collected, transmitted, or stored by us.
+ * iframe  -  no raw cardholder data is collected, transmitted, or stored by us.
  */
 export function AddCardSheet({
   visible,
@@ -175,20 +175,20 @@ export function AddCardSheet({
         </View>
 
         {!isWeb ? (
-          <View style={{ flex: 1, alignItems: ‘center’, justifyContent: ‘center’, padding: Spacing.four, gap: 16 }}>
-            <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: Palette.brandTint, alignItems: ‘center’, justifyContent: ‘center’ }}>
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: Spacing.four, gap: 16 }}>
+            <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: Palette.brandTint, alignItems: 'center', justifyContent: 'center' }}>
               <CreditCard size={28} color={Palette.brand} />
             </View>
-            <View style={{ alignItems: ‘center’, gap: 6 }}>
-              <Text style={{ fontFamily: Font.heading, fontSize: 18, color: Palette.ink, textAlign: ‘center’ }}>
+            <View style={{ alignItems: 'center', gap: 6 }}>
+              <Text style={{ fontFamily: Font.heading, fontSize: 18, color: Palette.ink, textAlign: 'center' }}>
                 Manage your cards
               </Text>
-              <Text style={{ fontFamily: Font.body, fontSize: Type.label, color: Palette.textSecondary, textAlign: ‘center’, maxWidth: 280, lineHeight: 20 }}>
+              <Text style={{ fontFamily: Font.body, fontSize: Type.label, color: Palette.textSecondary, textAlign: 'center', maxWidth: 280, lineHeight: 20 }}>
                 Add, remove, and set your default card in our secure payment portal.
               </Text>
             </View>
             {portalError ? (
-              <Text style={{ fontFamily: Font.body, fontSize: Type.label, color: Palette.danger, textAlign: ‘center’ }} accessibilityRole="alert">
+              <Text style={{ fontFamily: Font.body, fontSize: Type.label, color: Palette.danger, textAlign: 'center' }} accessibilityRole="alert">
                 {portalError}
               </Text>
             ) : null}
@@ -202,8 +202,8 @@ export function AddCardSheet({
                 borderRadius: Radius.pill,
                 paddingVertical: 15,
                 paddingHorizontal: 32,
-                alignItems: ‘center’,
-                justifyContent: ‘center’,
+                alignItems: 'center',
+                justifyContent: 'center',
                 minHeight: 54,
                 opacity: portalLoading ? 0.6 : 1,
               }}>
@@ -211,10 +211,10 @@ export function AddCardSheet({
                 ? <ActivityIndicator color="#fff" />
                 : <Text style={{ fontFamily: Font.heading, fontSize: Type.body, color: Palette.surface }}>Open payment portal</Text>}
             </PressableScale>
-            <View style={{ flexDirection: ‘row’, alignItems: ‘center’, gap: 6 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
               <Lock size={13} color={Palette.textMuted} />
               <Text style={{ fontFamily: Font.body, fontSize: Type.micro, color: Palette.textMuted }}>
-                Secured by Stripe — we never see your card details
+                Secured by Stripe  -  we never see your card details
               </Text>
             </View>
           </View>

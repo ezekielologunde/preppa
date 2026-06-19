@@ -1,5 +1,6 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ChevronLeft } from 'lucide-react-native';
+import { MotiView } from 'moti';
 import { useState } from 'react';
 import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -35,7 +36,7 @@ export default function Step4Location() {
     try {
       const tasks: Promise<unknown>[] = [];
       if (name) {
-        tasks.push(supabase.from('profiles').update({ full_name: name }).eq('id', user.id));
+        tasks.push(Promise.resolve(supabase.from('profiles').update({ full_name: name }).eq('id', user.id)));
         tasks.push(supabase.auth.updateUser({ data: { full_name: name } }));
       }
       const meta: Record<string, unknown> = {};
@@ -62,7 +63,7 @@ export default function Step4Location() {
     try {
       const tasks: Promise<unknown>[] = [];
       if (name) {
-        tasks.push(supabase.from('profiles').update({ full_name: name }).eq('id', user.id));
+        tasks.push(Promise.resolve(supabase.from('profiles').update({ full_name: name }).eq('id', user.id)));
         tasks.push(supabase.auth.updateUser({ data: { full_name: name } }));
       }
       const meta: Record<string, unknown> = {};

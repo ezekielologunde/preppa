@@ -21,6 +21,7 @@ export type PayoutBalance = {
   grossRevenue: number;
   netRevenue: number;
   totalRequested: number;
+  pending: number;
 };
 
 export function usePayoutBalance(prepperId?: string | null) {
@@ -37,7 +38,7 @@ export function usePayoutBalance(prepperId?: string | null) {
           .eq('status', 'completed'),
         supabase
           .from('payout_requests')
-          .select('amount')
+          .select('amount, status')
           .eq('prepper_id', prepperId!)
           .in('status', ['pending', 'processing', 'paid']),
       ]);
@@ -47,16 +48,21 @@ export function usePayoutBalance(prepperId?: string | null) {
         0,
       );
       const netRevenue = grossRevenue * 0.85;
-      const totalRequested = (payoutsRes.data ?? []).reduce(
+      const payouts = payoutsRes.data ?? [];
+      const totalRequested = payouts.reduce(
         (s: number, p: { amount: number }) => s + (p.amount ?? 0),
         0,
       );
+      const pending = payouts
+        .filter((p: { status: string }) => p.status === 'pending' || p.status === 'processing')
+        .reduce((s: number, p: { amount: number }) => s + (p.amount ?? 0), 0);
 
       return {
         available: Math.max(0, netRevenue - totalRequested),
         grossRevenue,
         netRevenue,
         totalRequested,
+        pending,
       };
     },
   });

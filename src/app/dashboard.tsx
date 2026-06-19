@@ -146,11 +146,11 @@ export default function DashboardScreen() {
   }
 
   const QUICK = [
-    { label: 'Orders',    Icon: Package,  color: '#3B82F6', route: '/prepper-orders',   badge: newCount },
-    { label: 'Menu',      Icon: Utensils, color: '#10B981', route: '/meal-editor' },
-    { label: 'Earnings',  Icon: Wallet,   color: '#F59E0B', route: '/prepper-payouts' },
-    { label: 'Analytics', Icon: BarChart3,color: '#8B5CF6', route: '/prepper-analytics' },
-  ] as const;
+    { label: 'Orders',    Icon: Package,  color: '#3B82F6', route: '/prepper-orders',   badge: newCount as number | undefined },
+    { label: 'Menu',      Icon: Utensils, color: '#10B981', route: '/meal-editor',       badge: undefined },
+    { label: 'Earnings',  Icon: Wallet,   color: '#F59E0B', route: '/prepper-payouts',   badge: undefined },
+    { label: 'Analytics', Icon: BarChart3,color: '#8B5CF6', route: '/prepper-analytics', badge: undefined },
+  ];
 
   return (
     <View style={{ flex: 1, backgroundColor: BG }}>
@@ -224,10 +224,10 @@ export default function DashboardScreen() {
           <MotiView from={{ opacity: 0, translateY: 6 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 240 }}
             style={{ flexDirection: 'row', marginHorizontal: 20, marginBottom: 32, backgroundColor: CARD, borderRadius: 16, borderWidth: 1, borderColor: BORDER }}>
             {([
-              { label: 'Active',       value: active.length,                        hot: active.length > 0 },
-              { label: 'Done today',   value: todayDone },
-              { label: 'This week (net)', value: money(earnings?.net_week ?? 0) },
-            ] as const).map((s, i) => (
+              { label: 'Active',       value: active.length,                        hot: active.length > 0 as boolean | undefined },
+              { label: 'Done today',   value: todayDone,                            hot: undefined },
+              { label: 'This week (net)', value: money(earnings?.net_week ?? 0),   hot: undefined },
+            ]).map((s, i) => (
               <View key={s.label} style={{ flex: 1, paddingVertical: 18, alignItems: 'center', borderLeftWidth: i > 0 ? 1 : 0, borderLeftColor: BORDER }}>
                 <Text style={{ fontFamily: Font.display, fontSize: 22, color: s.hot ? ORANGE : WHITE, letterSpacing: -0.4 }}>{s.value}</Text>
                 <Text style={{ fontFamily: Font.body, fontSize: 11, color: MUTED, marginTop: 2 }}>{s.label}</Text>
@@ -352,12 +352,12 @@ export default function DashboardScreen() {
         {/* ── Bottom navigation ────────────────────────────────────────────── */}
         <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, flexDirection: 'row', backgroundColor: CARD, borderTopWidth: 1, borderTopColor: BORDER, paddingTop: 10, paddingBottom: Math.max(insets.bottom, 16) }}>
           {([
-            { label: 'Home',    Icon: Home,        route: '/',                 active: false },
-            { label: 'Orders',  Icon: Package,     route: '/prepper-orders',   active: false, badge: newCount },
-            { label: 'Kitchen', Icon: ChefHat,     route: '/dashboard',        active: true  },
-            { label: 'Messages',Icon: MessageSquare,route: '/messages',        active: false },
-            { label: 'Earnings', Icon: Wallet,      route: '/prepper-payouts',  active: false },
-          ] as const).map(({ label, Icon, route, active: isActive, badge }) => (
+            { label: 'Home',    Icon: Home,          route: '/',                active: false, badge: undefined as number | undefined },
+            { label: 'Orders',  Icon: Package,       route: '/prepper-orders',  active: false, badge: newCount as number | undefined },
+            { label: 'Kitchen', Icon: ChefHat,       route: '/dashboard',       active: true,  badge: undefined as number | undefined },
+            { label: 'Messages',Icon: MessageSquare, route: '/messages',        active: false, badge: undefined as number | undefined },
+            { label: 'Earnings',Icon: Wallet,        route: '/prepper-payouts', active: false, badge: undefined as number | undefined },
+          ]).map(({ label, Icon, route, active: isActive, badge }) => (
             <TouchableOpacity key={label} onPress={() => { feedback.tap(); router.push(route as never); }}
               accessibilityRole="tab" accessibilityLabel={label} accessibilityState={{ selected: isActive }}
               style={{ flex: 1, alignItems: 'center', gap: 4, minHeight: 44 }}>

@@ -1,4 +1,5 @@
 import { useRouter } from 'expo-router';
+import { MotiView } from 'moti';
 import { useRef, useState } from 'react';
 import { KeyboardAvoidingView, Platform, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
