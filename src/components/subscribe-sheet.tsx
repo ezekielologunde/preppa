@@ -54,7 +54,6 @@ export function SubscribePlanSheet({ plan, userId, onClose }: { plan: MealPlan |
     setSubErr(null);
     try {
       await subscribeToPlan.mutateAsync({
-        userId,
         planId: plan.id,
         prepperId: plan.prepper_id,
         planName: plan.name,

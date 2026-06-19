@@ -109,7 +109,6 @@ export function useSubscribeToPlan() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (v: {
-      userId: string;
       planId: string;
       prepperId: string;
       planName: string;
@@ -117,8 +116,10 @@ export function useSubscribeToPlan() {
       qty: number;
       deliveryDay: DeliveryDay;
     }) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not signed in');
       const { error } = await supabase.from('subscriptions').insert({
-        customer_id: v.userId,
+        customer_id: user.id,
         prepper_id: v.prepperId,
         plan_id: v.planId,
         plan_name: v.planName,
@@ -129,7 +130,7 @@ export function useSubscribeToPlan() {
       });
       if (error) throw error;
     },
-    onSuccess: (_d, v) => qc.invalidateQueries({ queryKey: ['subscriptions', 'mine', v.userId] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['subscriptions', 'mine'] }),
   });
 }
 
