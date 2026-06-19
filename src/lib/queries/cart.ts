@@ -291,6 +291,8 @@ export function usePlaceOrder() {
       note?: string | null;
       tip?: number;
       scheduledAt?: string | null;
+      giftCardCode?: string | null;
+      giftCardAmount?: number;
       /** Caller-supplied hints for the new-order push notification (optional). */
       notifyHints?: { prepperId: string; customerName: string; mealCount: number; total: number };
     }): Promise<string> => {
@@ -300,6 +302,8 @@ export function usePlaceOrder() {
         p_note: v.note ?? null,
         p_tip: v.tip ?? 0,
         p_scheduled_at: v.scheduledAt ?? null,
+        p_gift_card_code: v.giftCardCode ?? null,
+        p_gift_card_amount: v.giftCardAmount ?? 0,
       });
       if (error) throw error;
       const orderId = data as string;

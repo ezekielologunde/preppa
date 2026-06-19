@@ -246,7 +246,7 @@ export default function CartScreen() {
     } else {
       // Single kitchen: original flow
       placeOrder.mutate(
-        { userId: user.id, fulfillment: method as FulfillmentType, addressId: method === 'delivery' ? addressId : null, note: note.trim() || null, tip, scheduledAt: sched },
+        { userId: user.id, fulfillment: method as FulfillmentType, addressId: method === 'delivery' ? addressId : null, note: note.trim() || null, tip, scheduledAt: sched, giftCardCode: giftCard?.code ?? null, giftCardAmount: giftCardDiscount > 0 ? giftCardDiscount : 0 },
         {
           onSuccess: (orderId) => { if (paymentsOn) startPayment(orderId); else setPlaced(true); },
           onError: (e) => { feedback.error(); setErr(e instanceof Error ? e.message : 'Could not place preorder.'); },

@@ -6,7 +6,7 @@ export type ActiveLiveSession = {
   id: string;
   started_at: string;
   title: string | null;
-  stream_url: string | null;
+  viewer_count: number;
 };
 
 export function useMyActiveLiveSession(prepperId?: string | null) {
@@ -17,11 +17,11 @@ export function useMyActiveLiveSession(prepperId?: string | null) {
     queryFn: async () => {
       const { data } = await supabase
         .from('live_sessions')
-        .select('id, started_at, title, stream_url')
+        .select('id, started_at, title, viewer_count')
         .eq('prepper_id', prepperId!)
         .is('ended_at', null)
         .maybeSingle();
-      return (data as ActiveLiveSession | null) ?? null;
+      return data ?? null;
     },
   });
 }

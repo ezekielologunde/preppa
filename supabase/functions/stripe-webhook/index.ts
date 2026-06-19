@@ -349,6 +349,21 @@ Deno.serve(async (req) => {
             console.error('balance txn fetch failed (estimating fee)', e instanceof Error ? e.message : e);
           }
           await supabase.rpc('apply_payment_fees', { p_order_id: orderId, p_stripe_fee: stripeFee });
+          try {
+            const { data: gcRow } = await supabase
+              .from('orders')
+              .select('gift_card_code, gift_card_amount')
+              .eq('id', orderId)
+              .single();
+            if (gcRow?.gift_card_code && Number(gcRow.gift_card_amount) > 0) {
+              await supabase.rpc('redeem_gift_card', {
+                p_code: gcRow.gift_card_code,
+                p_amount: Number(gcRow.gift_card_amount),
+              });
+            }
+          } catch (e) {
+            console.error('gift card redemption error', e instanceof Error ? e.message : e);
+          }
           try { await sendOrderEmails(supabase, orderId); } catch (e) {
             console.error('order email error', e instanceof Error ? e.message : e);
           }

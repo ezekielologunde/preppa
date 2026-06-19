@@ -187,7 +187,7 @@ export interface Database {
         Relationships: [];
       };
       orders: {
-        Row: { id: string; customer_id: string; prepper_id: string; status: OrderStatus; fulfillment_type: FulfillmentType; address_id: string | null; fulfillment_note: string | null; subtotal: number; tax: number; delivery_fee: number; service_fee: number; tip: number; total: number; scheduled_at: string | null; source: 'direct' | 'bid' | 'home_cook' | 'experience'; bid_id: string | null } & Timestamps & { updated_at: string };
+        Row: { id: string; customer_id: string; prepper_id: string; status: OrderStatus; fulfillment_type: FulfillmentType; address_id: string | null; fulfillment_note: string | null; subtotal: number; tax: number; delivery_fee: number; service_fee: number; tip: number; total: number; scheduled_at: string | null; source: 'direct' | 'bid' | 'home_cook' | 'experience'; bid_id: string | null; gift_card_code: string | null; gift_card_amount: number } & Timestamps & { updated_at: string };
         Insert: never; // created only via create_order() / create_order_from_meal_bid() RPCs
         Update: never; // mutated only via advance_order()/cancel_order() RPCs
         Relationships: [];

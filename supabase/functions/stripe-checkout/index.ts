@@ -95,7 +95,7 @@ Deno.serve(async (req) => {
 
     const { data: order, error: oerr } = await supabase
       .from('orders')
-      .select('id, customer_id, total, delivery_fee, tip, status, items:order_items(quantity, unit_price, meal:meals(title))')
+      .select('id, customer_id, total, delivery_fee, tip, status, gift_card_code, gift_card_amount, items:order_items(quantity, unit_price, meal:meals(title))')
       .eq('id', orderId)
       .single();
     if (oerr || !order) return json({ error: 'Order not found' }, 404);
@@ -120,9 +120,23 @@ Deno.serve(async (req) => {
       line_items.push({ price_data: { currency: 'usd', product_data: { name: 'Tip for your prepper' }, unit_amount: cents(order.tip) }, quantity: 1 });
     if (line_items.length === 0) return json({ error: 'Order has no items' }, 400);
 
+    // Gift card partial discount — create a one-off Stripe coupon
+    const gcAmount = Number(order.gift_card_amount ?? 0);
+    let discounts: { coupon: string }[] | undefined;
+    if (gcAmount > 0) {
+      const coupon = await stripe.coupons.create({
+        amount_off: Math.round(gcAmount * 100),
+        currency: 'usd',
+        duration: 'once',
+        name: `Gift card (${order.gift_card_code ?? ''})`,
+      });
+      discounts = [{ coupon: coupon.id }];
+    }
+
     const common = {
       mode: 'payment' as const,
       line_items,
+      discounts,
       client_reference_id: orderId,
       metadata: { order_id: orderId },
       payment_intent_data: { metadata: { order_id: orderId } },
