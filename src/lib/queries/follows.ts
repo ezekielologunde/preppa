@@ -150,19 +150,20 @@ export function useToggleFollow(prepperId: string, userId?: string | null) {
   const key = ['follow', prepperId, userId ?? 'anon'];
   return useMutation({
     mutationFn: async (following: boolean): Promise<boolean> => {
-      if (!userId) throw new Error('Sign in to follow kitchens');
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Sign in to follow kitchens');
       if (following) {
-        const { error } = await supabase.from('follows').delete().eq('prepper_id', prepperId).eq('follower_id', userId);
+        const { error } = await supabase.from('follows').delete().eq('prepper_id', prepperId).eq('follower_id', user.id);
         if (error) throw error;
         return false;
       }
-      const { error } = await supabase.from('follows').insert({ prepper_id: prepperId, follower_id: userId });
+      const { error } = await supabase.from('follows').insert({ prepper_id: prepperId, follower_id: user.id });
       if (error && error.code !== '23505') throw error; // ignore duplicate (already following)
 
       // Push-notify the prepper: look up their user_id and the follower's display name.
       const [prepperRes, followerRes] = await Promise.all([
         supabase.from('prepper_profiles').select('user_id').eq('id', prepperId).single(),
-        supabase.from('profiles').select('full_name').eq('id', userId).single(),
+        supabase.from('profiles').select('full_name').eq('id', user.id).single(),
       ]);
       const prepperUserId = (prepperRes.data as { user_id: string } | null)?.user_id;
       const followerName = (followerRes.data as { full_name: string | null } | null)?.full_name ?? 'Someone';

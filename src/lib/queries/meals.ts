@@ -389,10 +389,12 @@ export function useToggleSavedMeal(userId?: string, mealId?: string) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (isSaved: boolean) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not signed in');
       if (isSaved) {
-        await supabase.from('saved_meals').delete().eq('user_id', userId!).eq('meal_id', mealId!);
+        await supabase.from('saved_meals').delete().eq('user_id', user.id).eq('meal_id', mealId!);
       } else {
-        await supabase.from('saved_meals').insert({ user_id: userId!, meal_id: mealId! });
+        await supabase.from('saved_meals').insert({ user_id: user.id, meal_id: mealId! });
       }
     },
     onSuccess: () => {

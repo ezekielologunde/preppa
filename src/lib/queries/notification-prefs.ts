@@ -66,9 +66,11 @@ export function useUpdateNotifPrefs(userId?: string | null) {
 
   return useMutation({
     mutationFn: async (prefs: Partial<NotifPrefs>) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not signed in');
       const { error } = await supabase
         .from('notification_preferences')
-        .upsert({ user_id: userId!, ...prefs, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
+        .upsert({ user_id: user.id, ...prefs, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
       if (error) throw error;
     },
     onMutate: async (prefs) => {
