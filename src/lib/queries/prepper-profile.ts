@@ -49,19 +49,28 @@ export type PrepperProfileUpdates = {
 };
 
 /** Update the signed-in prepper's kitchen profile fields. */
-export function useUpdatePrepperProfile(userId?: string | null) {
+export function useUpdatePrepperProfile() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (updates: PrepperProfileUpdates) => {
-      if (!userId) throw new Error('Not signed in');
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not signed in');
+      const sanitized: PrepperProfileUpdates = {
+        ...updates,
+        display_name: updates.display_name?.trim().slice(0, 60),
+        bio: updates.bio?.trim().slice(0, 500) ?? null,
+        tagline: updates.tagline?.trim().slice(0, 100) ?? null,
+        city: updates.city?.trim().slice(0, 60) ?? null,
+        cuisine_type: updates.cuisine_type?.trim().slice(0, 50) ?? null,
+      };
       const { error } = await supabase
         .from('prepper_profiles')
-        .update(updates)
-        .eq('user_id', userId);
+        .update(sanitized)
+        .eq('user_id', user.id);
       if (error) throw error;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['my-prepper-profile', userId] });
+      qc.invalidateQueries({ queryKey: ['my-prepper-profile'] });
       qc.invalidateQueries({ queryKey: ['prepper', 'mine'] });
       qc.invalidateQueries({ queryKey: ['prepper', 'profile'] });
       qc.invalidateQueries({ queryKey: ['preppers'] });
@@ -70,19 +79,20 @@ export function useUpdatePrepperProfile(userId?: string | null) {
 }
 
 /** Update avatar_url on the prepper's profile. */
-export function useUpdatePrepperAvatar(userId?: string | null) {
+export function useUpdatePrepperAvatar() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (avatarUrl: string) => {
-      if (!userId) throw new Error('Not signed in');
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not signed in');
       const { error } = await supabase
         .from('prepper_profiles')
         .update({ avatar_url: avatarUrl })
-        .eq('user_id', userId);
+        .eq('user_id', user.id);
       if (error) throw error;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['my-prepper-profile', userId] });
+      qc.invalidateQueries({ queryKey: ['my-prepper-profile'] });
       qc.invalidateQueries({ queryKey: ['prepper', 'mine'] });
       qc.invalidateQueries({ queryKey: ['prepper', 'profile'] });
     },
@@ -90,19 +100,20 @@ export function useUpdatePrepperAvatar(userId?: string | null) {
 }
 
 /** Update cover_url on the prepper's profile. */
-export function useUpdatePrepperCover(userId?: string | null) {
+export function useUpdatePrepperCover() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (coverUrl: string) => {
-      if (!userId) throw new Error('Not signed in');
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not signed in');
       const { error } = await supabase
         .from('prepper_profiles')
         .update({ cover_url: coverUrl })
-        .eq('user_id', userId);
+        .eq('user_id', user.id);
       if (error) throw error;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['my-prepper-profile', userId] });
+      qc.invalidateQueries({ queryKey: ['my-prepper-profile'] });
       qc.invalidateQueries({ queryKey: ['prepper', 'profile'] });
     },
   });

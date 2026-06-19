@@ -51,7 +51,7 @@ export default function OrdersScreen() {
     feedback.tap();
     setReportErr(null);
     reportDispute.mutate(
-      { orderId: reportModal!.id, reason, reporterId: user!.id },
+      { orderId: reportModal!.id, reason },
       {
         onSuccess: () => { feedback.success(); setReportModal(null); setReportReason(''); },
         onError: (e) => { feedback.error(); setReportErr(e instanceof Error ? e.message : 'Could not submit. Try again.'); },

@@ -182,9 +182,9 @@ export default function PrepperProfileEditScreen() {
   const router = useRouter();
   const { user } = useAuth();
   const { data: profile, isLoading } = useMyPrepperProfile(user?.id);
-  const updateProfile = useUpdatePrepperProfile(user?.id);
-  const updateAvatar = useUpdatePrepperAvatar(user?.id);
-  const updateCover = useUpdatePrepperCover(user?.id);
+  const updateProfile = useUpdatePrepperProfile();
+  const updateAvatar = useUpdatePrepperAvatar();
+  const updateCover = useUpdatePrepperCover();
 
   const [displayName, setDisplayName] = useState('');
   const [tagline, setTagline] = useState('');

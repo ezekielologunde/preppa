@@ -466,10 +466,12 @@ export function useOrderForReview(orderId: string) {
 export function useReportDispute() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (v: { orderId: string; reason: string; reporterId: string }) => {
+    mutationFn: async (v: { orderId: string; reason: string }) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not signed in');
       const { error } = await supabase
         .from('order_disputes')
-        .insert({ order_id: v.orderId, reporter_id: v.reporterId, reason: v.reason });
+        .insert({ order_id: v.orderId, reporter_id: user.id, reason: v.reason.trim().slice(0, 1000) });
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['orders'] }),

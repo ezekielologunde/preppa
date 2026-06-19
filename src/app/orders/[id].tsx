@@ -136,7 +136,7 @@ export default function OrderDetailScreen() {
     feedback.tap();
     setReportErr(null);
     reportDispute.mutate(
-      { orderId: order.id, reason, reporterId: user.id },
+      { orderId: order.id, reason },
       {
         onSuccess: () => { feedback.success(); setReportModal(false); setReportReason(''); },
         onError: (e) => { feedback.error(); setReportErr(e instanceof Error ? e.message : 'Could not submit. Try again.'); },
