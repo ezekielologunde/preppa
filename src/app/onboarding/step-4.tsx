@@ -50,30 +50,22 @@ export default function Step4Location() {
     if (!user) return;
     feedback.success();
     setSaving(true);
-
     try {
-      // 1. Update display name on profile + auth metadata
+      const tasks: Promise<unknown>[] = [];
       if (name) {
-        await supabase.from('profiles').update({ full_name: name }).eq('id', user.id);
-        await supabase.auth.updateUser({ data: { full_name: name } });
+        tasks.push(supabase.from('profiles').update({ full_name: name }).eq('id', user.id));
+        tasks.push(supabase.auth.updateUser({ data: { full_name: name } }));
       }
-
-      // 2. Save dietary, cuisines, and location to user metadata
-      await supabase.auth.updateUser({
-        data: {
-          ...(dietary.length > 0 && { dietary }),
-          ...(cuisines.length > 0 && { cuisines }),
-          ...(location.trim() && { onboarding_city: location.trim() }),
-        },
-      });
-
-      // 3. Mark onboarding complete (writes AsyncStorage + DB)
-      await markFtueComplete(user.id);
+      const meta: Record<string, unknown> = {};
+      if (dietary.length > 0) meta.dietary = dietary;
+      if (cuisines.length > 0) meta.cuisines = cuisines;
+      if (location.trim()) meta.onboarding_city = location.trim();
+      if (Object.keys(meta).length > 0) tasks.push(supabase.auth.updateUser({ data: meta }));
+      await Promise.allSettled(tasks);
+      markFtueComplete(user.id);
     } catch {
-      // Non-fatal — preferences and FTUE completion will persist from the
-      // individual calls that succeeded; failing partially is acceptable.
+      // non-fatal
     }
-
     setSaving(false);
     router.replace('/onboarding/welcome' as never);
   }
@@ -83,21 +75,19 @@ export default function Step4Location() {
     feedback.tap();
     setSaving(true);
     try {
+      const tasks: Promise<unknown>[] = [];
       if (name) {
-        await supabase.from('profiles').update({ full_name: name }).eq('id', user.id);
-        await supabase.auth.updateUser({ data: { full_name: name } });
+        tasks.push(supabase.from('profiles').update({ full_name: name }).eq('id', user.id));
+        tasks.push(supabase.auth.updateUser({ data: { full_name: name } }));
       }
-      if (dietary.length > 0 || cuisines.length > 0) {
-        await supabase.auth.updateUser({
-          data: {
-            ...(dietary.length > 0 && { dietary }),
-            ...(cuisines.length > 0 && { cuisines }),
-          },
-        });
-      }
-      await markFtueComplete(user.id);
+      const meta: Record<string, unknown> = {};
+      if (dietary.length > 0) meta.dietary = dietary;
+      if (cuisines.length > 0) meta.cuisines = cuisines;
+      if (Object.keys(meta).length > 0) tasks.push(supabase.auth.updateUser({ data: meta }));
+      if (tasks.length > 0) await Promise.allSettled(tasks);
+      markFtueComplete(user.id);
     } catch {
-      // Non-fatal
+      // non-fatal
     }
     setSaving(false);
     router.replace('/onboarding/welcome' as never);

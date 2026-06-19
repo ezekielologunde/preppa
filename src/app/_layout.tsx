@@ -63,16 +63,13 @@ async function isFirstLogin(uid: string): Promise<boolean> {
 }
 
 export async function markFtueComplete(uid: string): Promise<void> {
-  // Write local cache first (synchronous feel), then persist to server.
   await AsyncStorage.setItem(FTUE_KEY(uid), '1').catch(() => {});
-  try {
-    await supabase
-      .from('profiles')
-      .update({ onboarding_completed_at: new Date().toISOString() })
-      .eq('id', uid);
-  } catch {
-    // Non-fatal: AsyncStorage is the fast-path guard on the same device.
-  }
+  supabase
+    .from('profiles')
+    .update({ onboarding_completed_at: new Date().toISOString() })
+    .eq('id', uid)
+    .then(() => {})
+    .catch(() => {});
 }
 
 // Screens that are dark by design — inverting them would make them light.
@@ -263,7 +260,7 @@ function AuthGate({ children }: { children: ReactNode }) {
   // Hide children while we determine the correct route.
   if (loading) return null;
   if (!session && !isPublicPath) return null;
-  if (session && !ftueChecked && !isPublicPath) return null;
+  if (session && !ftueChecked && !isPublicPath) return <LoadingSplash />;
 
   return <>{children}</>;
 }
