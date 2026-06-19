@@ -1,5 +1,6 @@
+import * as WebBrowser from 'expo-web-browser';
 import { loadStripe, type Stripe, type StripeCardElement } from '@stripe/stripe-js';
-import { Lock, X } from 'lucide-react-native';
+import { CreditCard, Lock, X } from 'lucide-react-native';
 import { useEffect, useRef, useState, type ComponentType, type CSSProperties, type Ref } from 'react';
 import {
   ActivityIndicator,
@@ -59,6 +60,8 @@ export function AddCardSheet({
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [portalLoading, setPortalLoading] = useState(false);
+  const [portalError, setPortalError] = useState<string | null>(null);
 
   // On open (web): create a SetupIntent, load Stripe, mount the hosted Card field.
   useEffect(() => {
@@ -100,6 +103,23 @@ export function AddCardSheet({
       stripeRef.current = null;
     };
   }, [visible, isWeb]);
+
+  async function openPortal() {
+    setPortalLoading(true);
+    setPortalError(null);
+    try {
+      const { data, error: fnErr } = await supabase.functions.invoke('stripe-payment-methods', {
+        body: { action: 'create_portal_session' },
+      });
+      if (fnErr || !data?.url) throw new Error('Could not open payment portal.');
+      await WebBrowser.openBrowserAsync(data.url);
+      onSaved(); // refetch payment methods after portal closes
+    } catch (e) {
+      setPortalError(e instanceof Error ? e.message : 'Could not open payment portal.');
+    } finally {
+      setPortalLoading(false);
+    }
+  }
 
   async function handleSave() {
     const stripe = stripeRef.current;
@@ -155,14 +175,48 @@ export function AddCardSheet({
         </View>
 
         {!isWeb ? (
-          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: Spacing.four, gap: 10 }}>
-            <Lock size={26} color={Palette.textMuted} />
-            <Text style={{ fontFamily: Font.heading, fontSize: Type.body, color: Palette.ink, textAlign: 'center' }}>
-              Add a card on the web app
-            </Text>
-            <Text style={{ fontFamily: Font.body, fontSize: Type.label, color: Palette.textSecondary, textAlign: 'center', maxWidth: 280, lineHeight: 20 }}>
-              Saving a card securely isn’t available in this build yet. You can still pay at checkout.
-            </Text>
+          <View style={{ flex: 1, alignItems: ‘center’, justifyContent: ‘center’, padding: Spacing.four, gap: 16 }}>
+            <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: Palette.brandTint, alignItems: ‘center’, justifyContent: ‘center’ }}>
+              <CreditCard size={28} color={Palette.brand} />
+            </View>
+            <View style={{ alignItems: ‘center’, gap: 6 }}>
+              <Text style={{ fontFamily: Font.heading, fontSize: 18, color: Palette.ink, textAlign: ‘center’ }}>
+                Manage your cards
+              </Text>
+              <Text style={{ fontFamily: Font.body, fontSize: Type.label, color: Palette.textSecondary, textAlign: ‘center’, maxWidth: 280, lineHeight: 20 }}>
+                Add, remove, and set your default card in our secure payment portal.
+              </Text>
+            </View>
+            {portalError ? (
+              <Text style={{ fontFamily: Font.body, fontSize: Type.label, color: Palette.danger, textAlign: ‘center’ }} accessibilityRole="alert">
+                {portalError}
+              </Text>
+            ) : null}
+            <PressableScale
+              onPress={openPortal}
+              disabled={portalLoading}
+              accessibilityRole="button"
+              accessibilityLabel="Open payment portal"
+              style={{
+                backgroundColor: Palette.brand,
+                borderRadius: Radius.pill,
+                paddingVertical: 15,
+                paddingHorizontal: 32,
+                alignItems: ‘center’,
+                justifyContent: ‘center’,
+                minHeight: 54,
+                opacity: portalLoading ? 0.6 : 1,
+              }}>
+              {portalLoading
+                ? <ActivityIndicator color="#fff" />
+                : <Text style={{ fontFamily: Font.heading, fontSize: Type.body, color: Palette.surface }}>Open payment portal</Text>}
+            </PressableScale>
+            <View style={{ flexDirection: ‘row’, alignItems: ‘center’, gap: 6 }}>
+              <Lock size={13} color={Palette.textMuted} />
+              <Text style={{ fontFamily: Font.body, fontSize: Type.micro, color: Palette.textMuted }}>
+                Secured by Stripe — we never see your card details
+              </Text>
+            </View>
           </View>
         ) : (
           <ScrollView contentContainerStyle={{ padding: Spacing.three, paddingBottom: Spacing.six }} keyboardShouldPersistTaps="handled">

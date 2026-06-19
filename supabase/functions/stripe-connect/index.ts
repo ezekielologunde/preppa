@@ -70,6 +70,22 @@ Deno.serve(async (req) => {
       return json({ url: link.url });
     }
 
+    // Fetch real Stripe account status and sync to DB — call after onboarding returns.
+    if (action === 'sync_status') {
+      const accountId = profile.stripe_account_id;
+      if (!accountId) return json({ status: 'not_connected' });
+      const account = await stripe.accounts.retrieve(accountId);
+      const status =
+        account.charges_enabled && account.payouts_enabled ? 'active'
+        : account.details_submitted ? 'pending'
+        : 'not_connected';
+      await supabase
+        .from('prepper_profiles')
+        .update({ stripe_account_status: status })
+        .eq('user_id', prepper_id);
+      return json({ status });
+    }
+
     return json({ error: 'Unknown action' }, 400);
   } catch (e) {
     return json({ error: e instanceof Error ? e.message : 'Request failed' }, 500);

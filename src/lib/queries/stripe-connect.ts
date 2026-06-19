@@ -24,6 +24,8 @@ export function useStripeConnect() {
   const query = useQuery<StripeConnectProfile>({
     queryKey: ['stripe-connect', user?.id ?? 'anon'],
     enabled: !!user,
+    staleTime: 30_000,
+    refetchOnWindowFocus: true,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('prepper_profiles')
@@ -53,5 +55,10 @@ export function useStripeConnect() {
     mutationFn: () => callConnect({ action: 'get_dashboard_link', prepper_id: user!.id }),
   });
 
-  return { ...query, connectAccount, getOnboardingLink, getDashboardLink };
+  const syncStatus = useMutation({
+    mutationFn: () => callConnect({ action: 'sync_status', prepper_id: user!.id }),
+    onSuccess: invalidate,
+  });
+
+  return { ...query, connectAccount, getOnboardingLink, getDashboardLink, syncStatus };
 }

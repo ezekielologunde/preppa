@@ -1,7 +1,7 @@
-import { useRouter } from 'expo-router';
-import { ChevronLeft, Download, DollarSign, Lightbulb, Receipt, Shield, TrendingUp, Wallet } from 'lucide-react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { ArrowDownToLine, ChevronLeft, Download, DollarSign, Lightbulb, Receipt, Shield, TrendingUp, Wallet } from 'lucide-react-native';
 import { MotiView } from 'moti';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Platform, RefreshControl, ScrollView, Share, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -13,6 +13,7 @@ import { useBreakpoint } from '@/lib/layout';
 import { Palette, Radius } from '@/constants/theme';
 import { PayoutSetupCard } from '@/components/payout-setup-card';
 import { useMyEarnings, usePrepperRefunds, type EarningsRecent, type RefundRow } from '@/lib/queries/earnings';
+import { useStripeConnect } from '@/lib/queries/stripe-connect';
 
 const ORANGE = Palette.brand;
 const GREEN = Palette.success;
@@ -119,11 +120,20 @@ function RefundRow({ item }: { item: RefundRow }) {
 
 export default function EarningsScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams<{ stripe?: string }>();
   const isDesktop = useBreakpoint() === 'desktop';
   const { data, isLoading, isError, refetch } = useMyEarnings();
   const { data: refunds = [] } = usePrepperRefunds();
+  const { syncStatus } = useStripeConnect();
   const [refreshing, setRefreshing] = useState(false);
   const [period, setPeriod] = useState<Period>('month');
+
+  // When Stripe redirects back after onboarding, sync the account status.
+  useEffect(() => {
+    if (params.stripe === 'return' || params.stripe === 'refresh') {
+      void syncStatus.mutateAsync().catch(() => {});
+    }
+  }, [params.stripe]);
 
   async function handleRefresh() { setRefreshing(true); await refetch(); setRefreshing(false); }
 
@@ -260,6 +270,13 @@ export default function EarningsScreen() {
               {/* Payout setup */}
               <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280, delay: 140 }}>
                 <PayoutSetupCard />
+                <PressableScale onPress={() => { feedback.tap(); router.push('/prepper-payouts'); }}
+                  accessibilityRole="button" accessibilityLabel="Go to payouts"
+                  style={{ marginTop: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7,
+                    backgroundColor: CARD, borderRadius: 14, height: 46 }}>
+                  <ArrowDownToLine size={16} color={ORANGE} />
+                  <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: ORANGE }}>Request payout</Text>
+                </PressableScale>
               </MotiView>
 
               {/* Prepper insights */}

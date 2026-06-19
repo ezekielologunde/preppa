@@ -1,6 +1,7 @@
 import * as WebBrowser from 'expo-web-browser';
 import { BadgeCheck, ExternalLink, Wallet } from 'lucide-react-native';
-import { ActivityIndicator, Alert, Text, View } from 'react-native';
+import { useEffect } from 'react';
+import { ActivityIndicator, Alert, AppState, type AppStateStatus, Text, View } from 'react-native';
 
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
@@ -14,7 +15,20 @@ const CARD = Palette.prepperCard;
 const MUTED = Palette.textMuted;
 
 export function PayoutSetupCard() {
-  const { data, connectAccount, getOnboardingLink, getDashboardLink } = useStripeConnect();
+  const { data, connectAccount, getOnboardingLink, getDashboardLink, syncStatus } = useStripeConnect();
+
+  // Sync Stripe account status when app returns to foreground (user may have
+  // completed onboarding in the browser and come back).
+  useEffect(() => {
+    let last = AppState.currentState;
+    const sub = AppState.addEventListener('change', (next: AppStateStatus) => {
+      if (last.match(/inactive|background/) && next === 'active') {
+        void syncStatus.mutateAsync().catch(() => {});
+      }
+      last = next;
+    });
+    return () => sub.remove();
+  }, []);
 
   const status = data?.stripe_account_status ?? 'not_connected';
   const isBusy =
@@ -30,7 +44,11 @@ export function PayoutSetupCard() {
       }
       if (!accountId) return;
       const { url } = await getOnboardingLink.mutateAsync();
-      if (url) await WebBrowser.openBrowserAsync(url);
+      if (url) {
+        await WebBrowser.openBrowserAsync(url);
+        // Sync real Stripe status back to DB after user returns from onboarding.
+        await syncStatus.mutateAsync().catch(() => {});
+      }
     } catch (e) {
       Alert.alert('Setup failed', e instanceof Error ? e.message : 'Please try again.');
     }

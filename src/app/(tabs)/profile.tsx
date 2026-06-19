@@ -257,8 +257,8 @@ export default function ProfileScreen() {
   const KITCHEN_ROWS = [
     { label: 'Kitchen profile', sub: 'Manage your public kitchen page', Icon: ChefHat,     route: '/kitchen-settings'   },
     { label: 'Preorders',       sub: 'View and manage preorders',       Icon: Package,     route: '/prepper-orders'      },
-    { label: 'Analytics',       sub: 'Sales, reach & performance',      Icon: TrendingUp,  route: '/prepper-analytics'   },
-    { label: 'Earnings',        sub: 'Payouts, balance & history',      Icon: Wallet,      route: '/earnings'            },
+    { label: 'Payouts',         sub: 'Balance, bank & withdrawals',     Icon: Wallet,      route: '/prepper-payouts'     },
+    { label: 'Earnings',        sub: 'Sales, reach & performance',      Icon: TrendingUp,  route: '/earnings'            },
     { label: 'Post a video',    sub: 'Share a kitchen clip',            Icon: Video,       route: '/post-video'          },
   ];
   const kitchenEl = isApprovedPrepper ? (

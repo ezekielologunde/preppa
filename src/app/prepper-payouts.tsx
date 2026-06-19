@@ -330,12 +330,12 @@ export default function PrepperPayoutsScreen() {
                 )}
                 <PressableScale
                   onPress={() => { feedback.tap(); setModalOpen(true); }}
-                  disabled={available < MIN_PAYOUT || !prepperId || !stripeActive}
+                  disabled={available < MIN_PAYOUT || !prepperId}
                   accessibilityRole="button"
                   accessibilityLabel="Request payout"
                   style={{
                     marginTop: 8,
-                    backgroundColor: available >= MIN_PAYOUT && stripeActive ? ORANGE : '#ffffff18',
+                    backgroundColor: available >= MIN_PAYOUT ? ORANGE : '#ffffff18',
                     borderRadius: Radius.pill,
                     height: 50,
                     flexDirection: 'row',
@@ -343,17 +343,12 @@ export default function PrepperPayoutsScreen() {
                     justifyContent: 'center',
                     gap: 8,
                   }}>
-                  <ArrowDownToLine size={17} color={available >= MIN_PAYOUT && stripeActive ? '#fff' : '#ffffff40'} />
-                  <Text style={{ fontFamily: Font.semibold, fontSize: 15, color: available >= MIN_PAYOUT && stripeActive ? '#fff' : '#ffffff40' }}>
+                  <ArrowDownToLine size={17} color={available >= MIN_PAYOUT ? '#fff' : '#ffffff40'} />
+                  <Text style={{ fontFamily: Font.semibold, fontSize: 15, color: available >= MIN_PAYOUT ? '#fff' : '#ffffff40' }}>
                     Request payout
                   </Text>
                 </PressableScale>
-                {!stripeActive && (
-                  <Text style={{ fontFamily: Font.body, fontSize: 12, color: MUTED, textAlign: 'center', marginTop: 8 }}>
-                    Set up payouts above to unlock withdrawals
-                  </Text>
-                )}
-                {stripeActive && available < MIN_PAYOUT && (
+                {available < MIN_PAYOUT && (
                   <Text style={{ fontFamily: Font.body, fontSize: 12, color: MUTED, textAlign: 'center', marginTop: 8 }}>
                     Need {money(MIN_PAYOUT - available)} more to reach the $50 minimum
                   </Text>

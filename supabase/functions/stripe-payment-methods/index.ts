@@ -125,6 +125,16 @@ Deno.serve(async (req) => {
       return json({ clientSecret: si.client_secret, pk: PK });
     }
 
+    // ── Customer Portal session (native card management) ─────────────────────
+    if (action === 'create_portal_session') {
+      const customerId = await getOrCreateCustomer(sb, user.id, user.email);
+      const session = await stripe.billingPortal.sessions.create({
+        customer: customerId,
+        return_url: `${Deno.env.get('SITE_URL') ?? 'https://app.preppa.live'}/payment-methods`,
+      });
+      return json({ url: session.url });
+    }
+
     return json({ error: 'Unknown action' }, 400);
   } catch (e) {
     return json({ error: e instanceof Error ? e.message : 'Request failed' }, 500);
