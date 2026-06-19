@@ -51,7 +51,6 @@ export default function EmergencyFoodScreen() {
       : null;
     try {
       await sendRequest.mutateAsync({
-        userId: user.id,
         cuisine,
         notes,
         urgencyMins: urgency.mins,
