@@ -1,0 +1,215 @@
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { CalendarClock, CheckCircle2, ChevronLeft, Clock, CreditCard, Package, Truck, XCircle } from 'lucide-react-native';
+import { MotiView } from 'moti';
+import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+import { PressableScale } from '@/components/ui/pressable-scale';
+import { Font } from '@/constants/fonts';
+import { Palette, Radius } from '@/constants/theme';
+import { feedback } from '@/lib/feedback';
+import { useOrder, useOrderItems, type OrderItem, type OrderSummary } from '@/lib/queries/orders';
+
+const money = (n: number) => `$${(n ?? 0).toFixed(2)}`;
+const orderRef = (id: string) => `#${id.slice(-8).toUpperCase()}`;
+const orderDate = (iso: string) =>
+  new Date(iso).toLocaleDateString(undefined, {
+    month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit',
+  });
+
+function statusStyle(s: string): { bg: string; fg: string } {
+  if (s === 'completed') return { bg: '#D1FAE5', fg: '#065F46' };
+  if (s === 'cancelled') return { bg: '#FEE2E2', fg: '#991B1B' };
+  if (s === 'pending') return { bg: '#FEF3C7', fg: '#92400E' };
+  if (s === 'confirmed') return { bg: '#DBEAFE', fg: '#1D4ED8' };
+  if (s === 'preparing') return { bg: '#FED7AA', fg: '#9A3412' };
+  if (s === 'ready') return { bg: '#D1FAE5', fg: '#065F46' };
+  if (s === 'out_for_delivery') return { bg: '#EDE9FE', fg: '#5B21B6' };
+  return { bg: Palette.chip, fg: Palette.textSecondary };
+}
+
+const STATUS_LABEL: Record<string, string> = {
+  pending: 'Pending', confirmed: 'Confirmed', preparing: 'Prepping',
+  ready: 'Ready!', out_for_delivery: 'On the way', completed: 'Completed', cancelled: 'Cancelled',
+};
+
+function ReceiptRow({ label, value, bold }: { label: string; value: string; bold?: boolean }) {
+  return (
+    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 3 }}>
+      <Text style={{ fontFamily: bold ? Font.heading : Font.body, fontSize: bold ? 16 : 14, color: bold ? Palette.brand : Palette.textSecondary }}>
+        {label}
+      </Text>
+      <Text style={{ fontFamily: bold ? Font.display : Font.semibold, fontSize: bold ? 18 : 14, color: bold ? Palette.brand : Palette.ink, fontVariant: ['tabular-nums'] }}>
+        {value}
+      </Text>
+    </View>
+  );
+}
+
+function Divider() {
+  return <View style={{ height: 1, backgroundColor: Palette.border, marginVertical: 10 }} />;
+}
+
+function ItemPriceHint({ items, orderItems }: { items: OrderSummary['items']; orderItems: OrderItem[] }) {
+  if (!orderItems.length) return null;
+  return (
+    <View style={{ gap: 2, marginTop: 8 }}>
+      {orderItems.map((oi) => (
+        <Text key={oi.id} style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted }}>
+          {oi.title} — {oi.quantity}x @ {money(oi.price_at_time)}
+        </Text>
+      ))}
+    </View>
+  );
+}
+
+export default function OrderReceiptScreen() {
+  const router = useRouter();
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const { data: order, isLoading, isError, refetch } = useOrder(id);
+  const { data: orderItems = [] } = useOrderItems(id);
+
+  function goBack() {
+    feedback.tap();
+    if (router.canGoBack()) router.back();
+    else router.replace('/orders' as never);
+  }
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
+        <ActivityIndicator color={Palette.brand} />
+      </SafeAreaView>
+    );
+  }
+
+  if (isError || !order) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
+        <XCircle size={36} color={Palette.textMuted} />
+        <Text style={{ fontFamily: Font.heading, fontSize: 16, color: Palette.ink }}>Could not load receipt</Text>
+        <PressableScale onPress={() => { feedback.tap(); void refetch(); }} accessibilityRole="button" accessibilityLabel="Retry"
+          style={{ height: 48, paddingHorizontal: 28, borderRadius: Radius.pill, backgroundColor: Palette.brand, alignItems: 'center', justifyContent: 'center' }}>
+          <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#fff' }}>Retry</Text>
+        </PressableScale>
+      </SafeAreaView>
+    );
+  }
+
+  const chip = statusStyle(order.status);
+
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: Palette.surface }}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 20, paddingBottom: 60 }}>
+
+        {/* Header */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+          <PressableScale onPress={goBack} accessibilityRole="button" accessibilityLabel="Go back"
+            style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: Palette.canvas, alignItems: 'center', justifyContent: 'center' }}>
+            <ChevronLeft size={22} color={Palette.ink} />
+          </PressableScale>
+          <Text style={{ fontFamily: Font.display, fontSize: 24, color: Palette.ink, letterSpacing: -0.6 }}>receipt</Text>
+        </View>
+
+        {/* Order meta card */}
+        <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 240 }}
+          style={{ backgroundColor: Palette.canvas, borderRadius: 20, padding: 16, gap: 8, marginBottom: 16 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Text style={{ fontFamily: Font.heading, fontSize: 15, color: Palette.ink }}>Order {orderRef(order.id)}</Text>
+            <View style={{ height: 26, borderRadius: 13, backgroundColor: chip.bg, paddingHorizontal: 10, alignItems: 'center', justifyContent: 'center' }}>
+              <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: chip.fg }}>{STATUS_LABEL[order.status] ?? order.status}</Text>
+            </View>
+          </View>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <Clock size={14} color={Palette.textSecondary} />
+            <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary }}>Placed {orderDate(order.created_at)}</Text>
+          </View>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            {order.fulfillment === 'delivery' ? <Truck size={14} color={Palette.textSecondary} /> : <Package size={14} color={Palette.textSecondary} />}
+            <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary }}>
+              {order.fulfillment === 'delivery' ? 'Delivery' : 'Pickup'}
+            </Text>
+          </View>
+          {order.fulfillmentNote ? (
+            <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted, fontStyle: 'italic' }}>
+              &ldquo;{order.fulfillmentNote}&rdquo;
+            </Text>
+          ) : null}
+          {order.scheduled_at ? (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <CalendarClock size={14} color={Palette.brand} />
+              <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary }}>
+                Scheduled: {orderDate(order.scheduled_at)}
+              </Text>
+            </View>
+          ) : null}
+          <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: Palette.brand }}>from {order.prepper}</Text>
+        </MotiView>
+
+        {/* Items card */}
+        <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 40 }}
+          style={{ backgroundColor: Palette.canvas, borderRadius: 20, padding: 16, marginBottom: 16 }}>
+          <Text style={{ fontFamily: Font.heading, fontSize: 12, color: Palette.textMuted, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10 }}>
+            your order
+          </Text>
+          <View style={{ gap: 10 }}>
+            {order.items.map((item) => (
+              <View key={item.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                <View style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: Palette.chip, alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: Palette.ink }}>{item.quantity}</Text>
+                </View>
+                <Text style={{ flex: 1, fontFamily: Font.medium, fontSize: 14, color: Palette.ink }} numberOfLines={2}>{item.title}</Text>
+                <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: Palette.ink, fontVariant: ['tabular-nums'] }}>{money(item.total)}</Text>
+              </View>
+            ))}
+          </View>
+          {orderItems.length > 0 ? (
+            <>
+              <Divider />
+              <ItemPriceHint items={order.items} orderItems={orderItems} />
+            </>
+          ) : null}
+        </MotiView>
+
+        {/* Fee breakdown card */}
+        <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280, delay: 80 }}
+          style={{ backgroundColor: Palette.canvas, borderRadius: 20, padding: 16, marginBottom: 16 }}>
+          <Text style={{ fontFamily: Font.heading, fontSize: 12, color: Palette.textMuted, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10 }}>
+            total
+          </Text>
+          <ReceiptRow label="Subtotal" value={money(order.subtotal)} />
+          {(order.deliveryFee ?? 0) > 0 ? <ReceiptRow label="Delivery" value={money(order.deliveryFee)} /> : null}
+          {(order.tip ?? 0) > 0 ? <ReceiptRow label="Tip" value={money(order.tip)} /> : null}
+          {(order.service_fee ?? 0) > 0 ? <ReceiptRow label="Platform fee" value={money(order.service_fee!)} /> : null}
+          <Divider />
+          <ReceiptRow label="Total" value={money(order.total)} bold />
+          {order.paymentStatus ? (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 6 }}>
+              <CreditCard size={12} color={Palette.textMuted} />
+              <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted }}>
+                {order.paymentStatus === 'succeeded' ? 'Paid' : order.paymentStatus}
+              </Text>
+            </View>
+          ) : null}
+        </MotiView>
+
+        {/* Leave a review CTA */}
+        {order.status === 'completed' && !order.reviewed ? (
+          <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260, delay: 120 }}>
+            <PressableScale
+              onPress={() => {
+                feedback.tap();
+                router.push(`/review?orderId=${order.id}&prepperId=${order.prepperId}&mealId=${order.firstMealId ?? ''}&prepper=${encodeURIComponent(order.prepper)}` as never);
+              }}
+              accessibilityRole="button"
+              accessibilityLabel="Leave a review"
+              style={{ height: 48, borderRadius: Radius.pill, backgroundColor: Palette.brand, alignItems: 'center', justifyContent: 'center' }}>
+              <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#fff' }}>Leave a review</Text>
+            </PressableScale>
+          </MotiView>
+        ) : null}
+
+      </ScrollView>
+    </SafeAreaView>
+  );
+}

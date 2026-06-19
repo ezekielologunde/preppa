@@ -468,6 +468,14 @@ export default function OrdersScreen() {
                     {tab === 'past' && expandedOrderId === o.id ? (
                       <View style={{ marginHorizontal: twoCol ? 0 : 16 }}>
                         <OrderReceiptPanel order={o} />
+                        <PressableScale
+                          onPress={() => { feedback.tap(); router.push(`/order-receipt?id=${o.id}` as never); }}
+                          accessibilityRole="button"
+                          accessibilityLabel="View full receipt"
+                          style={{ alignSelf: 'flex-end', flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 8, paddingHorizontal: 4, marginTop: 2 }}>
+                          <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: ORANGE }}>View full receipt</Text>
+                          <ArrowRight size={13} color={ORANGE} />
+                        </PressableScale>
                       </View>
                     ) : null}
                     {/* Full OrderCard for actions (pay, cancel, reorder, etc.) */}
