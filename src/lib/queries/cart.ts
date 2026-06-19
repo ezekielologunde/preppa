@@ -2,6 +2,12 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { supabase } from '@/lib/supabase';
 
+// NOTE FOR TEAM: price_snapshot is stored as a dollar amount (e.g. 12.99), NOT cents.
+// This means subtotal arithmetic uses floating-point dollar values, which can accumulate
+// rounding errors (e.g. 0.1 + 0.2 ≠ 0.3). The addCents utility in lib/currency.ts is
+// for integer-cent arithmetic and does NOT apply here. If the DB schema is ever migrated
+// to store prices as integer cents, update these calculations to use addCents().
+
 export type CartItem = {
   id: string;
   meal_id: string;

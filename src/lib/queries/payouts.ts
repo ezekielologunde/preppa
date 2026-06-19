@@ -9,7 +9,7 @@ export type PayoutRequest = {
   amount: number;
   status: 'pending' | 'processing' | 'paid' | 'rejected';
   bankName: string | null;
-  accountNumber: string | null;
+  accountNumberMasked: string | null;
   accountName: string | null;
   note: string | null;
   createdAt: string;
@@ -85,7 +85,7 @@ export function usePayoutHistory(prepperId?: string | null) {
         amount: r.amount,
         status: r.status as PayoutRequest['status'],
         bankName: r.bank_name,
-        accountNumber: r.account_number,
+        accountNumberMasked: r.account_number_masked ?? null,
         accountName: r.account_name,
         note: r.note,
         createdAt: r.created_at,

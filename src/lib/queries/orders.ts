@@ -150,8 +150,11 @@ export function useMyOrders(userId?: string | null) {
   return useQuery({
     queryKey: ['orders', 'mine', userId ?? 'anon'],
     enabled: !!userId,
-    // Poll every 30 s so active order status stays fresh without a realtime socket.
-    refetchInterval: 30_000,
+    // Poll every 30 s; stop polling after 3 consecutive errors to avoid hammering a failing endpoint.
+    refetchInterval: (query) => {
+      if (query.state.errorUpdateCount > 3) return false; // stop polling after 3 errors
+      return 30_000;
+    },
     queryFn: async (): Promise<OrderSummary[]> => {
       const { data, error } = await supabase
         .from('orders')
@@ -191,7 +194,10 @@ export function usePrepperOrders(prepperId?: string | null, status?: OrderStatus
   return useQuery({
     queryKey: ['orders', 'prepper', prepperId ?? 'none', status ?? 'all'],
     enabled: !!prepperId,
-    refetchInterval: 20000,
+    refetchInterval: (query) => {
+      if (query.state.errorUpdateCount > 3) return false; // stop polling after 3 errors
+      return 20_000;
+    },
     queryFn: async (): Promise<OrderSummary[]> => {
       let q = supabase.from('orders').select(SELECT).eq('prepper_id', prepperId!).order('created_at', { ascending: false });
       if (status) q = q.eq('status', status);
@@ -348,7 +354,10 @@ export function useTodayOrders(prepperId?: string | null) {
     queryKey: ['today-orders', prepperId ?? 'none'],
     enabled: !!prepperId,
     staleTime: 30_000,
-    refetchInterval: 60_000,
+    refetchInterval: (query) => {
+      if (query.state.errorUpdateCount > 3) return false; // stop polling after 3 errors
+      return 60_000;
+    },
     queryFn: async (): Promise<TodayOrderSummary> => {
       const todayStart = new Date();
       todayStart.setHours(0, 0, 0, 0);

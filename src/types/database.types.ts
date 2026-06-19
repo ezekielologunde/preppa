@@ -380,6 +380,8 @@ export interface Database {
           status: 'pending' | 'processing' | 'paid' | 'rejected';
           bank_name: string | null;
           account_number: string | null;
+          account_number_encrypted: string | null;
+          account_number_masked: string | null;
           account_name: string | null;
           note: string | null;
           created_at: string;

@@ -1,7 +1,9 @@
 // Notifies the customer when a prepper advances an order to a new status.
-// POST { order_id, customer_id, status, kitchen_name }
+// POST { order_id, status, kitchen_name }
+// Caller must be the prepper on the order or an admin (JWT verified, ownership checked).
 // Checks notification_preferences before sending; skips silently if disabled or no token.
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
+import { cors, json, errorResponse, readBody, getUser } from '../_shared/security.ts';
 
 const EXPO_PUSH_URL = 'https://exp.host/--/api/v2/push/send';
 
@@ -13,33 +15,57 @@ const STATUS_MESSAGES: Record<string, { title: string; body: string }> = {
   cancelled:  { title: 'Order cancelled',   body: 'Your order was cancelled. You have not been charged.' },
 };
 
-const cors = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
-const json = (body: unknown, status = 200) =>
-  new Response(JSON.stringify(body), { status, headers: { ...cors, 'Content-Type': 'application/json' } });
-
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
+  const preflight = cors(req);
+  if (preflight) return preflight;
+
   try {
-    const { order_id, customer_id, status, kitchen_name } = await req.json();
-    if (!order_id || !customer_id || !status) return json({ error: 'Missing order_id, customer_id, or status' }, 400);
-
-    const msg = STATUS_MESSAGES[status as string];
-    if (!msg) return json({ sent: false, reason: 'status_not_notifiable' });
-
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     );
 
-    // Respect the customer's notification preferences (default: send if no row yet).
+    const authHeader = req.headers.get('authorization') ?? '';
+    const token = authHeader.replace('Bearer ', '');
+    if (!token) return errorResponse('Unauthorized', 401);
+
+    const user = await getUser(req, supabase);
+    if (!user) return errorResponse('Unauthorized', 401);
+
+    const body = await readBody(req) as Record<string, unknown>;
+    const orderId = body.order_id;
+    const status = body.status;
+    if (!orderId || typeof orderId !== 'string') return errorResponse('Missing order_id', 400);
+    if (!status || typeof status !== 'string') return errorResponse('Missing status', 400);
+
+    const msg = STATUS_MESSAGES[status];
+    if (!msg) return json({ sent: false, reason: 'status_not_notifiable' });
+
+    const { data: order, error: orderError } = await supabase
+      .from('orders')
+      .select('id, customer_id, prepper_id')
+      .eq('id', orderId)
+      .single();
+
+    if (orderError || !order) return errorResponse('Order not found', 404);
+
+    const isPrepper = order.prepper_id === user.id;
+    if (!isPrepper) {
+      const userClient = createClient(
+        Deno.env.get('SUPABASE_URL')!,
+        Deno.env.get('SUPABASE_ANON_KEY')!,
+        { global: { headers: { Authorization: `Bearer ${token}` } } },
+      );
+      const { data: adminResult, error: adminError } = await userClient.rpc('is_admin');
+      if (adminError || !adminResult) return errorResponse('Forbidden', 403);
+    }
+
+    const customerId = order.customer_id as string;
+
     const { data: prefs } = await supabase
       .from('notification_preferences')
       .select('push_enabled, order_updates')
-      .eq('user_id', customer_id)
+      .eq('user_id', customerId)
       .maybeSingle();
     if (prefs && (!prefs.push_enabled || !prefs.order_updates)) {
       return json({ sent: false, reason: 'notifications_disabled' });
@@ -48,15 +74,16 @@ Deno.serve(async (req) => {
     const { data: tokens } = await supabase
       .from('push_tokens')
       .select('token')
-      .eq('user_id', customer_id);
+      .eq('user_id', customerId);
     if (!tokens?.length) return json({ sent: false, reason: 'no_token' });
 
-    const prefix = kitchen_name ? `${kitchen_name}: ` : '';
-    const messages = (tokens as { token: string }[]).map(({ token }) => ({
-      to: token,
+    const kitchenName = typeof body.kitchen_name === 'string' ? body.kitchen_name : '';
+    const prefix = kitchenName ? `${kitchenName}: ` : '';
+    const messages = (tokens as { token: string }[]).map(({ token: t }) => ({
+      to: t,
       title: msg.title,
       body: `${prefix}${msg.body}`,
-      data: { screen: 'order', orderId: order_id },
+      data: { screen: 'order', orderId },
       sound: 'default',
     }));
 
@@ -68,6 +95,6 @@ Deno.serve(async (req) => {
     const result = await res.json();
     return json({ sent: true, result });
   } catch (e) {
-    return json({ error: e instanceof Error ? e.message : 'notify-order-status failed' }, 500);
+    return errorResponse(e instanceof Error ? e.message : 'notify-order-status failed', 500);
   }
 });

@@ -82,7 +82,10 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "lint": "expo lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "audit:deps": "npm audit",
+    "audit:fix": "npm audit fix",
+    "check": "npx tsc --noEmit && npx expo lint"
   },
   "private": true
 }

@@ -282,11 +282,10 @@ export function useSurpriseMeals(filters: SurpriseFilters, enabled = true) {
         q = supabase.from('meals').select(sel).eq('status', 'published').eq('category.key', filters.categoryKey);
         if (filters.maxPrice) q = q.lte('base_price', filters.maxPrice);
       }
-      const { data, error } = await q.limit(50);
+      const { data, error } = await q.limit(10);
       if (error) throw error;
       const pool = ((data ?? []) as unknown as MealRow[]).map(mapMeal);
       if (!pool.length) return [];
-      // Client-side shuffle + pick 3 for the surprise reveal
       const shuffled = pool.sort(() => Math.random() - 0.5);
       return shuffled.slice(0, Math.min(3, shuffled.length));
     },
@@ -471,29 +470,25 @@ export function useForYouMeals(userId?: string | null, prefs?: UserPrefs) {
   });
 }
 
-const TRENDING_SELECT = `meal_id, meal:meals!inner(${SELECT})`;
-/** Most-ordered published meals in the last 7 days, ranked by order volume. */
+/** Most-ordered published meals in the last 7 days, ranked by order volume.
+ *  Reads from the `trending_meals` materialized view (migration 0115). */
 export function useTrendingNowMeals() {
   return useQuery({
     queryKey: ['trending-now-meals'],
     staleTime: 300_000,
     queryFn: async (): Promise<TrendingMeal[]> => {
-      const since = new Date(Date.now() - 7 * 86_400_000).toISOString();
-      const { data } = await supabase
-        .from('order_items')
-        .select(TRENDING_SELECT)
-        .gte('created_at', since);
-      const counts: Record<string, { count: number; meal: MealRow }> = {};
-      for (const row of ((data ?? []) as unknown as { meal_id: string; meal: MealRow | MealRow[] }[])) {
-        const meal = Array.isArray(row.meal) ? row.meal[0] : row.meal;
-        if (!meal) continue;
-        if (!counts[row.meal_id]) counts[row.meal_id] = { count: 0, meal };
-        counts[row.meal_id].count++;
-      }
-      return Object.values(counts)
-        .sort((a, b) => b.count - a.count)
-        .slice(0, 8)
-        .map(({ meal, count }) => ({ ...mapMeal(meal), orderCount: count }));
+      const { data, error } = await supabase
+        .from('trending_meals')
+        .select(`meal_id, order_count, meal:meals!inner(${SELECT})`)
+        .limit(10);
+      if (error) throw error;
+      return ((data ?? []) as unknown as { meal_id: string; order_count: number; meal: MealRow | MealRow[] }[])
+        .map((row) => {
+          const meal = Array.isArray(row.meal) ? row.meal[0] : row.meal;
+          if (!meal) return null;
+          return { ...mapMeal(meal), orderCount: row.order_count };
+        })
+        .filter((m): m is TrendingMeal => m !== null);
     },
   });
 }

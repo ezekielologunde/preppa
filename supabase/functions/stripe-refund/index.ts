@@ -3,36 +3,42 @@
 // customer, the order's prepper, or an admin.
 import Stripe from 'https://esm.sh/stripe@14.21.0?target=denonext';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
+import { cors, json, readBody, errorResponse, checkRateLimit } from '../_shared/security.ts';
 
 const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY')!, {
   apiVersion: '2024-06-20',
   httpClient: Stripe.createFetchHttpClient(),
 });
-const cors = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
-const json = (body: unknown, status = 200) =>
-  new Response(JSON.stringify(body), { status, headers: { ...cors, 'Content-Type': 'application/json' } });
 
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
+  const corsResp = cors(req);
+  if (corsResp) return corsResp;
+
   try {
     const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
     const token = (req.headers.get('Authorization') ?? '').replace('Bearer ', '');
     const { data: { user }, error: uerr } = await supabase.auth.getUser(token);
-    if (uerr || !user) return json({ error: 'Not authenticated' }, 401);
+    if (uerr || !user) return errorResponse('Not authenticated', 401);
 
-    const { orderId } = await req.json().catch(() => ({}));
-    if (!orderId) return json({ error: 'Missing orderId' }, 400);
+    let body: Record<string, unknown>;
+    try {
+      body = await readBody(req, 16 * 1024) as Record<string, unknown>;
+    } catch (e) {
+      return errorResponse(e instanceof Error ? e.message : 'Invalid request', 400);
+    }
+
+    const allowed = await checkRateLimit(supabase, user.id, 'stripe-refund', 3);
+    if (!allowed) return errorResponse('Too many requests', 429);
+
+    const { orderId } = body as { orderId?: string };
+    if (!orderId) return errorResponse('Missing orderId', 400);
 
     const { data: order } = await supabase
       .from('orders')
       .select('id, customer_id, prepper:prepper_profiles(user_id)')
       .eq('id', orderId)
       .single();
-    if (!order) return json({ error: 'Order not found' }, 404);
+    if (!order) return errorResponse('Order not found', 404);
 
     const prepper = Array.isArray(order.prepper) ? order.prepper[0] : order.prepper;
     const { data: adminRows } = await supabase
@@ -43,8 +49,8 @@ Deno.serve(async (req) => {
       const roles = Array.isArray(r.roles) ? r.roles : r.roles ? [r.roles] : [];
       return roles.some((x) => x.key === 'admin');
     });
-    const allowed = order.customer_id === user.id || prepper?.user_id === user.id || isAdmin;
-    if (!allowed) return json({ error: 'Not allowed' }, 403);
+    const isAllowed = order.customer_id === user.id || prepper?.user_id === user.id || isAdmin;
+    if (!isAllowed) return errorResponse('Not allowed', 403);
 
     const { data: payment } = await supabase
       .from('payments')

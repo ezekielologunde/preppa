@@ -162,38 +162,55 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [userId]);
 
+  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const safeId = (id: unknown): string | null =>
+    typeof id === 'string' && UUID_RE.test(id) ? id : null;
+
   // Route the user to the relevant screen when they tap a push notification.
   useEffect(() => {
     if (!lastNotificationResponse) return;
-    const data = lastNotificationResponse.notification.request.content.data as Record<string, string> | undefined;
+    const data = lastNotificationResponse.notification.request.content.data as Record<string, unknown> | undefined;
     if (!data?.type) return;
 
+    const KNOWN_TYPES = new Set([
+      'message', 'bid_accepted', 'order_update', 'order_cancelled',
+      'new_follower', 'meal_drop', 'approved', 'rejected',
+    ]);
+    if (!KNOWN_TYPES.has(data.type as string)) return;
+
     switch (data.type) {
-      case 'message':
-        if (data.conversation_id) router.push(`/chat?id=${data.conversation_id}` as never);
+      case 'message': {
+        const id = safeId(data.conversation_id);
+        if (id) router.push(`/chat?id=${id}` as never);
+        else console.warn('[push] invalid conversation_id in notification payload');
         break;
+      }
       case 'bid_accepted':
         router.push('/bid-requests' as never);
         break;
-      case 'order_update':
-        if (data.order_id) router.push(`/orders/${data.order_id}` as never);
+      case 'order_update': {
+        const id = safeId(data.order_id);
+        if (id) router.push(`/orders/${id}` as never);
+        else console.warn('[push] invalid order_id in notification payload');
         break;
+      }
       case 'order_cancelled':
-        if (data.order_id) router.push(`/prepper-orders` as never);
+        router.push('/prepper-orders' as never);
         break;
       case 'new_follower':
         router.push('/following' as never);
         break;
-      case 'meal_drop':
-        if (data.prepper_id) router.push(`/prepper/${data.prepper_id}` as never);
+      case 'meal_drop': {
+        const id = safeId(data.prepper_id);
+        if (id) router.push(`/prepper/${id}` as never);
+        else console.warn('[push] invalid prepper_id in notification payload');
         break;
+      }
       case 'approved':
         router.push('/dashboard' as never);
         break;
       case 'rejected':
         router.push('/become-prepper' as never);
-        break;
-      default:
         break;
     }
   }, [lastNotificationResponse]);

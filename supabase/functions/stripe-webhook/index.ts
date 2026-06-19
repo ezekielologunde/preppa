@@ -5,6 +5,22 @@
 import Stripe from 'https://esm.sh/stripe@14.21.0?target=denonext';
 import { createClient, SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 
+// Max body size for inbound webhook events (Stripe events can be large with embedded data)
+const MAX_WEBHOOK_BYTES = 512 * 1024; // 512 KB
+
+// Exponential-backoff retry helper for transient Stripe/network failures
+async function withRetry<T>(fn: () => Promise<T>, retries = 3, delayMs = 500): Promise<T> {
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await fn();
+    } catch (e) {
+      if (i === retries - 1) throw e;
+      await new Promise((r) => setTimeout(r, delayMs * Math.pow(2, i)));
+    }
+  }
+  throw new Error('withRetry: exhausted retries');
+}
+
 const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY')!, {
   apiVersion: '2024-06-20',
   httpClient: Stripe.createFetchHttpClient(),
@@ -234,16 +250,39 @@ async function cancelSubscription(supabase: SupabaseClient, sub: Stripe.Subscrip
 }
 
 Deno.serve(async (req) => {
+  // Verify signature header is present before reading the (potentially large) body
   const sig = req.headers.get('stripe-signature');
+  if (!sig) {
+    return new Response('Missing Stripe-Signature header', { status: 400 });
+  }
+
+  // Enforce body size limit to prevent DOS via oversized payloads
+  const contentLength = parseInt(req.headers.get('content-length') ?? '0', 10);
+  if (contentLength > MAX_WEBHOOK_BYTES) {
+    return new Response(`Payload too large (max ${MAX_WEBHOOK_BYTES} bytes)`, { status: 413 });
+  }
   const body = await req.text();
+  if (body.length > MAX_WEBHOOK_BYTES) {
+    return new Response('Payload too large', { status: 413 });
+  }
+
   let event: Stripe.Event;
   try {
-    event = await stripe.webhooks.constructEventAsync(body, sig!, whsec, undefined, cryptoProvider);
+    event = await stripe.webhooks.constructEventAsync(body, sig, whsec, undefined, cryptoProvider);
   } catch (e) {
     return new Response(`Bad signature: ${e instanceof Error ? e.message : 'error'}`, { status: 400 });
   }
 
   const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+
+  const { error: dupErr } = await supabase
+    .from('processed_stripe_events')
+    .insert({ event_id: event.id });
+  if (dupErr?.code === '23505') {
+    return new Response(JSON.stringify({ received: true }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+  }
+  if (dupErr) console.error('[webhook] idempotency insert failed:', dupErr.message);
+
   try {
     switch (event.type) {
       case 'checkout.session.completed': {
@@ -339,14 +378,16 @@ Deno.serve(async (req) => {
           });
           let stripeFee: number | null = null;
           try {
-            const pi = await stripe.paymentIntents.retrieve(String(s.payment_intent), {
-              expand: ['latest_charge.balance_transaction'],
-            });
+            const pi = await withRetry(() =>
+              stripe.paymentIntents.retrieve(String(s.payment_intent), {
+                expand: ['latest_charge.balance_transaction'],
+              })
+            );
             const charge = pi.latest_charge as Stripe.Charge | null;
             const bt = charge?.balance_transaction as Stripe.BalanceTransaction | null;
             if (bt && typeof bt.fee === 'number') stripeFee = bt.fee / 100;
           } catch (e) {
-            console.error('balance txn fetch failed (estimating fee)', e instanceof Error ? e.message : e);
+            console.error('balance txn fetch failed after retries (estimating fee)', e instanceof Error ? e.message : e);
           }
           await supabase.rpc('apply_payment_fees', { p_order_id: orderId, p_stripe_fee: stripeFee });
           try {

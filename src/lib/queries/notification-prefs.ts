@@ -34,7 +34,7 @@ const DEFAULTS: NotifPrefs = {
   order_updates: true,
   new_followers: true,
   meal_drops: true,
-  promotions: true,
+  promotions: false,
   bid_updates: true,
   prepper_news: false,
   push_enabled: true,

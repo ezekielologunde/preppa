@@ -3,19 +3,13 @@
 // key — raw card data never touches this server.
 import Stripe from 'https://esm.sh/stripe@14.21.0?target=denonext';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
+import { cors, json, readBody, errorResponse, checkRateLimit } from '../_shared/security.ts';
 
 const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY')!, {
   apiVersion: '2024-06-20',
   httpClient: Stripe.createFetchHttpClient(),
 });
 const PK = Deno.env.get('STRIPE_PUBLISHABLE_KEY') ?? '';
-const cors = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
-const json = (body: unknown, status = 200) =>
-  new Response(JSON.stringify(body), { status, headers: { ...cors, 'Content-Type': 'application/json' } });
 
 async function getOrCreateCustomer(
   supabase: ReturnType<typeof createClient>,
@@ -37,7 +31,9 @@ async function getOrCreateCustomer(
 }
 
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
+  const corsResp = cors(req);
+  if (corsResp) return corsResp;
+
   try {
     const sb = createClient(
       Deno.env.get('SUPABASE_URL')!,
@@ -45,9 +41,18 @@ Deno.serve(async (req) => {
     );
     const token = (req.headers.get('Authorization') ?? '').replace('Bearer ', '');
     const { data: { user }, error: uerr } = await sb.auth.getUser(token);
-    if (uerr || !user) return json({ error: 'Not authenticated' }, 401);
+    if (uerr || !user) return errorResponse('Not authenticated', 401);
 
-    const body = await req.json().catch(() => ({}));
+    let body: Record<string, unknown>;
+    try {
+      body = await readBody(req, 16 * 1024) as Record<string, unknown>;
+    } catch (e) {
+      return errorResponse(e instanceof Error ? e.message : 'Invalid request', 400);
+    }
+
+    const allowed = await checkRateLimit(sb, user.id, 'stripe-payment-methods', 10);
+    if (!allowed) return errorResponse('Too many requests', 429);
+
     const { action } = body;
 
     // ── List ──────────────────────────────────────────────────────────────────
@@ -76,7 +81,7 @@ Deno.serve(async (req) => {
     // ── Attach ────────────────────────────────────────────────────────────────
     if (action === 'attach') {
       const { pmId } = body as { pmId?: string };
-      if (!pmId) return json({ error: 'Missing pmId' }, 400);
+      if (!pmId) return errorResponse('Missing pmId', 400);
       const customerId = await getOrCreateCustomer(sb, user.id, user.email);
       await stripe.paymentMethods.attach(pmId, { customer: customerId });
       // Auto-set as default if it's the first card
@@ -92,10 +97,10 @@ Deno.serve(async (req) => {
     // ── Detach ────────────────────────────────────────────────────────────────
     if (action === 'detach') {
       const { pmId } = body as { pmId?: string };
-      if (!pmId) return json({ error: 'Missing pmId' }, 400);
+      if (!pmId) return errorResponse('Missing pmId', 400);
       const { data: profile } = await sb.from('profiles').select('stripe_customer_id').eq('id', user.id).single();
       const pm = await stripe.paymentMethods.retrieve(pmId);
-      if (pm.customer !== profile?.stripe_customer_id) return json({ error: 'Not your card' }, 403);
+      if (pm.customer !== profile?.stripe_customer_id) return errorResponse('Not your card', 403);
       await stripe.paymentMethods.detach(pmId);
       return json({ ok: true });
     }
@@ -103,11 +108,11 @@ Deno.serve(async (req) => {
     // ── Set default ───────────────────────────────────────────────────────────
     if (action === 'set_default') {
       const { pmId } = body as { pmId?: string };
-      if (!pmId) return json({ error: 'Missing pmId' }, 400);
+      if (!pmId) return errorResponse('Missing pmId', 400);
       const { data: profile } = await sb.from('profiles').select('stripe_customer_id').eq('id', user.id).single();
-      if (!profile?.stripe_customer_id) return json({ error: 'No customer' }, 400);
+      if (!profile?.stripe_customer_id) return errorResponse('No customer', 400);
       const pm = await stripe.paymentMethods.retrieve(pmId);
-      if (pm.customer !== profile.stripe_customer_id) return json({ error: 'Not your card' }, 403);
+      if (pm.customer !== profile.stripe_customer_id) return errorResponse('Not your card', 403);
       await stripe.customers.update(profile.stripe_customer_id, {
         invoice_settings: { default_payment_method: pmId },
       });
@@ -135,7 +140,7 @@ Deno.serve(async (req) => {
       return json({ url: session.url });
     }
 
-    return json({ error: 'Unknown action' }, 400);
+    return errorResponse('Unknown action', 400);
   } catch (e) {
     return json({ error: e instanceof Error ? e.message : 'Request failed' }, 500);
   }

@@ -217,7 +217,7 @@ export default function NotificationSettingsScreen() {
           <SectionCard delay={180}>
             <PrefRow
               label="Promotions & discounts"
-              value={prefs?.promotions ?? true}
+              value={prefs?.promotions ?? false}
               onChange={() => toggle('promotions')}
               disabled={catDisabled}
             />

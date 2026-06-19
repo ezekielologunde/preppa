@@ -5,38 +5,44 @@
 //   get_dashboard_link  — generate a login link for an already-onboarded account
 import Stripe from 'https://esm.sh/stripe@14.21.0?target=denonext';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
+import { cors, json, readBody, errorResponse, checkRateLimit } from '../_shared/security.ts';
 
 const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY')!, {
   apiVersion: '2024-06-20',
   httpClient: Stripe.createFetchHttpClient(),
 });
 const SITE = Deno.env.get('SITE_URL') ?? 'https://app.preppa.live';
-const cors = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
-const json = (body: unknown, status = 200) =>
-  new Response(JSON.stringify(body), { status, headers: { ...cors, 'Content-Type': 'application/json' } });
 
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
+  const corsResp = cors(req);
+  if (corsResp) return corsResp;
+
   try {
     const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
     const token = (req.headers.get('Authorization') ?? '').replace('Bearer ', '');
     const { data: { user }, error: uerr } = await supabase.auth.getUser(token);
-    if (uerr || !user) return json({ error: 'Not authenticated' }, 401);
+    if (uerr || !user) return errorResponse('Not authenticated', 401);
 
-    const { action, prepper_id } = await req.json().catch(() => ({}));
-    if (!action || !prepper_id) return json({ error: 'Missing action or prepper_id' }, 400);
-    if (prepper_id !== user.id) return json({ error: 'Not your account' }, 403);
+    let body: Record<string, unknown>;
+    try {
+      body = await readBody(req, 16 * 1024) as Record<string, unknown>;
+    } catch (e) {
+      return errorResponse(e instanceof Error ? e.message : 'Invalid request', 400);
+    }
+
+    const allowed = await checkRateLimit(supabase, user.id, 'stripe-connect', 10);
+    if (!allowed) return errorResponse('Too many requests', 429);
+
+    const { action, prepper_id } = body as { action?: string; prepper_id?: string };
+    if (!action || !prepper_id) return errorResponse('Missing action or prepper_id', 400);
+    if (prepper_id !== user.id) return errorResponse('Not your account', 403);
 
     const { data: profile, error: perr } = await supabase
       .from('prepper_profiles')
       .select('stripe_account_id, stripe_account_status')
       .eq('user_id', prepper_id)
       .single();
-    if (perr || !profile) return json({ error: 'Prepper profile not found' }, 404);
+    if (perr || !profile) return errorResponse('Prepper profile not found', 404);
 
     if (action === 'create_account') {
       if (profile.stripe_account_id) return json({ account_id: profile.stripe_account_id });
@@ -53,7 +59,7 @@ Deno.serve(async (req) => {
 
     if (action === 'get_onboarding_link') {
       const accountId = profile.stripe_account_id;
-      if (!accountId) return json({ error: 'No Stripe account — call create_account first' }, 400);
+      if (!accountId) return errorResponse('No Stripe account — call create_account first', 400);
       const link = await stripe.accountLinks.create({
         account: accountId,
         refresh_url: `${SITE}/earnings?stripe=refresh`,
@@ -65,7 +71,7 @@ Deno.serve(async (req) => {
 
     if (action === 'get_dashboard_link') {
       const accountId = profile.stripe_account_id;
-      if (!accountId) return json({ error: 'No Stripe account connected' }, 400);
+      if (!accountId) return errorResponse('No Stripe account connected', 400);
       const link = await stripe.accounts.createLoginLink(accountId);
       return json({ url: link.url });
     }
@@ -86,7 +92,7 @@ Deno.serve(async (req) => {
       return json({ status });
     }
 
-    return json({ error: 'Unknown action' }, 400);
+    return errorResponse('Unknown action', 400);
   } catch (e) {
     return json({ error: e instanceof Error ? e.message : 'Request failed' }, 500);
   }

@@ -26,8 +26,15 @@ Deno.serve(async (req) => {
     const { data: { user }, error: uerr } = await supabase.auth.getUser(token);
     if (uerr || !user) return json({ error: 'Not authenticated' }, 401);
 
-    const { prepperId, plan, amountCents, durationLabel } = await req.json().catch(() => ({}));
-    if (!prepperId || !plan || !amountCents) return json({ error: 'Missing prepperId, plan, or amountCents' }, 400);
+    const BOOST_PRICES_CENTS: Record<string, number> = {
+      '7d': 999,
+      '30d': 2999,
+    };
+
+    const { prepperId, plan, durationLabel } = await req.json().catch(() => ({}));
+    if (!prepperId || !plan) return json({ error: 'Missing prepperId or plan' }, 400);
+    if (!(plan in BOOST_PRICES_CENTS)) return json({ error: 'Invalid boost plan' }, 400);
+    const amountCents = BOOST_PRICES_CENTS[plan];
 
     // Verify the prepper belongs to the authed user.
     const { data: pp } = await supabase
@@ -44,12 +51,15 @@ Deno.serve(async (req) => {
         price_data: {
           currency: 'usd',
           product_data: { name: `Boost: ${plan} · ${durationLabel ?? ''}` },
-          unit_amount: Number(amountCents),
+          unit_amount: amountCents,
         },
         quantity: 1,
       }],
       metadata: { type: 'boost', prepper_id: prepperId, plan, amount_cents: String(amountCents) },
-      payment_intent_data: { metadata: { type: 'boost', prepper_id: prepperId, plan } },
+      payment_intent_data: {
+        metadata: { type: 'boost', prepper_id: prepperId, plan },
+        idempotency_key: `boost-${prepperId}-${plan}`,
+      },
       customer_email: user.email ?? undefined,
       success_url: `${SITE}/prepper-hub?boosted=1`,
       cancel_url: `${SITE}/boost`,

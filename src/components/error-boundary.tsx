@@ -1,43 +1,44 @@
-import React from 'react';
-import { View, Text, Pressable } from 'react-native';
-
+import { Component, Fragment, type ReactNode, type ErrorInfo } from 'react';
+import { Text, View, Pressable } from 'react-native';
 import { Font } from '@/constants/fonts';
-import { Palette, Radius } from '@/constants/theme';
+import { Palette, Spacing, Type } from '@/constants/theme';
 
-interface Props { children: React.ReactNode; }
-interface State { hasError: boolean; error?: Error; }
+type Props = { children: ReactNode; fallback?: ReactNode; onError?: (error: Error, info: ErrorInfo) => void };
+type State = { error: Error | null; resetKey: number };
 
-export class ErrorBoundary extends React.Component<Props, State> {
-  state: State = { hasError: false };
+export class ErrorBoundary extends Component<Props, State> {
+  state: State = { error: null, resetKey: 0 };
 
-  static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error };
+  static getDerivedStateFromError(error: Error): Partial<State> {
+    return { error };
   }
 
-  componentDidCatch(error: Error, info: React.ErrorInfo) {
-    // Could log to Sentry/logging service here
-    console.error('[ErrorBoundary]', error, info);
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    this.props.onError?.(error, info);
+    // In production: send to error tracking (Sentry, etc.)
+    console.error('[ErrorBoundary]', error, info.componentStack);
   }
 
   render() {
-    if (this.state.hasError) {
-      return (
-        <View style={{ flex: 1, backgroundColor: Palette.canvas, alignItems: 'center', justifyContent: 'center', padding: 32 }}>
-          <Text style={{ fontSize: 48, marginBottom: 16 }}>🍳</Text>
-          <Text style={{ fontFamily: Font.display, fontSize: 24, color: Palette.ink, textAlign: 'center', letterSpacing: -0.5, marginBottom: 8 }}>
+    if (this.state.error) {
+      return this.props.fallback ?? (
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: Spacing.four, gap: 16 }}>
+          <Text style={{ fontFamily: Font.heading, fontSize: 18, color: Palette.ink, textAlign: 'center' }}>
             Something went wrong
           </Text>
-          <Text style={{ fontFamily: Font.body, fontSize: 15, color: Palette.textSecondary, textAlign: 'center', marginBottom: 32, lineHeight: 22 }}>
-            The app hit an unexpected error. Your data is safe — tap below to restart.
+          <Text style={{ fontFamily: Font.body, fontSize: Type.label, color: Palette.textSecondary, textAlign: 'center' }}>
+            {this.state.error.message}
           </Text>
           <Pressable
-            onPress={() => this.setState({ hasError: false })}
-            style={{ backgroundColor: Palette.brand, borderRadius: Radius.lg, paddingHorizontal: 28, paddingVertical: 14 }}>
-            <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#fff' }}>Try again</Text>
+            onPress={() => this.setState(prev => ({ error: null, resetKey: prev.resetKey + 1 }))}
+            accessibilityRole="button"
+            accessibilityLabel="Try again"
+            style={{ paddingHorizontal: 24, paddingVertical: 12, backgroundColor: Palette.brand, borderRadius: 24 }}>
+            <Text style={{ fontFamily: Font.semibold, fontSize: Type.body, color: '#fff' }}>Try again</Text>
           </Pressable>
         </View>
       );
     }
-    return this.props.children;
+    return <Fragment key={this.state.resetKey}>{this.props.children}</Fragment>;
   }
 }

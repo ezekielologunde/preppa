@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
 import { supabase } from '@/lib/supabase';
 
@@ -28,16 +28,6 @@ function mapRow(r: Record<string, unknown>): GiftCard {
   };
 }
 
-function generateCode(): string {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  let code = 'PREP';
-  for (let i = 0; i < 8; i++) {
-    code += chars[Math.floor(Math.random() * chars.length)];
-    if (i === 3) code += '-';
-  }
-  return code; // e.g. PREP-ABCD-EFG8
-}
-
 export function useMyGiftCards(userId?: string | null) {
   return useQuery({
     queryKey: ['my-gift-cards', userId ?? 'anon'],
@@ -60,27 +50,14 @@ export type SendGiftCardInput = {
   message?: string;
 };
 
-export function useSendGiftCard(userId?: string | null) {
-  const qc = useQueryClient();
+export function useSendGiftCard(_userId?: string | null) {
+  // TODO(migration 0117): implement using server-side create_gift_card RPC once available.
+  // Client-side code generation was removed — codes must be issued server-side to prevent
+  // collisions and ensure auditability.
   return useMutation({
-    mutationFn: async (input: SendGiftCardInput): Promise<{ id: string; code: string }> => {
-      const code = generateCode();
-      const { data, error } = await supabase
-        .from('gift_cards')
-        .insert({
-          sender_id: userId!,
-          code,
-          amount: input.amount,
-          balance: input.amount,
-          recipient_email: input.recipientEmail ?? null,
-          message: input.message ?? null,
-        })
-        .select('id, code')
-        .single();
-      if (error) throw new Error(error.message);
-      return data as { id: string; code: string };
+    mutationFn: async (_input: SendGiftCardInput): Promise<{ id: string; code: string }> => {
+      throw new Error('Gift card creation is not available yet.');
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['my-gift-cards', userId] }),
   });
 }
 

@@ -31,24 +31,26 @@ Deno.serve(async (req) => {
     const { data: { user }, error: uerr } = await supabase.auth.getUser(token);
     if (uerr || !user) return json({ error: 'Not authenticated' }, 401);
 
-    const { requestId, orderId, amountCents } = await req.json().catch(() => ({}));
-    if (!requestId || !orderId || !amountCents) {
-      return json({ error: 'Missing requestId, orderId, or amountCents' }, 400);
-    }
-    if (typeof amountCents !== 'number' || amountCents < 100) {
-      return json({ error: 'amountCents must be a number >= 100' }, 400);
+    const { requestId, orderId } = await req.json().catch(() => ({}));
+    if (!requestId || !orderId) {
+      return json({ error: 'Missing requestId or orderId' }, 400);
     }
 
     // Verify the request belongs to this customer and is confirmed
     const { data: hcr, error: hcrerr } = await supabase
       .from('home_cook_requests')
-      .select('id, customer_id, order_id, status, payment_intent_id')
+      .select('id, customer_id, order_id, status, payment_intent_id, ingredient_budget, cooking_fee, travel_fee')
       .eq('id', requestId)
       .single();
     if (hcrerr || !hcr) return json({ error: 'Home cook request not found' }, 404);
     if (hcr.customer_id !== user.id) return json({ error: 'Forbidden' }, 403);
     if (hcr.status !== 'confirmed') return json({ error: 'Request is not confirmed' }, 409);
     if (hcr.order_id !== orderId) return json({ error: 'Order ID mismatch' }, 400);
+
+    if (hcr.cooking_fee == null) return json({ error: 'Prepper has not proposed fees yet' }, 409);
+    const totalDollars = Number(hcr.ingredient_budget) + Number(hcr.cooking_fee) + Number(hcr.travel_fee ?? 0);
+    const amountCents = Math.round(totalDollars * 100);
+    if (amountCents < 100) return json({ error: 'Computed amount is too low' }, 500);
 
     // Idempotent: if a payment intent already exists, return it
     if (hcr.payment_intent_id) {
@@ -87,7 +89,7 @@ Deno.serve(async (req) => {
         type: 'home_cook',
       },
       description: 'Home cook session hold — captured on completion',
-    });
+    }, { idempotencyKey: `home-cook-pi-${requestId}` });
 
     return json({ clientSecret: intent.client_secret, paymentIntentId: intent.id });
   } catch (err) {
