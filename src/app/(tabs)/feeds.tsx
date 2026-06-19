@@ -22,7 +22,7 @@ import { Font } from '@/constants/fonts';
 import { Palette, Radius } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
 import { BP } from '@/lib/layout';
-import { useFeed, useFollowingFeed, type FeedItem } from '@/lib/queries/feed';
+import { useFeed, useFollowingFeed, useLiveFeedItems, type FeedItem } from '@/lib/queries/feed';
 import { useMyFollowIds, useMyPrepperApplication } from '@/lib/queries/preppers';
 import { useAuth } from '@/providers/auth-provider';
 
@@ -74,6 +74,7 @@ export default function FeedsScreen() {
   }, [prepper?.status, router]);
 
   const [tab, setTab] = useState<'following' | 'explore'>('following');
+  const { data: liveItems = [] } = useLiveFeedItems();
   const { data: exploreItems, isLoading: exploreLoading, isError: exploreError } = useFeed();
   const { data: followingItems, isLoading: followingLoading, isError: followingError } = useFollowingFeed(user?.id);
   const { data: followIds } = useMyFollowIds(user?.id);
@@ -90,10 +91,14 @@ export default function FeedsScreen() {
     'become_prepper',
     'dietary_profile',
   ], [hasActiveOrder]);
-  const items = tab === 'following' ? followingItems : exploreItems;
+  const baseItems = tab === 'following' ? followingItems : exploreItems;
+  const items = useMemo(
+    () => (liveItems.length ? [...liveItems, ...(baseItems ?? [])] : baseItems ?? []),
+    [liveItems, baseItems],
+  );
   const isLoading = tab === 'following' ? followingLoading : exploreLoading;
   const isError = tab === 'following' ? followingError : exploreError;
-  const stream = useMemo(() => buildStream(items ?? [], promoSeq), [items, promoSeq]);
+  const stream = useMemo(() => buildStream(items, promoSeq), [items, promoSeq]);
   const { height: windowHeight, width: windowWidth } = useWindowDimensions();
   const isDesktop = windowWidth >= BP.desktop;
   const insets = useSafeAreaInsets();

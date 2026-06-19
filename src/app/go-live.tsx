@@ -1,8 +1,10 @@
+import { useQuery } from '@tanstack/react-query';
+import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
-import { ChevronLeft, Copy, Radio, Users, Zap } from 'lucide-react-native';
+import { ChevronLeft, Copy, Radio, UtensilsCrossed, Users, Zap } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useState } from 'react';
-import { Alert, Platform, Text, TextInput, View } from 'react-native';
+import { Alert, Platform, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PressableScale } from '@/components/ui/pressable-scale';
@@ -34,6 +36,25 @@ export default function GoLiveScreen() {
   const [title, setTitle] = useState('');
   const [isLive, setIsLive] = useState(false);
   const [liveSessionId, setLiveSessionId] = useState<string | null>(null);
+
+  const [taggedMealId, setTaggedMealId] = useState<string | null>(null);
+
+  const { data: meals } = useQuery({
+    queryKey: ['prepper-meals-live', prepper?.id],
+    enabled: !!prepper?.id,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('meals')
+        .select('id, title, price:base_price, images:meal_images(url)')
+        .eq('prepper_id', prepper!.id)
+        .eq('status', 'published')
+        .order('created_at', { ascending: false })
+        .limit(15);
+      return (data ?? []) as unknown as { id: string; title: string; price: number; images: { url: string }[] | null }[];
+    },
+  });
+
+  const taggedMeal = taggedMealId ? (meals ?? []).find((m) => m.id === taggedMealId) : null;
 
   const isPro = membership?.isPro === true;
   const kitchenName = prepper?.display_name ?? user?.email?.split('@')[0] ?? 'kitchen';
@@ -171,6 +192,50 @@ export default function GoLiveScreen() {
               style={{ height: 52, backgroundColor: CARD, borderRadius: Radius.sm, paddingHorizontal: 16, fontSize: 15, fontFamily: Font.body, color: '#fff' }} />
           </MotiView>
 
+          {/* Meal tag picker */}
+          {(meals?.length ?? 0) > 0 && (
+            <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280, delay: 90 }}>
+              <Text style={{ fontFamily: Font.medium, fontSize: 13, color: MUTED, marginBottom: 10 }}>
+                Feature a meal (optional)
+              </Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                {(meals ?? []).map((meal) => {
+                  const selected = meal.id === taggedMealId;
+                  const mealImage = meal.images?.[0]?.url ?? null;
+                  return (
+                    <PressableScale
+                      key={meal.id}
+                      onPress={() => { feedback.tap(); setTaggedMealId(selected ? null : meal.id); }}
+                      accessibilityRole="button"
+                      accessibilityLabel={selected ? `Deselect ${meal.title}` : `Feature ${meal.title}`}
+                      style={{ borderRadius: 8, borderWidth: 2, borderColor: selected ? ORANGE : Palette.border, padding: 8, marginRight: 8,
+                        backgroundColor: selected ? ORANGE + '18' : CARD, flexDirection: 'column', alignItems: 'center', width: 72 }}>
+                      <View style={{ width: 40, height: 40, borderRadius: 8, backgroundColor: '#1e2230', overflow: 'hidden', alignItems: 'center', justifyContent: 'center', marginBottom: 6 }}>
+                        {mealImage ? (
+                          <Image source={mealImage} style={{ width: 40, height: 40 }} contentFit="cover" />
+                        ) : (
+                          <UtensilsCrossed size={18} color={MUTED} />
+                        )}
+                        {selected && (
+                          <View style={{ position: 'absolute', top: 2, right: 2, width: 14, height: 14, borderRadius: 7,
+                            backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
+                            <Text style={{ fontSize: 9, color: '#fff', fontFamily: Font.semibold }}>✓</Text>
+                          </View>
+                        )}
+                      </View>
+                      <Text numberOfLines={2} style={{ fontFamily: Font.medium, fontSize: 10, color: '#fff', textAlign: 'center', lineHeight: 13 }}>
+                        {meal.title.length > 12 ? meal.title.slice(0, 12) + '…' : meal.title}
+                      </Text>
+                      <Text style={{ fontFamily: Font.semibold, fontSize: 10, color: ORANGE, marginTop: 2 }}>
+                        ${(meal.price ?? 0).toFixed(0)}
+                      </Text>
+                    </PressableScale>
+                  );
+                })}
+              </ScrollView>
+            </MotiView>
+          )}
+
           {/* Broadcast toggle */}
           <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280, delay: 120 }}>
             <PressableScale onPress={toggleLive} accessibilityRole="button" accessibilityLabel={isLive ? 'End broadcast' : 'Start broadcasting'}>
@@ -203,6 +268,15 @@ export default function GoLiveScreen() {
                   <Copy size={16} color={ORANGE} />
                 </PressableScale>
               </View>
+              {taggedMeal && (
+                <View style={{ backgroundColor: CARD, borderRadius: Radius.sm, padding: 12, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                  <Text style={{ fontSize: 16 }}>🍽</Text>
+                  <Text style={{ flex: 1, fontFamily: Font.medium, fontSize: 13, color: '#fff' }} numberOfLines={1}>
+                    {taggedMeal.title} · tap to order
+                  </Text>
+                  <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: ORANGE }}>${(taggedMeal.price ?? 0).toFixed(2)}</Text>
+                </View>
+              )}
             </MotiView>
           )}
         </View>

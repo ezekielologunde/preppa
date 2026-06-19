@@ -4,7 +4,7 @@ import { Bike, CalendarClock, Check, ChevronLeft, MapPin, ShoppingBag, Store } f
 import { MotiView } from 'moti';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect, useMemo, useState, type ComponentType } from 'react';
-import { ActivityIndicator, Platform, RefreshControl, ScrollView, Text, TextInput, useWindowDimensions, View } from 'react-native';
+import { ActivityIndicator, Modal, Platform, RefreshControl, ScrollView, Text, TextInput, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { CartPlacedScreen } from '@/components/cart/cart-placed-screen';
@@ -98,6 +98,7 @@ export default function CartScreen() {
   const [pickHour, setPickHour] = useState(12);
   const [pickMinute, setPickMinute] = useState(0);
 
+  const [paymentPending, setPaymentPending] = useState(false);
   const busy = placeOrder.isPending || placeMultiple.isPending || checkoutStripe.isPending || embeddedCheckout.isPending;
   const [refreshing, setRefreshing] = useState(false);
   const { width } = useWindowDimensions();
@@ -176,6 +177,7 @@ export default function CartScreen() {
   }
 
   async function startPayment(orderId: string) {
+    setPaymentPending(true);
     try {
       if (Platform.OS === 'web') {
         const r = await embeddedCheckout.mutateAsync(orderId);
@@ -194,6 +196,8 @@ export default function CartScreen() {
       }
       feedback.error();
       setErr((e instanceof Error ? e.message : 'Could not start payment.') + ' Your preorder is saved — pay it from Preorders.');
+    } finally {
+      setPaymentPending(false);
     }
   }
 
@@ -504,6 +508,16 @@ export default function CartScreen() {
       </SafeAreaView>
       {paymentSheet}
       <SchedulePickerModal visible={scheduleModal} pickDate={pickDate} pickHour={pickHour} pickMinute={pickMinute} onDateChange={setPickDate} onHourChange={setPickHour} onMinuteChange={setPickMinute} onConfirm={confirmSchedule} onClose={() => setScheduleModal(false)} />
+      <Modal visible={paymentPending} transparent animationType="fade">
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.85)', alignItems: 'center', justifyContent: 'center' }}>
+          <MotiView from={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', damping: 15 }} style={{ backgroundColor: '#1a1a1a', borderRadius: 20, padding: 32, alignItems: 'center', width: 260 }}>
+            <MotiView from={{ scale: 1 }} animate={{ scale: 1.2 }} transition={{ type: 'timing', duration: 900, loop: true }} style={{ position: 'absolute', width: 80, height: 80, borderRadius: 40, borderWidth: 2, borderColor: Palette.brand + '40', top: 20 }} />
+            <ActivityIndicator size="large" color={Palette.brand} style={{ marginBottom: 16 }} />
+            <Text style={{ fontFamily: Font.heading, fontSize: 18, color: '#ffffff', marginBottom: 8, textAlign: 'center' }}>Taking you to payment</Text>
+            <Text style={{ fontFamily: Font.body, fontSize: 13, color: '#999999', textAlign: 'center' }}>Preppa secures your transaction</Text>
+          </MotiView>
+        </View>
+      </Modal>
     </View>
   );
 }
