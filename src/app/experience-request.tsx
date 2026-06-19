@@ -110,7 +110,7 @@ export default function ExperienceRequestScreen() {
     if (cleanTitle.length < 3) { setTitleTouched(true); feedback.error(); return setErr('Give your request a short title (at least 3 characters).'); }
     feedback.tap();
     create.mutate(
-      { userId: user.id, kind, title: cleanTitle.slice(0, 100), details: cleanBlock(details).trim().slice(0, 500), guests, budget, location: cleanLine(location).trim().slice(0, 200) },
+      { kind, title: cleanTitle, details: cleanBlock(details).trim(), guests, budget, location: cleanLine(location).trim() },
       {
         onSuccess: () => {
           feedback.success();

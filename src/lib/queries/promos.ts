@@ -13,7 +13,7 @@ export async function validatePromoCode(code: string, orderTotal: number): Promi
   const { data } = await supabase
     .from('promo_codes')
     .select('id,code,description,discount_type,discount_value,min_order_value,expires_at,uses_count,max_uses')
-    .eq('code', code.trim().toUpperCase())
+    .eq('code', code.trim().toUpperCase().slice(0, 50))
     .eq('active', true)
     .maybeSingle();
   if (!data) return null;

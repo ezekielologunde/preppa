@@ -40,7 +40,6 @@ export function useCreateExperienceRequest() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (v: {
-      userId: string;
       kind: ExperienceKind;
       title: string;
       details: string;
@@ -48,18 +47,20 @@ export function useCreateExperienceRequest() {
       budget: number | null;
       location: string;
     }) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not signed in');
       const { error } = await supabase.from('experience_requests').insert({
-        customer_id: v.userId,
+        customer_id: user.id,
         kind: v.kind,
-        title: v.title,
-        details: v.details || null,
+        title: v.title.trim().slice(0, 100),
+        details: v.details.trim().slice(0, 500) || null,
         guests: v.guests,
         budget: v.budget,
-        location: v.location || null,
+        location: v.location.trim().slice(0, 200) || null,
       });
       if (error) throw error;
     },
-    onSuccess: (_d, v) => qc.invalidateQueries({ queryKey: ['experiences', 'mine', v.userId] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['experiences', 'mine'] }),
   });
 }
 
@@ -201,7 +202,7 @@ export function useUpdateRequestDetails() {
     mutationFn: async ({ requestId, details }: { requestId: string; details: string }) => {
       const { error } = await supabase
         .from('experience_requests')
-        .update({ details: details || null })
+        .update({ details: details.trim().slice(0, 500) || null })
         .eq('id', requestId);
       if (error) throw error;
     },
