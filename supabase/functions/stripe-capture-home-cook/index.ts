@@ -3,7 +3,7 @@
 // Idempotent — safe to call even if already captured.
 import Stripe from 'https://esm.sh/stripe@14.21.0?target=denonext';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
-import { cors, json, errorResponse } from '../_shared/security.ts';
+import { cors, json, errorResponse, readBody } from '../_shared/security.ts';
 
 const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY')!, {
   apiVersion: '2024-06-20',
@@ -23,7 +23,10 @@ Deno.serve(async (req) => {
     const { data: { user }, error: uerr } = await supabase.auth.getUser(token);
     if (uerr || !user) return errorResponse('Not authenticated', 401, req);
 
-    const { orderId } = await req.json().catch(() => ({}));
+    let body: Record<string, unknown>;
+    try { body = await readBody(req, 8 * 1024) as Record<string, unknown>; }
+    catch (e) { return errorResponse(e instanceof Error ? e.message : 'Invalid request', 400, req); }
+    const { orderId } = body as { orderId?: string };
     if (!orderId) return errorResponse('Missing orderId', 400, req);
 
     // Verify caller is the prepper for this order

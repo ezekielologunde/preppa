@@ -4,7 +4,7 @@
 // client inserts with status 'active' immediately after the browser returns.
 import Stripe from 'https://esm.sh/stripe@14.21.0?target=denonext';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
-import { cors, json, errorResponse } from '../_shared/security.ts';
+import { cors, json, errorResponse, readBody } from '../_shared/security.ts';
 
 const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY')!, {
   apiVersion: '2024-06-20',
@@ -27,7 +27,10 @@ Deno.serve(async (req) => {
       '30d': 2999,
     };
 
-    const { prepperId, plan, durationLabel } = await req.json().catch(() => ({}));
+    let body: Record<string, unknown>;
+    try { body = await readBody(req, 8 * 1024) as Record<string, unknown>; }
+    catch (e) { return errorResponse(e instanceof Error ? e.message : 'Invalid request', 400, req); }
+    const { prepperId, plan, durationLabel } = body as { prepperId?: string; plan?: string; durationLabel?: string };
     if (!prepperId || !plan) return errorResponse('Missing prepperId or plan', 400, req);
     if (!(plan in BOOST_PRICES_CENTS)) return errorResponse('Invalid boost plan', 400, req);
     const amountCents = BOOST_PRICES_CENTS[plan];
