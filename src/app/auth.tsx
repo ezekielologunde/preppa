@@ -76,7 +76,7 @@ export default function AuthScreen() {
       if (error) return fail(error);
       if (needsConfirmation) return goCode('signup', `We sent a 6-digit code to ${email.trim().toLowerCase()} to confirm your email.`);
       feedback.success();
-      return router.replace('/onboarding-flow' as never);
+      return router.replace('/onboarding/step-1' as never);
     }
     const { error } = await signIn(email.trim().toLowerCase(), password);
     if (error) return fail(/invalid login/i.test(error) ? 'Wrong email or password.' : error);
@@ -119,7 +119,7 @@ export default function AuthScreen() {
       if (up.error) return fail(up.error);
     }
     feedback.success();
-    router.replace((intent === 'signup' ? '/onboarding-flow' : '/') as never);
+    router.replace((intent === 'signup' ? '/onboarding/step-1' : '/') as never);
   }
 
   async function resend() {
