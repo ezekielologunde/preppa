@@ -107,7 +107,7 @@ export default function OrderChatScreen() {
     if (!body || send.isPending || !user?.id) return;
     setDraft('');
     try {
-      await send.mutateAsync({ body, senderId: user.id });
+      await send.mutateAsync({ body });
       feedback.success();
     } catch {
       feedback.error();

@@ -31,7 +31,7 @@ export function BidMessageThread({ bidId, currentUserId }: Props) {
     if (!body || send.isPending) return;
     setDraft('');
     try {
-      await send.mutateAsync({ senderId: currentUserId, body });
+      await send.mutateAsync({ body });
       feedback.success();
       setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 80);
     } catch {

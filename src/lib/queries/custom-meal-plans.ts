@@ -71,15 +71,16 @@ export function useCreateCustomPlan() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (v: {
-      userId: string;
       name: string;
       frequency: string;
       deliveryDay: string;
       mealIds: string[];
     }): Promise<string> => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not signed in');
       const { data: plan, error: planErr } = await supabase
         .from('customer_meal_plans')
-        .insert({ customer_id: v.userId, name: v.name, frequency: v.frequency, delivery_day: v.deliveryDay })
+        .insert({ customer_id: user.id, name: v.name, frequency: v.frequency, delivery_day: v.deliveryDay })
         .select('id')
         .single();
       if (planErr) throw planErr;
@@ -91,8 +92,8 @@ export function useCreateCustomPlan() {
       }
       return id;
     },
-    onSuccess: (id, v) => {
-      qc.invalidateQueries({ queryKey: ['custom-meal-plans', 'mine', v.userId] });
+    onSuccess: (id) => {
+      qc.invalidateQueries({ queryKey: ['custom-meal-plans', 'mine'] });
       qc.invalidateQueries({ queryKey: ['custom-meal-plans', 'single', id] });
     },
   });

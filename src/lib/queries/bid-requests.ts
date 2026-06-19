@@ -329,10 +329,12 @@ export function useBidMessages(bidId?: string | null) {
 export function useSendBidMessage(bidId?: string | null) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ senderId, body }: { senderId: string; body: string }) => {
+    mutationFn: async ({ body }: { body: string }) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not signed in');
       const { error } = await supabase
         .from('bid_messages')
-        .insert({ bid_id: bidId!, sender_id: senderId, body });
+        .insert({ bid_id: bidId!, sender_id: user.id, body });
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['bid-messages', bidId] }),

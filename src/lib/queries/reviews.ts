@@ -142,15 +142,17 @@ export type ReviewDraft = {
 };
 
 /** Submit a review for a completed order — used by the review-order screen. */
-export function useSubmitOrderReview(userId: string) {
+export function useSubmitOrderReview() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (draft: ReviewDraft) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not signed in');
       const { error } = await supabase.from('reviews').insert({
         order_id: draft.orderId,
         meal_id: draft.mealId || null,
         prepper_id: draft.prepperId,
-        author_id: userId,
+        author_id: user.id,
         rating: draft.rating,
         body: draft.body.trim() || null,
         photos: draft.photos.length ? draft.photos : [],
@@ -185,10 +187,12 @@ export function useOrderReview(orderId: string) {
 export function useSubmitReview() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (v: { orderId: string; authorId: string; prepperId: string; mealId: string | null; rating: number; body: string; photos?: string[] }) => {
+    mutationFn: async (v: { orderId: string; prepperId: string; mealId: string | null; rating: number; body: string; photos?: string[] }) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not signed in');
       const { error } = await supabase.from('reviews').insert({
         order_id: v.orderId,
-        author_id: v.authorId,
+        author_id: user.id,
         prepper_id: v.prepperId,
         meal_id: v.mealId,
         rating: v.rating,

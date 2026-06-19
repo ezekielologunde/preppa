@@ -60,10 +60,12 @@ export function useOrderMessages(orderId: string | undefined) {
 export function useSendOrderMessage(orderId: string | undefined) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ body, senderId }: { body: string; senderId: string }) => {
+    mutationFn: async ({ body }: { body: string }) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not signed in');
       const { error } = await supabase.from('order_messages').insert({
         order_id: orderId!,
-        sender_id: senderId,
+        sender_id: user.id,
         body: body.trim(),
       });
       if (error) throw error;

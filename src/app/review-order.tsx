@@ -88,7 +88,7 @@ export default function ReviewOrderScreen() {
 
   const orderQ = useOrderForReview(orderId ?? '');
   const existingQ = useOrderReview(orderId ?? '');
-  const submit = useSubmitOrderReview(user?.id ?? '');
+  const submit = useSubmitOrderReview();
 
   const order = orderQ.data;
   const existing = existingQ.data;

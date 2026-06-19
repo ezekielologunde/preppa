@@ -106,7 +106,6 @@ export default function CreateMealPlanScreen() {
     let planId: string;
     try {
       planId = await createPlan.mutateAsync({
-        userId: user.id,
         name: cleanLine(name).trim(),
         frequency: freq,
         deliveryDay: day,
