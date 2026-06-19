@@ -83,7 +83,7 @@ function mapRequest(r: RequestRow): MealRequest {
   };
 }
 
-/** Open meal requests — visible to everyone (customers + preppers). */
+/** Open meal requests — visible to approved preppers only (RLS enforced). */
 export function useMealRequests() {
   return useQuery({
     queryKey: ['meal-requests', 'open'],

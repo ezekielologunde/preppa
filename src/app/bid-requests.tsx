@@ -117,7 +117,7 @@ export default function BidRequestsScreen() {
             style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
             <ChevronLeft size={22} color={INK} />
           </PressableScale>
-          <Text style={{ fontFamily: Font.display, fontSize: 22, color: INK, letterSpacing: -0.5, flex: 1 }}>meal requests</Text>
+          <Text style={{ fontFamily: Font.display, fontSize: 22, color: INK, letterSpacing: -0.5, flex: 1 }}>{!isPrepper ? 'my requests' : 'meal requests'}</Text>
           {!isPrepper ? (
             <PressableScale onPress={() => { feedback.tap(); setShowPost(true); }} accessibilityRole="button" accessibilityLabel="Post a request"
               style={{ width: 42, height: 42, borderRadius: 21, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
@@ -127,23 +127,11 @@ export default function BidRequestsScreen() {
           ) : null}
         </View>
 
-        {!isPrepper ? (
-          <View style={{ flexDirection: 'row', marginHorizontal: 16, marginBottom: 8, backgroundColor: Palette.surface, borderRadius: Radius.pill, padding: 3 }}>
-            {(['browse', 'mine'] as const).map((t) => (
-              <PressableScale key={t} onPress={() => { feedback.tap(); setActiveTab(t); }} accessibilityRole="tab" accessibilityState={{ selected: activeTab === t }}
-                style={{ flex: 1, height: 36, borderRadius: Radius.pill, backgroundColor: activeTab === t ? ORANGE : 'transparent', alignItems: 'center', justifyContent: 'center' }}>
-                <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: activeTab === t ? '#fff' : Palette.textMuted }}>
-                  {t === 'browse' ? 'browse all' : 'my requests'}
-                </Text>
-              </PressableScale>
-            ))}
-          </View>
-        ) : null}
 
         <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={ORANGE} colors={[ORANGE]} />}
           contentContainerStyle={{ padding: 16, paddingBottom: 60 }}>
-          {(isPrepper || activeTab === 'browse') ? (
+          {isPrepper ? (
             isLoading ? <ListSkeleton count={4} /> : isError ? (
               <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }}
                 style={{ alignItems: 'center', paddingTop: 60, gap: 12 }}>
@@ -172,7 +160,7 @@ export default function BidRequestsScreen() {
             ))
           ) : null}
 
-          {!isPrepper && activeTab === 'mine' ? (
+          {!isPrepper ? (
             myLoading ? <ListSkeleton count={3} /> : myError ? (
               <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }}
                 style={{ alignItems: 'center', paddingTop: 60, gap: 12 }}>
