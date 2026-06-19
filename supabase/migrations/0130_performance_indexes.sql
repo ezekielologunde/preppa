@@ -23,10 +23,6 @@ CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_payments_order_id
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_meals_prepper_status_created
   ON meals (prepper_id, status, created_at DESC);
 
--- Active meal lookup (is_active filter on feed queries)
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_meals_status_is_active
-  ON meals (status, is_active) WHERE status = 'published';
-
 -- ── reviews ───────────────────────────────────────────────────────────────────
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_reviews_meal_id
   ON reviews (meal_id, created_at DESC);
@@ -50,10 +46,6 @@ CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_subscriptions_customer_status
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_subscriptions_prepper_status
   ON subscriptions (prepper_id, status);
 
--- ── experiences ───────────────────────────────────────────────────────────────
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_experiences_prepper_id
-  ON experiences (prepper_id, starts_at DESC);
-
 -- ── push tokens ───────────────────────────────────────────────────────────────
 -- Notification delivery (hot path for every push send)
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_push_tokens_user_id
@@ -63,8 +55,8 @@ CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_push_tokens_user_id
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_follows_follower_id
   ON follows (follower_id);
 
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_follows_following_id
-  ON follows (following_id);
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_follows_prepper_id
+  ON follows (prepper_id);
 
 -- ── rate limit events ────────────────────────────────────────────────────────
 -- Covers the sliding-window query in checkRateLimit()
