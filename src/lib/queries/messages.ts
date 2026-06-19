@@ -31,13 +31,15 @@ export function useConversations(userId?: string | null) {
 
   useEffect(() => {
     if (!userId) return;
+    const name = `conversations:${userId}`;
+    supabase.getChannels().filter((c) => c.topic === name).forEach((c) => supabase.removeChannel(c));
     const channel = supabase
-      .channel(`conversations:${userId}`)
+      .channel(name)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, () => {
         qc.invalidateQueries({ queryKey: ['conversations', userId] });
       })
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return () => { void supabase.removeChannel(channel); };
   }, [userId, qc]);
 
   return useQuery({
@@ -81,8 +83,10 @@ export function useMessages(conversationId?: string, userId?: string | null) {
 
   useEffect(() => {
     if (!conversationId) return;
+    const name = `messages:${conversationId}`;
+    supabase.getChannels().filter((c) => c.topic === name).forEach((c) => supabase.removeChannel(c));
     const channel = supabase
-      .channel(`messages:${conversationId}`)
+      .channel(name)
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',
@@ -92,7 +96,7 @@ export function useMessages(conversationId?: string, userId?: string | null) {
         qc.invalidateQueries({ queryKey: ['messages', conversationId] });
       })
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return () => { void supabase.removeChannel(channel); };
   }, [conversationId, qc]);
 
   return useQuery({

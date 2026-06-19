@@ -42,8 +42,10 @@ export function useOrderMessages(orderId: string | undefined) {
 
   useEffect(() => {
     if (!orderId) return;
+    const name = `order-chat-${orderId}`;
+    supabase.getChannels().filter((c) => c.topic === name).forEach((c) => supabase.removeChannel(c));
     const channel = supabase
-      .channel(`order-chat-${orderId}`)
+      .channel(name)
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'order_messages', filter: `order_id=eq.${orderId}` },

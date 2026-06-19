@@ -47,6 +47,7 @@ export function useAdminRealtimeFeed(onEvent: (evt: FeedEvent) => void) {
   cb.current = onEvent;
 
   useEffect(() => {
+    supabase.getChannels().filter((c) => c.topic === 'admin-feed').forEach((c) => supabase.removeChannel(c));
     const channel = supabase
       .channel('admin-feed')
       .on(

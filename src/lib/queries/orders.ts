@@ -217,17 +217,17 @@ export function useOrdersRealtime(column: 'customer_id' | 'prepper_id', value?: 
   const qc = useQueryClient();
   useEffect(() => {
     if (!value) return;
+    const name = `orders-${column}-${value}`;
+    supabase.getChannels().filter((c) => c.topic === name).forEach((c) => supabase.removeChannel(c));
     const channel = supabase
-      .channel(`orders-${column}-${value}`)
+      .channel(name)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'orders', filter: `${column}=eq.${value}` },
         () => qc.invalidateQueries({ queryKey: ['orders'] }),
       )
       .subscribe();
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => { void supabase.removeChannel(channel); };
   }, [column, value, qc]);
 }
 
@@ -316,8 +316,10 @@ export function useOrderStatus(orderId: string | undefined | null) {
 
   useEffect(() => {
     if (!orderId) return;
+    const name = `order-status-${orderId}`;
+    supabase.getChannels().filter((c) => c.topic === name).forEach((c) => supabase.removeChannel(c));
     const channel = supabase
-      .channel(`order-status-${orderId}`)
+      .channel(name)
       .on('postgres_changes', {
         event: 'UPDATE',
         schema: 'public',
