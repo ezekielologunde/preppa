@@ -3,6 +3,7 @@ import type { Session, User } from '@supabase/supabase-js';
 import * as Notifications from 'expo-notifications';
 import { useRouter } from 'expo-router';
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { Platform } from 'react-native';
 
 import { hydrateFromServer } from '@/lib/favorites';
 import { clearPushToken, registerPushToken } from '@/lib/push-notifications';
@@ -59,7 +60,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [rolesFor, setRolesFor] = useState<{ uid: string; keys: string[] } | null>(null);
   const [statusBlock, setStatusBlock] = useState<'deleted' | 'suspended' | null>(null);
   const router = useRouter();
-  const lastNotificationResponse = Notifications.useLastNotificationResponse();
+  // useLastNotificationResponse is unavailable on web; resolve to a stable no-op there.
+  const useNotifResponse = Platform.OS === 'web' ? (() => null) : Notifications.useLastNotificationResponse;
+  const lastNotificationResponse = useNotifResponse();
 
   useEffect(() => {
     async function boot() {

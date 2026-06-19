@@ -6,18 +6,20 @@ import { Platform } from 'react-native';
 
 import { supabase } from '@/lib/supabase';
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
+if (Platform.OS !== 'web') {
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: true,
+      shouldShowBanner: true,
+      shouldShowList: true,
+    }),
+  });
+}
 
 export async function registerPushToken(): Promise<void> {
-  if (!Device.isDevice) return; // Expo Push doesn't work on simulators
+  if (Platform.OS === 'web' || !Device.isDevice) return; // Web & simulators don't support Expo Push
 
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return;
@@ -49,6 +51,8 @@ export function usePushNotificationListeners() {
   const router = useRouter();
 
   useEffect(() => {
+    if (Platform.OS === 'web') return;
+
     const received = Notifications.addNotificationReceivedListener(_notification => {
       // Notification received while app is foregrounded — no-op for now.
     });
