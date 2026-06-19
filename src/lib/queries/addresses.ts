@@ -89,13 +89,19 @@ export function useSetDefaultAddress(userId: string | undefined) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, allIds }: { id: string; allIds: string[] }) => {
-      // Clear all defaults first, then set the new one
+      // Clear all defaults first, then set the new one.
+      // Explicit user_id filter provides defense-in-depth alongside RLS.
       const { error: clearErr } = await supabase
         .from('addresses')
         .update({ is_default: false })
+        .eq('user_id', userId!)
         .in('id', allIds);
       if (clearErr) throw clearErr;
-      const { error } = await supabase.from('addresses').update({ is_default: true }).eq('id', id);
+      const { error } = await supabase
+        .from('addresses')
+        .update({ is_default: true })
+        .eq('user_id', userId!)
+        .eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['addresses', userId] }),
