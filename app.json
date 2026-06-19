@@ -41,6 +41,14 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
+      [
+        "@sentry/react-native/expo",
+        {
+          "url": "https://sentry.io/",
+          "project": "preppa-mobile",
+          "organization": "howzstd"
+        }
+      ],
       "expo-router",
       [
         "expo-splash-screen",

@@ -274,7 +274,7 @@ function AuthGate({ children }: { children: ReactNode }) {
 
 // ─── Root layout ──────────────────────────────────────────────────────────────
 
-export default function RootLayout() {
+function RootLayout() {
   const colorScheme = useColorScheme();
   const router = useRouter();
   const [booting, setBooting] = useState(true);
@@ -340,3 +340,5 @@ export default function RootLayout() {
     </ErrorBoundary>
   );
 }
+
+export default Sentry.wrap(RootLayout);
