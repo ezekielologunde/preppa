@@ -57,7 +57,7 @@ function StatusGate({ prepper, router }: { prepper: any; router: ReturnType<type
   const cfg = prepper?.status === 'pending'
     ? { Icon: Clock,    color: '#D97706', title: 'Under review',          body: "We're reviewing your kitchen — usually 48 hours." }
     : prepper?.status === 'rejected'
-      ? { Icon: ShieldX, color: '#EF4444', title: 'Not approved',          body: prepper.rejection_note ?? 'Contact support or reapply.' }
+      ? { Icon: ShieldX, color: Palette.danger, title: 'Not approved',          body: prepper.rejection_note ?? 'Contact support or reapply.' }
       : prepper?.status === 'suspended'
         ? { Icon: ShieldX, color: MUTED,    title: 'Kitchen paused',         body: 'Contact support to reactivate your account.' }
         : { Icon: ChefHat, color: ORANGE,   title: 'Start cooking on Preppa', body: 'Apply to list your meals and earn on your schedule.' };
@@ -176,7 +176,7 @@ export default function DashboardScreen() {
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => commitToggle(!isOpen)}
                   accessibilityRole="button" accessibilityLabel={isOpen ? 'Confirm pause kitchen' : 'Confirm open kitchen'}
-                  style={{ flex: 1, height: 52, borderRadius: Radius.pill, backgroundColor: isOpen ? '#EF4444' : Palette.success, alignItems: 'center', justifyContent: 'center' }}>
+                  style={{ flex: 1, height: 52, borderRadius: Radius.pill, backgroundColor: isOpen ? Palette.danger : Palette.success, alignItems: 'center', justifyContent: 'center' }}>
                   <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#fff' }}>{isOpen ? 'Pause' : 'Open'}</Text>
                 </TouchableOpacity>
               </View>

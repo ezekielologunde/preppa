@@ -102,6 +102,9 @@ export const Palette = {
   success: '#16A34A', // verified, healthy, positive deltas, confirmed status
   amber: '#F59E0B', // star ratings, "popular" badges, gentle warnings
   danger: '#DC2626', // destructive actions, errors, favorites heart — 4.5:1 on white
+  dangerTint: '#FEF2F2', // error banner background — red-50 wash
+  dangerBorder: '#FECACA', // error banner border — red-200 outline
+  dangerDeep: '#991B1B', // error message text on dangerTint — red-800, AA-safe
 
   // Prepper (dark) app — intentionally an operations tool (kept dark by mandate)
   prepperBg: '#0C0E13',

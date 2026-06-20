@@ -294,10 +294,10 @@ export function PostRequestForm({ kitName, onClose, onSubmit, isPending }: Props
               animate={{ opacity: 1, scale: 1 }}
               transition={{ type: 'timing', duration: 200 }}
               style={{
-                backgroundColor: '#FEF2F2', borderRadius: 12, padding: 12,
-                borderWidth: 1, borderColor: '#FECACA', marginBottom: 8,
+                backgroundColor: Palette.dangerTint, borderRadius: 12, padding: 12,
+                borderWidth: 1, borderColor: Palette.dangerBorder, marginBottom: 8,
               }}>
-              <Text style={{ fontFamily: Font.medium, fontSize: 13, color: '#991B1B' }}>{postErr}</Text>
+              <Text style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.dangerDeep }}>{postErr}</Text>
             </MotiView>
           )}
         </ScrollView>

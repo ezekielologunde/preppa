@@ -336,8 +336,8 @@ export default function BookHomeCookScreen() {
               </View>
 
               {err ? (
-                <View style={{ backgroundColor: '#FEF2F2', borderRadius: 12, padding: 14, borderWidth: 1, borderColor: '#FECACA' }}>
-                  <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: '#991B1B' }}>{err}</Text>
+                <View style={{ backgroundColor: Palette.dangerTint, borderRadius: 12, padding: 14, borderWidth: 1, borderColor: Palette.dangerBorder }}>
+                  <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: Palette.dangerDeep }}>{err}</Text>
                 </View>
               ) : null}
             </ScrollView>

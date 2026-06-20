@@ -460,7 +460,7 @@ export default function MealPlansScreen() {
         <Pressable onPress={() => setCancelTarget(null)} accessibilityRole="button" accessibilityLabel="Keep plan" style={{ flex: 1, backgroundColor: Palette.overlay, alignItems: 'center', justifyContent: 'center', padding: 24 }}>
           <Pressable onPress={(e) => e.stopPropagation()} accessible={false}
             style={{ backgroundColor: Palette.surface, borderRadius: 24, padding: 24, width: '100%', maxWidth: 360, gap: 16, alignItems: 'center' }}>
-            <View style={{ width: 52, height: 52, borderRadius: 26, backgroundColor: '#FEF2F2', alignItems: 'center', justifyContent: 'center' }}>
+            <View style={{ width: 52, height: 52, borderRadius: 26, backgroundColor: Palette.dangerTint, alignItems: 'center', justifyContent: 'center' }}>
               <AlertTriangle size={24} color={Palette.danger} />
             </View>
             <View style={{ alignItems: 'center', gap: 6 }}>

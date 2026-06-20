@@ -390,8 +390,8 @@ export default function ExperienceRequestScreen() {
 
               {err ? (
                 <MotiView from={{ opacity: 0, translateY: -4 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 200 }}>
-                  <View style={{ backgroundColor: '#FEF2F2', borderRadius: 12, padding: 12, marginTop: 14, borderWidth: 1, borderColor: '#FECACA' }}>
-                    <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: '#991B1B' }}>{err}</Text>
+                  <View style={{ backgroundColor: Palette.dangerTint, borderRadius: 12, padding: 12, marginTop: 14, borderWidth: 1, borderColor: Palette.dangerBorder }}>
+                    <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: Palette.dangerDeep }}>{err}</Text>
                   </View>
                 </MotiView>
               ) : null}

@@ -116,8 +116,8 @@ export function AuthForm({
 
       {statusBlock ? (
         <View style={{
-          backgroundColor: '#FEF2F2',
-          borderColor: '#FECACA',
+          backgroundColor: Palette.dangerTint,
+          borderColor: Palette.dangerBorder,
           borderWidth: 1,
           borderRadius: 14,
           padding: 14,

@@ -306,7 +306,7 @@ export function MealEditorForm({ draft, setDraft, prepperId, userId, save }: Pro
                         </PressableScale>
                       ) : null}
                     </View>
-                    <PressableScale onPress={() => { feedback.tap(); setDraft((d) => d && { ...d, imageUrls: d.imageUrls.filter((_, j) => j !== i) }); }} accessibilityRole="button" accessibilityLabel={`Remove photo ${i + 1}`} style={{ position: 'absolute', top: -6, right: -6, width: 22, height: 22, borderRadius: 11, backgroundColor: '#ef4444', alignItems: 'center', justifyContent: 'center' }}>
+                    <PressableScale onPress={() => { feedback.tap(); setDraft((d) => d && { ...d, imageUrls: d.imageUrls.filter((_, j) => j !== i) }); }} accessibilityRole="button" accessibilityLabel={`Remove photo ${i + 1}`} style={{ position: 'absolute', top: -6, right: -6, width: 22, height: 22, borderRadius: 11, backgroundColor: Palette.danger, alignItems: 'center', justifyContent: 'center' }}>
                       <X size={12} color="#fff" strokeWidth={3} />
                     </PressableScale>
                   </View>
@@ -331,7 +331,7 @@ export function MealEditorForm({ draft, setDraft, prepperId, userId, save }: Pro
                       <Play size={24} color={SUB} fill={SUB} />
                       <Text style={{ fontFamily: Font.body, fontSize: 9, color: SUB, marginTop: 3 }}>video</Text>
                     </View>
-                    <PressableScale onPress={() => { feedback.tap(); setDraft((d) => d && { ...d, videoUrls: (d.videoUrls ?? []).filter((_, j) => j !== i) }); }} accessibilityRole="button" accessibilityLabel={`Remove video ${i + 1}`} style={{ position: 'absolute', top: -6, right: -6, width: 22, height: 22, borderRadius: 11, backgroundColor: '#ef4444', alignItems: 'center', justifyContent: 'center' }}>
+                    <PressableScale onPress={() => { feedback.tap(); setDraft((d) => d && { ...d, videoUrls: (d.videoUrls ?? []).filter((_, j) => j !== i) }); }} accessibilityRole="button" accessibilityLabel={`Remove video ${i + 1}`} style={{ position: 'absolute', top: -6, right: -6, width: 22, height: 22, borderRadius: 11, backgroundColor: Palette.danger, alignItems: 'center', justifyContent: 'center' }}>
                       <X size={12} color="#fff" strokeWidth={3} />
                     </PressableScale>
                   </View>

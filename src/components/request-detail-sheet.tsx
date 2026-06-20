@@ -236,8 +236,8 @@ export function RequestDetailSheet({
             {isOpen ? (
               cancelConfirm ? (
                 <MotiView from={{ opacity: 0, translateY: 4 }} animate={{ opacity: 1, translateY: 0 }}
-                  style={{ backgroundColor: '#FEF2F2', borderRadius: 16, padding: 16, gap: 12, borderWidth: 1, borderColor: '#FECACA' }}>
-                  <Text style={{ fontFamily: Font.heading, fontSize: 14, color: '#991B1B' }}>Cancel this request?</Text>
+                  style={{ backgroundColor: Palette.dangerTint, borderRadius: 16, padding: 16, gap: 12, borderWidth: 1, borderColor: Palette.dangerBorder }}>
+                  <Text style={{ fontFamily: Font.heading, fontSize: 14, color: Palette.dangerDeep }}>Cancel this request?</Text>
                   <Text style={{ fontFamily: Font.body, fontSize: 13, color: '#B91C1C', lineHeight: 19 }}>
                     This will close your request and dismiss all bids. This cannot be undone.
                   </Text>
@@ -260,7 +260,7 @@ export function RequestDetailSheet({
                         : <Text style={{ fontFamily: Font.heading, fontSize: 14, color: '#fff' }}>Yes, cancel</Text>}
                     </PressableScale>
                   </View>
-                  {cancelErr ? <Text style={{ fontFamily: Font.medium, fontSize: 12.5, color: '#991B1B' }}>{cancelErr}</Text> : null}
+                  {cancelErr ? <Text style={{ fontFamily: Font.medium, fontSize: 12.5, color: Palette.dangerDeep }}>{cancelErr}</Text> : null}
                 </MotiView>
               ) : (
                 <PressableScale onPress={() => { feedback.tap(); setCancelConfirm(true); }} accessibilityRole="button" accessibilityLabel="Cancel request"

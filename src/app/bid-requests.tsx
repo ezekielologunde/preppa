@@ -467,8 +467,8 @@ export default function BidRequestsScreen() {
                   </Text>
                 </View>
                 {agreementError ? (
-                  <View style={{ backgroundColor: '#FEF2F2', borderRadius: 12, padding: 12, borderWidth: 1, borderColor: '#FECACA' }}>
-                    <Text style={{ fontFamily: Font.medium, fontSize: 13, color: '#991B1B' }}>{agreementError}</Text>
+                  <View style={{ backgroundColor: Palette.dangerTint, borderRadius: 12, padding: 12, borderWidth: 1, borderColor: Palette.dangerBorder }}>
+                    <Text style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.dangerDeep }}>{agreementError}</Text>
                   </View>
                 ) : null}
                 <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary, textAlign: 'center', lineHeight: 17 }}>

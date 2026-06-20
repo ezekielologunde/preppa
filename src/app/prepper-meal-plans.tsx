@@ -372,8 +372,8 @@ export default function PrepperMealPlansScreen() {
                 ) : null}
 
                 {formErr ? (
-                  <View style={{ backgroundColor: '#FEF2F2', borderRadius: 12, padding: 12, borderWidth: 1, borderColor: '#FECACA' }}>
-                    <Text style={{ fontFamily: Font.medium, fontSize: 13, color: '#991B1B' }}>{formErr}</Text>
+                  <View style={{ backgroundColor: Palette.dangerTint, borderRadius: 12, padding: 12, borderWidth: 1, borderColor: Palette.dangerBorder }}>
+                    <Text style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.dangerDeep }}>{formErr}</Text>
                   </View>
                 ) : null}
 
