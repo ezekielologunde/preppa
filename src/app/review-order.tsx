@@ -292,7 +292,7 @@ export default function ReviewOrderScreen() {
                           backgroundColor: isSelected ? Palette.brand : Palette.surface,
                           alignItems: 'center', justifyContent: 'center',
                         }}>
-                          {isSelected ? <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#fff' }} /> : null}
+                          {isSelected ? <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: Palette.surface }} /> : null}
                         </View>
                       </PressableScale>
                     );

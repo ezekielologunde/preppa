@@ -27,7 +27,7 @@ export function DeclineModal({ order, onDecline, onClose }: DeclineModalProps) {
         onPress={onClose}
         accessibilityRole="button"
         accessibilityLabel="Keep the preorder"
-        style={{ flex: 1, backgroundColor: 'rgba(26,23,20,0.5)', alignItems: 'center', justifyContent: 'center', padding: 28 }}>
+        style={{ flex: 1, backgroundColor: Palette.overlay, alignItems: 'center', justifyContent: 'center', padding: 28 }}>
         <Pressable onPress={(e) => e.stopPropagation()} accessible={false} style={{ width: '100%', maxWidth: 360, backgroundColor: CARD, borderRadius: 22, padding: 22, gap: 14 }}>
           <View style={{ width: 50, height: 50, borderRadius: 15, backgroundColor: Palette.danger + '15', alignItems: 'center', justifyContent: 'center' }}>
             <X size={24} color={Palette.danger} strokeWidth={2.6} />
@@ -75,7 +75,7 @@ export function VerifyHandoffModal({ order, pin, setPin, verifyMsg, setVerifyMsg
         onPress={onClose}
         accessibilityRole="button"
         accessibilityLabel="Close"
-        style={{ flex: 1, backgroundColor: 'rgba(26,23,20,0.5)', alignItems: 'center', justifyContent: 'center', padding: 28 }}>
+        style={{ flex: 1, backgroundColor: Palette.overlay, alignItems: 'center', justifyContent: 'center', padding: 28 }}>
         <Pressable onPress={(e) => e.stopPropagation()} accessible={false} style={{ width: '100%', maxWidth: 360, backgroundColor: CARD, borderRadius: 22, padding: 22, gap: 14 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
             <View style={{ width: 46, height: 46, borderRadius: 14, backgroundColor: ORANGE + '18', alignItems: 'center', justifyContent: 'center' }}>
@@ -85,7 +85,7 @@ export function VerifyHandoffModal({ order, pin, setPin, verifyMsg, setVerifyMsg
               onPress={() => { feedback.tap(); onClose(); }}
               accessibilityRole="button"
               accessibilityLabel="Close"
-              style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: '#F0EDEA', alignItems: 'center', justifyContent: 'center' }}>
+              style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: Palette.chipOff, alignItems: 'center', justifyContent: 'center' }}>
               <X size={17} color={SUB} />
             </PressableScale>
           </View>
@@ -139,7 +139,7 @@ export function ProposeTermsModal({ target, cookingFee, setCookingFee, travelFee
         onPress={onClose}
         accessibilityRole="button"
         accessibilityLabel="Close"
-        style={{ flex: 1, backgroundColor: 'rgba(26,23,20,0.5)', alignItems: 'center', justifyContent: 'center', padding: 28 }}>
+        style={{ flex: 1, backgroundColor: Palette.overlay, alignItems: 'center', justifyContent: 'center', padding: 28 }}>
         <Pressable onPress={(e) => e.stopPropagation()} accessible={false} style={{ width: '100%', maxWidth: 360, backgroundColor: CARD, borderRadius: 22, padding: 22, gap: 14 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
             <View style={{ width: 44, height: 44, borderRadius: 13, backgroundColor: HC + '18', alignItems: 'center', justifyContent: 'center' }}>
@@ -149,7 +149,7 @@ export function ProposeTermsModal({ target, cookingFee, setCookingFee, travelFee
               onPress={() => { feedback.tap(); onClose(); }}
               accessibilityRole="button"
               accessibilityLabel="Close"
-              style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: '#F0EDEA', alignItems: 'center', justifyContent: 'center' }}>
+              style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: Palette.chipOff, alignItems: 'center', justifyContent: 'center' }}>
               <X size={17} color={SUB} />
             </PressableScale>
           </View>

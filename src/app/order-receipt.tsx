@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { CalendarClock, CheckCircle2, ChevronLeft, Clock, CreditCard, Package, Share2, Truck, XCircle } from 'lucide-react-native';
+import { CalendarClock, ChevronLeft, Clock, CreditCard, Package, Share2, Truck, XCircle } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { ActivityIndicator, Pressable, ScrollView, Share, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -8,6 +8,7 @@ import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
 import { Palette, Radius } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
+import { statusChip, STATUS_LABEL_CUSTOMER } from '@/lib/orders/pipeline';
 import { useOrder, useOrderItems, type OrderItem, type OrderSummary } from '@/lib/queries/orders';
 
 const money = (n: number) => `$${(n ?? 0).toFixed(2)}`;
@@ -16,22 +17,6 @@ const orderDate = (iso: string) =>
   new Date(iso).toLocaleDateString(undefined, {
     month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit',
   });
-
-function statusStyle(s: string): { bg: string; fg: string } {
-  if (s === 'completed') return { bg: Palette.successTint, fg: Palette.successDark };
-  if (s === 'cancelled') return { bg: Palette.cancelledTint, fg: Palette.dangerDeep };
-  if (s === 'pending') return { bg: Palette.amberTint, fg: Palette.amberDeep };
-  if (s === 'confirmed') return { bg: Palette.confirmedTint, fg: Palette.confirmedDark };
-  if (s === 'preparing') return { bg: Palette.preparingTint, fg: Palette.preparingDark };
-  if (s === 'ready') return { bg: Palette.successTint, fg: Palette.successDark };
-  if (s === 'out_for_delivery') return { bg: Palette.homeCookTint, fg: Palette.homeCook };
-  return { bg: Palette.chip, fg: Palette.textSecondary };
-}
-
-const STATUS_LABEL: Record<string, string> = {
-  pending: 'Pending', confirmed: 'Confirmed', preparing: 'Prepping',
-  ready: 'Ready!', out_for_delivery: 'On the way', completed: 'Completed', cancelled: 'Cancelled',
-};
 
 function buildReceiptText(order: any) {
   return [
@@ -67,7 +52,7 @@ function ItemPriceHint({ items, orderItems }: { items: OrderSummary['items']; or
     <View style={{ gap: 2, marginTop: 8 }}>
       {orderItems.map((oi) => (
         <Text key={oi.id} style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary }}>
-          {oi.title} — {oi.quantity}x @ {money(oi.price_at_time)}
+          {oi.title} — {oi.quantity}x @ {money(oi.unit_price)}
         </Text>
       ))}
     </View>
@@ -107,7 +92,7 @@ export default function OrderReceiptScreen() {
     );
   }
 
-  const chip = statusStyle(order.status);
+  const chip = statusChip(order.status);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: Palette.surface }}>
@@ -135,7 +120,7 @@ export default function OrderReceiptScreen() {
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
             <Text style={{ fontFamily: Font.heading, fontSize: 15, color: Palette.ink }}>Order {orderRef(order.id)}</Text>
             <View style={{ height: 26, borderRadius: 13, backgroundColor: chip.bg, paddingHorizontal: 10, alignItems: 'center', justifyContent: 'center' }}>
-              <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: chip.fg }}>{STATUS_LABEL[order.status] ?? order.status}</Text>
+              <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: chip.fg }}>{STATUS_LABEL_CUSTOMER[order.status]}</Text>
             </View>
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>

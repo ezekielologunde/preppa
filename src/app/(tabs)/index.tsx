@@ -1,6 +1,5 @@
 import { MotiView } from 'moti';
-import type { ComponentType } from 'react';
-import { useState } from 'react';
+import { useState, type ComponentType } from 'react';
 import { useRouter } from 'expo-router';
 import {
   Bell, ChevronRight, Flame, MapPin, Search, ShoppingCart, SlidersHorizontal, UtensilsCrossed,
@@ -175,7 +174,6 @@ export default function HomeScreen() {
 
   const { data: notifications, refetch: refetchNotifs } = useNotifications(user?.id);
   const unreadNotifs = (notifications ?? []).filter((n) => !n.read).length;
-  const activeOrders = (myOrders ?? []).filter((o) => o.status !== 'completed' && o.status !== 'cancelled').length;
 
   const { data: cart, refetch: refetchCart } = useCart(user?.id);
   const cartCount = cart?.count ?? 0;

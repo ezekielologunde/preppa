@@ -6,8 +6,7 @@ import { MotiView } from 'moti';
 import { useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 
-import type { Meal } from '@/components/meal-card';
-import { MealCard } from '@/components/meal-card';
+import { MealCard, type Meal } from '@/components/meal-card';
 import { SectionHeader } from '@/components/home-extras';
 import { CardRowSkeleton } from '@/components/ui/skeleton';
 import { PressableScale } from '@/components/ui/pressable-scale';
@@ -39,9 +38,9 @@ const CHEF_PALETTES: [string, string][] = [
 
 const DIET_TAG: Record<string, { label: string; color: string }> = {
   vegan:     { label: 'Plant-Based', color: '#8B5CF6' },
-  healthy:   { label: 'Clean',       color: '#22C55E' },
+  healthy:   { label: 'Clean',       color: Palette.leafGreen },
   breakfast: { label: 'Breakfast',   color: Palette.amber },
-  lunch:     { label: 'Lunch',       color: '#06B6D4' },
+  lunch:     { label: 'Lunch',       color: Palette.cyan },
   dinner:    { label: 'Dinner',      color: ORANGE },
 };
 

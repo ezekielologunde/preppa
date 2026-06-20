@@ -11,7 +11,7 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { Palette } from '@/constants/theme';
-import { BRAND, PreppaLogo } from './preppa-logo';
+import { PreppaLogo } from './preppa-logo';
 
 const TRACK_WIDTH = 120;
 const BAR_WIDTH = 44;
@@ -78,6 +78,6 @@ const styles = StyleSheet.create({
     width: BAR_WIDTH,
     height: 3,
     borderRadius: 2,
-    backgroundColor: BRAND.orange,
+    backgroundColor: Palette.brand,
   },
 });

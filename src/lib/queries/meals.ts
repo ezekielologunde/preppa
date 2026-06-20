@@ -5,9 +5,8 @@ import { Palette } from '@/constants/theme';
 import type { Meal } from '@/components/meal-card';
 import { supabase } from '@/lib/supabase';
 import type { UserPrefs } from '@/lib/queries/user-prefs';
-import { DETAIL_SELECT } from '@/lib/queries/meals-types';
+import { DETAIL_SELECT, type MealDetail, type TrendingMeal, type SearchFilters, type SurpriseFilters } from '@/lib/queries/meals-types';
 export type { MealDetail, TrendingMeal, SearchFilters, SurpriseFilters } from '@/lib/queries/meals-types';
-import type { MealDetail, TrendingMeal, SearchFilters, SurpriseFilters } from '@/lib/queries/meals-types';
 
 type PrepperRating = { average_rating: number; total_reviews: number };
 /** Shape returned by the meals select with embedded prepper + rating + images. */
@@ -48,7 +47,7 @@ function deriveBadge(row: MealRow, rating?: { average_rating: number; total_revi
   if (cat?.key === 'vegan') return { label: 'vegan', color: '#8b5cf6' };
   if (cat?.key === 'breakfast') return { label: 'breakfast', color: Palette.amber };
   const created = row.created_at ? new Date(row.created_at).getTime() : 0;
-  if (created && Date.now() - created < 14 * 864e5) return { label: 'new', color: '#22c55e' };
+  if (created && Date.now() - created < 14 * 864e5) return { label: 'new', color: Palette.leafGreen };
   return undefined;
 }
 
@@ -211,9 +210,8 @@ export function useMeal(id?: string) {
       const images = ((row.images as { url: string; order_index: number }[]) ?? [])
         .sort((a, b) => a.order_index - b.order_index)
         .map((i) => i.url);
-      const videoUrls = ((row.videos as { url: string; order_index: number }[]) ?? [])
-        .sort((a, b) => a.order_index - b.order_index)
-        .map((v) => v.url);
+      const videoUrls = ((row.videos as { video_url: string }[]) ?? [])
+        .map((v) => v.video_url);
       const nutrition = one(row.nutrition as never) as MealDetail['nutrition'] | undefined;
       return {
         id: row.id as string,

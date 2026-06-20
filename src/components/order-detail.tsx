@@ -8,8 +8,7 @@ import { ActivityIndicator, Text, View } from 'react-native';
 
 import { Font } from '@/constants/fonts';
 import { Palette, Radius } from '@/constants/theme';
-import type { OrderSummary } from '@/lib/queries/orders';
-import { useOrderItems } from '@/lib/queries/orders';
+import { useOrderItems, type OrderSummary } from '@/lib/queries/orders';
 
 const money = (n: number) => `$${n.toFixed(2)}`;
 
@@ -75,7 +74,7 @@ export function OrderReceiptPanel({ order }: { order: OrderSummary }) {
               {it.quantity}x {it.title}
             </Text>
             <Text style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.inkSoft, fontVariant: ['tabular-nums'], marginLeft: 8 }}>
-              {money(it.price_at_time * it.quantity)}
+              {money(it.unit_price * it.quantity)}
             </Text>
           </View>
         ))

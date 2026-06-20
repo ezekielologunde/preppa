@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Award, BadgeCheck, Bike, CalendarCheck, Check, ChefHat, Crown, MapPin, Pencil, RefreshCw, ShieldCheck, ShoppingBag, Star, Store, Users, MessageSquare } from 'lucide-react-native';
+import { Award, BadgeCheck, Bike, CalendarCheck, Check, Crown, MapPin, Pencil, RefreshCw, ShieldCheck, ShoppingBag, Star, Store, Users, MessageSquare } from 'lucide-react-native';
 import { useState } from 'react';
 import { MotiView } from 'moti';
 import { RefreshControl, ScrollView, Share, Text, View } from 'react-native';

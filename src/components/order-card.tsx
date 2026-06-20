@@ -1,5 +1,5 @@
 import { Image } from 'expo-image';
-import { AlertTriangle, CalendarClock, Lock, MessageCircle, RotateCcw, Star } from 'lucide-react-native';
+import { AlertTriangle, ArrowRight, CalendarClock, Lock, MessageCircle, RefreshCcw, RotateCcw, ShoppingBag, Star } from 'lucide-react-native';
 import { ActivityIndicator, Text, View } from 'react-native';
 
 import { HandoffCard } from '@/components/handoff-card';
@@ -8,30 +8,83 @@ import { Button } from '@/components/ui/button';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
 import { Palette, Radius } from '@/constants/theme';
+import { statusChip, STATUS_LABEL_CUSTOMER } from '@/lib/orders/pipeline';
 import type { OrderSummary } from '@/lib/queries/orders';
-import type { OrderStatus } from '@/types/database.types';
 
 export const money = (n: number) => `$${n.toFixed(2)}`;
-
-const STATUS_LABEL: Record<OrderStatus, string> = {
-  pending: 'Pending',
-  confirmed: 'Confirmed',
-  preparing: 'Prepping',
-  ready: 'Ready',
-  out_for_delivery: 'On the way',
-  completed: 'Complete',
-  cancelled: 'Cancelled',
-};
-
-function statusStyle(s: OrderStatus): { bg: string; fg: string } {
-  if (s === 'completed') return { bg: Palette.success + '1A', fg: Palette.success };
-  if (s === 'cancelled') return { bg: Palette.canvas, fg: Palette.textSecondary };
-  return { bg: Palette.brandTint, fg: Palette.brandPressed };
-}
 
 function dateLabel(iso: string): string {
   const d = new Date(iso);
   return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
+
+/** Compact list-row card shown in the customer orders screen. */
+export function OrderListCard({ order, tab, twoCol, reordering, onPress, onReorder, onTrack }: {
+  order: OrderSummary;
+  tab: 'active' | 'upcoming' | 'past';
+  twoCol: boolean;
+  reordering: boolean;
+  onPress: () => void;
+  onReorder: () => void;
+  onTrack: () => void;
+}) {
+  const chip = statusChip(order.status);
+  return (
+    <PressableScale
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={tab === 'past' ? `Toggle receipt for order from ${order.prepper}` : `View order status for ${order.prepper}`}
+      style={{ backgroundColor: Palette.surface, borderRadius: 18, padding: 16, marginHorizontal: twoCol ? 0 : 16 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 12 }}>
+        {order.items[0]?.image ? (
+          <Image source={order.items[0].image} style={{ width: 56, height: 56, borderRadius: 12, backgroundColor: Palette.canvas, flexShrink: 0 }} contentFit="cover" cachePolicy="memory-disk" />
+        ) : (
+          <View style={{ width: 56, height: 56, borderRadius: 12, backgroundColor: Palette.canvas, alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <ShoppingBag size={22} color={Palette.border} />
+          </View>
+        )}
+        <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
+          <Text numberOfLines={1} style={{ fontFamily: Font.heading, fontSize: 15, color: Palette.ink }}>{order.items[0]?.title ?? order.prepper}</Text>
+          <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary }}>{order.prepper}</Text>
+          {order.scheduled_at ? (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+              <CalendarClock size={11} color={Palette.brand} />
+              <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: Palette.brand }}>
+                {new Date(order.scheduled_at).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
+              </Text>
+            </View>
+          ) : null}
+        </View>
+        <View style={{ height: 24, borderRadius: 12, backgroundColor: chip.bg, paddingHorizontal: 10, alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: chip.fg }}>{STATUS_LABEL_CUSTOMER[order.status]}</Text>
+        </View>
+      </View>
+      {order.fulfillmentNote ? (
+        <Text numberOfLines={2} style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary, fontStyle: 'italic', marginTop: 8 }}>
+          &ldquo;{order.fulfillmentNote}&rdquo;
+        </Text>
+      ) : null}
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: Palette.border }}>
+        <Text style={{ fontFamily: Font.display, fontSize: 16, color: Palette.brand, fontVariant: ['tabular-nums'] }}>${order.total.toFixed(2)}</Text>
+        <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary }}>
+          {new Date(order.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+        </Text>
+      </View>
+      {order.status === 'completed' ? (
+        <PressableScale onPress={onReorder} accessibilityRole="button" accessibilityLabel="Reorder these meals"
+          style={{ alignSelf: 'flex-end', flexDirection: 'row', alignItems: 'center', gap: 5, height: 32, paddingHorizontal: 12, borderRadius: Radius.pill, backgroundColor: Palette.surface, borderWidth: 1, borderColor: Palette.brand + '40', marginTop: 10 }}>
+          {reordering ? <ActivityIndicator size="small" color={Palette.brand} /> : <RefreshCcw size={13} color={Palette.brand} />}
+          <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: Palette.brand }}>Reorder</Text>
+        </PressableScale>
+      ) : order.status !== 'cancelled' ? (
+        <PressableScale onPress={onTrack} accessibilityRole="button" accessibilityLabel="Track this order"
+          style={{ alignSelf: 'flex-end', flexDirection: 'row', alignItems: 'center', gap: 5, height: 32, paddingHorizontal: 12, borderRadius: Radius.pill, backgroundColor: Palette.surface, borderWidth: 1, borderColor: Palette.brand + '40', marginTop: 10 }}>
+          <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: Palette.brand }}>Track order</Text>
+          <ArrowRight size={13} color={Palette.brand} />
+        </PressableScale>
+      ) : null}
+    </PressableScale>
+  );
 }
 
 export function OrderCard({ order, onCancel, onReview, onPay, onReorder, onReport, onMessage, onChat, onPress, cancelling, needsPayment, paying, reordering }: {
@@ -40,7 +93,7 @@ export function OrderCard({ order, onCancel, onReview, onPay, onReorder, onRepor
   onPress?: () => void;
   cancelling: boolean; needsPayment: boolean; paying: boolean; reordering: boolean;
 }) {
-  const st = statusStyle(order.status);
+  const chip = statusChip(order.status);
   return (
     <PressableScale onPress={onPress} disabled={!onPress} accessibilityRole={onPress ? 'button' : undefined} accessibilityLabel={onPress ? `View preorder from ${order.prepper}` : undefined} style={{ backgroundColor: Palette.surface, borderRadius: Radius.md, padding: 14, gap: 12 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -56,8 +109,8 @@ export function OrderCard({ order, onCancel, onReview, onPay, onReorder, onRepor
             </View>
           ) : null}
         </PressableScale>
-        <View style={{ paddingHorizontal: 11, height: 26, borderRadius: Radius.pill, backgroundColor: st.bg, alignItems: 'center', justifyContent: 'center' }}>
-          <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: st.fg }}>{STATUS_LABEL[order.status]}</Text>
+        <View style={{ paddingHorizontal: 11, height: 26, borderRadius: Radius.pill, backgroundColor: chip.bg, alignItems: 'center', justifyContent: 'center' }}>
+          <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: chip.fg }}>{STATUS_LABEL_CUSTOMER[order.status]}</Text>
         </View>
       </View>
 

@@ -40,7 +40,7 @@ export const HOLIDAY_REGISTRY: HolidayEvent[] = [
   },
   {
     id: 'juneteenth',    name: 'Juneteenth',           mmdd: '06-19', culture: 'African American',
-    flag: '✊',  color: '#dc2626', windowDays: 7,
+    flag: '✊',  color: Palette.danger, windowDays: 7,
     pushTitle: '✊ Juneteenth soul food is live',
     pushBody: 'BBQ ribs, mac & cheese, and sweet potato pie from Black-owned kitchens. Order ahead.',
     route: '/explore',  cuisineTags: ['Soul Food', 'American'],
@@ -61,7 +61,7 @@ export const HOLIDAY_REGISTRY: HolidayEvent[] = [
   },
   {
     id: 'canada_day',    name: 'Canada Day',            mmdd: '07-01', culture: 'Canadian',
-    flag: '🇨🇦', color: '#dc2626', windowDays: 7,
+    flag: '🇨🇦', color: Palette.danger, windowDays: 7,
     pushTitle: '🇨🇦 Canada Day meal kits are live',
     pushBody: 'Poutine kits, maple-glazed dishes, and backyard BBQ packs delivered today.',
     route: '/explore',  cuisineTags: ['Canadian'],
@@ -75,7 +75,7 @@ export const HOLIDAY_REGISTRY: HolidayEvent[] = [
   },
   {
     id: 'christmas',     name: 'Christmas',             mmdd: '12-25', culture: 'Universal',
-    flag: '🎄', color: '#dc2626', windowDays: 14,
+    flag: '🎄', color: Palette.danger, windowDays: 14,
     pushTitle: '🎄 Christmas feast prep is open',
     pushBody: 'Order your Christmas meal kit or catering from local preppers. Slots fill fast.',
     route: '/explore',  cuisineTags: ['Universal'],

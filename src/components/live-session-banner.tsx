@@ -8,7 +8,7 @@ import { Palette, Radius } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
 import { useEndLiveSession, useMyActiveLiveSession, useStartLiveSession } from '@/lib/queries/live-sessions';
 
-const RED = '#EF4444';
+const RED = Palette.danger;
 const CARD = Palette.prepperCard;
 const INK = '#FFFFFF';
 const MUTED = '#9CA3AF';

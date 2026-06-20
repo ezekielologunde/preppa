@@ -134,7 +134,7 @@ export default function PrepperOrdersScreen() {
             accessibilityRole="button"
             accessibilityLabel="Go back"
             style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center', shadowColor: Palette.ink, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 4, elevation: 2 }}>
-            <ChevronLeft size={22} color="#1A1714" />
+            <ChevronLeft size={22} color={Palette.ink} />
           </PressableScale>
           <Text style={{ fontFamily: Font.display, fontSize: 22, color: Palette.ink, letterSpacing: -0.6, flex: 1 }}>
             {tab === 'homecook' ? 'home cook jobs' : tab === 'experiences' ? 'experience jobs' : 'kitchen orders'}
@@ -221,19 +221,19 @@ export default function PrepperOrdersScreen() {
                     </View>
                     <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
                       {job.guests != null ? (
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: '#F0EDEA', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 6 }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: Palette.chipOff, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 6 }}>
                           <Users size={12} color={Palette.textSecondary} />
                           <Text style={{ fontFamily: Font.medium, fontSize: 12, color: Palette.textSecondary }}>{job.guests} guests</Text>
                         </View>
                       ) : null}
                       {job.location ? (
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: '#F0EDEA', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 6 }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: Palette.chipOff, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 6 }}>
                           <MapPin size={12} color={Palette.textSecondary} />
                           <Text style={{ fontFamily: Font.medium, fontSize: 12, color: Palette.textSecondary }} numberOfLines={1}>{job.location}</Text>
                         </View>
                       ) : null}
                       {job.event_date ? (
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: '#F0EDEA', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 6 }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: Palette.chipOff, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 6 }}>
                           <CalendarCheck size={12} color={Palette.textSecondary} />
                           <Text style={{ fontFamily: Font.medium, fontSize: 12, color: Palette.textSecondary }}>
                             {(() => { const d = new Date(job.event_date); return isNaN(d.getTime()) ? job.event_date : d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }); })()}
@@ -243,7 +243,7 @@ export default function PrepperOrdersScreen() {
                     </View>
                     {job.details ? <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary, lineHeight: 18 }} numberOfLines={3}>{job.details}</Text> : null}
                     {job.message ? (
-                      <View style={{ backgroundColor: '#F0EDEA', borderRadius: 10, padding: 10 }}>
+                      <View style={{ backgroundColor: Palette.chipOff, borderRadius: 10, padding: 10 }}>
                         <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: Palette.textSecondary, fontStyle: 'italic', lineHeight: 18 }}>&ldquo;{job.message}&rdquo;</Text>
                       </View>
                     ) : null}
@@ -282,7 +282,7 @@ export default function PrepperOrdersScreen() {
               </View>
               <Text style={{ fontFamily: Font.heading, fontSize: 18, color: Palette.ink, textAlign: 'center' }}>No preorders yet</Text>
               <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center', lineHeight: 21 }}>Share your kitchen to start getting orders</Text>
-              <PressableScale onPress={() => { feedback.tap(); router.push('/prepper-profile-edit'); }} accessibilityRole="button" accessibilityLabel="Edit your kitchen profile"
+              <PressableScale onPress={() => { feedback.tap(); router.push('/prepper-profile-edit' as never); }} accessibilityRole="button" accessibilityLabel="Edit your kitchen profile"
                 style={{ marginTop: 4, backgroundColor: ORANGE, borderRadius: Radius.pill, paddingHorizontal: 24, paddingVertical: 12 }}>
                 <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: '#fff' }}>edit your kitchen</Text>
               </PressableScale>

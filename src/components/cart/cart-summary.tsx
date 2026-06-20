@@ -1,4 +1,4 @@
-import { Check, Clock, ChevronRight, Lock } from 'lucide-react-native';
+import { Clock, ChevronRight, Lock } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { ActivityIndicator, Text, View } from 'react-native';
 

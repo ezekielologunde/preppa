@@ -1,11 +1,13 @@
 import { Flame } from 'lucide-react-native';
 import { View, type StyleProp, type ViewStyle } from 'react-native';
 
-/** Preppa brand palette. */
+import { Palette } from '@/constants/theme';
+
+/** Preppa brand palette — thin re-export so callsites don't need to change. */
 export const BRAND = {
-  orange: '#E8611A',
-  orangeDeep: '#C84E10',
-  orangeLight: '#FF814A',
+  orange: Palette.brand,
+  orangeDeep: Palette.brandPressed,
+  orangeLight: Palette.brandLight,
 } as const;
 
 type Props = {

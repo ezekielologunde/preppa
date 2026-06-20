@@ -1,10 +1,8 @@
-import { Alert } from 'react-native';
 import { MotiView } from 'moti';
-import { ScrollView, Text, View } from 'react-native';
+import { Alert, ScrollView, Text, View } from 'react-native';
 
 import { QuickAddButton } from '@/components/home-feed';
-import type { Meal } from '@/components/meal-card';
-import { MealCard } from '@/components/meal-card';
+import { MealCard, type Meal } from '@/components/meal-card';
 import { CardRowSkeleton } from '@/components/ui/skeleton';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';

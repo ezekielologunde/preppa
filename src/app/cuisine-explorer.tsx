@@ -40,7 +40,7 @@ const CULTURES: CultureEntry[] = [
     flag: '🇲🇽',
     name: 'Mexican',
     region: 'North America',
-    color: '#dc2626',
+    color: Palette.danger,
     story: 'A UNESCO-recognized culinary heritage fusing indigenous Mesoamerican and Spanish colonial traditions. Corn, chilli, and cacao are at the heart of every dish.',
     dishes: ['Tacos al Pastor', 'Mole Oaxaqueño', 'Enchiladas'],
     image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&q=80',

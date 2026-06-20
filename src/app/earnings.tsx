@@ -262,7 +262,7 @@ export default function EarningsScreen() {
               <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280, delay: 80 }}>
                 <View style={{ flexDirection: 'row', gap: 14 }}>
                   <MiniStat label="This week" value={money(data.net_week)} Icon={TrendingUp} color={ORANGE} />
-                  <MiniStat label="This month" value={money(data.net_month)} Icon={Wallet} color="#a78bfa" />
+                  <MiniStat label="This month" value={money(data.net_month)} Icon={Wallet} color={Palette.violet} />
                 </View>
               </MotiView>
 

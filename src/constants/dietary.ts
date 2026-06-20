@@ -1,3 +1,5 @@
+import { Palette } from '@/constants/theme';
+
 export const DIETARY_TAGS = [
   { key: 'halal',        label: 'Halal',        emoji: '\u{1F319}' },
   { key: 'vegan',        label: 'Vegan',        emoji: '\u{1F331}' },
@@ -25,7 +27,7 @@ export type AllergenKey = typeof ALLERGENS[number]['key'];
 /** Color for a dietary tag key. */
 export function dietaryTagColor(key: string): string {
   if (key === 'halal') return '#10B981';
-  if (key === 'vegan' || key === 'vegetarian') return '#22C55E';
+  if (key === 'vegan' || key === 'vegetarian') return Palette.leafGreen;
   if (key === 'gluten-free' || key === 'dairy-free' || key === 'nut-free') return '#3B82F6';
   return '#8B5CF6';
 }

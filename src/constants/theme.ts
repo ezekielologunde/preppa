@@ -82,6 +82,7 @@ export const Palette = {
 
   // Brand — used sparingly: CTAs, active nav, key accents. Never a full-screen fill.
   brand: '#E8611A', // v3 flame orange (warmer than the old #F15F22)
+  brandLight: '#FF814A', // lighter orange — gradient start, logo glow, warm tint wash
   brandTint: '#FAE5D3', // warm peach wash — chip bg, icon wells, soft brand washes
   brandPressed: '#C84E10', // pressed CTA + AA-safe orange for text/links on white
 
@@ -96,6 +97,7 @@ export const Palette = {
   canvas: '#F7F3EE',
   border: '#EDE8E2',
   chip: '#F2ECE6', // light icon-chip / inset background on white cards
+  chipOff: '#F0EDEA', // inactive/unselected chip, toggle-off bg, placeholder wells
   divider: '#DDD6CE', // hairlines on tinted surfaces; disabled outlines
 
   // Semantic accents — used with a text/icon pairing, never color alone
@@ -117,6 +119,11 @@ export const Palette = {
   preparingTint: '#FED7AA', // preparing order chip bg — orange-200 wash
   preparingDark: '#9A3412', // preparing chip text — orange-800, AA-safe on preparingTint
   cancelledTint: '#FEE2E2', // cancelled order chip bg — red-100 wash (dangerTint is red-50)
+
+  // Feature accent triad — delivery (cyan), meetup/social (violet), vegan/home-cook (leaf-green)
+  cyan: '#06B6D4',       // delivery type, lunch category, teal accent
+  violet: '#A78BFA',    // meetup type, social/follow, purple accent
+  leafGreen: '#22C55E', // home-cook type, vegan/healthy, green accent
 
   // Prepper (dark) app — intentionally an operations tool (kept dark by mandate)
   prepperBg: '#0C0E13',

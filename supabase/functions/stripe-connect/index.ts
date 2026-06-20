@@ -83,6 +83,7 @@ Deno.serve(async (req) => {
       const account = await stripe.accounts.retrieve(accountId);
       const status =
         account.charges_enabled && account.payouts_enabled ? 'active'
+        : account.requirements?.disabled_reason ? 'restricted'
         : account.details_submitted ? 'pending'
         : 'not_connected';
       await supabase

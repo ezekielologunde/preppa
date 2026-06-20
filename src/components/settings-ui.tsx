@@ -61,7 +61,7 @@ function ToggleVisual({ value }: { value: boolean }) {
       <MotiView
         animate={{ translateX: value ? 18 : 0 }}
         transition={{ type: 'spring', stiffness: 260, damping: 22 }}
-        style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: '#fff' }}
+        style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: Palette.surface }}
       />
     </MotiView>
   );

@@ -2,13 +2,12 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import type { ComponentType } from 'react';
 import {
-  CalendarCheck, ChefHat, ChevronRight, Coffee, Crown, Gift, LayoutGrid, Leaf, Moon, Sparkles, Sprout, UtensilsCrossed, Zap,
+  CalendarCheck, ChevronRight, Coffee, Crown, Gift, LayoutGrid, Leaf, Moon, Sparkles, Sprout, UtensilsCrossed, Zap,
 } from 'lucide-react-native';
 import { imgUrl } from '@/lib/img';
 import { MotiView } from 'moti';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ComponentType } from 'react';
 import { ScrollView, Text, useWindowDimensions, View } from 'react-native';
 
 import { PressableScale } from '@/components/ui/pressable-scale';
@@ -32,7 +31,7 @@ const HOME_CATS: {
   { key: 'breakfast', label: 'breakfast',  Icon: Coffee,         color: Palette.amber },
   { key: 'lunch',     label: 'lunch',      Icon: UtensilsCrossed, color: Palette.success },
   { key: 'dinner',    label: 'dinner',     Icon: Moon,           color: ORANGE },
-  { key: 'healthy',   label: 'healthy',    Icon: Leaf,           color: '#22C55E' },
+  { key: 'healthy',   label: 'healthy',    Icon: Leaf,           color: Palette.leafGreen },
   { key: 'vegan',     label: 'vegan',      Icon: Sprout,         color: '#8B5CF6' },
   { key: 'more',      label: 'more',       Icon: LayoutGrid,     color: MUTED },
 ];

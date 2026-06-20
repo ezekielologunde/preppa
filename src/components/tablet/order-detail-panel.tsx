@@ -15,8 +15,9 @@ import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
 import { Palette, Radius } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
+import { FULFILLMENT_COLOR, FULFILLMENT_LABEL, NEXT, statusColor, STATUS_LABEL_PREPPER } from '@/lib/orders/pipeline';
 import type { OrderSummary } from '@/lib/queries/orders';
-import type { FulfillmentType, OrderStatus } from '@/types/database.types';
+import type { OrderStatus } from '@/types/database.types';
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
@@ -29,30 +30,6 @@ const BORDER  = Palette.border;
 const money   = (n: number) => `$${n.toFixed(2)}`;
 
 const S1 = { shadowColor: Palette.ink, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 };
-
-const FULFILLMENT_LABEL: Record<FulfillmentType, string> = {
-  pickup: 'Pickup', delivery: 'Delivery', meetup: 'Meet-up', home_cook: 'Home cook',
-};
-const FULFILLMENT_COLOR: Record<FulfillmentType, string> = {
-  pickup: Palette.amber, delivery: '#06b6d4', meetup: '#a78bfa', home_cook: '#22c55e',
-};
-
-const STATUS_LABEL: Record<OrderStatus, string> = {
-  pending: 'New', confirmed: 'Confirmed', preparing: 'Preparing',
-  ready: 'Ready', out_for_delivery: 'On the way', completed: 'Complete', cancelled: 'Cancelled',
-};
-const STATUS_COLOR: Partial<Record<OrderStatus, string>> = {
-  pending: ORANGE, confirmed: '#06b6d4', preparing: '#a78bfa',
-  ready: GREEN, out_for_delivery: '#22c55e', completed: GREEN, cancelled: SUB,
-};
-
-const NEXT: Partial<Record<OrderStatus, { next: OrderStatus; cta: string }>> = {
-  pending: { next: 'confirmed', cta: 'Confirm preorder' },
-  confirmed: { next: 'preparing', cta: 'Start prepping' },
-  preparing: { next: 'ready', cta: 'Mark ready' },
-  ready: { next: 'completed', cta: 'Mark complete' },
-  out_for_delivery: { next: 'completed', cta: 'Mark complete' },
-};
 
 // ── types ─────────────────────────────────────────────────────────────────────
 
@@ -70,7 +47,7 @@ export type OrderDetailPanelProps = {
 export function OrderDetailPanel({ order, advancePending, onAdvance, onCancel, onVerify, onChat }: OrderDetailPanelProps) {
   const router = useRouter();
   const step = NEXT[order.status];
-  const statusColor = STATUS_COLOR[order.status] ?? SUB;
+  const sc = statusColor(order.status);
   const isActive = ['pending', 'confirmed', 'preparing', 'ready', 'out_for_delivery'].includes(order.status);
   const isPickup = order.fulfillment === 'pickup' || order.fulfillment === 'meetup' || order.fulfillment === 'home_cook';
   const canVerify = isPickup && (order.status === 'ready' || order.status === 'out_for_delivery');
@@ -93,14 +70,14 @@ export function OrderDetailPanel({ order, advancePending, onAdvance, onCancel, o
               #{order.id.slice(-8).toUpperCase()} · {FULFILLMENT_LABEL[order.fulfillment]}
             </Text>
           </View>
-          <View style={[styles.statusBadge, { backgroundColor: statusColor + '18' }]}>
-            <Text style={[styles.statusLabel, { color: statusColor }]}>{STATUS_LABEL[order.status]}</Text>
+          <View style={[styles.statusBadge, { backgroundColor: sc + '18' }]}>
+            <Text style={[styles.statusLabel, { color: sc }]}>{STATUS_LABEL_PREPPER[order.status]}</Text>
           </View>
         </View>
 
         {/* Meta chips */}
         <View style={styles.metaRow}>
-          <View style={[styles.chip, { backgroundColor: order.paymentStatus === 'succeeded' ? GREEN + '18' : '#F0EDEA' }]}>
+          <View style={[styles.chip, { backgroundColor: order.paymentStatus === 'succeeded' ? GREEN + '18' : Palette.chipOff }]}>
             {order.paymentStatus === 'succeeded' ? <Check size={11} color={GREEN} strokeWidth={2.5} /> : null}
             <Text style={[styles.chipText, { color: order.paymentStatus === 'succeeded' ? GREEN : SUB }]}>
               {order.paymentStatus === 'succeeded' ? 'paid' : 'unpaid'}
@@ -224,7 +201,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
   },
   mealImgFallback: {
-    backgroundColor: '#F0EDEA',
+    backgroundColor: Palette.chipOff,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -302,7 +279,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   itemImgFallback: {
-    backgroundColor: '#F0EDEA',
+    backgroundColor: Palette.chipOff,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -378,7 +355,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    backgroundColor: '#F0EDEA',
+    backgroundColor: Palette.chipOff,
   },
   ghostBtnLabel: {
     fontFamily: Font.medium,

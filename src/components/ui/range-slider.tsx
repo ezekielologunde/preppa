@@ -25,7 +25,7 @@ function Track({ accent, fillLeft, fillWidth, disabled, thumbs }: {
       <View pointerEvents="none" style={{ position: 'absolute', left: THUMB / 2, right: THUMB / 2, top: (ROW_H - TRACK_H) / 2, height: TRACK_H, borderRadius: TRACK_H / 2, backgroundColor: Palette.border }} />
       <View pointerEvents="none" style={{ position: 'absolute', left: fillLeft, width: Math.max(fillWidth, 0), top: (ROW_H - TRACK_H) / 2, height: TRACK_H, borderRadius: TRACK_H / 2, backgroundColor: color }} />
       {thumbs.map((x, i) => (
-        <View key={i} pointerEvents="none" style={{ position: 'absolute', left: x, top: (ROW_H - THUMB) / 2, width: THUMB, height: THUMB, borderRadius: THUMB / 2, backgroundColor: '#fff', borderWidth: 2.5, borderColor: color, ...Shadow.card }} />
+        <View key={i} pointerEvents="none" style={{ position: 'absolute', left: x, top: (ROW_H - THUMB) / 2, width: THUMB, height: THUMB, borderRadius: THUMB / 2, backgroundColor: Palette.surface, borderWidth: 2.5, borderColor: color, ...Shadow.card }} />
       ))}
     </>
   );

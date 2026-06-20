@@ -44,7 +44,7 @@ function Cell({ value, highlight }: { value: boolean | string; highlight?: boole
   }
   return value
     ? <Check size={14} color={Palette.success} strokeWidth={2.5} />
-    : <X size={14} color='#D1CBC5' strokeWidth={2.5} />;
+    : <X size={14} color={Palette.divider} strokeWidth={2.5} />;
 }
 
 const TIERS: Tier[] = ['starter', 'pro', 'elite'];

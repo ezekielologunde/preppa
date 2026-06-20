@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { CalendarDays, ChefHat, ChevronLeft, ChevronRight, Clock, Coffee, DollarSign, Flame, MessageSquare, Package, Sparkles, TrendingUp, Utensils, Wallet } from 'lucide-react-native';
+import { CalendarDays, ChefHat, ChevronLeft, ChevronRight, Clock, Coffee, DollarSign, Flame, MessageSquare, Package, Percent, Repeat, Sparkles, TrendingUp, Users, Utensils, Wallet } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useState } from 'react';
 import { Modal, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
@@ -29,15 +29,19 @@ const MUTED  = Palette.textSecondary;
 const GREEN  = Palette.success;
 const S1     = { shadowColor: Palette.ink, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 };
 
-const ACTIONS = [
-  { label: 'manage preorder queue',     desc: 'Review, confirm and advance active preorders',    Icon: Package,     color: '#06b6d4', route: '/prepper-orders' },
-  { label: 'update your menu',          desc: 'Keep listings fresh — remove sold-out items',     Icon: Utensils,    color: '#10b981', route: '/meal-editor' },
-  { label: 'view performance analytics',desc: 'Weekly trends, top dishes, and smart insights',  Icon: TrendingUp,  color: '#22c55e', route: '/prepper-analytics' },
-  { label: 'view earnings breakdown',   desc: 'Net pay, weekly totals, and recent transactions', Icon: Wallet,      color: '#a78bfa', route: '/prepper-payouts' },
-  { label: 'reply to reviews',          desc: 'Responding boosts your ranking score',            Icon: MessageSquare,color: '#8b5cf6', route: '/reviews' },
-  { label: 'meal planner',              desc: 'Set which days each meal is available for the week',Icon: CalendarDays,color: Palette.brand, route: '/prepper-meal-planner' },
-  { label: 'edit kitchen profile',      desc: 'Update your name, photo, bio and specialties',   Icon: ChefHat,     color: Palette.brand, route: '/prepper-profile-edit' },
-];
+const GRID_ACTIONS = [
+  { label: 'orders',     Icon: Package,      color: Palette.brand,     route: '/prepper-orders' },
+  { label: 'menu',       Icon: Utensils,     color: Palette.amber,     route: '/meal-editor' },
+  { label: 'schedule',   Icon: Clock,        color: Palette.cyan,      route: '/prepper-schedule' },
+  { label: 'specials',   Icon: Percent,      color: Palette.danger,    route: '/prepper-specials' },
+  { label: 'analytics',  Icon: TrendingUp,   color: Palette.leafGreen, route: '/prepper-analytics' },
+  { label: 'earnings',   Icon: Wallet,       color: Palette.success,   route: '/prepper-payouts' },
+  { label: 'customers',  Icon: Users,        color: Palette.violet,    route: '/customers' },
+  { label: 'reviews',    Icon: MessageSquare,color: Palette.homeCook,  route: '/reviews' },
+  { label: 'meal plans', Icon: Repeat,       color: Palette.cyan,      route: '/prepper-meal-plans' },
+  { label: 'planner',    Icon: CalendarDays, color: Palette.amber,     route: '/prepper-meal-planner' },
+  { label: 'profile',    Icon: ChefHat,      color: Palette.homeCook,  route: '/prepper-profile-edit' },
+] as const;
 
 const TIPS = [
   'Batch-cook bases (rice, beans, pasta) Sunday night to fulfil Mon–Wed preorders faster.',
@@ -136,7 +140,7 @@ export default function PrepperHubScreen() {
       {/* ── Kitchen close confirmation modal ──────────────────────────── */}
       <Modal visible={confirmClose} transparent animationType="fade" onRequestClose={() => setConfirmClose(false)}>
         <Pressable onPress={() => setConfirmClose(false)} accessibilityRole="button" accessibilityLabel="Dismiss"
-          style={{ flex: 1, backgroundColor: 'rgba(26,23,20,0.5)', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+          style={{ flex: 1, backgroundColor: Palette.overlay, alignItems: 'center', justifyContent: 'center', padding: 24 }}>
           <MotiView from={{ opacity: 0, scale: 0.94 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'spring', damping: 22 }}
             style={{ backgroundColor: CARD, borderRadius: 24, padding: 28, width: '100%', maxWidth: 360, gap: 16, shadowColor: Palette.ink, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.12, shadowRadius: 20, elevation: 8 }}>
             <Text style={{ fontFamily: Font.display, fontSize: 20, color: INK, textAlign: 'center', letterSpacing: -0.4 }}>Close your kitchen?</Text>
@@ -297,7 +301,7 @@ export default function PrepperHubScreen() {
               <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 80 }}>
                 <View style={{ flexDirection: 'row', gap: 10 }}>
                   {[
-                    { label: 'preorders filled', value: completedOrders.length.toString(), sub: weekCompleted.length > 0 ? `+${weekCompleted.length} this wk` : undefined, Icon: Package,    color: '#06b6d4' },
+                    { label: 'preorders filled', value: completedOrders.length.toString(), sub: weekCompleted.length > 0 ? `+${weekCompleted.length} this wk` : undefined, Icon: Package,    color: Palette.cyan },
                     { label: 'gross revenue',    value: `$${totalEarnings.toFixed(0)}`,    sub: weekEarnings > 0 ? `+$${weekEarnings.toFixed(0)} this wk` : undefined,   Icon: DollarSign, color: GREEN },
                     { label: 'avg preorder',     value: avgOrder > 0 ? `$${avgOrder.toFixed(0)}` : '—', sub: undefined,                                                   Icon: TrendingUp,  color: ORANGE },
                   ].map(({ label, value, sub, Icon, color }, i) => (
@@ -328,19 +332,19 @@ export default function PrepperHubScreen() {
               <PrepperEarningsChart prepperId={application?.id} />
             </MotiView>
 
-            {/* Action items */}
+            {/* Kitchen tools — 4-column icon grid */}
             <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 180 }}>
-              <Text style={{ fontFamily: Font.display, fontSize: 15, color: INK, letterSpacing: -0.3, marginBottom: 12 }}>action items</Text>
-              <View style={isDesktop ? { flexDirection: 'row', flexWrap: 'wrap', gap: 10 } : { gap: 10 }}>
-                {ACTIONS.map(({ label, desc, Icon, color, route }, i) => {
+              <Text style={{ fontFamily: Font.display, fontSize: 15, color: INK, letterSpacing: -0.3, marginBottom: 12 }}>kitchen tools</Text>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
+                {GRID_ACTIONS.map(({ label, Icon, color, route }, i) => {
                   const badge = route === '/prepper-orders' && activeCount > 0 ? activeCount : 0;
                   return (
-                    <MotiView key={label} style={isDesktop ? { flex: 1, minWidth: 280, maxWidth: '48%' } : undefined} from={{ opacity: 0, translateY: 6 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 220, delay: 180 + i * 40 }}>
+                    <MotiView key={label} style={{ width: '22%' }} from={{ opacity: 0, scale: 0.88 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'spring', damping: 18, stiffness: 200, delay: 180 + i * 30 }}>
                       <PressableScale onPress={() => { feedback.tap(); router.push(route as any); }} accessibilityRole="button" accessibilityLabel={label}
-                        style={{ backgroundColor: CARD, borderRadius: 14, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12, ...S1 }}>
+                        style={{ backgroundColor: CARD, borderRadius: 14, paddingVertical: 13, paddingHorizontal: 4, alignItems: 'center', gap: 7, ...S1 }}>
                         <View style={{ position: 'relative' }}>
-                          <View style={{ width: 38, height: 38, borderRadius: 12, backgroundColor: color + '18', alignItems: 'center', justifyContent: 'center' }}>
-                            <Icon size={17} color={color} />
+                          <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: color + '18', alignItems: 'center', justifyContent: 'center' }}>
+                            <Icon size={18} color={color} />
                           </View>
                           {badge > 0 && (
                             <View style={{ position: 'absolute', top: -4, right: -4, minWidth: 16, height: 16, borderRadius: 8, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3 }}>
@@ -348,11 +352,7 @@ export default function PrepperHubScreen() {
                             </View>
                           )}
                         </View>
-                        <View style={{ flex: 1 }}>
-                          <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: INK }}>{label}</Text>
-                          <Text style={{ fontFamily: Font.body, fontSize: 12, color: MUTED, marginTop: 2 }}>{desc}</Text>
-                        </View>
-                        <ChevronRight size={16} color={MUTED} />
+                        <Text style={{ fontFamily: Font.medium, fontSize: 10, color: INK, textAlign: 'center' }} numberOfLines={2}>{label}</Text>
                       </PressableScale>
                     </MotiView>
                   );

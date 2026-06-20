@@ -89,7 +89,7 @@ function computeCountdown(expiresAt: string | null | undefined): string | null {
 
 function urgencyColor(expiresAt: string): string {
   const ms = new Date(expiresAt).getTime() - Date.now();
-  if (ms < 3_600_000) return '#ef4444';
+  if (ms < 3_600_000) return Palette.danger;
   if (ms < 86_400_000) return Palette.brand;
   return '#8b5cf6';
 }
@@ -175,9 +175,9 @@ export function FeedCard({ item, height, bottomInset, followSet }: { item: FeedI
           from={{ opacity: 0.55 }}
           animate={{ opacity: 1 }}
           transition={{ type: 'timing', duration: 700, loop: true, repeatReverse: true }}
-          style={{ position: 'absolute', top: 56, left: 14, flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: '#dc2626', borderRadius: 8, paddingHorizontal: 9, paddingVertical: 5 }}
+          style={{ position: 'absolute', top: 56, left: 14, flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: Palette.danger, borderRadius: 8, paddingHorizontal: 9, paddingVertical: 5 }}
           pointerEvents="none">
-          <View style={{ width: 5, height: 5, borderRadius: 3, backgroundColor: '#fff' }} />
+          <View style={{ width: 5, height: 5, borderRadius: 3, backgroundColor: Palette.surface }} />
           <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: '#fff', letterSpacing: 0.7 }}>LIVE</Text>
         </MotiView>
       ) : countdown && item.expiresAt ? (

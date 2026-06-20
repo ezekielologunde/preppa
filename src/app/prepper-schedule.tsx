@@ -301,7 +301,7 @@ export default function PrepperScheduleScreen() {
                   {saveMutation.isPending ? 'Saving…' : 'Save schedule'}
                 </Text>
                 {isDirty && !saveMutation.isPending ? (
-                  <View style={{ backgroundColor: '#fff', borderRadius: Radius.pill, paddingHorizontal: 8, paddingVertical: 2 }}>
+                  <View style={{ backgroundColor: Palette.surface, borderRadius: Radius.pill, paddingHorizontal: 8, paddingVertical: 2 }}>
                     <Text style={{ fontFamily: Font.semibold, fontSize: 10, color: Palette.brand }}>Unsaved changes</Text>
                   </View>
                 ) : null}

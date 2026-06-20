@@ -51,7 +51,7 @@ const COLOR_MAP: Record<string, string> = {
   order: '#3B82F6',
   payment: Palette.success,
   chat: '#60a5fa',
-  follow: '#a78bfa',
+  follow: Palette.violet,
   review: Palette.success,
   promotion: '#f472b6',
   drop: Palette.brand,

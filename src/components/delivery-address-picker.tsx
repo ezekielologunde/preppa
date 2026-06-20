@@ -3,13 +3,12 @@ import { MotiView } from 'moti';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
 
-import { AddressSheet, resolvedLabel, type FormState } from '@/components/address-sheet';
+import { AddressSheet, resolvedLabel, type FormState, type Address } from '@/components/address-sheet';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
 import { Palette, Radius } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
 import { useAddresses, useUpsertAddress } from '@/lib/queries/addresses';
-import type { Address } from '@/components/address-sheet';
 
 function formatAddress(a: Address): string {
   return [a.street1, a.street2, a.city, a.state].filter(Boolean).join(', ');
@@ -76,7 +75,7 @@ export function DeliveryAddressPicker({
               accessibilityLabel={`Deliver to ${address.label}: ${formatAddress(address)}`}
               style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 13 }}>
               <View style={{ width: 20, height: 20, borderRadius: 10, borderWidth: selected ? 0 : 2, borderColor: selected ? 'transparent' : Palette.border, backgroundColor: selected ? Palette.brand : 'transparent', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                {selected ? <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#fff' }} /> : null}
+                {selected ? <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: Palette.surface }} /> : null}
               </View>
               <MapPin size={14} color={selected ? Palette.brand : Palette.textSecondary} />
               <View style={{ flex: 1 }}>

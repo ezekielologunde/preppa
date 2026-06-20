@@ -14,8 +14,8 @@ export function KitchenHoursCard({ schedule, isOpen = true }: Props) {
     <View style={{ marginHorizontal: 16, marginTop: 14, backgroundColor: Palette.surface, borderRadius: Radius.lg, paddingHorizontal: 16, paddingVertical: 12, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 10, shadowOffset: { width: 0, height: 4 } }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-          <Text style={{ fontSize: 9, color: isOpen ? '#10B981' : '#EF4444', lineHeight: 13 }}>{'●'}</Text>
-          <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: isOpen ? '#10B981' : '#EF4444' }}>
+          <Text style={{ fontSize: 9, color: isOpen ? '#10B981' : Palette.danger, lineHeight: 13 }}>{'●'}</Text>
+          <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: isOpen ? '#10B981' : Palette.danger }}>
             {isOpen ? 'Open now' : 'Closed'}
           </Text>
         </View>

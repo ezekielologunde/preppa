@@ -29,9 +29,9 @@ import {
 
 // ─── Expiry helpers ──────────────────────────────────────────────────────────
 
-function expiryStatus(expMonth: number, expYear: number): 'expired' | 'soon' | null {
+function expiryStatus(expMonth: string | number, expYear: string | number): 'expired' | 'soon' | null {
   const now = new Date();
-  const exp = new Date(expYear, expMonth - 1, 28); // last usable day of month
+  const exp = new Date(Number(expYear), Number(expMonth) - 1, 28); // last usable day of month
   if (exp < now) return 'expired';
   const twoMonthsOut = new Date(now.getFullYear(), now.getMonth() + 2, 1);
   if (exp <= twoMonthsOut) return 'soon';

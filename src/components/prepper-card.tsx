@@ -49,7 +49,7 @@ function LiveBadge() {
           from={{ opacity: 0.4 }}
           animate={{ opacity: 1 }}
           transition={{ type: 'timing', duration: 750, loop: true, repeatReverse: true }}>
-          <View style={{ width: 5, height: 5, borderRadius: 3, backgroundColor: '#fff' }} />
+          <View style={{ width: 5, height: 5, borderRadius: 3, backgroundColor: Palette.surface }} />
         </MotiView>
         <Text style={{ fontFamily: Font.semibold, fontSize: 10.5, color: '#fff', letterSpacing: 0.2 }}>
           {win.label.toLowerCase()}
@@ -68,8 +68,8 @@ function StreamingLiveBadge({ offsetDown }: { offsetDown?: boolean }) {
       animate={{ scale: 1.08 }}
       transition={{ type: 'timing', duration: 900, loop: true, repeatReverse: true }}
       style={{ position: 'absolute', top: offsetDown ? 44 : 8, left: 8, flexDirection: 'row', alignItems: 'center', gap: 4,
-        backgroundColor: '#EF4444', borderRadius: Radius.pill, paddingHorizontal: 8, paddingVertical: 3 }}>
-      <View style={{ width: 5, height: 5, borderRadius: 3, backgroundColor: '#fff' }} />
+        backgroundColor: Palette.danger, borderRadius: Radius.pill, paddingHorizontal: 8, paddingVertical: 3 }}>
+      <View style={{ width: 5, height: 5, borderRadius: 3, backgroundColor: Palette.surface }} />
       <Text style={{ fontFamily: Font.semibold, fontSize: 10, color: '#fff', letterSpacing: 0.3 }}>LIVE</Text>
     </MotiView>
   );

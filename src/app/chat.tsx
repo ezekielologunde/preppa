@@ -159,7 +159,7 @@ export default function ChatScreen() {
                     {hc.status === 'pending' ? 'Awaiting terms from prepper' : termsReady ? 'Terms proposed — review and confirm' : 'Negotiating…'}
                   </Text>
                 </View>
-                <View style={{ backgroundColor: hc.status === 'negotiating' ? HC : '#7C3AED66', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 }}>
+                <View style={{ backgroundColor: hc.status === 'negotiating' ? HC : HC + '66', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 }}>
                   <Text style={{ fontFamily: Font.semibold, fontSize: 10.5, color: '#fff', textTransform: 'capitalize' }}>{hc.status}</Text>
                 </View>
               </View>

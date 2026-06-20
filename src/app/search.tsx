@@ -7,7 +7,6 @@ import { Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-nativ
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { feedback } from '@/lib/feedback';
-import { useBreakpoint } from '@/lib/layout';
 
 import { QuickAddButton } from '@/components/home-feed';
 import { MealCard } from '@/components/meal-card';
@@ -17,7 +16,7 @@ import { PressableScale } from '@/components/ui/pressable-scale';
 import { CardSkeleton } from '@/components/ui/skeleton';
 import { Font } from '@/constants/fonts';
 import { Palette, Radius } from '@/constants/theme';
-import { gridCardWidth, useContentWidth } from '@/lib/layout';
+import { gridCardWidth, useBreakpoint, useContentWidth } from '@/lib/layout';
 import { useMealSearch, useMealsByIds } from '@/lib/queries/meals';
 import { usePrepperSearch } from '@/lib/queries/preppers';
 import { useMealCategories } from '@/lib/queries/my-meals';
@@ -35,9 +34,9 @@ const INK = Palette.ink;
 
 const DIET_ACCENT: Record<string, { label: string; color: string }> = {
   vegan:     { label: 'plant-based', color: '#8B5CF6' },
-  healthy:   { label: 'clean',       color: '#22C55E' },
+  healthy:   { label: 'clean',       color: Palette.leafGreen },
   breakfast: { label: 'breakfast',   color: Palette.amber },
-  lunch:     { label: 'lunch',       color: '#06B6D4' },
+  lunch:     { label: 'lunch',       color: Palette.cyan },
   dinner:    { label: 'dinner',      color: ORANGE },
 };
 

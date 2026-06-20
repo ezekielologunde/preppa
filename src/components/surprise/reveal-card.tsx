@@ -1,14 +1,12 @@
-import { Compass } from 'lucide-react-native';
+import { Compass, ShoppingCart } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { ActivityIndicator, Text, View } from 'react-native';
 
-import type { Meal } from '@/components/meal-card';
-import { MealCard } from '@/components/meal-card';
+import { MealCard, type Meal } from '@/components/meal-card';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
 import { Palette, Radius } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
-import { ShoppingCart } from 'lucide-react-native';
 
 // ─── RevealLoading ────────────────────────────────────────────────────────────
 

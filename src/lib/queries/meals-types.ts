@@ -34,5 +34,5 @@ export const DETAIL_SELECT =
   'id,title,description,base_price,prep_time_min,is_limited,expires_at,allergens,ingredients,available_days,dietary_tags,' +
   'prepper:prepper_profiles(id,user_id,display_name,verified,bio,city,delivers,pickup,delivery_fee,delivery_radius_km,rating:prepper_rating_summary(average_rating,total_reviews)),' +
   'images:meal_images(url,order_index),' +
-  'videos:meal_videos(url,order_index),' +
+  'videos:meal_videos(video_url),' +
   'nutrition:nutrition_profiles(calories,protein,carbs,fat)';

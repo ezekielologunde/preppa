@@ -15,7 +15,7 @@ export type HomeCookRequest = {
   ingredientBudget: number;
   cookingFee: number | null;
   travelFee: number | null;
-  status: 'pending' | 'negotiating' | 'confirmed' | 'cancelled';
+  status: 'pending' | 'negotiating' | 'accepted' | 'confirmed' | 'cancelled';
   orderId: string | null;
   conversationId: string | null;
   createdAt: string;

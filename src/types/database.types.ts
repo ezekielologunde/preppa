@@ -173,9 +173,9 @@ export interface Database {
         Relationships: [];
       };
       meal_videos: {
-        Row: { id: string; meal_id: string; url: string; order_index: number; duration_sec: number | null; thumbnail_url: string | null; created_at: string };
-        Insert: { meal_id: string; url: string; order_index?: number; duration_sec?: number | null; thumbnail_url?: string | null };
-        Update: Partial<{ url: string; order_index: number; duration_sec: number | null; thumbnail_url: string | null }>;
+        Row: { id: string; meal_id: string; video_url: string; duration_sec: number | null; thumbnail_url: string | null; created_at: string };
+        Insert: { meal_id: string; video_url: string; duration_sec?: number | null; thumbnail_url?: string | null };
+        Update: Partial<{ video_url: string; duration_sec: number | null; thumbnail_url: string | null }>;
         Relationships: [];
       };
       meal_variants: {

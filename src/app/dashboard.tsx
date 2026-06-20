@@ -159,7 +159,7 @@ export default function DashboardScreen() {
         {/* ── Toggle Confirmation Modal ──────────────────────────────── */}
         <Modal visible={confirmToggle} transparent animationType="fade" onRequestClose={() => setConfirmToggle(false)}>
           <TouchableOpacity activeOpacity={1} onPress={() => setConfirmToggle(false)} accessibilityLabel="Dismiss"
-            style={{ flex: 1, backgroundColor: 'rgba(26,23,20,0.5)', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+            style={{ flex: 1, backgroundColor: Palette.overlay, alignItems: 'center', justifyContent: 'center', padding: 24 }}>
             <MotiView from={{ opacity: 0, scale: 0.94 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'spring', damping: 22 }}
               style={{ backgroundColor: CARD, borderRadius: 24, padding: 28, width: '100%', maxWidth: 360, gap: 16, ...S2 }}>
               <Text style={{ fontFamily: Font.display, fontSize: 20, color: INK, textAlign: 'center', letterSpacing: -0.4 }}>

@@ -16,7 +16,7 @@ const APP_URL = 'https://preppa.live/join';
 
 const HOW_IT_WORKS = [
   { Icon: Ticket, color: Palette.brand,   title: 'share your code', body: 'Send your unique referral code to friends and family.' },
-  { Icon: Users,  color: '#a78bfa',        title: 'they sign up',    body: 'Your friend creates an account and places their first preorder.' },
+  { Icon: Users,  color: Palette.violet,        title: 'they sign up',    body: 'Your friend creates an account and places their first preorder.' },
   { Icon: Gift,   color: Palette.success,  title: 'you both earn',   body: 'You get $5 in Preppa credits. They get $5 off their first preorder.' },
 ];
 

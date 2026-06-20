@@ -37,7 +37,7 @@ const PERKS: Perk[] = [
     cta: 'Start shopping', ctaRoute: '/',
   },
   {
-    title: 'free delivery', desc: 'next preorder', pts: 1500, Icon: Bike, color: '#06b6d4',
+    title: 'free delivery', desc: 'next preorder', pts: 1500, Icon: Bike, color: Palette.cyan,
     body: 'Delivery fee waived on your next eligible preorder. Just order as normal — it\'s deducted automatically.',
     cta: 'Browse meals', ctaRoute: '/',
   },
@@ -243,7 +243,7 @@ export default function RewardsScreen() {
                       from={{ width: '0%' }}
                       animate={{ width: `${Math.round(r.progress * 100)}%` }}
                       transition={{ type: 'timing', duration: 700, delay: 300 }}
-                      style={{ height: 8, borderRadius: 4, backgroundColor: '#fff' }}
+                      style={{ height: 8, borderRadius: 4, backgroundColor: Palette.surface }}
                     />
                   </View>
                   <Text style={{ fontFamily: Font.medium, fontSize: 12.5, color: 'rgba(255,255,255,0.92)' }}>

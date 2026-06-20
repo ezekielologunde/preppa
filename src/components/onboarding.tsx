@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
   },
   pillText: { fontFamily: FONT.body, color: '#fff', fontSize: 14 },
   cta: {
-    width: '100%', alignItems: 'center', backgroundColor: '#fff',
+    width: '100%', alignItems: 'center', backgroundColor: Palette.surface,
     borderRadius: 18, paddingVertical: 17,
     shadowColor: '#7a2200', shadowOpacity: 0.3, shadowRadius: 18,
     shadowOffset: { width: 0, height: 10 }, elevation: 8,

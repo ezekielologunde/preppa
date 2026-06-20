@@ -2,7 +2,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import {
-  BarChart2, Check, CheckCircle2, ChevronLeft, Crown, Flame, Lock, Search, Sparkles, Star, TrendingUp, Users, Zap,
+  BarChart2, Check, ChevronLeft, Crown, Flame, Lock, Search, Sparkles, Star, TrendingUp, Users, Zap,
   type LucideIcon,
 } from 'lucide-react-native';
 import { MotiView } from 'moti';
@@ -206,7 +206,7 @@ function PlanCard({
     }}>
       {/* Badge */}
       {plan.badge && (
-        <View style={{ position: 'absolute', top: 14, right: 14, backgroundColor: plan.highlighted ? ORANGE : '#F0EDEA', borderRadius: Radius.pill, paddingHorizontal: 10, paddingVertical: 3 }}>
+        <View style={{ position: 'absolute', top: 14, right: 14, backgroundColor: plan.highlighted ? ORANGE : Palette.chipOff, borderRadius: Radius.pill, paddingHorizontal: 10, paddingVertical: 3 }}>
           <Text style={{ fontFamily: Font.semibold, fontSize: 10, color: plan.highlighted ? '#fff' : INK }}>{plan.badge}</Text>
         </View>
       )}
@@ -395,13 +395,13 @@ export default function PrepperPremiumScreen() {
           {/* Billing toggle */}
           <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280, delay: 80 }}>
             <View style={{ flexDirection: 'row', backgroundColor: Palette.border, borderRadius: Radius.md, padding: 4, gap: 4 }}>
-              <MotiView animate={{ backgroundColor: !yearly ? ORANGE : '#FFFFFF' }} transition={{ type: 'timing', duration: 200 }} style={{ flex: 1, borderRadius: Radius.sm, overflow: 'hidden' }}>
+              <MotiView animate={{ backgroundColor: !yearly ? ORANGE : Palette.surface }} transition={{ type: 'timing', duration: 200 }} style={{ flex: 1, borderRadius: Radius.sm, overflow: 'hidden' }}>
                 <PressableScale onPress={() => { feedback.tap(); setYearly(false); }} accessibilityRole="button" accessibilityLabel="Monthly billing" accessibilityState={{ selected: !yearly }}
                   style={{ flex: 1, height: 44, alignItems: 'center', justifyContent: 'center' }}>
                   <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: !yearly ? '#fff' : MUTED }}>Monthly</Text>
                 </PressableScale>
               </MotiView>
-              <MotiView animate={{ backgroundColor: yearly ? ORANGE : '#FFFFFF' }} transition={{ type: 'timing', duration: 200 }} style={{ flex: 1, borderRadius: Radius.sm, overflow: 'hidden' }}>
+              <MotiView animate={{ backgroundColor: yearly ? ORANGE : Palette.surface }} transition={{ type: 'timing', duration: 200 }} style={{ flex: 1, borderRadius: Radius.sm, overflow: 'hidden' }}>
                 <PressableScale onPress={() => { feedback.tap(); setYearly(true); }} accessibilityRole="button" accessibilityLabel="Annual billing, save 20%" accessibilityState={{ selected: yearly }}
                   style={{ flex: 1, height: 44, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8 }}>
                   <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: yearly ? '#fff' : MUTED }}>Annual</Text>

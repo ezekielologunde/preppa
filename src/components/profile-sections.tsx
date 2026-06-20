@@ -108,7 +108,7 @@ export function DarkCard({ Icon, title, sub, onPress, accessibilityLabel }: {
 }) {
   return (
     <PressableScale onPress={onPress} accessibilityRole="button" accessibilityLabel={accessibilityLabel}
-      style={{ marginHorizontal: 20, marginTop: 16, backgroundColor: '#FFFFFF', borderRadius: 18, padding: 16, flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+      style={{ marginHorizontal: 20, marginTop: 16, backgroundColor: Palette.surface, borderRadius: 18, padding: 16, flexDirection: 'row', alignItems: 'center', gap: 14 }}>
       <View style={{ width: 42, height: 42, borderRadius: 13, backgroundColor: Palette.brand + '2E', alignItems: 'center', justifyContent: 'center' }}>
         <Icon size={20} color={Palette.brand} />
       </View>

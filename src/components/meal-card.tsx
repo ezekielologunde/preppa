@@ -76,7 +76,7 @@ function computeCountdown(expiresAt: string | null | undefined): string | null {
 
 function urgencyColor(expiresAt: string): string {
   const ms = new Date(expiresAt).getTime() - Date.now();
-  if (ms < 3_600_000) return '#ef4444';
+  if (ms < 3_600_000) return Palette.danger;
   if (ms < 86_400_000) return Palette.brand;
   return '#8b5cf6';
 }

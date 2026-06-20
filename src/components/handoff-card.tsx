@@ -15,10 +15,10 @@ const SITE = 'https://app.preppa.live';
 // its token) so every generated QR looks distinct and fun.
 const QR_GRADIENTS: [string, string][] = [
   [ORANGE, '#D9430F'],
-  ['#FF814A', '#C2410C'],
+  [Palette.brandLight, '#C2410C'],
   ['#F97316', '#DB2777'],
   ['#FB923C', '#9333EA'],
-  ['#F59E0B', '#EA580C'],
+  [Palette.amber, '#EA580C'],
   ['#EF4444', ORANGE],
 ];
 
@@ -49,7 +49,7 @@ function QRBlock({ value, size, g1, g2 }: { value: string; size: number; g1: str
       />
       {/* Flame chip in the centre — sits in the QR's high error-correction zone */}
       <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' }} pointerEvents="none">
-        <View style={{ width: 24, height: 24, borderRadius: 8, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' }}>
+        <View style={{ width: 24, height: 24, borderRadius: 8, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
           <View style={{ width: 19, height: 19, borderRadius: 6, backgroundColor: g1, alignItems: 'center', justifyContent: 'center' }}>
             <Text style={{ fontSize: 11 }}>🔥</Text>
           </View>

@@ -16,9 +16,9 @@ const INK     = Palette.ink;
 const CARD    = Palette.surface;
 const MUTED   = Palette.textSecondary;
 const S1      = { shadowColor: Palette.ink, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 };
-const GREEN   = '#22c55e';
+const GREEN   = Palette.leafGreen;
 const AMBER   = Palette.amber;
-const RED     = '#ef4444';
+const RED     = Palette.danger;
 const DIVIDER = Palette.border;
 
 function timeAgo(iso: string): string {

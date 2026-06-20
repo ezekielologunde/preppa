@@ -2,6 +2,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import {
   CalendarCheck,
+  ChefHat,
   ChevronRight,
   Crown,
   GraduationCap,
@@ -9,7 +10,6 @@ import {
   MessageSquareQuote,
   Plus,
   Sparkles,
-  Utensils,
   UtensilsCrossed,
   Wine,
   type LucideIcon,
@@ -27,7 +27,6 @@ import { feedback } from '@/lib/feedback';
 import { type MyExperienceRequest, useMyExperienceRequests } from '@/lib/queries/experiences';
 import { useAuth } from '@/providers/auth-provider';
 import { Image } from 'expo-image';
-import { ChefHat } from 'lucide-react-native';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -36,9 +35,9 @@ const TYPE_ICONS: Record<string, LucideIcon> = {
 };
 
 const EXPERIENCE_TYPES = [
-  { key: 'private_chef',  label: 'Private chef',  icon: 'ChefHat',         color: '#7C3AED', blurb: 'Cooked at home' },
+  { key: 'private_chef',  label: 'Private chef',  icon: 'ChefHat',         color: Palette.homeCook, blurb: 'Cooked at home' },
   { key: 'catering',      label: 'Catering',      icon: 'UtensilsCrossed', color: Palette.brand,    blurb: 'Feed your event' },
-  { key: 'class',         label: 'Cooking class', icon: 'GraduationCap',   color: '#22C55E', blurb: 'Learn hands-on' },
+  { key: 'class',         label: 'Cooking class', icon: 'GraduationCap',   color: Palette.leafGreen, blurb: 'Learn hands-on' },
   { key: 'tasting',       label: 'Tasting menu',  icon: 'Wine',            color: '#D97706', blurb: "Chef's selection" },
   { key: 'food_service',  label: 'Cook at mine',  icon: 'HandPlatter',     color: '#0891B2', blurb: 'Chefs come to you' },
   { key: 'cleaning',      label: 'Kitchen reset', icon: 'Sparkles',        color: '#64748B', blurb: 'Clean & organised' },
@@ -51,24 +50,6 @@ const KIND_LABEL: Record<string, string> = {
 
 
 // ─── Sub-components ────────────────────────────────────────────────────────────
-
-function ExperiencesEmptyState() {
-  return (
-    <MotiView
-      from={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ type: 'spring', damping: 22, stiffness: 240 }}
-      style={{ alignItems: 'center', paddingVertical: 56, paddingHorizontal: 32 }}>
-      <Utensils size={64} color={Palette.border} />
-      <Text style={{ fontFamily: Font.display, fontSize: 20, color: Palette.ink, letterSpacing: -0.4, marginTop: 20, textAlign: 'center' }}>
-        No experiences yet
-      </Text>
-      <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, marginTop: 8, textAlign: 'center', lineHeight: 20 }}>
-        Check back soon for exclusive dining events
-      </Text>
-    </MotiView>
-  );
-}
 
 function RequestCard({ r, onPress }: { r: MyExperienceRequest; onPress: () => void }) {
   const pendingBids = r.bids.filter((b) => b.status === 'pending').length;
@@ -141,7 +122,6 @@ export default function ExperiencesScreen() {
   const open = allRequests.filter((r) => r.status === 'open');
   const hasAny = allRequests.length > 0;
 
-
   return (
     <View style={{ flex: 1, backgroundColor: Palette.canvas }}>
       <SafeAreaView edges={['top']} style={{ flex: 1 }}>
@@ -156,7 +136,7 @@ export default function ExperiencesScreen() {
             animate={{ opacity: 1, translateY: 0 }}
             transition={{ type: 'timing', duration: 300 }}>
             <LinearGradient
-              colors={['#0C0E13', '#1C2133']}
+              colors={[Palette.prepperBg, '#1C2133']}
               style={{ height: 180, paddingHorizontal: 20, paddingTop: 24, paddingBottom: 20, justifyContent: 'space-between' }}>
               <View style={{ gap: 4 }}>
                 <Text style={{ fontFamily: Font.display, fontSize: 28, color: '#F0F2F5', letterSpacing: -0.6 }}>
@@ -242,7 +222,7 @@ export default function ExperiencesScreen() {
                   A personal chef shops, cooks and cleans up. You just show up hungry.
                 </Text>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 4 }}>
-                  <View style={{ backgroundColor: '#fff', borderRadius: Radius.pill, paddingHorizontal: 18, height: 42, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <View style={{ backgroundColor: Palette.surface, borderRadius: Radius.pill, paddingHorizontal: 18, height: 42, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                     <Text style={{ fontFamily: Font.heading, fontSize: 14, color: Palette.ink }}>Request a chef</Text>
                     <ChevronRight size={16} color={Palette.ink} />
                   </View>

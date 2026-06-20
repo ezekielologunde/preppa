@@ -89,7 +89,7 @@ export function HomeCookTab({ prepperId, homeCookJobs, refreshing, onRefresh, on
                       ${job.ingredientBudget} ingredient budget · {job.guestCount} guest{job.guestCount !== 1 ? 's' : ''}
                     </Text>
                   </View>
-                  <View style={{ paddingHorizontal: 11, height: 26, borderRadius: Radius.pill, backgroundColor: isNegotiating ? HC + '18' : '#F0EDEA', alignItems: 'center', justifyContent: 'center' }}>
+                  <View style={{ paddingHorizontal: 11, height: 26, borderRadius: Radius.pill, backgroundColor: isNegotiating ? HC + '18' : Palette.chipOff, alignItems: 'center', justifyContent: 'center' }}>
                     <Text style={{ fontFamily: Font.semibold, fontSize: 11.5, color: isNegotiating ? HC : SUB, textTransform: 'capitalize' }}>
                       {job.status}
                     </Text>
@@ -153,7 +153,7 @@ export function HomeCookTab({ prepperId, homeCookJobs, refreshing, onRefresh, on
                       <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: Palette.success }}>Accepted — coordinate via chat</Text>
                     </View>
                   ) : (
-                    <View style={{ flex: 1, height: 44, borderRadius: Radius.pill, backgroundColor: '#F0EDEA', alignItems: 'center', justifyContent: 'center' }}>
+                    <View style={{ flex: 1, height: 44, borderRadius: Radius.pill, backgroundColor: Palette.chipOff, alignItems: 'center', justifyContent: 'center' }}>
                       <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: SUB, textTransform: 'capitalize' }}>{job.status}</Text>
                     </View>
                   )}

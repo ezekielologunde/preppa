@@ -17,7 +17,7 @@ export function PositionDots({ total, current }: { total: number; current: numbe
             key={i}
             animate={{ width: active ? 4 : 3, height: active ? 18 : 8, opacity: active ? 1 : 0.28 }}
             transition={{ type: 'timing', duration: 200 }}
-            style={{ borderRadius: 2, backgroundColor: '#fff' }}
+            style={{ borderRadius: 2, backgroundColor: Palette.surface }}
           />
         );
       })}

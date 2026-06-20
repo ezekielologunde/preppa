@@ -41,7 +41,7 @@ function MealRow({ meal, busy, onEdit, onSetStatus }: { meal: MyMeal; busy: bool
       {meal.image ? (
         <Image source={meal.image} style={{ width: 58, height: 58, borderRadius: 13 }} contentFit="cover" accessibilityLabel={meal.title} />
       ) : (
-        <View style={{ width: 58, height: 58, borderRadius: 13, backgroundColor: '#F0EDEA', alignItems: 'center', justifyContent: 'center' }}>
+        <View style={{ width: 58, height: 58, borderRadius: 13, backgroundColor: Palette.chipOff, alignItems: 'center', justifyContent: 'center' }}>
           <ImageIcon size={22} color={SUB} />
         </View>
       )}
@@ -60,12 +60,12 @@ function MealRow({ meal, busy, onEdit, onSetStatus }: { meal: MyMeal; busy: bool
         </PressableScale>
         {isArchived ? (
           <PressableScale onPress={() => { feedback.tap(); onSetStatus('draft'); }} disabled={busy} accessibilityRole="button" accessibilityLabel={`Restore ${meal.title} to draft`} hitSlop={6}
-            style={{ paddingHorizontal: 12, height: 32, borderRadius: 10, backgroundColor: '#F0EDEA', alignItems: 'center', justifyContent: 'center', opacity: busy ? 0.6 : 1 }}>
+            style={{ paddingHorizontal: 12, height: 32, borderRadius: 10, backgroundColor: Palette.chipOff, alignItems: 'center', justifyContent: 'center', opacity: busy ? 0.6 : 1 }}>
             <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: SUB }}>Restore</Text>
           </PressableScale>
         ) : isLive ? (
           <PressableScale onPress={() => { feedback.tap(); onSetStatus('paused'); }} disabled={busy} accessibilityRole="button" accessibilityLabel={`Pause ${meal.title}`} hitSlop={6}
-            style={{ paddingHorizontal: 12, height: 32, borderRadius: 10, backgroundColor: '#F0EDEA', alignItems: 'center', justifyContent: 'center', opacity: busy ? 0.6 : 1 }}>
+            style={{ paddingHorizontal: 12, height: 32, borderRadius: 10, backgroundColor: Palette.chipOff, alignItems: 'center', justifyContent: 'center', opacity: busy ? 0.6 : 1 }}>
             <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: SUB }}>Pause</Text>
           </PressableScale>
         ) : (
@@ -75,7 +75,7 @@ function MealRow({ meal, busy, onEdit, onSetStatus }: { meal: MyMeal; busy: bool
               <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: '#fff' }}>Publish</Text>
             </PressableScale>
             <PressableScale onPress={() => { feedback.tap(); onSetStatus('archived'); }} disabled={busy} accessibilityRole="button" accessibilityLabel={`Archive ${meal.title}`} hitSlop={6}
-              style={{ paddingHorizontal: 10, height: 32, borderRadius: 10, backgroundColor: '#F0EDEA', borderWidth: 1, borderColor: BORDER, alignItems: 'center', justifyContent: 'center', opacity: busy ? 0.6 : 1 }}>
+              style={{ paddingHorizontal: 10, height: 32, borderRadius: 10, backgroundColor: Palette.chipOff, borderWidth: 1, borderColor: BORDER, alignItems: 'center', justifyContent: 'center', opacity: busy ? 0.6 : 1 }}>
               <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: SUB }}>Archive</Text>
             </PressableScale>
           </View>

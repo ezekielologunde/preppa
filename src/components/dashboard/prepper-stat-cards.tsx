@@ -14,7 +14,7 @@ import { Palette } from '@/constants/theme';
 
 const ORANGE = Palette.brand;
 const GREEN = Palette.success;
-const PURPLE = '#a78bfa';
+const PURPLE = Palette.violet;
 const YELLOW = Palette.amber;
 const INK = Palette.ink;
 

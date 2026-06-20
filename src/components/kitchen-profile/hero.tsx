@@ -118,7 +118,7 @@ export function KitchenHero({
               height: AVATAR_SIZE + 6,
               borderRadius: (AVATAR_SIZE + 6) / 2,
               borderWidth: 3,
-              borderColor: isLive ? '#EF4444' : Palette.brand,
+              borderColor: isLive ? Palette.danger : Palette.brand,
               backgroundColor: Palette.surface,
               alignItems: 'center',
               justifyContent: 'center',

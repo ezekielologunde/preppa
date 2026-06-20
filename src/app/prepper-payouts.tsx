@@ -1,8 +1,10 @@
+import * as WebBrowser from 'expo-web-browser';
 import { useRouter } from 'expo-router';
 import { ArrowDownToLine, ChevronLeft, Lock, Wallet } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useState } from 'react';
 import {
+  Alert,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -42,7 +44,7 @@ const shortDate = (iso: string) => {
 };
 
 const STATUS_STYLES: Record<PayoutRequest['status'], { bg: string; text: string; label: string }> = {
-  pending:    { bg: '#FEF3C7', text: '#D97706', label: 'pending' },
+  pending:    { bg: Palette.amberTint, text: Palette.amberDeep, label: 'pending' },
   processing: { bg: '#EFF6FF', text: '#2563EB', label: 'processing' },
   paid:       { bg: Palette.success + '22', text: Palette.success, label: 'paid' },
   rejected:   { bg: Palette.danger + '15', text: Palette.danger, label: 'rejected' },
@@ -58,10 +60,12 @@ function StatusChip({ status }: { status: PayoutRequest['status'] }) {
 }
 
 function HistoryRow({ item }: { item: PayoutRequest }) {
+  const isStripe = item.bankName === 'stripe_connect';
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: CARD, borderRadius: 14, padding: 14, shadowColor: Palette.ink, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 1 }}>
       <View style={{ flex: 1 }}>
         <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: MUTED }}>{shortDate(item.createdAt)}</Text>
+        {isStripe ? <Text style={{ fontFamily: Font.body, fontSize: 11, color: MUTED, marginTop: 1 }}>via Stripe</Text> : null}
       </View>
       <Text style={{ fontFamily: Font.heading, fontSize: 15, color: INK }}>{money(item.amount)}</Text>
       <StatusChip status={item.status} />
@@ -74,9 +78,10 @@ type ModalProps = {
   prepperId: string;
   stripeActive: boolean;
   onClose: () => void;
+  onSetupPayouts: () => void;
 };
 
-function RequestModal({ available, prepperId, stripeActive, onClose }: ModalProps) {
+function RequestModal({ available, prepperId, stripeActive, onClose, onSetupPayouts }: ModalProps) {
   const [amount, setAmount] = useState('');
   const requestPayout = useRequestPayout(prepperId);
 
@@ -113,7 +118,7 @@ function RequestModal({ available, prepperId, stripeActive, onClose }: ModalProp
     borderRadius: 12,
     borderWidth: 1,
     borderColor: BORDER,
-    color: INK as const,
+    color: INK,
     fontFamily: Font.body,
     fontSize: 15,
     padding: 14,
@@ -123,7 +128,7 @@ function RequestModal({ available, prepperId, stripeActive, onClose }: ModalProp
   if (!stripeActive) {
     return (
       <Modal transparent animationType="slide" onRequestClose={onClose}>
-        <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="Dismiss" style={{ flex: 1, backgroundColor: 'rgba(26,23,20,0.5)' }} />
+        <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="Dismiss" style={{ flex: 1, backgroundColor: Palette.overlay }} />
         <MotiView
           from={{ translateY: 40, opacity: 0 }}
           animate={{ translateY: 0, opacity: 1 }}
@@ -131,7 +136,7 @@ function RequestModal({ available, prepperId, stripeActive, onClose }: ModalProp
           style={sheetStyle}>
           <View style={{ width: 40, height: 4, borderRadius: 2, backgroundColor: BORDER, alignSelf: 'center', marginBottom: 24 }} />
           <View style={{ alignItems: 'center', gap: 12, marginBottom: 28 }}>
-            <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: '#F0EDEA', alignItems: 'center', justifyContent: 'center' }}>
+            <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: Palette.chipOff, alignItems: 'center', justifyContent: 'center' }}>
               <Lock size={28} color={MUTED} />
             </View>
             <Text style={{ fontFamily: Font.display, fontSize: 22, color: INK, letterSpacing: -0.5, textAlign: 'center' }}>
@@ -142,11 +147,11 @@ function RequestModal({ available, prepperId, stripeActive, onClose }: ModalProp
             </Text>
           </View>
           <PressableScale
-            onPress={onClose}
+            onPress={() => { onSetupPayouts(); onClose(); }}
             accessibilityRole="button"
-            accessibilityLabel="Set up bank account"
+            accessibilityLabel="Connect bank account via Stripe"
             style={{ backgroundColor: ORANGE, borderRadius: Radius.pill, height: 52, alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
-            <Text style={{ fontFamily: Font.semibold, fontSize: 16, color: '#fff' }}>set up bank account</Text>
+            <Text style={{ fontFamily: Font.semibold, fontSize: 16, color: '#fff' }}>connect with Stripe</Text>
           </PressableScale>
           <PressableScale onPress={onClose} accessibilityRole="button" accessibilityLabel="Dismiss"
             style={{ height: 44, alignItems: 'center', justifyContent: 'center' }}>
@@ -160,7 +165,7 @@ function RequestModal({ available, prepperId, stripeActive, onClose }: ModalProp
   return (
     <Modal transparent animationType="slide" onRequestClose={onClose}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
-        <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="Dismiss" style={{ flex: 1, backgroundColor: 'rgba(26,23,20,0.5)' }} />
+        <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="Dismiss" style={{ flex: 1, backgroundColor: Palette.overlay }} />
         <MotiView
           from={{ translateY: 40, opacity: 0 }}
           animate={{ translateY: 0, opacity: 1 }}
@@ -225,8 +230,26 @@ export default function PrepperPayoutsScreen() {
   const { data: application } = useMyPrepperApplication(user?.id);
   const prepperId = application?.id ?? null;
   const isDesktop = useBreakpoint() === 'desktop';
-  const { data: stripeConnect } = useStripeConnect();
+  const { data: stripeConnect, connectAccount, getOnboardingLink, syncStatus } = useStripeConnect();
   const stripeActive = stripeConnect?.stripe_account_status === 'active';
+
+  async function handleSetupPayouts() {
+    try {
+      let accountId = stripeConnect?.stripe_account_id;
+      if (!accountId) {
+        const created = await connectAccount.mutateAsync();
+        accountId = created.account_id ?? null;
+      }
+      if (!accountId) return;
+      const { url } = await getOnboardingLink.mutateAsync();
+      if (url) {
+        await WebBrowser.openBrowserAsync(url);
+        await syncStatus.mutateAsync().catch(() => {});
+      }
+    } catch (e) {
+      Alert.alert('Setup failed', e instanceof Error ? e.message : 'Please try again.');
+    }
+  }
 
   const { data: balance, isLoading: balanceLoading, refetch: refetchBalance } = usePayoutBalance(prepperId);
   const { data: history = [], isLoading: historyLoading, refetch: refetchHistory } = usePayoutHistory(prepperId);
@@ -374,6 +397,7 @@ export default function PrepperPayoutsScreen() {
           prepperId={prepperId}
           stripeActive={stripeActive}
           onClose={() => setModalOpen(false)}
+          onSetupPayouts={handleSetupPayouts}
         />
       ) : null}
     </View>

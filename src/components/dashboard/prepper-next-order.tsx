@@ -18,7 +18,7 @@ const MUTED = Palette.textSecondary;
 const CARD = Palette.surface;
 
 const FL: Record<FulfillmentType, string> = { pickup: 'pickup', delivery: 'delivery', meetup: 'meetup', home_cook: 'home cook' };
-const FC: Record<FulfillmentType, string> = { pickup: Palette.amber, delivery: '#06b6d4', meetup: '#a78bfa', home_cook: '#22c55e' };
+const FC: Record<FulfillmentType, string> = { pickup: Palette.amber, delivery: Palette.cyan, meetup: Palette.violet, home_cook: Palette.leafGreen };
 
 export interface PrepperNextOrderProps {
   next: OrderSummary | null;

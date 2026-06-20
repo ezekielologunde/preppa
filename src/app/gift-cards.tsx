@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { Check, ChevronLeft, Copy, Gift, Send } from 'lucide-react-native';
+import { ChevronLeft, Copy, Gift, Send } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useState } from 'react';
 import { ActivityIndicator, Platform, ScrollView, Share, Text, TextInput, TouchableOpacity, View } from 'react-native';

@@ -8,6 +8,7 @@ import { Font } from '@/constants/fonts';
 import { feedback } from '@/lib/feedback';
 import { useAdminFlags, useSetFeatureFlag } from '@/lib/queries/admin';
 import { Admin, Card, SectionState } from './ui';
+import { Palette } from '@/constants/theme';
 
 function Switch({ on }: { on: boolean }) {
   return (
@@ -18,7 +19,7 @@ function Switch({ on }: { on: boolean }) {
       <MotiView
         animate={{ translateX: on ? 20 : 0 }}
         transition={{ type: 'timing', duration: 200 }}
-        style={{ width: 22, height: 22, borderRadius: 11, backgroundColor: '#fff' }} />
+        style={{ width: 22, height: 22, borderRadius: 11, backgroundColor: Palette.surface }} />
     </MotiView>
   );
 }

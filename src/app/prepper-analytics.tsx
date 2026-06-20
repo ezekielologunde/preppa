@@ -276,7 +276,7 @@ export default function PrepperAnalyticsScreen() {
           <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260 }}>
           <View style={{ flexDirection: 'row', gap: 10 }}>
             <View style={{ flex: 1, backgroundColor: Palette.surface, borderRadius: 14, padding: 12, alignItems: 'center', gap: 4 }}>
-              <Text style={{ fontFamily: Font.display, fontSize: 22, color: '#06b6d4', letterSpacing: -0.5, fontVariant: ['tabular-nums'] }}>{completed.length}</Text>
+              <Text style={{ fontFamily: Font.display, fontSize: 22, color: Palette.cyan, letterSpacing: -0.5, fontVariant: ['tabular-nums'] }}>{completed.length}</Text>
               <Text style={{ fontFamily: Font.body, fontSize: 10.5, color: Palette.textSecondary, textAlign: 'center' }}>total preorders</Text>
             </View>
             <View style={{ flex: 1, backgroundColor: Palette.surface, borderRadius: 14, padding: 12, alignItems: 'center', gap: 4 }}>

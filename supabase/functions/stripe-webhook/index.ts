@@ -26,6 +26,7 @@ const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY')!, {
   httpClient: Stripe.createFetchHttpClient(),
 });
 const whsec = Deno.env.get('STRIPE_WEBHOOK_SECRET')!;
+const connectWhsec = Deno.env.get('STRIPE_CONNECT_WEBHOOK_SECRET');
 const RESEND_KEY = Deno.env.get('RESEND_API_KEY');
 const SITE = Deno.env.get('SITE_URL') ?? 'https://app.preppa.live';
 const FROM = 'Preppa <noreply@preppa.live>';
@@ -269,8 +270,16 @@ Deno.serve(async (req) => {
   let event: Stripe.Event;
   try {
     event = await stripe.webhooks.constructEventAsync(body, sig, whsec, undefined, cryptoProvider);
-  } catch (e) {
-    return new Response(`Bad signature: ${e instanceof Error ? e.message : 'error'}`, { status: 400 });
+  } catch {
+    if (connectWhsec) {
+      try {
+        event = await stripe.webhooks.constructEventAsync(body, sig, connectWhsec, undefined, cryptoProvider);
+      } catch (e2) {
+        return new Response(`Bad signature: ${e2 instanceof Error ? e2.message : 'error'}`, { status: 400 });
+      }
+    } else {
+      return new Response('Bad signature', { status: 400 });
+    }
   }
 
   const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
@@ -456,6 +465,22 @@ Deno.serve(async (req) => {
             p_reason: 'stripe refund',
           });
         }
+        break;
+      }
+
+      case 'account.updated': {
+        const account = event.data.object as Stripe.Account;
+        const accountId = account.id;
+        const status =
+          account.charges_enabled && account.payouts_enabled ? 'active'
+          : account.requirements?.disabled_reason ? 'restricted'
+          : account.details_submitted ? 'pending'
+          : 'not_connected';
+        await supabase
+          .from('prepper_profiles')
+          .update({ stripe_account_status: status })
+          .eq('stripe_account_id', accountId);
+        console.log('account.updated', { accountId, status });
         break;
       }
 

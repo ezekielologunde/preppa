@@ -192,7 +192,7 @@ function ResponsiveFrame({ children }: { children: ReactNode }) {
   }
 
   const darkSurface = DARK_BY_DESIGN.some((r) => path.startsWith(r)) || path.startsWith('/customers');
-  const shellBg = darkSurface ? '#0C0E13' : Palette.canvas;
+  const shellBg = darkSurface ? Palette.prepperBg : Palette.canvas;
   const center = shouldCenter(path, width);
   const maxW = contentWidthFor(path, width);
 

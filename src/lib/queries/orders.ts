@@ -167,7 +167,7 @@ export function useMyOrders(userId?: string | null) {
   });
 }
 
-export type OrderItem = { id: string; quantity: number; price_at_time: number; title: string };
+export type OrderItem = { id: string; quantity: number; unit_price: number; title: string };
 
 /** Line items for a single order, used in the expanded receipt panel. Cached forever — items never change after placement. */
 export function useOrderItems(orderId?: string | null) {
@@ -178,12 +178,12 @@ export function useOrderItems(orderId?: string | null) {
     queryFn: async (): Promise<OrderItem[]> => {
       const { data, error } = await supabase
         .from('order_items')
-        .select('id,quantity,price_at_time,meal:meals(title)')
+        .select('id,quantity,unit_price,meal:meals(title)')
         .eq('order_id', orderId!);
       if (error) throw error;
-      return ((data ?? []) as unknown as { id: string; quantity: number; price_at_time: number; meal: { title: string } | { title: string }[] | null }[]).map((it) => {
+      return ((data ?? []) as unknown as { id: string; quantity: number; unit_price: number; meal: { title: string } | { title: string }[] | null }[]).map((it) => {
         const meal = Array.isArray(it.meal) ? it.meal[0] : it.meal;
-        return { id: it.id, quantity: it.quantity, price_at_time: it.price_at_time, title: meal?.title ?? 'meal' };
+        return { id: it.id, quantity: it.quantity, unit_price: it.unit_price, title: meal?.title ?? 'meal' };
       });
     },
   });

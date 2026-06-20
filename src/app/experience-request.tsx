@@ -342,7 +342,7 @@ export default function ExperienceRequestScreen() {
                             accessibilityRole="button" accessibilityState={{ selected: on }} accessibilityLabel={s.label}
                             style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 12, borderRadius: 14, borderWidth: 1.5, borderColor: on ? ORANGE : Palette.border, backgroundColor: on ? Palette.brandTint : Palette.canvas }}>
                             <View style={{ width: 18, height: 18, borderRadius: 9, borderWidth: 2, borderColor: on ? ORANGE : Palette.border, backgroundColor: on ? ORANGE : 'transparent', alignItems: 'center', justifyContent: 'center' }}>
-                              {on ? <View style={{ width: 7, height: 7, borderRadius: 3.5, backgroundColor: '#fff' }} /> : null}
+                              {on ? <View style={{ width: 7, height: 7, borderRadius: 3.5, backgroundColor: Palette.surface }} /> : null}
                             </View>
                             <View style={{ flex: 1 }}>
                               <Text style={{ fontFamily: Font.semibold, fontSize: 13.5, color: on ? ORANGE : INK }}>{s.label}</Text>

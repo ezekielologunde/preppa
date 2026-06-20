@@ -20,7 +20,7 @@ const INK = Palette.ink;
 type StarFilter = 'all' | 'low' | 'high';
 const STAR_FILTERS: { key: StarFilter; label: string; color: string }[] = [
   { key: 'all', label: 'All', color: Palette.brand },
-  { key: 'low', label: '1–2★', color: '#ef4444' },
+  { key: 'low', label: '1–2★', color: Palette.danger },
   { key: 'high', label: '4–5★', color: Palette.amber },
 ];
 

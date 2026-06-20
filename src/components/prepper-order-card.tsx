@@ -7,12 +7,13 @@ import { Avatar } from '@/components/ui/avatar';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
 import { feedback } from '@/lib/feedback';
+import { NEXT, statusColor, STATUS_LABEL_PREPPER } from '@/lib/orders/pipeline';
 import { Palette, Radius } from '@/constants/theme';
 import type { OrderSummary } from '@/lib/queries/orders';
 import type { OrderStatus } from '@/types/database.types';
 
 // ── Design tokens (light kitchen theme) ──────────────────────────────────────
-export const HC      = '#7C3AED';
+export const HC      = Palette.homeCook;
 export const HC_TINT = Palette.homeCookTint;
 export const ORANGE  = Palette.brand;
 export const CARD    = Palette.surface;
@@ -23,27 +24,6 @@ const INK    = Palette.ink;
 const SUB    = Palette.textSecondary;
 const BORDER = Palette.border;
 const S2     = { shadowColor: Palette.ink, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.07, shadowRadius: 10, elevation: 3 };
-
-// ── Status pipeline ───────────────────────────────────────────────────────────
-
-const NEXT: Partial<Record<OrderStatus, { next: OrderStatus; cta: string }>> = {
-  pending:          { next: 'confirmed',  cta: 'Confirm →' },
-  confirmed:        { next: 'preparing',  cta: 'Start Prepping →' },
-  preparing:        { next: 'ready',      cta: 'Mark Ready →' },
-  ready:            { next: 'completed',  cta: 'Mark Complete →' },
-  out_for_delivery: { next: 'completed',  cta: 'Mark Complete →' },
-};
-
-const STATUS_LABEL: Record<OrderStatus, string> = {
-  pending: 'New', confirmed: 'Confirmed', preparing: 'Preparing', ready: 'Ready',
-  out_for_delivery: 'On the way', completed: 'Complete', cancelled: 'Cancelled',
-};
-
-const STATUS_CHIP_COLOR: Record<string, string> = {
-  New: '#D97706', Confirmed: '#2563EB', Preparing: '#2563EB',
-  Ready: Palette.success, 'On the way': '#2563EB',
-  Complete: SUB, Cancelled: SUB,
-};
 
 // ── Relative time helper ──────────────────────────────────────────────────────
 
@@ -158,8 +138,8 @@ interface OrderDetailModalProps {
 
 export function OrderDetailModal({ order, onClose }: OrderDetailModalProps) {
   if (!order) return null;
-  const label = STATUS_LABEL[order.status];
-  const chipColor = STATUS_CHIP_COLOR[label] ?? SUB;
+  const label = STATUS_LABEL_PREPPER[order.status];
+  const chipColor = statusColor(order.status);
   return (
     <Modal visible={!!order} transparent animationType="slide" onRequestClose={onClose}>
       <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="Close order details"
@@ -168,12 +148,12 @@ export function OrderDetailModal({ order, onClose }: OrderDetailModalProps) {
           style={{ backgroundColor: CARD, borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: 20, gap: 14, maxHeight: '85%' }}>
 
           {/* Drag handle */}
-          <View style={{ width: 36, height: 4, borderRadius: 2, backgroundColor: '#E8E4DF', alignSelf: 'center', marginBottom: 4 }} />
+          <View style={{ width: 36, height: 4, borderRadius: 2, backgroundColor: Palette.border, alignSelf: 'center', marginBottom: 4 }} />
 
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
             <Text style={{ fontFamily: Font.display, fontSize: 18, color: INK, letterSpacing: -0.4 }}>order details</Text>
             <PressableScale onPress={() => { feedback.tap(); onClose(); }} accessibilityRole="button" accessibilityLabel="Close"
-              style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: '#F0EDEA', alignItems: 'center', justifyContent: 'center' }}>
+              style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: Palette.chipOff, alignItems: 'center', justifyContent: 'center' }}>
               <X size={17} color={SUB} />
             </PressableScale>
           </View>
@@ -254,8 +234,8 @@ export function OrderCard({
   );
   const canCancel = order.status === 'pending' || order.status === 'confirmed';
   const done = order.status === 'completed' || order.status === 'cancelled';
-  const label = STATUS_LABEL[order.status];
-  const chipColor = STATUS_CHIP_COLOR[label] ?? SUB;
+  const label = STATUS_LABEL_PREPPER[order.status];
+  const chipColor = statusColor(order.status);
 
   const mealSummary = order.items.length === 0
     ? 'Custom job'
@@ -282,7 +262,7 @@ export function OrderCard({
             <PressableScale
               onPress={(e) => { (e as any).stopPropagation?.(); feedback.tap(); router.push(`/order-chat?orderId=${order.id}` as never); }}
               accessibilityRole="button" accessibilityLabel="Message customer"
-              style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: '#F0EDEA', alignItems: 'center', justifyContent: 'center' }}>
+              style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: Palette.chipOff, alignItems: 'center', justifyContent: 'center' }}>
               <MessageCircle size={16} color={SUB} />
             </PressableScale>
             <View style={{ paddingHorizontal: 10, height: 24, borderRadius: Radius.pill, backgroundColor: chipColor + '18', alignItems: 'center', justifyContent: 'center' }}>
@@ -322,7 +302,7 @@ export function OrderCard({
               </PressableScale>
             </View>
           ) : done ? (
-            <View style={{ height: 36, borderRadius: Radius.pill, backgroundColor: '#F0EDEA', alignItems: 'center', justifyContent: 'center' }}>
+            <View style={{ height: 36, borderRadius: Radius.pill, backgroundColor: Palette.chipOff, alignItems: 'center', justifyContent: 'center' }}>
               <Text style={{ fontFamily: Font.medium, fontSize: 12.5, color: SUB }}>{label}</Text>
             </View>
           ) : null}

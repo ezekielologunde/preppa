@@ -23,7 +23,7 @@ export type MyMeal = {
 
 type Row = Omit<MyMeal, 'image' | 'images' | 'videoUrls'> & {
   images: { url: string; order_index: number }[] | null;
-  videos: { url: string; order_index: number }[] | null;
+  videos: { video_url: string }[] | null;
 };
 
 /** Every meal in the signed-in prepper's kitchen, all statuses (RLS-scoped). */
@@ -34,13 +34,13 @@ export function useMyMeals(prepperId?: string | null) {
     queryFn: async (): Promise<MyMeal[]> => {
       const { data, error } = await supabase
         .from('meals')
-        .select('id,title,description,base_price,prep_time_min,category_id,status,is_limited,expires_at,allergens,ingredients,available_days,images:meal_images(url,order_index),videos:meal_videos(url,order_index)')
+        .select('id,title,description,base_price,prep_time_min,category_id,status,is_limited,expires_at,allergens,ingredients,available_days,images:meal_images(url,order_index),videos:meal_videos(video_url)')
         .eq('prepper_id', prepperId!)
         .order('created_at', { ascending: false });
       if (error) throw error;
       return ((data ?? []) as unknown as Row[]).map((r) => {
         const sorted = [...(r.images ?? [])].sort((a, b) => a.order_index - b.order_index).map((i) => i.url);
-        const sortedVideos = [...(r.videos ?? [])].sort((a, b) => a.order_index - b.order_index).map((v) => v.url);
+        const sortedVideos = (r.videos ?? []).map((v) => v.video_url);
         return { ...r, image: sorted[0] ?? null, images: sorted, videoUrls: sortedVideos };
       });
     },
@@ -111,7 +111,7 @@ export function useSaveMeal(prepperId?: string | null) {
         if (videoUrls.length > 0) {
           const { error: vErr } = await supabase
             .from('meal_videos')
-            .insert(videoUrls.map((url, i) => ({ meal_id: mealId!, url, order_index: i })));
+            .insert(videoUrls.map((url) => ({ meal_id: mealId!, video_url: url })));
           if (vErr) throw vErr;
         }
       }

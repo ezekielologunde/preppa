@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { AlertCircle, ChevronDown, Compass, Flame, LayoutGrid, List, MapPin, Search, Shuffle, SlidersHorizontal, Sparkles, Star, UtensilsCrossed, X, Zap } from 'lucide-react-native';
+import { AlertCircle, ChevronDown, Compass, Flame, MapPin, Search, Shuffle, SlidersHorizontal, Sparkles, Star, UtensilsCrossed, X, Zap } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Animated, Linking, Platform, RefreshControl, ScrollView, Text, TextInput, View } from 'react-native';
@@ -27,14 +27,6 @@ import { usePersonalizedMeals } from '@/lib/queries/recommend';
 import { useTodayStock } from '@/lib/queries/stock';
 import { useAuth } from '@/providers/auth-provider';
 
-// ─── Constants ────────────────────────────────────────────────────────────────
-
-const CHIP_CATEGORIES = [
-  { key: 'all', label: 'All' }, { key: 'nearby', label: 'Nearby' }, { key: 'trending', label: 'Trending' },
-  { key: 'new', label: 'New' }, { key: 'vegan', label: 'Vegan' }, { key: 'gluten-free', label: 'Gluten-Free' },
-  { key: 'high-protein', label: 'High Protein' },
-] as const;
-
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 type SH = { title: string; pad: number; Icon?: React.ComponentType<{ size?: number; color?: string }>; onSeeAll?: () => void };
@@ -51,24 +43,6 @@ function SectionHeader({ title, pad, Icon, onSeeAll }: SH) {
         </PressableScale>
       ) : null}
     </View>
-  );
-}
-
-function CategoryChips({ active, pad, onSelect }: { active: string; pad: number; onSelect: (key: string) => void }) {
-  return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: pad, gap: 8, paddingVertical: 8 }}>
-      {CHIP_CATEGORIES.map((c) => {
-        const on = c.key === active;
-        return (
-          <PressableScale key={c.key} onPress={() => { feedback.tap(); onSelect(c.key); }} accessibilityRole="button" accessibilityLabel={`Filter by ${c.label}`}>
-            <MotiView animate={{ scale: on ? 1 : 0.97 }} transition={{ type: 'spring', damping: 20, stiffness: 260 }}
-              style={{ height: 36, borderRadius: 18, paddingHorizontal: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: on ? Palette.brand : Palette.surface, borderWidth: on ? 0 : 1, borderColor: Palette.border }}>
-              <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: on ? '#fff' : Palette.textSecondary }}>{c.label}</Text>
-            </MotiView>
-          </PressableScale>
-        );
-      })}
-    </ScrollView>
   );
 }
 
@@ -144,26 +118,28 @@ export default function ExploreScreen() {
         return def ? [def.city, def.state].filter(Boolean).join(', ') : 'near you';
       })();
 
+  const [refreshing, setRefreshing] = useState(false);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const userDietary = (user?.user_metadata?.dietary as string[] | undefined) ?? [];
+  const [advFilters, setAdvFilters] = useState<AdvancedFilters>(() => ({ ...FILTER_DEFAULTS, dietary: userDietary.map((d: string) => d.toLowerCase()) }));
+  const [placeholderIdx, setPlaceholderIdx] = useState(0);
+
   async function handleGpsTap() {
     if (locCapturing) return;
     feedback.tap();
     const result = await requestDeviceLocation();
-    if (result === 'denied' && user && addresses.length > 0) router.push('/addresses');
+    if (result === 'granted') {
+      setAdvFilters((f) => ({ ...f, sort: 'nearest' }));
+    } else if (result === 'denied' && user && addresses.length > 0) {
+      router.push('/addresses');
+    }
   }
   function handleAddressTap() {
     feedback.tap();
     if (!user) { router.push('/auth?mode=signin'); return; }
     router.push('/addresses');
   }
-
-  const [refreshing, setRefreshing]         = useState(false);
-  const [filterOpen, setFilterOpen]         = useState(false);
-  const [activeCategory, setActiveCategory] = useState<string>('all');
-  const [searchQuery, setSearchQuery]       = useState('');
-  const [viewMode, setViewMode]             = useState<'list' | 'grid'>('grid');
-  const userDietary = (user?.user_metadata?.dietary as string[] | undefined) ?? [];
-  const [advFilters, setAdvFilters] = useState<AdvancedFilters>(() => ({ ...FILTER_DEFAULTS, dietary: userDietary.map((d: string) => d.toLowerCase()) }));
-  const [placeholderIdx, setPlaceholderIdx] = useState(0);
 
   const isTabletUp  = bp !== 'mobile';
   const isDesktop   = bp === 'desktop';
@@ -184,12 +160,7 @@ export default function ExploreScreen() {
 
   const filteredMeals = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
-    const noFilterCats = new Set(['all', 'nearby', 'trending', 'new']);
-    const catKey = noFilterCats.has(activeCategory) ? null : activeCategory;
-
-    let result = catKey
-      ? (meals ?? []).filter((m) => [m.title, m.category ?? ''].join(' ').toLowerCase().includes(catKey.replace('-', ' ')))
-      : (meals ?? []);
+    let result = meals ?? [];
 
     if (q.length >= 2) {
       result = result.filter((m) => [m.title, m.prepper, m.category ?? ''].join(' ').toLowerCase().includes(q));
@@ -232,7 +203,7 @@ export default function ExploreScreen() {
     if (advFilters.sort === 'price_desc') return [...result].sort((a, b) => b.price - a.price);
     if (advFilters.sort === 'newest') return [...result].reverse();
     return result;
-  }, [meals, activeCategory, searchQuery, advFilters]);
+  }, [meals, searchQuery, advFilters]);
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -267,24 +238,15 @@ export default function ExploreScreen() {
               style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: activeFilterCount > 0 ? Palette.brand : Palette.surface, alignItems: 'center', justifyContent: 'center', ...Shadow.card }}>
               <SlidersHorizontal size={17} color={activeFilterCount > 0 ? '#fff' : Palette.brand} />
               {activeFilterCount > 0 ? (
-                <View style={{ position: 'absolute', top: 8, right: 8, width: 16, height: 16, borderRadius: 8, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' }}>
+                <View style={{ position: 'absolute', top: 8, right: 8, width: 16, height: 16, borderRadius: 8, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
                   <Text style={{ fontFamily: Font.semibold, fontSize: 10, color: Palette.brand, lineHeight: 13 }}>{activeFilterCount}</Text>
                 </View>
               ) : null}
             </PressableScale>
-            {isTabletUp ? (
-              <PressableScale onPress={() => { feedback.tap(); setViewMode((m) => m === 'grid' ? 'list' : 'grid'); }} accessibilityRole="button" accessibilityLabel={`Switch to ${viewMode === 'grid' ? 'list' : 'grid'} view`}
-                style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center', ...Shadow.card }}>
-                {viewMode === 'grid' ? <List size={18} color={Palette.inkSoft} /> : <LayoutGrid size={18} color={Palette.inkSoft} />}
-              </PressableScale>
-            ) : null}
-          </View>
+            </View>
 
           {/* Search bar */}
           <SearchBar value={searchQuery} onChangeText={setSearchQuery} onClear={() => setSearchQuery('')} pad={pad} placeholderIdx={placeholderIdx} />
-
-          {/* Category chips */}
-          <CategoryChips active={activeCategory} pad={pad} onSelect={setActiveCategory} />
 
           {/* Cuisine tabs */}
           <CuisineTabsRow
@@ -317,7 +279,7 @@ export default function ExploreScreen() {
             </PressableScale>
           ) : null}
 
-          {locDenied && advFilters.sort === 'nearest' && Platform.OS !== 'web' ? (
+          {locDenied && advFilters.sort === 'nearest' ? (
             <PressableScale onPress={() => { feedback.tap(); void Linking.openSettings(); }} accessibilityRole="button" accessibilityLabel="Enable location for nearby kitchens"
               style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginHorizontal: pad, marginTop: 8, paddingVertical: 8 }}>
               <MapPin size={13} color={Palette.brand} />
@@ -375,9 +337,9 @@ export default function ExploreScreen() {
             ) : filteredMeals.length === 0 ? (
               <View style={{ paddingHorizontal: pad, paddingBottom: 24, alignItems: 'flex-start', gap: 12 }}>
                 <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary }}>
-                  {activeCategory !== 'all' && countActiveFilters(advFilters) === 0 ? `No ${activeCategory} meals available right now.` : 'No meals match your current filters.'}
+                  No meals match your current filters.
                 </Text>
-                <PressableScale onPress={() => { feedback.tap(); setActiveCategory('all'); setAdvFilters({ ...FILTER_DEFAULTS }); setSearchQuery(''); }}
+                <PressableScale onPress={() => { feedback.tap(); setAdvFilters({ ...FILTER_DEFAULTS }); setSearchQuery(''); }}
                   accessibilityRole="button" accessibilityLabel="Clear all filters"
                   style={{ height: 40, paddingHorizontal: 20, borderRadius: Radius.pill, backgroundColor: Palette.brand, alignItems: 'center', justifyContent: 'center' }}>
                   <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: '#fff' }}>reset filters</Text>

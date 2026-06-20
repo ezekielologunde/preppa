@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { ChevronLeft, ChevronRight, Clock, Flame, Gift, Leaf, Sparkles, Star, Sun } from 'lucide-react-native';
+import { ChevronLeft, Clock, Flame, Gift, Leaf, Sparkles, Star, Sun } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useState } from 'react';
 import { RefreshControl, ScrollView, Text, View } from 'react-native';

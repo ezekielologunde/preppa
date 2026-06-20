@@ -21,7 +21,7 @@ export function MealVideoStrip({ urls }: { urls?: string[] }) {
             onPress={() => { feedback.tap(); void Linking.openURL(url); }}
             accessibilityRole="button"
             accessibilityLabel={`Play cooking video ${idx + 1}`}
-            style={{ width: 140, height: 100, borderRadius: 12, backgroundColor: '#0C0E13', overflow: 'hidden', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+            style={{ width: 140, height: 100, borderRadius: 12, backgroundColor: Palette.prepperBg, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
             <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.15)', alignItems: 'center', justifyContent: 'center' }}>
               <Play size={18} color="#fff" fill="#fff" />
             </View>

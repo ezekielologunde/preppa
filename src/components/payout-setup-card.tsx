@@ -1,5 +1,5 @@
 import * as WebBrowser from 'expo-web-browser';
-import { BadgeCheck, ExternalLink, Wallet } from 'lucide-react-native';
+import { AlertCircle, BadgeCheck, ExternalLink, Wallet } from 'lucide-react-native';
 import { useEffect } from 'react';
 import { ActivityIndicator, Alert, AppState, type AppStateStatus, Text, View } from 'react-native';
 
@@ -75,6 +75,26 @@ export function PayoutSetupCard() {
           {isBusy
             ? <ActivityIndicator size="small" color={GREEN} />
             : <><Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: GREEN }}>Dashboard</Text><ExternalLink size={12} color={GREEN} /></>}
+        </PressableScale>
+      </View>
+    );
+  }
+
+  if (status === 'restricted') {
+    return (
+      <View style={{ backgroundColor: Palette.danger + '10', borderRadius: 16, padding: 14, gap: 10, borderWidth: 1, borderColor: Palette.danger + '30' }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <AlertCircle size={17} color={Palette.danger} />
+          <Text style={{ fontFamily: Font.semibold, fontSize: 13.5, color: Palette.danger }}>Payout account restricted</Text>
+        </View>
+        <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: MUTED, lineHeight: 18 }}>
+          Stripe requires more information before payouts can be sent. Visit your dashboard to resolve any outstanding requirements.
+        </Text>
+        <PressableScale onPress={handleDashboard} disabled={isBusy} accessibilityRole="button" accessibilityLabel="Resolve payout restrictions"
+          style={{ alignSelf: 'flex-start', backgroundColor: Palette.danger, borderRadius: Radius.pill, paddingHorizontal: 18, paddingVertical: 9 }}>
+          {isBusy
+            ? <ActivityIndicator size="small" color="#fff" />
+            : <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: '#fff' }}>Resolve issues</Text>}
         </PressableScale>
       </View>
     );

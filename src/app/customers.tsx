@@ -122,7 +122,7 @@ export default function CustomersScreen() {
             <View style={{ flexDirection: 'row', gap: 4 }}>
               {(['spend', 'recent'] as const).map((s) => (
                 <PressableScale key={s} onPress={() => { feedback.tap(); setSortBy(s); }} accessibilityRole="button" accessibilityLabel={s === 'spend' ? 'Sort by top spend' : 'Sort by recent'} accessibilityState={{ selected: sortBy === s }}
-                  style={{ backgroundColor: sortBy === s ? ORANGE : '#F0EDEA', borderRadius: 8, paddingHorizontal: 9, paddingVertical: 5 }}>
+                  style={{ backgroundColor: sortBy === s ? ORANGE : Palette.chipOff, borderRadius: 8, paddingHorizontal: 9, paddingVertical: 5 }}>
                   <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: sortBy === s ? '#fff' : SUB }}>{s === 'spend' ? 'top spend' : 'recent'}</Text>
                 </PressableScale>
               ))}

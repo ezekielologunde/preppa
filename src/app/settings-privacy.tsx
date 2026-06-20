@@ -151,7 +151,7 @@ export default function PrivacySecurityScreen() {
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 8, paddingBottom: 40, gap: 20 }}>
           {/* Notifications */}
           <SettingsGroup title="notifications" delay={0}>
-            <SettingsRow Icon={Bell} label="Notification preferences" sub="Push, email & SMS, per category" onPress={() => router.push('/notification-preferences')} isLast />
+            <SettingsRow Icon={Bell} label="Notification preferences" sub="Push, email & SMS, per category" onPress={() => router.push('/notification-preferences' as never)} isLast />
           </SettingsGroup>
 
           {/* Security */}

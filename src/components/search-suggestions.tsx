@@ -5,7 +5,7 @@
  *  • typing (query.length >= 2): live autocomplete from meals + kitchens
  *  • focused + empty: recent searches list + trending chips
  */
-import { Flame, TrendingUp, UtensilsCrossed, ChefHat, Clock, X } from 'lucide-react-native';
+import { Flame, UtensilsCrossed, ChefHat, Clock, X } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { PressableScale } from '@/components/ui/pressable-scale';

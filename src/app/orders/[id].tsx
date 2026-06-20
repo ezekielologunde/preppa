@@ -30,41 +30,15 @@ import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
 import { Palette, Radius } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
+import { FULFILLMENT_LABEL, statusChip, STATUS_LABEL_CUSTOMER } from '@/lib/orders/pipeline';
 import { useStartConversation } from '@/lib/queries/messages';
 import {
   useCancelOrder,
   useOrder,
   useReportDispute,
-  type OrderSummary,
 } from '@/lib/queries/orders';
 import { useAddToCart } from '@/lib/queries/cart';
 import { useAuth } from '@/providers/auth-provider';
-import type { OrderStatus } from '@/types/database.types';
-
-// ── helpers ───────────────────────────────────────────────────────────────────
-
-const STATUS_LABEL: Record<OrderStatus, string> = {
-  pending: 'Pending',
-  confirmed: 'Confirmed',
-  preparing: 'Prepping',
-  ready: 'Ready',
-  out_for_delivery: 'On the way',
-  completed: 'Complete',
-  cancelled: 'Cancelled',
-};
-
-function statusStyle(s: OrderStatus): { bg: string; fg: string } {
-  if (s === 'completed') return { bg: Palette.success + '1A', fg: Palette.success };
-  if (s === 'cancelled') return { bg: Palette.canvas, fg: Palette.textSecondary };
-  return { bg: Palette.brandTint, fg: Palette.brandPressed };
-}
-
-function fulfillmentLabel(f: OrderSummary['fulfillment']): string {
-  if (f === 'meetup') return 'Meet-up';
-  if (f === 'home_cook') return 'Home cook';
-  if (f === 'delivery') return 'Delivery';
-  return 'Pickup';
-}
 
 function SectionHeader({ title }: { title: string }) {
   return (
@@ -184,7 +158,7 @@ export default function OrderDetailScreen() {
     );
   }
 
-  const st = statusStyle(order.status);
+  const st = statusChip(order.status);
   const orderNum = order.id.slice(-8).toUpperCase();
   const isPickup = order.fulfillment === 'pickup' || order.fulfillment === 'meetup' || order.fulfillment === 'home_cook';
   const showHandoff = !!(order.handoff && isPickup && order.status !== 'completed' && order.status !== 'cancelled');
@@ -211,7 +185,7 @@ export default function OrderDetailScreen() {
             <Text style={{ fontFamily: Font.body, fontSize: 11.5, color: Palette.textSecondary, fontVariant: ['tabular-nums'] }}>#{orderNum}</Text>
           </View>
           <View style={{ paddingHorizontal: 12, height: 28, borderRadius: Radius.pill, backgroundColor: st.bg, alignItems: 'center', justifyContent: 'center' }}>
-            <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: st.fg }}>{STATUS_LABEL[order.status]}</Text>
+            <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: st.fg }}>{STATUS_LABEL_CUSTOMER[order.status]}</Text>
           </View>
         </View>
 
@@ -239,11 +213,11 @@ export default function OrderDetailScreen() {
                 <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary, marginTop: 1 }}>
                   {new Date(order.created_at).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
                   {' · '}
-                  {fulfillmentLabel(order.fulfillment)}
+                  {FULFILLMENT_LABEL[order.fulfillment]}
                 </Text>
               </View>
               <View style={{ paddingHorizontal: 10, height: 24, borderRadius: Radius.pill, backgroundColor: Palette.chip, alignItems: 'center', justifyContent: 'center' }}>
-                <Text style={{ fontFamily: Font.medium, fontSize: 11, color: Palette.inkSoft }}>{fulfillmentLabel(order.fulfillment)}</Text>
+                <Text style={{ fontFamily: Font.medium, fontSize: 11, color: Palette.inkSoft }}>{FULFILLMENT_LABEL[order.fulfillment]}</Text>
               </View>
             </PressableScale>
             {order.scheduled_at ? (

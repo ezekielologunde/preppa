@@ -24,14 +24,14 @@ export interface VibeOption {
 }
 
 export const VIBE_OPTIONS: VibeOption[] = [
-  { label: 'High Protein', tag: 'High-Protein',   color: '#ef4444' },
-  { label: 'Vegan',        tag: 'Vegan-Friendly',  color: '#22c55e' },
+  { label: 'High Protein', tag: 'High-Protein',   color: Palette.danger },
+  { label: 'Vegan',        tag: 'Vegan-Friendly',  color: Palette.leafGreen },
   { label: 'Comfort Food', tag: 'Comfort',          color: Palette.amber },
   { label: 'Keto',         tag: 'Keto',             color: '#8b5cf6' },
   { label: 'Family',       tag: 'Family Meals',     color: '#3b82f6' },
   { label: 'Breakfast',    category: 'breakfast',   color: '#f97316' },
-  { label: 'Light & Clean',tag: 'Low-Calorie',      color: '#06b6d4' },
-  { label: 'Spicy',        tag: 'Spicy',            color: '#ef4444' },
+  { label: 'Light & Clean',tag: 'Low-Calorie',      color: Palette.cyan },
+  { label: 'Spicy',        tag: 'Spicy',            color: Palette.danger },
 ];
 
 // ─── Chip ─────────────────────────────────────────────────────────────────────

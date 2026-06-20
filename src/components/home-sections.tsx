@@ -4,7 +4,7 @@ import { Flame, History, MapPin, Sparkles, Star, Trophy } from 'lucide-react-nat
 import { MotiView } from 'moti';
 import { ScrollView, Text, View } from 'react-native';
 
-import { MealCard } from '@/components/meal-card';
+import { MealCard, type Meal } from '@/components/meal-card';
 import { SectionHeader } from '@/components/home-extras';
 import { CardRowSkeleton } from '@/components/ui/skeleton';
 import { PressableScale } from '@/components/ui/pressable-scale';
@@ -18,7 +18,6 @@ import { useUserPrefs } from '@/lib/queries/user-prefs';
 import { useFeaturedKitchens, type FeaturedKitchen } from '@/lib/queries/featured';
 import { useTodayStock } from '@/lib/queries/stock';
 import { clearRecentlyViewed, useRecentlyViewedIds } from '@/lib/recently-viewed';
-import type { Meal } from '@/components/meal-card';
 
 const ORANGE = Palette.brand;
 const INK = Palette.ink;

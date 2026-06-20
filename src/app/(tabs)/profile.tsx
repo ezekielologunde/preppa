@@ -1,16 +1,16 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import {
-  BadgeCheck, Bell, BellRing, Bookmark, CalendarCheck, Camera, ChefHat, ChevronRight, Clock, Copy, CreditCard, Crown,
+  BadgeCheck, Bell, Bookmark, CalendarCheck, Camera, ChefHat, ChevronRight, Clock, CreditCard, Crown,
   Gift, Heart, LifeBuoy, MapPin, Package, Settings, ShieldCheck, Share2, Sparkles, Ticket,
   TrendingUp, Users, Wallet,
 } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useState } from 'react';
-import { Alert, Platform, Pressable, RefreshControl, ScrollView, Share, Text, View } from 'react-native';
+import { Alert, Platform, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { DarkCard, DarkModeRow, MealPlansSection, RewardsCard, SectionCard, StatChip } from '@/components/profile-sections';
+import { DarkCard, DarkModeRow, RewardsCard, SectionCard, StatChip } from '@/components/profile-sections';
 import { Avatar } from '@/components/ui/avatar';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
@@ -24,7 +24,6 @@ import { useNotifications } from '@/lib/queries/notifications';
 import { useMyOrders } from '@/lib/queries/orders';
 import { useFollowedPreppers, useMyPrepperApplication } from '@/lib/queries/preppers';
 import { usePaymentMethods } from '@/lib/queries/payment-methods';
-import { useMyReferralCode } from '@/lib/queries/referral';
 import { useRewards } from '@/lib/queries/rewards';
 import { useDarkMode } from '@/lib/theme-mode';
 import { useAuth } from '@/providers/auth-provider';
@@ -75,9 +74,6 @@ export default function ProfileScreen() {
   const paymentMethodSub = defaultCard
     ? `${defaultCard.brand !== 'other' ? defaultCard.brand.charAt(0).toUpperCase() + defaultCard.brand.slice(1) : 'Card'} ···· ${defaultCard.last4}`
     : 'Cards, Apple Pay & more';
-
-  const { data: referralCode } = useMyReferralCode(user?.id);
-  const [refCopied, setRefCopied] = useState(false);
 
   const [refreshing, setRefreshing] = useState(false);
   async function handleRefresh() {
@@ -184,7 +180,7 @@ export default function ProfileScreen() {
         ) : null}
         {isAdmin ? (
           <View style={{ backgroundColor: Palette.homeCookTint, borderRadius: Radius.pill, paddingHorizontal: 9, paddingVertical: 3 }}>
-            <Text style={{ fontFamily: Font.semibold, fontSize: 11.5, color: '#7C3AED' }}>admin</Text>
+            <Text style={{ fontFamily: Font.semibold, fontSize: 11.5, color: Palette.homeCook }}>admin</Text>
           </View>
         ) : null}
       </View>
@@ -218,13 +214,13 @@ export default function ProfileScreen() {
   const statsEl = (
     <View style={{ marginHorizontal: 20, flexDirection: 'row', gap: 8 }}>
       <StatChip value={totalOrders} label="orders"    Icon={Package}       color={Palette.brand}   onPress={() => go('/orders')}     index={0} />
-      <StatChip value={savedCount}  label="saved"     Icon={Heart}         color="#EF4444"         onPress={() => go('/favorites')}  index={1} />
+      <StatChip value={savedCount}  label="saved"     Icon={Heart}         color={Palette.danger}  onPress={() => go('/favorites')}  index={1} />
       <StatChip value={activeSubs}  label="plans"     Icon={CalendarCheck} color="#8B5CF6"         onPress={() => go('/meal-plans')} index={2} />
       <StatChip value={followed}    label="following" Icon={Users}         color={Palette.success} onPress={() => go('/following')}  index={3} />
     </View>
   );
 
-  // ─── Role cards (positioned after stats, before settings) ────────────────────
+  // ─── Role cards ──────────────────────────────────────────────────────────────
   const roleCardsEl = (
     <View>
       {isApprovedPrepper ? (
@@ -299,17 +295,6 @@ export default function ProfileScreen() {
     </MotiView>
   );
 
-  // ─── Meal plans preview ─────────────────────────────────────────────────────
-  const mealPlansEl = (
-    <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280, delay: 100 }}>
-      <MealPlansSection
-        subs={subs}
-        onViewAll={() => { feedback.tap(); go('/meal-plans'); }}
-        onPress={() => { feedback.tap(); go('/meal-plans'); }}
-      />
-    </MotiView>
-  );
-
   // ─── Rewards ────────────────────────────────────────────────────────────────
   const rewardsEl = (
     <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280, delay: 120 }}>
@@ -317,89 +302,15 @@ export default function ProfileScreen() {
     </MotiView>
   );
 
-  // ─── Invite friends (referral) ───────────────────────────────────────────────
-  const displayCode = referralCode ?? (user ? 'PREP-' + user.id.replace(/-/g, '').slice(0, 6).toUpperCase() : '------');
-  const referralLink = `https://preppa.live/join?ref=${displayCode}`;
-
-  function handleRefCopy() {
-    feedback.success();
-    try {
-      (navigator as unknown as { clipboard?: { writeText?: (s: string) => void } })
-        ?.clipboard?.writeText?.(referralLink);
-    } catch { /* clipboard unavailable */ }
-    setRefCopied(true);
-    setTimeout(() => setRefCopied(false), 1500);
-  }
-
-  async function handleRefShare() {
-    feedback.tap();
-    await Share.share({
-      message: `Join Preppa — home-cooked meals from local kitchens! Use my code ${displayCode} for $5 off your first order: ${referralLink}`,
-    });
-  }
-
-  const referralEl = user ? (
-    <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280, delay: 140 }}>
-      <View style={{ marginHorizontal: 20, marginBottom: 12 }}>
-        <View style={{ backgroundColor: Palette.surface, borderRadius: 20, padding: 16, borderLeftWidth: 4, borderLeftColor: Palette.brand, gap: 12 }}>
-          {/* Header */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-            <View style={{ width: 36, height: 36, borderRadius: 11, backgroundColor: Palette.brandTint, alignItems: 'center', justifyContent: 'center' }}>
-              <Gift size={17} color={Palette.brand} />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={{ fontFamily: Font.heading, fontSize: 14.5, color: Palette.ink }}>invite friends</Text>
-              <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary, marginTop: 1 }}>Give $5, Get $5</Text>
-            </View>
-            <PressableScale onPress={() => { feedback.tap(); go('/referral'); }} accessibilityRole="button" accessibilityLabel="View full referral page">
-              <ChevronRight size={16} color={Palette.textSecondary} />
-            </PressableScale>
-          </View>
-
-          {/* Description */}
-          <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary, lineHeight: 18 }}>
-            Share your code and your friend gets $5 off their first order. You get $5 credit when they complete their order.
-          </Text>
-
-          {/* Code display + copy */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            <View style={{ flex: 1, backgroundColor: Palette.canvas, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10 }}>
-              <Text style={{ fontFamily: Font.body, fontSize: 11, color: Palette.textSecondary, marginBottom: 2 }}>your code</Text>
-              <Text style={{ fontFamily: Font.display, fontSize: 20, color: Palette.brand, letterSpacing: 2 }}>{displayCode}</Text>
-            </View>
-            <PressableScale
-              onPress={handleRefCopy}
-              accessibilityRole="button"
-              accessibilityLabel="Copy referral code"
-              style={{ height: 52, paddingHorizontal: 16, borderRadius: 12, backgroundColor: refCopied ? Palette.success + '1A' : Palette.canvas, alignItems: 'center', justifyContent: 'center', gap: 4 }}>
-              <Copy size={15} color={refCopied ? Palette.success : Palette.textSecondary} />
-              <Text style={{ fontFamily: Font.semibold, fontSize: 10.5, color: refCopied ? Palette.success : Palette.textSecondary }}>
-                {refCopied ? 'copied!' : 'copy'}
-              </Text>
-            </PressableScale>
-          </View>
-
-          {/* Share button */}
-          <PressableScale
-            onPress={() => { void handleRefShare(); }}
-            accessibilityRole="button"
-            accessibilityLabel="Share invite link"
-            style={{ height: 44, borderRadius: 12, backgroundColor: Palette.brand, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8 }}>
-            <Share2 size={15} color="#fff" />
-            <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: '#fff' }}>share invite link</Text>
-          </PressableScale>
-        </View>
-      </View>
-    </MotiView>
-  ) : null;
-
   // ─── Account (with dark mode toggle inline) ──────────────────────────────────
   const ACCOUNT_ROWS = [
-    { label: 'Dietary Profile',    sub: dietaryMeta ?? 'Set allergies & preferences',  Icon: CalendarCheck, route: '/preferences' },
-    { label: 'Payment Methods',    sub: paymentMethodSub,                               Icon: CreditCard,    route: '/payment-methods'      },
-    { label: 'Addresses',          sub: 'Home, work & delivery spots',                 Icon: MapPin,        route: '/addresses'            },
-    { label: 'Gift Cards',         sub: 'Send & redeem gift cards',                    Icon: Gift,          route: '/gift-cards'           },
-    { label: 'My Kitchen Network', sub: followed > 0 ? `Following ${followed} kitchen${followed > 1 ? 's' : ''}` : 'Follow your favourite chefs', Icon: Users, route: '/following' },
+    { label: 'Dietary Profile',    sub: dietaryMeta ?? 'Set allergies & preferences',  Icon: CalendarCheck, route: '/preferences'       },
+    { label: 'Payment Methods',    sub: paymentMethodSub,                               Icon: CreditCard,    route: '/payment-methods'   },
+    { label: 'Addresses',          sub: 'Home, work & delivery spots',                 Icon: MapPin,        route: '/addresses'         },
+    { label: 'Gift Cards',         sub: 'Send & redeem gift cards',                    Icon: Gift,          route: '/gift-cards'        },
+    { label: 'Kitchen Network',    sub: followed > 0 ? `Following ${followed} kitchen${followed > 1 ? 's' : ''}` : 'Follow your favourite chefs', Icon: Users, route: '/following' },
+    { label: 'Invite friends',     sub: 'Give $5, get $5',                             Icon: Share2,        route: '/referral'          },
+    { label: 'Help & Support',     sub: 'FAQ, guides & contact',                       Icon: LifeBuoy,      route: '/settings-help'     },
   ];
   const accountEl = (
     <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280, delay: 160 }}>
@@ -422,21 +333,6 @@ export default function ProfileScreen() {
           ))}
           <DarkModeRow dark={dark} />
         </View>
-      </View>
-    </MotiView>
-  );
-
-  // ─── Settings & support ──────────────────────────────────────────────────────
-  const settingsEl = (
-    <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280, delay: 200 }}>
-      <View style={{ marginHorizontal: 20, gap: 8, marginBottom: 12 }}>
-        <Text style={{ fontFamily: Font.display, fontSize: 15, color: Palette.ink, letterSpacing: -0.3 }}>settings & support</Text>
-        <SectionCard rows={[
-          { label: 'View Notifications', sub: unreadNotifs > 0 ? `${unreadNotifs} unread` : 'Activity, orders & social', Icon: BellRing, accent: unreadNotifs > 0, onPress: () => { feedback.tap(); go('/notifications'); } },
-          { label: 'Notification Settings', sub: 'Push alerts, orders, social & promotions', Icon: Bell, onPress: () => { feedback.tap(); go('/notification-preferences'); } },
-          { label: 'Account Settings', sub: 'Profile, security & privacy',    Icon: Settings, onPress: () => { feedback.tap(); go('/settings'); }      },
-          { label: 'Help Center',      sub: 'Guides, FAQ & contact support',  Icon: LifeBuoy, onPress: () => { feedback.tap(); go('/settings-help'); }  },
-        ]} />
       </View>
     </MotiView>
   );
@@ -477,11 +373,8 @@ export default function ProfileScreen() {
           {roleCardsEl}
           {kitchenEl}
           {activityEl}
-          {mealPlansEl}
           {rewardsEl}
-          {referralEl}
           {accountEl}
-          {settingsEl}
           {signOutEl}
         </ScrollView>
       </SafeAreaView>

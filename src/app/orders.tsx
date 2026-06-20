@@ -1,13 +1,12 @@
-import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
-import { AlertCircle, ArrowRight, CalendarClock, Check, ChevronLeft, Receipt, RefreshCcw, ShoppingBag } from 'lucide-react-native';
+import { AlertCircle, ArrowRight, Check, ChevronLeft, Receipt, ShoppingBag } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useMemo, useState } from 'react';
-import { ActivityIndicator, Linking, Modal, Platform, Pressable, RefreshControl, ScrollView, Text, useWindowDimensions, View } from 'react-native';
+import { Linking, Modal, Platform, Pressable, RefreshControl, ScrollView, Text, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { OrderCard } from '@/components/order-card';
+import { OrderCard, OrderListCard } from '@/components/order-card';
 import { OrderFilters, type StatusFilter } from '@/components/order-filters';
 import { ConfirmCancelModal, ReportModal } from '@/components/order-modals';
 import { OrderReceiptPanel } from '@/components/order-detail';
@@ -20,6 +19,7 @@ import { useAddToCart, useEmbeddedCheckout, useRefundOrder, useStripeCheckout, t
 import { useFeatureEnabled } from '@/lib/queries/feature-flags';
 import { feedback } from '@/lib/feedback';
 import { useStartConversation } from '@/lib/queries/messages';
+import { ACTIVE_STATUSES } from '@/lib/orders/pipeline';
 import { useCancelOrder, useMyOrders, useReportDispute, type OrderSummary } from '@/lib/queries/orders';
 import { BP } from '@/lib/layout';
 import { useAuth } from '@/providers/auth-provider';
@@ -73,9 +73,8 @@ export default function OrdersScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
 
-  const ACTIVE_STATUSES = ['pending', 'confirmed', 'preparing', 'ready', 'out_for_delivery'] as const;
   const activeOrders = (orders ?? []).filter(
-    (o) => ACTIVE_STATUSES.includes(o.status as typeof ACTIVE_STATUSES[number]) && !o.scheduled_at,
+    (o) => (ACTIVE_STATUSES as readonly string[]).includes(o.status) && !o.scheduled_at,
   );
   const upcomingOrders = (orders ?? []).filter(
     (o) => !!o.scheduled_at && o.status !== 'completed' && o.status !== 'cancelled',
@@ -112,21 +111,6 @@ export default function OrdersScreen() {
     completed: tabOrders.filter((o) => o.status === 'completed').length,
     cancelled: tabOrders.filter((o) => o.status === 'cancelled').length,
   }), [tabOrders]);
-
-  function statusChipStyle(s: string): { bg: string; fg: string } {
-    if (s === 'pending') return { bg: Palette.amberTint, fg: Palette.amberDeep };
-    if (s === 'confirmed') return { bg: Palette.confirmedTint, fg: Palette.confirmedDark };
-    if (s === 'preparing') return { bg: Palette.preparingTint, fg: Palette.preparingDark };
-    if (s === 'ready') return { bg: Palette.successTint, fg: Palette.successDark };
-    if (s === 'out_for_delivery') return { bg: Palette.homeCookTint, fg: Palette.homeCook };
-    if (s === 'completed') return { bg: Palette.canvas, fg: Palette.textSecondary };
-    return { bg: Palette.cancelledTint, fg: Palette.dangerDeep }; // cancelled
-  }
-
-  const STATUS_LABEL: Record<string, string> = {
-    pending: 'Pending', confirmed: 'Confirmed', preparing: 'Prepping',
-    ready: 'Ready!', out_for_delivery: 'On the way', completed: 'Complete', cancelled: 'Cancelled',
-  };
 
   async function reorder(o: OrderSummary) {
     if (!user) return;
@@ -396,8 +380,11 @@ export default function OrdersScreen() {
                     animate={{ opacity: 1, translateY: 0 }}
                     transition={{ type: 'timing', duration: 220, delay: i * 45 }}
                     style={twoCol ? { width: '48.5%' } : undefined}>
-                    {/* Polished mini-card header with thumbnail + status chip */}
-                    <PressableScale
+                    <OrderListCard
+                      order={o}
+                      tab={tab}
+                      twoCol={twoCol}
+                      reordering={reorderingId === o.id}
                       onPress={() => {
                         feedback.tap();
                         if (tab === 'past') {
@@ -406,85 +393,9 @@ export default function OrdersScreen() {
                           router.push(`/order-status?id=${o.id}` as never);
                         }
                       }}
-                      accessibilityRole="button"
-                      accessibilityLabel={tab === 'past' ? `Toggle receipt for order from ${o.prepper}` : `View order status for ${o.prepper}`}
-                      style={{ backgroundColor: Palette.surface, borderRadius: 18, padding: 16, marginBottom: 0, marginHorizontal: twoCol ? 0 : 16 }}>
-                      {/* Top row: thumbnail + details + status chip */}
-                      <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 12 }}>
-                        {o.items[0]?.image ? (
-                          <Image
-                            source={o.items[0].image}
-                            style={{ width: 56, height: 56, borderRadius: 12, backgroundColor: Palette.canvas, flexShrink: 0 }}
-                            contentFit="cover"
-                            cachePolicy="memory-disk"
-                          />
-                        ) : (
-                          <View style={{ width: 56, height: 56, borderRadius: 12, backgroundColor: Palette.canvas, alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                            <ShoppingBag size={22} color={Palette.border} />
-                          </View>
-                        )}
-                        <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
-                          <Text numberOfLines={1} style={{ fontFamily: Font.heading, fontSize: 15, color: INK }}>{o.items[0]?.title ?? o.prepper}</Text>
-                          <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary }}>{o.prepper}</Text>
-                          {o.scheduled_at ? (
-                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                              <CalendarClock size={11} color={ORANGE} />
-                              <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: ORANGE }}>
-                                {new Date(o.scheduled_at).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
-                              </Text>
-                            </View>
-                          ) : null}
-                        </View>
-                        {/* Status chip */}
-                        {(() => {
-                          const chip = statusChipStyle(o.status);
-                          return (
-                            <View style={{ height: 24, borderRadius: 12, backgroundColor: chip.bg, paddingHorizontal: 10, alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                              <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: chip.fg }}>
-                                {STATUS_LABEL[o.status] ?? o.status}
-                              </Text>
-                            </View>
-                          );
-                        })()}
-                      </View>
-                      {/* Customer note */}
-                      {o.fulfillmentNote ? (
-                        <Text numberOfLines={2} style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary, fontStyle: 'italic', marginTop: 8 }}>
-                          &ldquo;{o.fulfillmentNote}&rdquo;
-                        </Text>
-                      ) : null}
-                      {/* Bottom row: total + date */}
-                      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: Palette.border }}>
-                        <Text style={{ fontFamily: Font.display, fontSize: 16, color: ORANGE, fontVariant: ['tabular-nums'] }}>${o.total.toFixed(2)}</Text>
-                        <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary }}>
-                          {new Date(o.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                        </Text>
-                      </View>
-                      {/* Action pill: Reorder (past) or Track (active/upcoming) */}
-                      {(o.status === 'completed' || o.status === 'cancelled') ? (
-                        o.status === 'completed' ? (
-                          <PressableScale
-                            onPress={() => { reorder(o); }}
-                            accessibilityRole="button"
-                            accessibilityLabel="Reorder these meals"
-                            style={{ alignSelf: 'flex-end', flexDirection: 'row', alignItems: 'center', gap: 5, height: 32, paddingHorizontal: 12, borderRadius: Radius.pill, backgroundColor: Palette.surface, borderWidth: 1, borderColor: ORANGE + '40', marginTop: 10 }}>
-                            {reorderingId === o.id
-                              ? <ActivityIndicator size="small" color={ORANGE} />
-                              : <RefreshCcw size={13} color={ORANGE} />}
-                            <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: ORANGE }}>Reorder</Text>
-                          </PressableScale>
-                        ) : null
-                      ) : (
-                        <PressableScale
-                          onPress={() => { feedback.tap(); router.push(`/orders/${o.id}` as never); }}
-                          accessibilityRole="button"
-                          accessibilityLabel="Track this order"
-                          style={{ alignSelf: 'flex-end', flexDirection: 'row', alignItems: 'center', gap: 5, height: 32, paddingHorizontal: 12, borderRadius: Radius.pill, backgroundColor: Palette.surface, borderWidth: 1, borderColor: ORANGE + '40', marginTop: 10 }}>
-                          <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: ORANGE }}>Track order</Text>
-                          <ArrowRight size={13} color={ORANGE} />
-                        </PressableScale>
-                      )}
-                    </PressableScale>
+                      onReorder={() => reorder(o)}
+                      onTrack={() => { feedback.tap(); router.push(`/orders/${o.id}` as never); }}
+                    />
                     {/* Inline receipt panel — past orders only, toggled by tapping the card header */}
                     {tab === 'past' && expandedOrderId === o.id ? (
                       <View style={{ marginHorizontal: twoCol ? 0 : 16 }}>
@@ -554,7 +465,7 @@ export default function OrdersScreen() {
 
       <Modal visible={refundFailModal} transparent animationType="fade">
         <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-          <View style={{ backgroundColor: '#fff', borderRadius: 20, padding: 24, width: '100%', maxWidth: 340, gap: 16 }}>
+          <View style={{ backgroundColor: Palette.surface, borderRadius: 20, padding: 24, width: '100%', maxWidth: 340, gap: 16 }}>
             <Text style={{ fontFamily: Font.heading, fontSize: 17, color: Palette.ink, textAlign: 'center' }}>
               Refund could not be processed
             </Text>
