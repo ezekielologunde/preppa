@@ -11,7 +11,7 @@ import { HC, CARD } from '@/components/prepper-order-card';
 import type { HomeCookRequest } from '@/lib/queries/home-cook';
 
 const INK    = '#1A1714';
-const SUB    = '#78716C';
+const SUB    = Palette.textSecondary;
 const BORDER = '#EDE9E4';
 const S1     = { shadowColor: '#1A1714', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 };
 

@@ -114,7 +114,7 @@ export function DarkCard({ Icon, title, sub, onPress, accessibilityLabel }: {
       </View>
       <View style={{ flex: 1 }}>
         <Text style={{ fontFamily: Font.heading, fontSize: 15, color: Palette.ink }}>{title}</Text>
-        <Text style={{ fontFamily: Font.body, fontSize: 12, color: '#78716C', marginTop: 1 }}>{sub}</Text>
+        <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary, marginTop: 1 }}>{sub}</Text>
       </View>
       <ChevronRight size={18} color={Palette.textSecondary} />
     </PressableScale>

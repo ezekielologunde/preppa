@@ -7,7 +7,7 @@ import { Text, TextInput, View } from 'react-native';
 
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
-import { Radius } from '@/constants/theme';
+import { Palette, Radius } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
 import { useAdminPreppers, usePrepperEarnings, useSetPrepperStatus, useVerifyPrepper } from '@/lib/queries/admin';
 import type { AdminPrepper } from '@/lib/queries/admin';
@@ -108,7 +108,7 @@ function PrepperCard({ p, earnings }: { p: AdminPrepper; earnings?: PrepperEarni
             accessibilityLabel={p.is_featured ? 'Remove from featured' : 'Mark as featured'}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             style={{ width: 32, height: 32, alignItems: 'center', justifyContent: 'center' }}>
-            <Star size={16} color={p.is_featured ? '#f59e0b' : Admin.textDim} fill={p.is_featured ? '#f59e0b' : 'none'} />
+            <Star size={16} color={p.is_featured ? Palette.amber : Admin.textDim} fill={p.is_featured ? Palette.amber : 'none'} />
           </PressableScale>
         ) : null}
         <PressableScale
@@ -160,8 +160,8 @@ function PrepperCard({ p, earnings }: { p: AdminPrepper; earnings?: PrepperEarni
               {Number(earnings.rating) > 0 ? (
                 <View>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
-                    <Star size={12} color="#f59e0b" fill="#f59e0b" />
-                    <Text style={{ fontFamily: Font.heading, fontSize: 14, color: '#f59e0b', fontVariant: ['tabular-nums'] }}>{Number(earnings.rating).toFixed(1)}</Text>
+                    <Star size={12} color={Palette.amber} fill={Palette.amber} />
+                    <Text style={{ fontFamily: Font.heading, fontSize: 14, color: Palette.amber, fontVariant: ['tabular-nums'] }}>{Number(earnings.rating).toFixed(1)}</Text>
                   </View>
                   <Text style={{ fontFamily: Font.body, fontSize: 10.5, color: Admin.textMuted }}>avg rating</Text>
                 </View>

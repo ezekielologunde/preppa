@@ -21,7 +21,7 @@ const RED    = Palette.danger;
 const CARD   = '#FFFFFF';
 const BG     = '#F8F6F3';
 const INK    = '#1A1714';
-const MUTED  = '#78716C';
+const MUTED  = Palette.textSecondary;
 const BORDER = '#EDE9E4';
 
 const money = (n: number) => `$${(n ?? 0).toFixed(2)}`;

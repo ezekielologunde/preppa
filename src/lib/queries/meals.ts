@@ -46,7 +46,7 @@ function deriveBadge(row: MealRow, rating?: { average_rating: number; total_revi
   const cat = one(row.category as never) as { key: string } | undefined;
   if (cat?.key === 'healthy') return { label: 'healthy', color: Palette.success };
   if (cat?.key === 'vegan') return { label: 'vegan', color: '#8b5cf6' };
-  if (cat?.key === 'breakfast') return { label: 'breakfast', color: '#f59e0b' };
+  if (cat?.key === 'breakfast') return { label: 'breakfast', color: Palette.amber };
   const created = row.created_at ? new Date(row.created_at).getTime() : 0;
   if (created && Date.now() - created < 14 * 864e5) return { label: 'new', color: '#22c55e' };
   return undefined;

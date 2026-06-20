@@ -24,7 +24,7 @@ const ORANGE  = Palette.brand;
 const GREEN   = Palette.success;
 const CARD    = '#FFFFFF';
 const INK     = '#1A1714';
-const SUB     = '#78716C';
+const SUB     = Palette.textSecondary;
 const BORDER  = '#EDE9E4';
 const money   = (n: number) => `$${n.toFixed(2)}`;
 
@@ -34,7 +34,7 @@ const FULFILLMENT_LABEL: Record<FulfillmentType, string> = {
   pickup: 'Pickup', delivery: 'Delivery', meetup: 'Meet-up', home_cook: 'Home cook',
 };
 const FULFILLMENT_COLOR: Record<FulfillmentType, string> = {
-  pickup: '#f59e0b', delivery: '#06b6d4', meetup: '#a78bfa', home_cook: '#22c55e',
+  pickup: Palette.amber, delivery: '#06b6d4', meetup: '#a78bfa', home_cook: '#22c55e',
 };
 
 const STATUS_LABEL: Record<OrderStatus, string> = {

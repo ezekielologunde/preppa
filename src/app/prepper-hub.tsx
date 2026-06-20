@@ -26,7 +26,7 @@ const INK    = '#1A1714';
 const BG     = '#F8F6F3';
 const CARD   = '#FFFFFF';
 const BORDER = '#EDE9E4';
-const MUTED  = '#78716C';
+const MUTED  = Palette.textSecondary;
 const GREEN  = Palette.success;
 const S1     = { shadowColor: '#1A1714', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 };
 
@@ -38,7 +38,7 @@ const ACTIONS = [
   { label: 'reply to reviews',          desc: 'Responding boosts your ranking score',            Icon: MessageSquare,color: '#8b5cf6', route: '/reviews' },
   { label: 'meal planner',              desc: 'Set which days each meal is available for the week',Icon: CalendarDays,color: Palette.brand, route: '/prepper-meal-planner' },
   { label: 'edit kitchen profile',      desc: 'Update your name, photo, bio and specialties',   Icon: ChefHat,     color: Palette.brand, route: '/prepper-profile-edit' },
-  { label: 'bid requests',              desc: 'View and bid on open meal requests from customers',Icon: Sparkles,   color: '#f59e0b', route: '/bid-requests' },
+  { label: 'bid requests',              desc: 'View and bid on open meal requests from customers',Icon: Sparkles,   color: Palette.amber, route: '/bid-requests' },
 ];
 
 const TIPS = [

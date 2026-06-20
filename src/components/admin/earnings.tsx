@@ -3,6 +3,7 @@ import { MotiView } from 'moti';
 import { Text, View } from 'react-native';
 
 import { Font } from '@/constants/fonts';
+import { Palette } from '@/constants/theme';
 import { usePrepperEarnings } from '@/lib/queries/admin';
 import { Admin, Card, money, compact, Pill, SectionState } from './ui';
 
@@ -11,7 +12,7 @@ export function AdminEarnings() {
   const rows = data ?? [];
   const top = rows[0]?.completed_sales ?? 0;
   const totalGmv = rows.reduce((sum, r) => sum + Number(r.completed_sales ?? 0), 0);
-  const RANK_COLORS = ['#f59e0b', '#94a3b8', '#b45309'];
+  const RANK_COLORS = [Palette.amber, '#94a3b8', '#b45309'];
 
   return (
     <View style={{ gap: 12 }}>
@@ -55,8 +56,8 @@ export function AdminEarnings() {
                 <Text style={{ fontFamily: Font.body, fontSize: 11, color: Admin.textMuted }}>orders · avg {money(r.avg_order)}</Text>
                 {Number(r.rating) > 0 ? (
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 2 }}>
-                    <Star size={11} color="#f59e0b" fill="#f59e0b" />
-                    <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: '#f59e0b', fontVariant: ['tabular-nums'] }}>{Number(r.rating).toFixed(1)}</Text>
+                    <Star size={11} color={Palette.amber} fill={Palette.amber} />
+                    <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: Palette.amber, fontVariant: ['tabular-nums'] }}>{Number(r.rating).toFixed(1)}</Text>
                   </View>
                 ) : null}
               </View>

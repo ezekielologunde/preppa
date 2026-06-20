@@ -14,7 +14,7 @@ import { useAuth } from '@/providers/auth-provider';
 
 const ORANGE = Palette.brand;
 const INK    = '#1A1714';
-const SUB    = '#78716C';
+const SUB    = Palette.textSecondary;
 
 /**
  * QR landing: the cook scans the customer's pickup/meetup QR with their phone

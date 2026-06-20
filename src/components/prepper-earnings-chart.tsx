@@ -10,7 +10,7 @@ const CARD      = '#FFFFFF';
 const BRAND     = Palette.brand;
 const INK       = '#1A1714';
 const BAR_MAX_H = 90;
-const TEXT_MUTED = '#78716C';
+const TEXT_MUTED = Palette.textSecondary;
 
 type Props = { prepperId?: string | null };
 

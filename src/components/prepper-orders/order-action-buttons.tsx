@@ -10,7 +10,7 @@ import type { OrderSummary } from '@/lib/queries/orders';
 import type { HomeCookRequest } from '@/lib/queries/home-cook';
 
 const INK    = '#1A1714';
-const SUB    = '#78716C';
+const SUB    = Palette.textSecondary;
 const BORDER = '#EDE9E4';
 
 // ── Decline confirmation modal ──────────────────────────────────────────────

@@ -158,7 +158,7 @@ export default function BoostScreen() {
               <Crown size={40} color={Palette.amber} />
             </View>
             <Text style={{ fontFamily: Font.display, fontSize: 26, color: INK, letterSpacing: -0.6, textAlign: 'center' }}>Boost is a Pro feature</Text>
-            <Text style={{ fontFamily: Font.body, fontSize: 14.5, color: '#78716C', textAlign: 'center', lineHeight: 22 }}>
+            <Text style={{ fontFamily: Font.body, fontSize: 14.5, color: Palette.textSecondary, textAlign: 'center', lineHeight: 22 }}>
               Upgrade to Go Pro to promote your meals and get priority placement.
             </Text>
             <PressableScale onPress={() => { feedback.tap(); router.push('/prepper-premium'); }} accessibilityRole="button" accessibilityLabel="Upgrade to Pro"

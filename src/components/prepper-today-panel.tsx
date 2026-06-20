@@ -14,10 +14,10 @@ import { useAdvanceOrder, useCancelOrder, useTodayOrders } from '@/lib/queries/o
 const ORANGE  = Palette.brand;
 const INK     = '#1A1714';
 const CARD    = '#FFFFFF';
-const MUTED   = '#78716C';
+const MUTED   = Palette.textSecondary;
 const S1      = { shadowColor: '#1A1714', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 };
 const GREEN   = '#22c55e';
-const AMBER   = '#f59e0b';
+const AMBER   = Palette.amber;
 const RED     = '#ef4444';
 const DIVIDER = '#EDE9E4';
 

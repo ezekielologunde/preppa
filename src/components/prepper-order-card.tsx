@@ -20,7 +20,7 @@ export const BG      = '#F8F6F3';
 export const money   = (n: number) => `$${n.toFixed(2)}`;
 
 const INK    = '#1A1714';
-const SUB    = '#78716C';
+const SUB    = Palette.textSecondary;
 const BORDER = '#EDE9E4';
 const S2     = { shadowColor: '#1A1714', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.07, shadowRadius: 10, elevation: 3 };
 

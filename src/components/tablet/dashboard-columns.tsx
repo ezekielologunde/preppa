@@ -50,7 +50,7 @@ const MUTED = Palette.textSecondary;
 const money = (n: number) => (n >= 1000 ? `$${(n / 1000).toFixed(1)}k` : `$${Math.round(n)}`);
 
 export const FULFILLMENT_COLOR: Record<FulfillmentType, string> = {
-  pickup: '#f59e0b', delivery: '#06b6d4', meetup: '#a78bfa', home_cook: '#22c55e',
+  pickup: Palette.amber, delivery: '#06b6d4', meetup: '#a78bfa', home_cook: '#22c55e',
 };
 export const FULFILLMENT_LABEL: Record<FulfillmentType, string> = {
   pickup: 'pickup', delivery: 'delivery', meetup: 'meetup', home_cook: 'home cook',

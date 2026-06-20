@@ -26,7 +26,7 @@ import { useAuth } from '@/providers/auth-provider';
 const BG     = '#F8F6F3';
 const CARD   = '#FFFFFF';
 const INK    = '#1A1714';
-const MUTED  = '#78716C';
+const MUTED  = Palette.textSecondary;
 const BORDER = '#EDE9E4';
 const S1     = { shadowColor: '#1A1714', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 };
 

@@ -190,7 +190,7 @@ function PaymentCard({
                   fontSize: Type.label,
                   color: (() => {
                     const s = expiryStatus(card.expMonth, card.expYear);
-                    return s === 'expired' ? Palette.danger : s === 'soon' ? '#f59e0b' : Palette.textSecondary;
+                    return s === 'expired' ? Palette.danger : s === 'soon' ? Palette.amber : Palette.textSecondary;
                   })(),
                 }}>
                 Expires {card.expMonth}/{card.expYear}
@@ -201,8 +201,8 @@ function PaymentCard({
                 </View>
               )}
               {expiryStatus(card.expMonth, card.expYear) === 'soon' && (
-                <View style={{ backgroundColor: '#f59e0b20', borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2 }}>
-                  <Text style={{ fontFamily: Font.semibold, fontSize: 10, color: '#f59e0b' }}>Expiring soon</Text>
+                <View style={{ backgroundColor: Palette.amber + '20', borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2 }}>
+                  <Text style={{ fontFamily: Font.semibold, fontSize: 10, color: Palette.amber }}>Expiring soon</Text>
                 </View>
               )}
             </View>
