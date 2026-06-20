@@ -215,7 +215,7 @@ export function FeedCard({ item, height, bottomInset, followSet }: { item: FeedI
                 accessibilityLabel={`Add ${item.title} to cart`}
                 style={[
                   styles.pillBtn,
-                  addState === 'added' && { backgroundColor: '#16a34a' },
+                  addState === 'added' && { backgroundColor: Palette.success },
                   addState === 'error' && { backgroundColor: Palette.danger },
                 ]}>
                 {addState === 'adding'
@@ -284,7 +284,7 @@ export function FeedCard({ item, height, bottomInset, followSet }: { item: FeedI
             </Text>
             <MotiView
               animate={{
-                backgroundColor: addState === 'added' ? '#16a34a' : addState === 'error' ? Palette.danger : 'rgba(0,0,0,0.48)',
+                backgroundColor: addState === 'added' ? Palette.success : addState === 'error' ? Palette.danger : 'rgba(0,0,0,0.48)',
                 borderColor: addState === 'added' || addState === 'error' ? 'rgba(255,255,255,0)' : 'rgba(255,255,255,0.22)',
               }}
               transition={{ type: 'spring', damping: 20, stiffness: 240 }}

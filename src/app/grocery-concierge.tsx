@@ -39,7 +39,7 @@ const KITS: MealKit[] = [
   },
   {
     id: 'k3', name: 'Chicken Tinga Tacos', cuisine: 'Mexican', flag: '🇲🇽', serves: 3,
-    prepMins: 35, price: 24, color: '#16a34a', tag: 'family hit',
+    prepMins: 35, price: 24, color: Palette.success, tag: 'family hit',
     ingredients: ['Corn tortillas', 'Chicken thighs', 'Chipotle peppers', 'Tomatoes', 'Onion', 'Cotija cheese'],
   },
   {

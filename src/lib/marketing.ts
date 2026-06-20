@@ -8,6 +8,7 @@
  * pass in the data they already have (orders, prefs, etc.).
  */
 
+import { Palette } from '@/constants/theme';
 import type { OrderSummary } from '@/lib/queries/orders';
 import { getCurrentRush, getNextRush, getTodayRushSchedule } from '@/lib/rush-hour';
 
@@ -32,7 +33,7 @@ export type HolidayEvent = {
 export const HOLIDAY_REGISTRY: HolidayEvent[] = [
   {
     id: 'eid_adha',      name: "Eid al-Adha",        mmdd: '06-16', culture: 'Muslim / West African',
-    flag: '☪️',  color: '#16a34a', windowDays: 5,
+    flag: '☪️',  color: Palette.success, windowDays: 5,
     pushTitle: '☪️ Eid al-Adha specials are live',
     pushBody: 'Celebratory suya, jollof, and lamb from verified preppers near you. Limited slots.',
     route: '/explore',  cuisineTags: ['Nigerian', 'West African', 'Middle Eastern'],
@@ -46,7 +47,7 @@ export const HOLIDAY_REGISTRY: HolidayEvent[] = [
   },
   {
     id: 'fathers_day',   name: "Father's Day",         mmdd: '06-15', culture: 'Universal',
-    flag: '👨',  color: '#E8611A', windowDays: 5,
+    flag: '👨',  color: Palette.brand, windowDays: 5,
     pushTitle: "👨 Father's Day feast packs available",
     pushBody: 'Treat dad to a homemade meal from a local prepper. Family packs for 4 in stock.',
     route: '/explore',  cuisineTags: ['Nigerian', 'Grills', 'Family'],
@@ -67,7 +68,7 @@ export const HOLIDAY_REGISTRY: HolidayEvent[] = [
   },
   {
     id: 'independence_ng', name: 'Nigerian Independence', mmdd: '10-01', culture: 'Nigerian',
-    flag: '🇳🇬', color: '#16a34a', windowDays: 14,
+    flag: '🇳🇬', color: Palette.success, windowDays: 14,
     pushTitle: '🇳🇬 Nigerian Independence specials dropping soon',
     pushBody: 'Jollof battles, suya parties, and naija feasts — pre-save your spot now.',
     route: '/explore',  cuisineTags: ['Nigerian'],
@@ -306,7 +307,7 @@ export function getSeason(today = new Date()): Season {
 }
 
 export const SEASONAL_THEMES: Record<Season, { label: string; color: string; tag: string }> = {
-  spring: { label: 'spring freshness', color: '#16a34a', tag: 'Fresh salads, light bowls, and floral drinks' },
+  spring: { label: 'spring freshness', color: Palette.success, tag: 'Fresh salads, light bowls, and floral drinks' },
   summer: { label: 'summer grilling', color: '#ea580c', tag: 'BBQ packs, cold sides, and chilled desserts' },
   autumn: { label: 'harvest comfort', color: '#d97706', tag: 'Stews, soups, and warming spice blends' },
   winter: { label: 'winter warmers', color: '#7c3aed', tag: 'Hearty one-pots, festive bakes, and hot drinks' },

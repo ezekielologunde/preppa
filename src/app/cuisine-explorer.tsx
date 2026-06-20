@@ -30,7 +30,7 @@ const CULTURES: CultureEntry[] = [
     flag: '🇳🇬',
     name: 'Nigerian',
     region: 'West Africa',
-    color: '#16a34a',
+    color: Palette.success,
     story: 'One of Africa\'s richest culinary traditions, shaped by 250+ ethnic groups. Jollof rice, suya, and egusi soup have become global icons.',
     dishes: ['Jollof Rice', 'Egusi Soup', 'Pounded Yam'],
     image: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?w=600&q=80',

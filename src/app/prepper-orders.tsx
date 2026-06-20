@@ -211,8 +211,8 @@ export default function PrepperOrdersScreen() {
                           <View style={{ backgroundColor: ORANGE + '22', borderRadius: 10, paddingHorizontal: 8, paddingVertical: 2 }}>
                             <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: ORANGE, textTransform: 'capitalize' }}>{job.kind.replace('_', ' ')}</Text>
                           </View>
-                          <View style={{ backgroundColor: '#16a34a22', borderRadius: 10, paddingHorizontal: 8, paddingVertical: 2 }}>
-                            <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: '#16a34a' }}>Booked</Text>
+                          <View style={{ backgroundColor: Palette.success + '22', borderRadius: 10, paddingHorizontal: 8, paddingVertical: 2 }}>
+                            <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: Palette.success }}>Booked</Text>
                           </View>
                         </View>
                         <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#1A1714' }}>{job.title}</Text>

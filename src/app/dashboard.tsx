@@ -205,7 +205,7 @@ export default function DashboardScreen() {
             <TouchableOpacity onPress={() => { feedback.tap(); setConfirmToggle(true); }}
               accessibilityRole="switch" accessibilityLabel={isOpen ? 'Kitchen open — tap to pause' : 'Kitchen paused — tap to open'}
               accessibilityState={{ checked: isOpen }}
-              style={{ flexDirection: 'row', alignItems: 'center', gap: 7, paddingHorizontal: 14, height: 36, borderRadius: Radius.pill, borderWidth: 1.5, borderColor: isOpen ? '#16A34A55' : BORDER, backgroundColor: isOpen ? '#16A34A12' : CARD, minWidth: 44 }}>
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 7, paddingHorizontal: 14, height: 36, borderRadius: Radius.pill, borderWidth: 1.5, borderColor: isOpen ? Palette.success + '55' : BORDER, backgroundColor: isOpen ? Palette.success + '12' : CARD, minWidth: 44 }}>
               <MotiView animate={{ backgroundColor: isOpen ? Palette.success : MUTED }} transition={{ type: 'timing', duration: 220 }}
                 style={{ width: 8, height: 8, borderRadius: 4 }} />
               <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: isOpen ? Palette.success : MUTED }}>{isOpen ? 'Open' : 'Paused'}</Text>
@@ -215,7 +215,7 @@ export default function DashboardScreen() {
           {/* ── Kitchen toggle toast ──────────────────────────────────── */}
           {kitchenToast && (
             <MotiView from={{ opacity: 0, translateY: -8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 200 }}
-              style={{ marginHorizontal: 20, marginBottom: 8, backgroundColor: '#16A34A18', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 10, borderWidth: 1, borderColor: '#16A34A44' }}>
+              style={{ marginHorizontal: 20, marginBottom: 8, backgroundColor: Palette.success + '18', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 10, borderWidth: 1, borderColor: Palette.success + '44' }}>
               <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: Palette.success, textAlign: 'center' }}>{kitchenToast}</Text>
             </MotiView>
           )}

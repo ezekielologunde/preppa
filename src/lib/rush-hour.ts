@@ -5,6 +5,8 @@
  * meal-prep rush windows. Import from here — do NOT inline hour checks.
  */
 
+import { Palette } from '@/constants/theme';
+
 export type RushId = 'morning' | 'lunch' | 'dinner';
 
 export type RushWindow = {
@@ -45,7 +47,7 @@ export const RUSH_WINDOWS: RushWindow[] = [
     label: 'lunch rush',
     start: 11,
     end: 14,
-    color: '#E8611A',
+    color: Palette.brand,
     buyerTip: 'Lunch rush is on — preorder for 12–2 pm pickup or delivery.',
     prepperAlert: 'Lunch rush is active (11 am–2 pm)',
     prepperPrepTip: 'Stock extra rice, soups, and wraps. Batch-cook proteins — this is your highest-volume window.',

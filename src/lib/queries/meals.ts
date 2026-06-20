@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
+import { Palette } from '@/constants/theme';
+
 import type { Meal } from '@/components/meal-card';
 import { supabase } from '@/lib/supabase';
 import type { UserPrefs } from '@/lib/queries/user-prefs';
@@ -40,9 +42,9 @@ const SELECT_FOR_YOU = SELECT.replace(
 // One badge per card. Priority: social proof > diet > freshness.
 function deriveBadge(row: MealRow, rating?: { average_rating: number; total_reviews: number }): Meal['badge'] {
   if (row.is_limited) return { label: 'limited drop', color: '#8b5cf6' };
-  if ((rating?.average_rating ?? 0) >= 4.85 && (rating?.total_reviews ?? 0) >= 90) return { label: 'popular', color: '#E8611A' };
+  if ((rating?.average_rating ?? 0) >= 4.85 && (rating?.total_reviews ?? 0) >= 90) return { label: 'popular', color: Palette.brand };
   const cat = one(row.category as never) as { key: string } | undefined;
-  if (cat?.key === 'healthy') return { label: 'healthy', color: '#16a34a' };
+  if (cat?.key === 'healthy') return { label: 'healthy', color: Palette.success };
   if (cat?.key === 'vegan') return { label: 'vegan', color: '#8b5cf6' };
   if (cat?.key === 'breakfast') return { label: 'breakfast', color: '#f59e0b' };
   const created = row.created_at ? new Date(row.created_at).getTime() : 0;

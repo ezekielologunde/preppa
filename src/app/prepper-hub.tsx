@@ -300,7 +300,7 @@ export default function PrepperHubScreen() {
                 <View style={{ flexDirection: 'row', gap: 10 }}>
                   {[
                     { label: 'preorders filled', value: completedOrders.length.toString(), sub: weekCompleted.length > 0 ? `+${weekCompleted.length} this wk` : undefined, Icon: Package,    color: '#06b6d4' },
-                    { label: 'gross revenue',    value: `$${totalEarnings.toFixed(0)}`,    sub: weekEarnings > 0 ? `+$${weekEarnings.toFixed(0)} this wk` : undefined,   Icon: DollarSign, color: '#16a34a' },
+                    { label: 'gross revenue',    value: `$${totalEarnings.toFixed(0)}`,    sub: weekEarnings > 0 ? `+$${weekEarnings.toFixed(0)} this wk` : undefined,   Icon: DollarSign, color: GREEN },
                     { label: 'avg preorder',     value: avgOrder > 0 ? `$${avgOrder.toFixed(0)}` : '—', sub: undefined,                                                   Icon: TrendingUp,  color: ORANGE },
                   ].map(({ label, value, sub, Icon, color }, i) => (
                     <MotiView key={label} from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 240, delay: 100 + i * 50 }} style={{ flex: 1 }}>
