@@ -161,7 +161,7 @@ export function PrepperWelcomeOverlay({ userId }: { userId?: string | null }) {
                 accessibilityRole="button"
                 accessibilityLabel="Explore first"
                 style={{ height: 44, borderRadius: Radius.pill, alignItems: 'center', justifyContent: 'center' }}>
-                <Text style={{ fontFamily: Font.medium, fontSize: 14, color: Palette.textMuted }}>
+                <Text style={{ fontFamily: Font.medium, fontSize: 14, color: Palette.textSecondary }}>
                   I'll explore first
                 </Text>
               </PressableScale>

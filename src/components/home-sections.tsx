@@ -46,13 +46,13 @@ function FeaturedKitchenCard({ kitchen }: { kitchen: FeaturedKitchen }) {
             <>
               <Star size={10} color={Palette.amber} fill={Palette.amber} />
               <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: Palette.inkSoft }}>{kitchen.rating.toFixed(1)}</Text>
-              {kitchen.city ? <Text style={{ fontFamily: Font.body, fontSize: 11, color: Palette.textMuted }}>·</Text> : null}
+              {kitchen.city ? <Text style={{ fontFamily: Font.body, fontSize: 11, color: Palette.textSecondary }}>·</Text> : null}
             </>
           ) : null}
           {kitchen.city ? (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2, flex: 1 }}>
-              <MapPin size={9} color={Palette.textMuted} />
-              <Text numberOfLines={1} style={{ fontFamily: Font.body, fontSize: 11, color: Palette.textMuted, flex: 1 }}>{kitchen.city}</Text>
+              <MapPin size={9} color={Palette.textSecondary} />
+              <Text numberOfLines={1} style={{ fontFamily: Font.body, fontSize: 11, color: Palette.textSecondary, flex: 1 }}>{kitchen.city}</Text>
             </View>
           ) : null}
         </View>
@@ -110,7 +110,7 @@ function RecentlyViewedCard({ meal }: { meal: Meal }) {
           <Text style={{ fontFamily: Font.semibold, fontSize: 10, color: Palette.inkSoft }}>
             {meal.rating.toFixed(1)}
           </Text>
-          <Text style={{ fontFamily: Font.body, fontSize: 10, color: Palette.textMuted }}>
+          <Text style={{ fontFamily: Font.body, fontSize: 10, color: Palette.textSecondary }}>
             · ${meal.price.toFixed(0)}
           </Text>
         </View>
@@ -142,7 +142,7 @@ export function RecentlyViewedSection() {
         </View>
         <PressableScale onPress={handleClear} accessibilityRole="button" accessibilityLabel="Clear recently viewed"
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 4 }}>
-          <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: Palette.textMuted }}>clear</Text>
+          <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: Palette.textSecondary }}>clear</Text>
         </PressableScale>
       </View>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}
@@ -183,7 +183,7 @@ export function ForYouSection({ userId, firstName }: { userId?: string | null; f
         <Text style={{
           fontFamily: Font.body,
           fontSize: 11,
-          color: Palette.textMuted,
+          color: Palette.textSecondary,
           paddingHorizontal: 20,
           marginTop: -10,
           marginBottom: 10,
@@ -244,9 +244,9 @@ function TrendingNowCard({ meal, width }: { meal: TrendingMeal; width: number })
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
           <Star size={11} color={Palette.amber} fill={Palette.amber} />
           <Text style={{ fontFamily: Font.semibold, fontSize: 11.5, color: Palette.inkSoft }}>{meal.rating.toFixed(1)}</Text>
-          <Text style={{ fontFamily: Font.body, fontSize: 11.5, color: Palette.textMuted }}>· ${meal.price.toFixed(0)}</Text>
+          <Text style={{ fontFamily: Font.body, fontSize: 11.5, color: Palette.textSecondary }}>· ${meal.price.toFixed(0)}</Text>
         </View>
-        <Text numberOfLines={1} style={{ fontFamily: Font.body, fontSize: 11, color: Palette.textMuted }}>{meal.prepper}</Text>
+        <Text numberOfLines={1} style={{ fontFamily: Font.body, fontSize: 11, color: Palette.textSecondary }}>{meal.prepper}</Text>
       </View>
     </PressableScale>
   );
@@ -260,7 +260,7 @@ export function TrendingNowSection() {
   if (!isLoading && (!meals || meals.length === 0)) return null;
 
   const subtitle = (
-    <Text style={{ fontFamily: Font.body, fontSize: 11, color: Palette.textMuted, marginLeft: 2, marginTop: 1 }}>
+    <Text style={{ fontFamily: Font.body, fontSize: 11, color: Palette.textSecondary, marginLeft: 2, marginTop: 1 }}>
       this week
     </Text>
   );

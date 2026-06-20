@@ -48,9 +48,9 @@ export default function CategoryScreen() {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ type: 'timing', duration: 260 }}
             style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 10 }}>
-            <UtensilsCrossed size={40} color={Palette.textMuted} />
+            <UtensilsCrossed size={40} color={Palette.textSecondary} />
             <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>couldn't load meals</Text>
-            <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textMuted, textAlign: 'center' }}>Check your connection and try again.</Text>
+            <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center' }}>Check your connection and try again.</Text>
             <PressableScale onPress={() => { feedback.tap(); void refetch(); }} accessibilityRole="button" accessibilityLabel="Retry loading meals"
               style={{ marginTop: 8, backgroundColor: ORANGE, borderRadius: Radius.pill, paddingHorizontal: 20, paddingVertical: 12 }}>
               <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: '#fff' }}>retry</Text>
@@ -80,9 +80,9 @@ export default function CategoryScreen() {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ type: 'timing', duration: 260 }}
             style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 10 }}>
-            <UtensilsCrossed size={40} color={Palette.textMuted} />
+            <UtensilsCrossed size={40} color={Palette.textSecondary} />
             <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>no meals here yet</Text>
-            <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textMuted, textAlign: 'center' }}>
+            <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center' }}>
               fresh {title} meals from local preppas are coming soon
             </Text>
             <PressableScale onPress={() => { feedback.tap(); router.push('/explore'); }} accessibilityRole="button" accessibilityLabel="Browse all meals" style={{ marginTop: 8, backgroundColor: ORANGE, borderRadius: Radius.pill, paddingHorizontal: 20, paddingVertical: 12 }}>

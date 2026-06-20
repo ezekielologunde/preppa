@@ -35,7 +35,7 @@ function SuggestionRow({ item, onPress }: { item: SuggestionItem; onPress: () =>
       accessibilityRole="button"
       accessibilityLabel={`Search for ${item.label}`}
       style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 11 }}>
-      <Icon size={16} color={Palette.textMuted} />
+      <Icon size={16} color={Palette.textSecondary} />
       <Text numberOfLines={1} style={{ flex: 1, fontFamily: Font.medium, fontSize: 14.5, color: Palette.ink }}>
         {item.label}
       </Text>
@@ -126,12 +126,12 @@ export function SearchSuggestionsPanel({ query, recent, onSelectTerm }: SearchSu
               accessibilityRole="button"
               accessibilityLabel="Clear all recent searches"
               hitSlop={10}>
-              <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: Palette.textMuted }}>clear all</Text>
+              <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: Palette.textSecondary }}>clear all</Text>
             </Pressable>
           </View>
           {recent.slice(0, 5).map((term) => (
             <View key={term} style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 10 }}>
-              <Clock size={15} color={Palette.textMuted} />
+              <Clock size={15} color={Palette.textSecondary} />
               <PressableScale
                 onPress={() => { feedback.tap(); onSelectTerm(term); }}
                 accessibilityRole="button"
@@ -145,7 +145,7 @@ export function SearchSuggestionsPanel({ query, recent, onSelectTerm }: SearchSu
                 accessibilityLabel={`Remove ${term}`}
                 hitSlop={10}
                 style={{ padding: 4 }}>
-                <X size={15} color={Palette.textMuted} />
+                <X size={15} color={Palette.textSecondary} />
               </Pressable>
             </View>
           ))}

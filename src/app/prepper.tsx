@@ -145,7 +145,7 @@ export default function PrepperScreen() {
       <View style={{ flex: 1, backgroundColor: Palette.canvas }}>
         <SafeAreaView edges={['top', 'bottom']} style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 28, gap: 16 }}>
           <View style={{ width: 56, height: 56, borderRadius: 20, backgroundColor: Palette.chip, alignItems: 'center', justifyContent: 'center' }}>
-            <Store size={24} color={Palette.textMuted} />
+            <Store size={24} color={Palette.textSecondary} />
           </View>
           <Text style={{ fontFamily: Font.display, fontSize: 20, color: Palette.ink, letterSpacing: -0.4, textAlign: 'center' }}>Kitchen not found</Text>
           <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center', lineHeight: 21 }}>We couldn't load this kitchen right now. Check your connection and try again.</Text>
@@ -155,7 +155,7 @@ export default function PrepperScreen() {
             <Text style={{ fontFamily: Font.semibold, fontSize: 15, color: '#fff' }}>Try again</Text>
           </PressableScale>
           <PressableScale onPress={handleBack} accessibilityRole="button" accessibilityLabel="Go back">
-            <Text style={{ fontFamily: Font.medium, fontSize: 14, color: Palette.textMuted }}>go back</Text>
+            <Text style={{ fontFamily: Font.medium, fontSize: 14, color: Palette.textSecondary }}>go back</Text>
           </PressableScale>
         </SafeAreaView>
       </View>
@@ -232,12 +232,12 @@ export default function PrepperScreen() {
           ) : null}
           {loc.coords && p?.lat && p?.lng ? (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 }}>
-              <MapPin size={12} color={Palette.textMuted} />
-              <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textMuted }}>{formatDistance(haversineKm(loc.coords.lat, loc.coords.lng, p.lat, p.lng))}</Text>
+              <MapPin size={12} color={Palette.textSecondary} />
+              <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary }}>{formatDistance(haversineKm(loc.coords.lat, loc.coords.lng, p.lat, p.lng))}</Text>
             </View>
           ) : null}
           {p?.stats?.member_since ? (
-            <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: Palette.textMuted }}>
+            <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: Palette.textSecondary }}>
               Joined {memberSince(p.stats.member_since)}
             </Text>
           ) : null}
@@ -374,11 +374,11 @@ export default function PrepperScreen() {
                         <Text numberOfLines={1} style={{ fontFamily: Font.heading, fontSize: 15, color: Palette.ink }}>{plan.name}</Text>
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 3 }}>
                           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                            <CalendarCheck size={12} color={Palette.textMuted} />
+                            <CalendarCheck size={12} color={Palette.textSecondary} />
                             <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary }}>{plan.meals_per_cycle} meals</Text>
                           </View>
                           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                            <Users size={12} color={Palette.textMuted} />
+                            <Users size={12} color={Palette.textSecondary} />
                             <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary }}>serves {plan.serves}</Text>
                           </View>
                         </View>
@@ -481,20 +481,6 @@ export default function PrepperScreen() {
               accessibilityLabel={`Order from ${p.name}`}
             />
           </View>
-          {p.homeCookAvailable ? (
-            <PressableScale
-              onPress={() => { feedback.tap(); router.push({ pathname: '/book-home-cook' as never, params: { prepperId: id } }); }}
-              accessibilityRole="button"
-              accessibilityLabel={`Book ${p.name.split(' ')[0]} to cook at your home`}
-              style={{ height: 48, borderRadius: 14, backgroundColor: '#EDE9FE', alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8, borderWidth: 1.5, borderColor: '#7C3AED26' }}>
-              <ChefHat size={16} color="#5B21B6" />
-              <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: '#5B21B6' }}>Book {p.name.split(' ')[0]} to cook at your home</Text>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: '#5B21B6', borderRadius: 6, paddingHorizontal: 7, paddingVertical: 3 }}>
-                <Crown size={9} color="#fff" />
-                <Text style={{ fontFamily: Font.semibold, fontSize: 9.5, color: '#fff' }}>Prep+</Text>
-              </View>
-            </PressableScale>
-          ) : null}
         </BottomActionBar>
       ) : null}
     </View>

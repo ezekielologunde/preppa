@@ -10,7 +10,7 @@ export function SectionLabel({ label }: { label: string }) {
       style={{
         fontFamily: Font.semibold,
         fontSize: 11,
-        color: Palette.textMuted,
+        color: Palette.textSecondary,
         letterSpacing: 0.8,
         textTransform: 'uppercase',
         marginBottom: 8,

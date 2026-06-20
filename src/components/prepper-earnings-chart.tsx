@@ -1,14 +1,16 @@
 import { MotiView } from 'moti';
 import { Text, View } from 'react-native';
 
+import { Skeleton } from '@/components/ui/skeleton';
 import { Font } from '@/constants/fonts';
 import { Palette } from '@/constants/theme';
 import { usePrepperEarningsChart } from '@/lib/queries/payouts';
 
-const CARD = Palette.prepperCard;
-const BRAND = Palette.brand;
+const CARD      = '#FFFFFF';
+const BRAND     = Palette.brand;
+const INK       = '#1A1714';
 const BAR_MAX_H = 90;
-const TEXT_MUTED = '#6B7280';
+const TEXT_MUTED = '#78716C';
 
 type Props = { prepperId?: string | null };
 
@@ -24,21 +26,26 @@ export function PrepperEarningsChart({ prepperId }: Props) {
   }
 
   return (
-    <View style={{ backgroundColor: CARD, borderRadius: 16, padding: 16, gap: 12 }}>
+    <View style={{ backgroundColor: CARD, borderRadius: 16, padding: 16, gap: 12, shadowColor: '#1A1714', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 }}>
       {/* Header row */}
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: '#9CA3AF' }}>
-          Earnings (8 weeks)
+        <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: TEXT_MUTED }}>
+          earnings · 8 weeks
         </Text>
-        <Text style={{ fontFamily: Font.display, fontSize: 20, color: '#FFFFFF', fontVariant: ['tabular-nums'] }}>
+        <Text style={{ fontFamily: Font.display, fontSize: 20, color: INK, fontVariant: ['tabular-nums'] }}>
           {isLoading ? '—' : formatTotal(total)}
         </Text>
       </View>
 
       {/* Chart area */}
       {isLoading ? (
-        <View style={{ height: BAR_MAX_H + 20, justifyContent: 'center', alignItems: 'center' }}>
-          <Text style={{ fontFamily: Font.body, fontSize: 12, color: TEXT_MUTED }}>Loading…</Text>
+        <View style={{ height: BAR_MAX_H + 20, gap: 8 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'flex-end', height: BAR_MAX_H, gap: 3 }}>
+            {[42, 60, 28, 75, 50, 85, 65, 90].map((h, i) => (
+              <Skeleton key={i} height={h} radius={4} style={{ flex: 1 }} />
+            ))}
+          </View>
+          <Skeleton height={10} radius={3} />
         </View>
       ) : !data || data.every((w) => w.amount === 0) ? (
         <View style={{ height: BAR_MAX_H + 20, justifyContent: 'center', alignItems: 'center' }}>
@@ -52,10 +59,12 @@ export function PrepperEarningsChart({ prepperId }: Props) {
           <View style={{ flexDirection: 'row', alignItems: 'flex-end', height: BAR_MAX_H, gap: 2 }}>
             {data.map((item, i) => {
               const isCurrent = i === data.length - 1;
-              const barH = maxAmount > 0
-                ? Math.max(4, (item.amount / maxAmount) * (BAR_MAX_H - 8))
-                : 4;
-              const fill = isCurrent ? BRAND : BRAND + '55';
+              const barH = item.amount === 0
+                ? 3
+                : Math.max(8, (item.amount / maxAmount) * (BAR_MAX_H - 8));
+              const fill = item.amount === 0
+                ? (isCurrent ? BRAND + '30' : BRAND + '18')
+                : (isCurrent ? BRAND : BRAND + '55');
               return (
                 <MotiView
                   key={item.label}

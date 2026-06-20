@@ -54,7 +54,7 @@ function CalendarPicker({ value, onChange }: { value: Date | null; onChange: (d:
         </PressableScale>
       </View>
       <View style={{ flexDirection: 'row', paddingHorizontal: 10, paddingTop: 8 }}>
-        {DOW.map((d) => <Text key={d} style={{ flex: 1, textAlign: 'center', fontFamily: Font.medium, fontSize: 11, color: Palette.textMuted }}>{d}</Text>)}
+        {DOW.map((d) => <Text key={d} style={{ flex: 1, textAlign: 'center', fontFamily: Font.medium, fontSize: 11, color: Palette.textSecondary }}>{d}</Text>)}
       </View>
       <View style={{ paddingHorizontal: 10, paddingBottom: 10 }}>
         {Array.from({ length: cells.length / 7 }, (_, row) => (
@@ -107,7 +107,7 @@ function BudgetPicker({ value, onChange }: { value: number | null; onChange: (n:
             <Text style={{ fontFamily: Font.heading, fontSize: 16, color: Palette.textSecondary }}>$</Text>
           </View>
           <TextInput value={raw} onChangeText={(t) => { const n = t.replace(/[^0-9.]/g, ''); setRaw(n); const v = parseFloat(n); if (!isNaN(v) && v > 0) onChange(v); }}
-            placeholder="e.g. 250" placeholderTextColor={Palette.textMuted} keyboardType="numeric" maxLength={7}
+            placeholder="e.g. 250" placeholderTextColor={Palette.textSecondary} keyboardType="numeric" maxLength={7}
             style={{ flex: 1, height: 50, paddingHorizontal: 12, fontFamily: Font.body, fontSize: 15, color: INK }}
             accessibilityLabel="Custom ingredient budget" />
         </View>
@@ -273,7 +273,7 @@ export default function BookHomeCookScreen() {
                       <PressableScale key={t.key} onPress={() => { feedback.tap(); setTime(t.key); }} accessibilityRole="button" accessibilityLabel={t.label}
                         style={{ flex: 1, borderRadius: 14, borderWidth: 1.5, borderColor: active ? HC : Palette.border, backgroundColor: active ? HC_TINT : Palette.surface, paddingVertical: 10, alignItems: 'center', gap: 2 }}>
                         <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: active ? HC : INK }}>{t.label}</Text>
-                        <Text style={{ fontFamily: Font.body, fontSize: 10.5, color: active ? HC : Palette.textMuted }}>{t.sub}</Text>
+                        <Text style={{ fontFamily: Font.body, fontSize: 10.5, color: active ? HC : Palette.textSecondary }}>{t.sub}</Text>
                       </PressableScale>
                     );
                   })}
@@ -306,23 +306,23 @@ export default function BookHomeCookScreen() {
                   <Text style={{ fontFamily: Font.heading, fontSize: 14, color: INK }}>Your home address</Text>
                 </View>
                 <TextInput value={address} onChangeText={(t) => setAddress(cleanLine(t))}
-                  placeholder="Street, City, State" placeholderTextColor={Palette.textMuted}
+                  placeholder="Street, City, State" placeholderTextColor={Palette.textSecondary}
                   autoCapitalize="words" maxLength={200}
                   style={{ height: 50, borderRadius: 14, backgroundColor: Palette.canvas, paddingHorizontal: 14, fontSize: 15, fontFamily: Font.body, color: INK, borderWidth: 1, borderColor: Palette.border }}
                   accessibilityLabel="Your home address" />
-                <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted }}>Shared only with the prepper after booking is confirmed.</Text>
+                <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary }}>Shared only with the prepper after booking is confirmed.</Text>
               </View>
 
               {/* Cuisine + menu ideas */}
               <View style={{ gap: 10 }}>
-                <Text style={{ fontFamily: Font.heading, fontSize: 14, color: INK }}>Cuisine & menu ideas <Text style={{ fontFamily: Font.body, color: Palette.textMuted }}>(optional)</Text></Text>
+                <Text style={{ fontFamily: Font.heading, fontSize: 14, color: INK }}>Cuisine & menu ideas <Text style={{ fontFamily: Font.body, color: Palette.textSecondary }}>(optional)</Text></Text>
                 <TextInput value={cuisine} onChangeText={(t) => setCuisine(cleanLine(t))}
-                  placeholder="e.g. West African, Italian, Japanese…" placeholderTextColor={Palette.textMuted}
+                  placeholder="e.g. West African, Italian, Japanese…" placeholderTextColor={Palette.textSecondary}
                   maxLength={60}
                   style={{ height: 50, borderRadius: 14, backgroundColor: Palette.canvas, paddingHorizontal: 14, fontSize: 15, fontFamily: Font.body, color: INK, borderWidth: 1, borderColor: Palette.border }}
                   accessibilityLabel="Cuisine preference" />
                 <TextInput value={menuIdeas} onChangeText={(t) => setMenuIdeas(cleanBlock(t))}
-                  placeholder="Specific dishes, dietary restrictions, or any requests?" placeholderTextColor={Palette.textMuted}
+                  placeholder="Specific dishes, dietary restrictions, or any requests?" placeholderTextColor={Palette.textSecondary}
                   multiline maxLength={500} textAlignVertical="top"
                   style={{ height: 90, borderRadius: 14, backgroundColor: Palette.canvas, paddingHorizontal: 14, paddingTop: 13, fontSize: 15, fontFamily: Font.body, color: INK, borderWidth: 1, borderColor: Palette.border }}
                   accessibilityLabel="Menu ideas and notes" />
@@ -332,7 +332,7 @@ export default function BookHomeCookScreen() {
               <View style={{ gap: 10 }}>
                 <Text style={{ fontFamily: Font.heading, fontSize: 14, color: INK }}>Ingredient budget</Text>
                 <BudgetPicker value={budget} onChange={setBudget} />
-                <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted }}>Covers groceries. The prepper proposes their cooking fee separately after reviewing.</Text>
+                <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary }}>Covers groceries. The prepper proposes their cooking fee separately after reviewing.</Text>
               </View>
 
               {err ? (

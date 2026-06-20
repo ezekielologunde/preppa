@@ -92,7 +92,7 @@ export function PrepperTermsModal({
                   style={{ marginTop: 2, flexShrink: 0 }}>
                   {on
                     ? <CheckSquare size={22} color={Palette.brand} />
-                    : <Square size={22} color={Palette.textMuted} />}
+                    : <Square size={22} color={Palette.textSecondary} />}
                 </MotiView>
                 <View style={{ flex: 1, gap: 3 }}>
                   <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: Palette.ink }}>{term.heading}</Text>
@@ -114,7 +114,7 @@ export function PrepperTermsModal({
             {isPending
               ? <ActivityIndicator color="#fff" />
               : <Text style={{ fontFamily: Font.heading, fontSize: 16,
-                  color: allChecked ? '#fff' : Palette.textMuted }}>
+                  color: allChecked ? '#fff' : Palette.textSecondary }}>
                   {allChecked ? 'Accept & submit application' : `Check all ${TERMS.length} sections to continue`}
                 </Text>}
           </PressableScale>

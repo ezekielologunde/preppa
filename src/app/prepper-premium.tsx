@@ -22,9 +22,11 @@ import { useMyPrepperApplication } from '@/lib/queries/preppers';
 import { useAuth } from '@/providers/auth-provider';
 
 const ORANGE = Palette.brand;
-const CARD = Palette.prepperCard;
-const BG = Palette.prepperBg;
-const MUTED = Palette.textMuted;
+const CARD   = '#FFFFFF';
+const BG     = '#F8F6F3';
+const INK    = '#1A1714';
+const MUTED  = '#78716C';
+const BORDER = '#EDE9E4';
 
 // ─── Pricing ────────────────────────────────────────────────────────────────
 const PRO_MONTHLY = 29;
@@ -39,7 +41,7 @@ type PlanId = 'starter' | 'pro' | 'elite';
 type Plan = {
   id: PlanId;
   name: string;
-  basePrice: number; // 0 = free
+  basePrice: number;
   badge?: string;
   stripeType?: string;
   features: string[];
@@ -147,7 +149,7 @@ function SocialProofBlock() {
           <View style={{ flexDirection: 'row', gap: 2 }}>
             {[0, 1, 2, 3, 4].map((s) => <Star key={s} size={11} color={ORANGE} fill={ORANGE} />)}
           </View>
-          <Text style={{ fontFamily: Font.body, fontSize: 13.5, color: '#d1d5db', lineHeight: 20, fontStyle: 'italic' }}>"{t?.quote}"</Text>
+          <Text style={{ fontFamily: Font.body, fontSize: 13.5, color: '#44403C', lineHeight: 20, fontStyle: 'italic' }}>"{t?.quote}"</Text>
           <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: MUTED }}>— {t?.name}, {t?.city}</Text>
         </MotiView>
         <View style={{ flexDirection: 'row', gap: 6, alignSelf: 'center' }}>
@@ -163,12 +165,12 @@ function SocialProofBlock() {
 function FeatureRow({ item, i }: { item: ProFeature; i: number }) {
   return (
     <MotiView from={{ opacity: 0, translateX: -10 }} animate={{ opacity: 1, translateX: 0 }} transition={{ type: 'timing', duration: 240, delay: 240 + i * 35 }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, borderBottomWidth: 1, borderColor: '#1e2330' }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, borderBottomWidth: 1, borderColor: BORDER }}>
         <View style={{ width: 38, height: 38, borderRadius: 12, backgroundColor: ORANGE + '1A', alignItems: 'center', justifyContent: 'center' }}>
           <item.Icon size={17} color={ORANGE} />
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={{ fontFamily: Font.heading, fontSize: 14, color: '#fff' }}>{item.label}</Text>
+          <Text style={{ fontFamily: Font.heading, fontSize: 14, color: INK }}>{item.label}</Text>
           <Text style={{ fontFamily: Font.body, fontSize: 12, color: MUTED, marginTop: 1 }}>{item.sub}</Text>
         </View>
         <Check size={16} color={ORANGE} strokeWidth={3} />
@@ -199,21 +201,21 @@ function PlanCard({
       borderRadius: 20,
       padding: 20,
       borderWidth: plan.highlighted ? 2 : 1,
-      borderColor: plan.highlighted ? ORANGE : '#1e2330',
+      borderColor: plan.highlighted ? ORANGE : BORDER,
       gap: 14,
     }}>
       {/* Badge */}
       {plan.badge && (
-        <View style={{ position: 'absolute', top: 14, right: 14, backgroundColor: plan.highlighted ? ORANGE : '#2d3140', borderRadius: Radius.pill, paddingHorizontal: 10, paddingVertical: 3 }}>
-          <Text style={{ fontFamily: Font.semibold, fontSize: 10, color: '#fff' }}>{plan.badge}</Text>
+        <View style={{ position: 'absolute', top: 14, right: 14, backgroundColor: plan.highlighted ? ORANGE : '#F0EDEA', borderRadius: Radius.pill, paddingHorizontal: 10, paddingVertical: 3 }}>
+          <Text style={{ fontFamily: Font.semibold, fontSize: 10, color: plan.highlighted ? '#fff' : INK }}>{plan.badge}</Text>
         </View>
       )}
 
       {/* Name + price */}
       <View style={{ gap: 4 }}>
-        <Text style={{ fontFamily: Font.display, fontSize: 22, color: '#fff', letterSpacing: -0.5 }}>{plan.name}</Text>
+        <Text style={{ fontFamily: Font.display, fontSize: 22, color: INK, letterSpacing: -0.5 }}>{plan.name}</Text>
         {isStarter ? (
-          <Text style={{ fontFamily: Font.display, fontSize: 28, color: '#fff', letterSpacing: -0.8 }}>Free</Text>
+          <Text style={{ fontFamily: Font.display, fontSize: 28, color: INK, letterSpacing: -0.8 }}>Free</Text>
         ) : (
           <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 4 }}>
             {showSavings && (
@@ -221,7 +223,7 @@ function PlanCard({
                 ${originalPrice}
               </Text>
             )}
-            <Text style={{ fontFamily: Font.display, fontSize: 36, color: '#fff', letterSpacing: -1 }}>${monthlyPrice}</Text>
+            <Text style={{ fontFamily: Font.display, fontSize: 36, color: INK, letterSpacing: -1 }}>${monthlyPrice}</Text>
             <Text style={{ fontFamily: Font.body, fontSize: 14, color: MUTED, marginBottom: 6 }}>/mo</Text>
           </View>
         )}
@@ -239,7 +241,7 @@ function PlanCard({
         {plan.features.map((f) => (
           <View key={f} style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8 }}>
             <Check size={14} color={Palette.success} strokeWidth={2.5} style={{ marginTop: 2 }} />
-            <Text style={{ fontFamily: Font.body, fontSize: 13, color: '#d1d5db', flex: 1, lineHeight: 19 }}>{f}</Text>
+            <Text style={{ fontFamily: Font.body, fontSize: 13, color: '#44403C', flex: 1, lineHeight: 19 }}>{f}</Text>
           </View>
         ))}
       </View>
@@ -255,7 +257,7 @@ function PlanCard({
           borderRadius: Radius.pill,
           backgroundColor: isCurrent || isDowngrade ? 'transparent' : (plan.highlighted ? ORANGE : ORANGE + '30'),
           borderWidth: isCurrent || isDowngrade ? 1 : 0,
-          borderColor: '#2d3140',
+          borderColor: BORDER,
           alignItems: 'center',
           justifyContent: 'center',
           opacity: loading ? 0.7 : 1,
@@ -263,7 +265,7 @@ function PlanCard({
         <Text style={{
           fontFamily: Font.heading,
           fontSize: 14,
-          color: isCurrent ? MUTED : (isDowngrade ? '#2d3140' : '#fff'),
+          color: isCurrent ? MUTED : (isDowngrade ? MUTED : '#fff'),
         }}>
           {isCurrent ? 'Current plan' : (isDowngrade ? 'Included in your plan' : plan.ctaLabel)}
         </Text>
@@ -328,24 +330,24 @@ export default function PrepperPremiumScreen() {
       <View style={{ flex: 1, backgroundColor: BG }}>
         <SafeAreaView edges={['top']} style={{ flex: 1 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingTop: 8, paddingBottom: 4 }}>
-            <PressableScale onPress={() => { feedback.tap(); if (router.canGoBack()) router.back(); else router.replace('/prepper-hub' as never); }} accessibilityRole="button" accessibilityLabel="Go back"
+            <PressableScale onPress={() => { feedback.tap(); if (router.canGoBack()) router.back(); else router.replace('/dashboard' as never); }} accessibilityRole="button" accessibilityLabel="Go back"
               style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center' }}>
-              <ChevronLeft size={22} color="#fff" />
+              <ChevronLeft size={22} color={INK} />
             </PressableScale>
-            <Text style={{ fontFamily: Font.display, fontSize: 22, color: '#fff', letterSpacing: -0.5 }}>membership</Text>
+            <Text style={{ fontFamily: Font.display, fontSize: 22, color: INK, letterSpacing: -0.5 }}>membership</Text>
           </View>
           <MotiView from={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', damping: 18, stiffness: 200 }}
             style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 36, gap: 16 }}>
             <View style={{ width: 80, height: 80, borderRadius: 40, backgroundColor: ORANGE + '22', alignItems: 'center', justifyContent: 'center' }}>
               <Crown size={44} color={ORANGE} />
             </View>
-            <Text style={{ fontFamily: Font.display, fontSize: 26, color: '#fff', letterSpacing: -0.6, textAlign: 'center' }}>
+            <Text style={{ fontFamily: Font.display, fontSize: 26, color: INK, letterSpacing: -0.6, textAlign: 'center' }}>
               you're on Elite
             </Text>
             <Text style={{ fontFamily: Font.body, fontSize: 14.5, color: MUTED, textAlign: 'center', lineHeight: 22 }}>
               All Elite features are active. You're at the top.
             </Text>
-            <PressableScale onPress={() => { feedback.tap(); if (router.canGoBack()) router.back(); else router.replace('/prepper-hub' as never); }} accessibilityRole="button" accessibilityLabel="Back to hub"
+            <PressableScale onPress={() => { feedback.tap(); if (router.canGoBack()) router.back(); else router.replace('/dashboard' as never); }} accessibilityRole="button" accessibilityLabel="Back to hub"
               style={{ marginTop: 8, height: 52, paddingHorizontal: 32, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
               <Text style={{ fontFamily: Font.heading, fontSize: 15.5, color: '#fff' }}>back to hub</Text>
             </PressableScale>
@@ -362,9 +364,9 @@ export default function PrepperPremiumScreen() {
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingTop: 8, paddingBottom: 4 }}>
           <PressableScale onPress={() => { feedback.tap(); if (router.canGoBack()) router.back(); else router.replace('/dashboard'); }} accessibilityRole="button" accessibilityLabel="Go back"
             style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center' }}>
-            <ChevronLeft size={22} color="#fff" />
+            <ChevronLeft size={22} color={INK} />
           </PressableScale>
-          <Text style={{ fontFamily: Font.display, fontSize: 22, color: '#fff', letterSpacing: -0.5 }}>upgrade</Text>
+          <Text style={{ fontFamily: Font.display, fontSize: 22, color: INK, letterSpacing: -0.5 }}>upgrade</Text>
           <View style={{ marginLeft: 'auto', backgroundColor: ORANGE + '24', borderRadius: Radius.pill, paddingHorizontal: 10, paddingVertical: 4, flexDirection: 'row', alignItems: 'center', gap: 4 }}>
             <Crown size={13} color={ORANGE} />
             <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: ORANGE }}>{isAlreadyPro ? 'Pro' : 'Free'}</Text>
@@ -392,14 +394,14 @@ export default function PrepperPremiumScreen() {
 
           {/* Billing toggle */}
           <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280, delay: 80 }}>
-            <View style={{ flexDirection: 'row', backgroundColor: CARD, borderRadius: Radius.md, padding: 4, gap: 4 }}>
-              <MotiView animate={{ backgroundColor: !yearly ? ORANGE : CARD }} transition={{ type: 'timing', duration: 200 }} style={{ flex: 1, borderRadius: Radius.sm, overflow: 'hidden' }}>
+            <View style={{ flexDirection: 'row', backgroundColor: '#EDE9E4', borderRadius: Radius.md, padding: 4, gap: 4 }}>
+              <MotiView animate={{ backgroundColor: !yearly ? ORANGE : '#FFFFFF' }} transition={{ type: 'timing', duration: 200 }} style={{ flex: 1, borderRadius: Radius.sm, overflow: 'hidden' }}>
                 <PressableScale onPress={() => { feedback.tap(); setYearly(false); }} accessibilityRole="button" accessibilityLabel="Monthly billing" accessibilityState={{ selected: !yearly }}
                   style={{ flex: 1, height: 44, alignItems: 'center', justifyContent: 'center' }}>
                   <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: !yearly ? '#fff' : MUTED }}>Monthly</Text>
                 </PressableScale>
               </MotiView>
-              <MotiView animate={{ backgroundColor: yearly ? ORANGE : CARD }} transition={{ type: 'timing', duration: 200 }} style={{ flex: 1, borderRadius: Radius.sm, overflow: 'hidden' }}>
+              <MotiView animate={{ backgroundColor: yearly ? ORANGE : '#FFFFFF' }} transition={{ type: 'timing', duration: 200 }} style={{ flex: 1, borderRadius: Radius.sm, overflow: 'hidden' }}>
                 <PressableScale onPress={() => { feedback.tap(); setYearly(true); }} accessibilityRole="button" accessibilityLabel="Annual billing, save 20%" accessibilityState={{ selected: yearly }}
                   style={{ flex: 1, height: 44, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8 }}>
                   <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: yearly ? '#fff' : MUTED }}>Annual</Text>

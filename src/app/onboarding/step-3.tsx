@@ -151,7 +151,7 @@ export default function Step3Cuisines() {
             accessibilityRole="button"
             accessibilityLabel="Skip cuisine preferences"
             style={{ height: 44, alignItems: 'center', justifyContent: 'center' }}>
-            <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: Palette.textMuted }}>Skip</Text>
+            <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: Palette.textSecondary }}>Skip</Text>
           </PressableScale>
         </MotiView>
       </SafeAreaView>

@@ -77,7 +77,7 @@ export function MarketingBanner() {
           accessibilityLabel="Dismiss"
           hitSlop={8}
           style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
-          <X size={14} color={Palette.textMuted} />
+          <X size={14} color={Palette.textSecondary} />
         </PressableScale>
       </PressableScale>
     </MotiView>

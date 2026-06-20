@@ -290,7 +290,7 @@ export function FeedCard({ item, height, bottomInset, followSet }: { item: FeedI
               transition={{ type: 'spring', damping: 20, stiffness: 240 }}
               style={{ borderRadius: Radius.pill, borderWidth: 1, minWidth: 130 }}>
               <PressableScale
-                onPress={item.isLive ? () => { feedback.tap(); router.push(`/meal?id=${item.id}`); } : handleAddToCart}
+                onPress={item.isLive ? () => { feedback.tap(); if (item.prepper_id) router.push(`/watch-live?prepperId=${item.prepper_id}` as never); } : handleAddToCart}
                 disabled={addState === 'adding'}
                 accessibilityRole="button"
                 accessibilityLabel={item.isLive ? `View ${item.title} live drop` : addState === 'added' ? 'Added to cart' : addState === 'error' ? 'Failed to add — tap to retry' : `Add ${item.title} to cart`}

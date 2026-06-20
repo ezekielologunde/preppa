@@ -4,9 +4,11 @@ import { Text, View } from 'react-native';
 import { Font } from '@/constants/fonts';
 import { Palette } from '@/constants/theme';
 
-const ORANGE = Palette.brand;
-const MUTED = Palette.textMuted;
-const CARD = Palette.prepperCard;
+const ORANGE  = Palette.brand;
+const CARD    = '#FFFFFF';
+const INK     = '#1A1714';
+const MUTED   = '#78716C';
+const BORDER  = '#EDE9E4';
 
 type Tier = 'starter' | 'pro' | 'elite';
 
@@ -42,7 +44,7 @@ function Cell({ value, highlight }: { value: boolean | string; highlight?: boole
   }
   return value
     ? <Check size={14} color={Palette.success} strokeWidth={2.5} />
-    : <X size={14} color='#2d3140' strokeWidth={2.5} />;
+    : <X size={14} color='#D1CBC5' strokeWidth={2.5} />;
 }
 
 const TIERS: Tier[] = ['starter', 'pro', 'elite'];
@@ -66,7 +68,7 @@ export function PrepperPlanComparison({ currentTier }: { currentTier?: Tier | nu
 
       <View style={{ backgroundColor: CARD, borderRadius: 20, overflow: 'hidden' }}>
         {/* Header row */}
-        <View style={{ flexDirection: 'row', borderBottomWidth: 1, borderColor: '#1e2330' }}>
+        <View style={{ flexDirection: 'row', borderBottomWidth: 1, borderColor: BORDER }}>
           <View style={{ width: LABEL_W, paddingVertical: 14, paddingLeft: 16 }} />
           {TIERS.map((tier) => (
             <View key={tier} style={{
@@ -78,7 +80,7 @@ export function PrepperPlanComparison({ currentTier }: { currentTier?: Tier | nu
               <Text style={{
                 fontFamily: Font.heading,
                 fontSize: 12,
-                color: tier === currentTier ? Palette.success : (tier === 'pro' ? ORANGE : '#fff'),
+                color: tier === currentTier ? Palette.success : (tier === 'pro' ? ORANGE : INK),
               }}>
                 {TIER_LABELS[tier]}
               </Text>
@@ -98,7 +100,7 @@ export function PrepperPlanComparison({ currentTier }: { currentTier?: Tier | nu
             style={{
               flexDirection: 'row',
               borderBottomWidth: i < ROWS.length - 1 ? 1 : 0,
-              borderColor: '#1e2330',
+              borderColor: BORDER,
             }}>
             <View style={{
               width: LABEL_W,

@@ -39,12 +39,12 @@ export function OrderFilters({ searchQuery, onSearchChange, statusFilter, onStat
         marginHorizontal: 16,
         gap: 8,
       }}>
-        <Search size={16} color={Palette.textMuted} strokeWidth={2} />
+        <Search size={16} color={Palette.textSecondary} strokeWidth={2} />
         <TextInput
           value={searchQuery}
           onChangeText={onSearchChange}
           placeholder="Search orders..."
-          placeholderTextColor={Palette.textMuted}
+          placeholderTextColor={Palette.textSecondary}
           style={{
             flex: 1,
             fontFamily: Font.body,
@@ -62,7 +62,7 @@ export function OrderFilters({ searchQuery, onSearchChange, statusFilter, onStat
             accessibilityRole="button"
             accessibilityLabel="Clear search"
             style={{ padding: 2 }}>
-            <X size={14} color={Palette.textMuted} strokeWidth={2.5} />
+            <X size={14} color={Palette.textSecondary} strokeWidth={2.5} />
           </PressableScale>
         ) : null}
       </View>
@@ -110,7 +110,7 @@ export function OrderFilters({ searchQuery, onSearchChange, statusFilter, onStat
                   <Text style={{
                     fontFamily: Font.semibold,
                     fontSize: 10,
-                    color: active ? Palette.brand : Palette.textMuted,
+                    color: active ? Palette.brand : Palette.textSecondary,
                   }}>
                     {count}
                   </Text>

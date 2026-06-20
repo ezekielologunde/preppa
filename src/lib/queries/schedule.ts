@@ -68,7 +68,7 @@ export function useSaveCookSchedule(prepperId?: string | null) {
 }
 
 /** Parse a time string in either "H:MM AM/PM" or "HH:MM" (24h) format to minutes since midnight. */
-function parseTimeToMinutes(t: string): number {
+export function parseTimeToMinutes(t: string): number {
   const ampm = t.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
   if (ampm) {
     let h = parseInt(ampm[1], 10);

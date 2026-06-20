@@ -20,7 +20,7 @@ const cleanBlock = (s: string) => s.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g,
 const ORANGE = Palette.brand;
 const CARD = Palette.prepperCard;
 const BG = Palette.prepperBg;
-const MUTED = Palette.textMuted;
+const MUTED = Palette.textSecondary;
 
 const TAGS = ['Meal prep', 'Quick & easy', 'Healthy', 'Comfort food', 'Vegan', 'High-protein', 'Behind the scenes', 'New dish'];
 
@@ -196,7 +196,7 @@ export default function PostVideoScreen() {
           {/* Caption */}
           <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280, delay: 80 }}>
           <View>
-            <Text style={{ fontFamily: Font.heading, fontSize: 13.5, color: Palette.textMuted, marginBottom: 8 }}>caption</Text>
+            <Text style={{ fontFamily: Font.heading, fontSize: 13.5, color: Palette.textSecondary, marginBottom: 8 }}>caption</Text>
             <TextInput
               value={caption}
               onChangeText={setCaption}
@@ -216,7 +216,7 @@ export default function PostVideoScreen() {
           <View>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 10 }}>
               <Hash size={14} color={MUTED} />
-              <Text style={{ fontFamily: Font.heading, fontSize: 13.5, color: Palette.textMuted }}>tags</Text>
+              <Text style={{ fontFamily: Font.heading, fontSize: 13.5, color: Palette.textSecondary }}>tags</Text>
             </View>
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
               {TAGS.map((t) => {

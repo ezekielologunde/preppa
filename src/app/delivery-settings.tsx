@@ -110,13 +110,13 @@ export default function DeliverySettingsScreen() {
           <View style={{ backgroundColor: Palette.surface, borderRadius: Radius.md, overflow: 'hidden' }}>
             <View style={{ paddingHorizontal: 14, paddingVertical: 11, borderBottomWidth: 1, borderBottomColor: Palette.chip }}>
               <Text style={{ fontFamily: Font.heading, fontSize: 13, color: Palette.textSecondary }}>KITCHEN LOCATION</Text>
-              <Text style={{ fontFamily: Font.body, fontSize: 11.5, color: Palette.textMuted, marginTop: 3 }}>Customers browse kitchens near their location — set yours so locals can find you.</Text>
+              <Text style={{ fontFamily: Font.body, fontSize: 11.5, color: Palette.textSecondary, marginTop: 3 }}>Customers browse kitchens near their location — set yours so locals can find you.</Text>
             </View>
             <View style={{ flexDirection: 'row', gap: 10, paddingHorizontal: 14, paddingTop: 14, paddingBottom: 14 }}>
               <View style={{ flex: 2, gap: 4 }}>
                 <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary }}>City</Text>
                 <TextInput value={city} onChangeText={setCity}
-                  placeholder="Houston" placeholderTextColor={Palette.textMuted}
+                  placeholder="Houston" placeholderTextColor={Palette.textSecondary}
                   autoCorrect={false} autoCapitalize="words"
                   accessibilityLabel="Kitchen city"
                   style={{ height: 48, backgroundColor: Palette.canvas, borderRadius: Radius.sm, borderWidth: 1, borderColor: Palette.border, paddingHorizontal: 12, fontFamily: Font.body, fontSize: 15, color: Palette.ink }} />
@@ -124,7 +124,7 @@ export default function DeliverySettingsScreen() {
               <View style={{ flex: 1, gap: 4 }}>
                 <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary }}>State</Text>
                 <TextInput value={kitchenState} onChangeText={setKitchenState}
-                  placeholder="TX" placeholderTextColor={Palette.textMuted}
+                  placeholder="TX" placeholderTextColor={Palette.textSecondary}
                   autoCorrect={false} autoCapitalize="characters" maxLength={3}
                   accessibilityLabel="Kitchen state"
                   style={{ height: 48, backgroundColor: Palette.canvas, borderRadius: Radius.sm, borderWidth: 1, borderColor: Palette.border, paddingHorizontal: 12, fontFamily: Font.body, fontSize: 15, color: Palette.ink, textAlign: 'center' }} />
@@ -167,7 +167,7 @@ export default function DeliverySettingsScreen() {
 
               {/* Fee */}
               <View style={{ paddingHorizontal: 14, paddingTop: 14, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: Palette.chip, gap: 6 }}>
-                <Text style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.inkSoft }}>Delivery fee <Text style={{ color: Palette.textMuted }}>(min $2.99)</Text></Text>
+                <Text style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.inkSoft }}>Delivery fee <Text style={{ color: Palette.textSecondary }}>(min $2.99)</Text></Text>
                 <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: Palette.canvas, borderRadius: Radius.sm, borderWidth: 1, borderColor: Palette.border, paddingHorizontal: 12, height: 48, gap: 4 }}>
                   <Text style={{ fontFamily: Font.display, fontSize: 18, color: Palette.ink }}>$</Text>
                   <TextInput value={fee} onChangeText={(t) => { setFee(t.replace(/[^0-9.]/g, '')); setErr(null); }}
@@ -178,11 +178,11 @@ export default function DeliverySettingsScreen() {
 
               {/* Min order */}
               <View style={{ paddingHorizontal: 14, paddingTop: 14, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: Palette.chip, gap: 6 }}>
-                <Text style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.inkSoft }}>Minimum order <Text style={{ color: Palette.textMuted }}>(optional)</Text></Text>
+                <Text style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.inkSoft }}>Minimum order <Text style={{ color: Palette.textSecondary }}>(optional)</Text></Text>
                 <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: Palette.canvas, borderRadius: Radius.sm, borderWidth: 1, borderColor: Palette.border, paddingHorizontal: 12, height: 48, gap: 4 }}>
                   <Text style={{ fontFamily: Font.display, fontSize: 18, color: Palette.ink }}>$</Text>
                   <TextInput value={minOrder} onChangeText={(t) => setMinOrder(t.replace(/[^0-9.]/g, ''))}
-                    keyboardType="decimal-pad" maxLength={6} placeholder="0" placeholderTextColor={Palette.textMuted}
+                    keyboardType="decimal-pad" maxLength={6} placeholder="0" placeholderTextColor={Palette.textSecondary}
                     accessibilityLabel="Minimum order amount"
                     style={{ flex: 1, fontFamily: Font.display, fontSize: 18, color: Palette.ink }} />
                 </View>
@@ -193,10 +193,10 @@ export default function DeliverySettingsScreen() {
                 <Text style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.inkSoft }}>Delivery radius</Text>
                 <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: Palette.canvas, borderRadius: Radius.sm, borderWidth: 1, borderColor: Palette.border, paddingHorizontal: 12, height: 48, gap: 8 }}>
                   <TextInput value={radius} onChangeText={(t) => setRadius(t.replace(/[^0-9]/g, ''))}
-                    keyboardType="number-pad" maxLength={3} placeholder="10" placeholderTextColor={Palette.textMuted}
+                    keyboardType="number-pad" maxLength={3} placeholder="10" placeholderTextColor={Palette.textSecondary}
                     accessibilityLabel="Delivery radius in kilometers"
                     style={{ flex: 1, fontFamily: Font.display, fontSize: 18, color: Palette.ink }} />
-                  <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textMuted }}>km</Text>
+                  <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary }}>km</Text>
                 </View>
               </View>
 
@@ -204,7 +204,7 @@ export default function DeliverySettingsScreen() {
               <View style={{ paddingHorizontal: 14, paddingTop: 14, paddingBottom: 14, borderBottomWidth: 1, borderBottomColor: Palette.chip, gap: 10 }}>
                 <View>
                   <Text style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.inkSoft }}>Available days</Text>
-                  <Text style={{ fontFamily: Font.body, fontSize: 11.5, color: Palette.textMuted, marginTop: 2 }}>Leave all unselected for every day</Text>
+                  <Text style={{ fontFamily: Font.body, fontSize: 11.5, color: Palette.textSecondary, marginTop: 2 }}>Leave all unselected for every day</Text>
                 </View>
                 <View style={{ flexDirection: 'row', gap: 8 }}>
                   {DAY_LABELS.map((label, i) => {
@@ -229,20 +229,20 @@ export default function DeliverySettingsScreen() {
               <View style={{ paddingHorizontal: 14, paddingTop: 14, paddingBottom: 14, gap: 10 }}>
                 <View>
                   <Text style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.inkSoft }}>Delivery window</Text>
-                  <Text style={{ fontFamily: Font.body, fontSize: 11.5, color: Palette.textMuted, marginTop: 2 }}>Leave blank for no time restriction</Text>
+                  <Text style={{ fontFamily: Font.body, fontSize: 11.5, color: Palette.textSecondary, marginTop: 2 }}>Leave blank for no time restriction</Text>
                 </View>
                 <View style={{ flexDirection: 'row', gap: 10 }}>
                   <View style={{ flex: 1, gap: 4 }}>
                     <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary }}>From</Text>
                     <TextInput value={windowStart} onChangeText={setWindowStart}
-                      placeholder="08:00" placeholderTextColor={Palette.textMuted} maxLength={5}
+                      placeholder="08:00" placeholderTextColor={Palette.textSecondary} maxLength={5}
                       accessibilityLabel="Delivery window start time"
                       style={{ height: 48, backgroundColor: Palette.canvas, borderRadius: Radius.sm, borderWidth: 1, borderColor: Palette.border, paddingHorizontal: 12, fontFamily: Font.body, fontSize: 15, color: Palette.ink, textAlign: 'center' }} />
                   </View>
                   <View style={{ flex: 1, gap: 4 }}>
                     <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary }}>To</Text>
                     <TextInput value={windowEnd} onChangeText={setWindowEnd}
-                      placeholder="20:00" placeholderTextColor={Palette.textMuted} maxLength={5}
+                      placeholder="20:00" placeholderTextColor={Palette.textSecondary} maxLength={5}
                       accessibilityLabel="Delivery window end time"
                       style={{ height: 48, backgroundColor: Palette.canvas, borderRadius: Radius.sm, borderWidth: 1, borderColor: Palette.border, paddingHorizontal: 12, fontFamily: Font.body, fontSize: 15, color: Palette.ink, textAlign: 'center' }} />
                   </View>

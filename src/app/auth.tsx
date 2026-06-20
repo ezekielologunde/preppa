@@ -225,7 +225,7 @@ export default function AuthScreen() {
                   color: Palette.ink,
                 }}
                 placeholder="••••••"
-                placeholderTextColor={Palette.textMuted}
+                placeholderTextColor={Palette.textSecondary}
                 keyboardType="number-pad"
                 autoComplete="one-time-code"
                 textContentType="oneTimeCode"
@@ -251,7 +251,7 @@ export default function AuthScreen() {
                     textContentType="newPassword"
                     maxLength={128}
                     editable={!busy}
-                    placeholderTextColor={Palette.textMuted}
+                    placeholderTextColor={Palette.textSecondary}
                     accessibilityLabel="New password"
                     style={{ flex: 1, fontSize: 16, fontFamily: Font.body, color: Palette.ink, height: 56 }}
                   />

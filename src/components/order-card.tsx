@@ -141,15 +141,15 @@ export function OrderCard({ order, onCancel, onReview, onPay, onReorder, onRepor
       {order.disputed && order.status !== 'completed' && order.status !== 'cancelled' ? (
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 2 }}>
           <AlertTriangle size={13} color={Palette.amber} />
-          <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted }}>Dispute filed — under review</Text>
+          <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary }}>Dispute filed — under review</Text>
         </View>
       ) : null}
 
       {(order.status === 'completed' || order.status === 'cancelled') ? (
         order.disputed ? (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 2 }}>
-            <AlertTriangle size={13} color={Palette.textMuted} />
-            <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted }}>Issue reported — we&apos;re looking into it.</Text>
+            <AlertTriangle size={13} color={Palette.textSecondary} />
+            <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary }}>Issue reported — we&apos;re looking into it.</Text>
           </View>
         ) : (
           <PressableScale onPress={onReport} accessibilityRole="button" accessibilityLabel="Report an issue with this preorder"

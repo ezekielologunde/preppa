@@ -45,7 +45,7 @@ function PrefRow({ Icon, label, sub, value, onToggle, disabled = false, isLast =
         </View>
         <View style={{ flex: 1 }}>
           <Text numberOfLines={1} style={{ fontFamily: Font.heading, fontSize: 14, color: Palette.ink }}>{label}</Text>
-          <Text numberOfLines={2} style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted, marginTop: 2, lineHeight: 16 }}>{sub}</Text>
+          <Text numberOfLines={2} style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary, marginTop: 2, lineHeight: 16 }}>{sub}</Text>
         </View>
         <Switch
           value={value}
@@ -223,7 +223,7 @@ export default function NotificationPreferencesScreen() {
             from={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ type: 'timing', duration: 300, delay: 300 }}>
-            <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted, textAlign: 'center', lineHeight: 18, paddingHorizontal: 28 }}>
+            <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary, textAlign: 'center', lineHeight: 18, paddingHorizontal: 28 }}>
               Payment receipts are always sent regardless of these settings. To fully silence alerts, also use your device's system notification settings.
             </Text>
           </MotiView>

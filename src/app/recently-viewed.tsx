@@ -79,7 +79,7 @@ export default function RecentlyViewedScreen() {
           <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }}
             style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
             <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
-              <Clock size={28} color={Palette.textMuted} />
+              <Clock size={28} color={Palette.textSecondary} />
             </View>
             <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>couldn't load meals</Text>
             <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center', maxWidth: 260, lineHeight: 20 }}>Check your connection and try again.</Text>

@@ -56,7 +56,7 @@ function SavedCard({ item, width, onUnsave }: { item: SavedMealItem; width: numb
         </Text>
 
         {/* Prepper */}
-        <Text numberOfLines={1} style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted }}>
+        <Text numberOfLines={1} style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary }}>
           {item.prepper}
         </Text>
 
@@ -70,15 +70,15 @@ function SavedCard({ item, width, onUnsave }: { item: SavedMealItem; width: numb
           {item.rating > 0 ? (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
               <Star size={11} color={Palette.amber} fill={Palette.amber} />
-              <Text style={{ fontFamily: Font.medium, fontSize: 11, color: Palette.textMuted }}>
+              <Text style={{ fontFamily: Font.medium, fontSize: 11, color: Palette.textSecondary }}>
                 {item.rating.toFixed(1)}
               </Text>
             </View>
           ) : null}
           {item.time ? (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
-              <Clock size={11} color={Palette.textMuted} />
-              <Text style={{ fontFamily: Font.body, fontSize: 11, color: Palette.textMuted }}>{item.time}</Text>
+              <Clock size={11} color={Palette.textSecondary} />
+              <Text style={{ fontFamily: Font.body, fontSize: 11, color: Palette.textSecondary }}>{item.time}</Text>
             </View>
           ) : null}
         </View>
@@ -136,7 +136,7 @@ function EmptyState() {
       <Text style={{ fontFamily: Font.display, fontSize: 18, color: Palette.ink, letterSpacing: -0.4 }}>
         no saved meals yet
       </Text>
-      <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textMuted, textAlign: 'center', maxWidth: 260, lineHeight: 20 }}>
+      <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center', maxWidth: 260, lineHeight: 20 }}>
         Tap the bookmark icon on any meal to save it here.
       </Text>
       <PressableScale
@@ -265,7 +265,7 @@ export default function SavedMealsScreen() {
             transition={{ type: 'timing', duration: 220 }}
             style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 8 }}>
             <Text style={{ fontFamily: Font.heading, fontSize: 16, color: Palette.ink }}>nothing here</Text>
-            <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textMuted }}>no saves in this time range</Text>
+            <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary }}>no saves in this time range</Text>
           </MotiView>
         ) : (
           <FlatList

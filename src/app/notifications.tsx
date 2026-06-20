@@ -133,7 +133,7 @@ function NotifRow({ n, onPress }: { n: AppNotification; onPress: () => void }) {
               style={{
                 fontFamily: Font.body,
                 fontSize: 11.5,
-                color: Palette.textMuted,
+                color: Palette.textSecondary,
                 flexShrink: 0,
               }}>
               {relativeTime(n.created_at)}
@@ -322,7 +322,7 @@ export default function NotificationsScreen() {
           <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }}
             style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
             <View style={{ width: 72, height: 72, borderRadius: 24, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
-              <Bell size={30} color={Palette.textMuted} />
+              <Bell size={30} color={Palette.textSecondary} />
             </View>
             <Text style={{ fontFamily: Font.heading, fontSize: 18, color: Palette.ink }}>couldn't load notifications</Text>
             <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center', maxWidth: 260, lineHeight: 20 }}>Check your connection and try again.</Text>
@@ -352,7 +352,7 @@ export default function NotificationsScreen() {
                 alignItems: 'center',
                 justifyContent: 'center',
               }}>
-              <Bell size={30} color={Palette.textMuted} />
+              <Bell size={30} color={Palette.textSecondary} />
             </View>
             <Text style={{ fontFamily: Font.display, fontSize: 20, color: Palette.ink, letterSpacing: -0.4 }}>
               You're all caught up
@@ -393,7 +393,7 @@ export default function NotificationsScreen() {
                   from={{ opacity: 0, translateX: -6 }}
                   animate={{ opacity: 1, translateX: 0 }}
                   transition={{ type: 'timing', duration: 200 }}>
-                  <Text style={{ fontFamily: Font.semibold, fontSize: 11.5, color: Palette.textMuted, textTransform: 'uppercase', letterSpacing: 0.7, paddingHorizontal: 20, paddingTop: 20, paddingBottom: 6 }}>
+                  <Text style={{ fontFamily: Font.semibold, fontSize: 11.5, color: Palette.textSecondary, textTransform: 'uppercase', letterSpacing: 0.7, paddingHorizontal: 20, paddingTop: 20, paddingBottom: 6 }}>
                     {group}
                   </Text>
                 </MotiView>

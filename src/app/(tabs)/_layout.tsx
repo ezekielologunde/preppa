@@ -1,5 +1,5 @@
 import { Tabs, useRouter } from 'expo-router';
-import { ChefHat, CircleUser, Compass, House, MonitorPlay, Ticket } from 'lucide-react-native';
+import { ChefHat, CircleUser, Compass, House, ShoppingBag } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import type React from 'react';
 import { Text, useWindowDimensions, View } from 'react-native';
@@ -24,11 +24,10 @@ type TabDef = {
 };
 
 const BASE_TABS: TabDef[] = [
-  { name: 'index',       label: 'Home',        Icon: House },
-  { name: 'explore',     label: 'Explore',     Icon: Compass },
-  { name: 'feeds',       label: 'Feed',        Icon: MonitorPlay },
-  { name: 'experiences', label: 'Experiences', Icon: Ticket },
-  { name: 'profile',     label: 'Profile',     Icon: CircleUser },
+  { name: 'index',   label: 'Home',    Icon: House },
+  { name: 'explore', label: 'Explore', Icon: Compass },
+  { name: 'orders',  label: 'Orders',  Icon: ShoppingBag },
+  { name: 'profile', label: 'Profile', Icon: CircleUser },
 ];
 
 type TabBarProps = {
@@ -78,7 +77,6 @@ function PreppaTabBar({ state, navigation }: TabBarProps) {
   useConversationsRealtime(user?.id);
   useOrdersRealtime('customer_id', user?.id);
   const { data: notifications } = useNotifications(user?.id);
-  const unreadBids = (notifications ?? []).filter((n) => !n.read && n.type === 'bid').length;
   const unreadNotifs = (notifications ?? []).filter((n) => !n.read).length;
   const { data: conversations } = useConversations(user?.id);
   const unreadMessages = (conversations ?? []).filter((c) => c.unread).length;
@@ -89,10 +87,10 @@ function PreppaTabBar({ state, navigation }: TabBarProps) {
 
   const compact = width < 360;
 
-  // Approved preppers see "My Hub" in the feeds slot — launcher for the kitchen dashboard.
+  // Approved preppers see "My Hub" in the orders slot — launcher for the kitchen dashboard.
   const tabs: TabDef[] = BASE_TABS.map((tab) =>
-    tab.name === 'feeds' && isPrepper
-      ? { name: 'feeds', label: 'My Hub', Icon: ChefHat }
+    tab.name === 'orders' && isPrepper
+      ? { name: 'orders', label: 'My Hub', Icon: ChefHat }
       : tab,
   );
 
@@ -107,7 +105,7 @@ function PreppaTabBar({ state, navigation }: TabBarProps) {
       paddingBottom: Math.max(insets.bottom + 4, 12),
     }}>
       {tabs.map((tab) => {
-        const isHubTab = tab.name === 'feeds' && isPrepper;
+        const isHubTab = tab.name === 'orders' && isPrepper;
         const routeIndex = state.routes.findIndex((r) => r.name === tab.name);
         const focused = routeIndex >= 0 && state.index === routeIndex;
 
@@ -155,19 +153,6 @@ function PreppaTabBar({ state, navigation }: TabBarProps) {
                     </Text>
                   </View>
                 ) : null}
-                {tab.name === 'experiences' && unreadBids > 0 ? (
-                  <View style={{
-                    position: 'absolute', top: -4, right: -8,
-                    minWidth: 16, height: 16, borderRadius: 8,
-                    backgroundColor: Palette.brand, paddingHorizontal: 3,
-                    alignItems: 'center', justifyContent: 'center',
-                    borderWidth: 1.5, borderColor: Palette.surface,
-                  }}>
-                    <Text style={{ fontFamily: Font.semibold, fontSize: 9.5, color: '#fff', lineHeight: 13 }}>
-                      {unreadBids > 9 ? '9+' : unreadBids}
-                    </Text>
-                  </View>
-                ) : null}
                 {tab.name === 'profile' && profileBadge > 0 ? (
                   <View style={{
                     position: 'absolute', top: -4, right: -8,
@@ -202,8 +187,7 @@ export default function TabLayout() {
         screenOptions={{ headerShown: false }}>
         <Tabs.Screen name="index" />
         <Tabs.Screen name="explore" />
-        <Tabs.Screen name="feeds" />
-        <Tabs.Screen name="experiences" />
+        <Tabs.Screen name="orders" />
         <Tabs.Screen name="profile" />
       </Tabs>
       <PrepperWelcomeOverlay userId={user?.id} />

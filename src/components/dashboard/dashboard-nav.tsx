@@ -1,6 +1,6 @@
 import { usePathname, useRouter } from 'expo-router';
 import { MotiView } from 'moti';
-import { Briefcase, ChefHat, Crown, Gift, Home, MessageSquare, Plus, ShoppingBag, TrendingUp, User, Video, type LucideIcon } from 'lucide-react-native';
+import { Activity, ChefHat, Crown, Home, MessageSquare, Plus, ShoppingBag, TrendingUp, User, type LucideIcon } from 'lucide-react-native';
 import { View, Text } from 'react-native';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
@@ -8,9 +8,6 @@ import { Palette, Shadow } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
 
 const ORANGE = Palette.brand;
-// TODO: Move to Palette as Palette.liveStream and Palette.drop when confirmed in brand guide
-const PINK = '#f472b6';
-const PURPLE = '#a78bfa';
 const CARD = Palette.surface;
 
 export function ActionItem({ Icon, label, color, onPress }: { Icon: LucideIcon; label: string; color: string; onPress?: () => void }) {
@@ -23,7 +20,7 @@ export function ActionItem({ Icon, label, color, onPress }: { Icon: LucideIcon; 
       <View style={{ width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center' }}>
         <Icon size={18} color={color} />
       </View>
-      <Text style={{ fontFamily: Font.medium, fontSize: 10, color: Palette.textMuted }} numberOfLines={1}>{label}</Text>
+      <Text style={{ fontFamily: Font.medium, fontSize: 10, color: Palette.textSecondary }} numberOfLines={1}>{label}</Text>
     </PressableScale>
   );
 }
@@ -55,10 +52,9 @@ export interface DashboardFloatingBarProps {
   newCount: number;
   bottomInset: number;
   router: ReturnType<typeof useRouter>;
-  onGoLive: () => void;
 }
 
-export function DashboardFloatingBar({ isPro, isDesktop, newCount, bottomInset, router, onGoLive }: DashboardFloatingBarProps) {
+export function DashboardFloatingBar({ isPro, isDesktop, newCount, bottomInset, router }: DashboardFloatingBarProps) {
   const pathname = usePathname();
   const isActive = (href: string) => pathname.startsWith(href);
 
@@ -74,17 +70,14 @@ export function DashboardFloatingBar({ isPro, isDesktop, newCount, bottomInset, 
         ]}
       >
         <ActionItem Icon={TrendingUp} label="earnings" color={Palette.inkSoft} onPress={() => router.push('/earnings')} />
-        {isPro
-          ? <ActionItem Icon={Video} label="go live" color={PINK} onPress={onGoLive} />
-          : <ActionItem Icon={Crown} label="go pro" color={ORANGE} onPress={() => router.push('/prepper-premium')} />
-        }
         <PressableScale accessibilityRole="button" accessibilityLabel="Add new meal" onPress={() => { feedback.tap(); router.push('/meal-editor'); }}>
           <View style={{ width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center', marginTop: -26, backgroundColor: ORANGE, ...Shadow.floating, shadowColor: ORANGE, shadowOpacity: 0.45 }}>
             <Plus size={28} color="#fff" />
           </View>
         </PressableScale>
-        <ActionItem Icon={Gift} label="new drop" color={PURPLE} onPress={() => router.push('/meal-editor?drop=1')} />
-        <ActionItem Icon={Briefcase} label="opportunity" color={ORANGE} onPress={() => router.push('/opportunities')} />
+        {isPro
+          ? <ActionItem Icon={Activity} label="analytics" color={Palette.success} onPress={() => router.push('/prepper-analytics')} />
+          : <ActionItem Icon={Crown} label="go pro" color={ORANGE} onPress={() => router.push('/prepper-premium')} />}
       </MotiView>
 
       {!isDesktop && (

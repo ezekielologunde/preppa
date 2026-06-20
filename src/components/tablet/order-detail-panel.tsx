@@ -1,9 +1,3 @@
-/**
- * Tablet inline order detail panel.
- * Shown as the right column in the prepper-orders master-detail split
- * when an order is selected on tablet (width >= 600px).
- * Displays a simplified version of the full order detail screen.
- */
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import {
@@ -11,26 +5,30 @@ import {
   ChevronRight,
   MessageSquare,
   QrCode,
-  RotateCcw,
   ShoppingBag,
   UtensilsCrossed,
   X,
 } from 'lucide-react-native';
-import { StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
-import { Palette, Radius, Shadow } from '@/constants/theme';
+import { Palette, Radius } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
 import type { OrderSummary } from '@/lib/queries/orders';
 import type { FulfillmentType, OrderStatus } from '@/types/database.types';
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
-const ORANGE = Palette.brand;
-const GREEN = Palette.success;
-const CARD = Palette.prepperCard;
-const money = (n: number) => `$${n.toFixed(2)}`;
+const ORANGE  = Palette.brand;
+const GREEN   = Palette.success;
+const CARD    = '#FFFFFF';
+const INK     = '#1A1714';
+const SUB     = '#78716C';
+const BORDER  = '#EDE9E4';
+const money   = (n: number) => `$${n.toFixed(2)}`;
+
+const S1 = { shadowColor: '#1A1714', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 };
 
 const FULFILLMENT_LABEL: Record<FulfillmentType, string> = {
   pickup: 'Pickup', delivery: 'Delivery', meetup: 'Meet-up', home_cook: 'Home cook',
@@ -45,7 +43,7 @@ const STATUS_LABEL: Record<OrderStatus, string> = {
 };
 const STATUS_COLOR: Partial<Record<OrderStatus, string>> = {
   pending: ORANGE, confirmed: '#06b6d4', preparing: '#a78bfa',
-  ready: GREEN, out_for_delivery: '#22c55e', completed: GREEN, cancelled: '#5b6170',
+  ready: GREEN, out_for_delivery: '#22c55e', completed: GREEN, cancelled: SUB,
 };
 
 const NEXT: Partial<Record<OrderStatus, { next: OrderStatus; cta: string }>> = {
@@ -72,7 +70,7 @@ export type OrderDetailPanelProps = {
 export function OrderDetailPanel({ order, advancePending, onAdvance, onCancel, onVerify, onChat }: OrderDetailPanelProps) {
   const router = useRouter();
   const step = NEXT[order.status];
-  const statusColor = STATUS_COLOR[order.status] ?? '#5b6170';
+  const statusColor = STATUS_COLOR[order.status] ?? SUB;
   const isActive = ['pending', 'confirmed', 'preparing', 'ready', 'out_for_delivery'].includes(order.status);
   const isPickup = order.fulfillment === 'pickup' || order.fulfillment === 'meetup' || order.fulfillment === 'home_cook';
   const canVerify = isPickup && (order.status === 'ready' || order.status === 'out_for_delivery');
@@ -86,7 +84,7 @@ export function OrderDetailPanel({ order, advancePending, onAdvance, onCancel, o
             <Image source={order.items[0].image} style={styles.mealImg} contentFit="cover" accessibilityLabel={order.items[0].title} />
           ) : (
             <View style={[styles.mealImg, styles.mealImgFallback]}>
-              <UtensilsCrossed size={22} color="#5b6170" />
+              <UtensilsCrossed size={22} color={SUB} />
             </View>
           )}
           <View style={styles.headerInfo}>
@@ -95,20 +93,20 @@ export function OrderDetailPanel({ order, advancePending, onAdvance, onCancel, o
               #{order.id.slice(-8).toUpperCase()} · {FULFILLMENT_LABEL[order.fulfillment]}
             </Text>
           </View>
-          <View style={[styles.statusBadge, { backgroundColor: statusColor + '22' }]}>
+          <View style={[styles.statusBadge, { backgroundColor: statusColor + '18' }]}>
             <Text style={[styles.statusLabel, { color: statusColor }]}>{STATUS_LABEL[order.status]}</Text>
           </View>
         </View>
 
         {/* Meta chips */}
         <View style={styles.metaRow}>
-          <View style={[styles.chip, { backgroundColor: order.paymentStatus === 'succeeded' ? GREEN + '24' : '#252a34' }]}>
+          <View style={[styles.chip, { backgroundColor: order.paymentStatus === 'succeeded' ? GREEN + '18' : '#F0EDEA' }]}>
             {order.paymentStatus === 'succeeded' ? <Check size={11} color={GREEN} strokeWidth={2.5} /> : null}
-            <Text style={[styles.chipText, { color: order.paymentStatus === 'succeeded' ? GREEN : '#5b6170' }]}>
+            <Text style={[styles.chipText, { color: order.paymentStatus === 'succeeded' ? GREEN : SUB }]}>
               {order.paymentStatus === 'succeeded' ? 'paid' : 'unpaid'}
             </Text>
           </View>
-          <View style={[styles.chip, { backgroundColor: FULFILLMENT_COLOR[order.fulfillment] + '22' }]}>
+          <View style={[styles.chip, { backgroundColor: FULFILLMENT_COLOR[order.fulfillment] + '18' }]}>
             <Text style={[styles.chipText, { color: FULFILLMENT_COLOR[order.fulfillment] }]}>
               {FULFILLMENT_LABEL[order.fulfillment]}
             </Text>
@@ -128,7 +126,7 @@ export function OrderDetailPanel({ order, advancePending, onAdvance, onCancel, o
               <Image source={it.image} style={styles.itemImg} contentFit="cover" accessibilityLabel={it.title} />
             ) : (
               <View style={[styles.itemImg, styles.itemImgFallback]}>
-                <ShoppingBag size={14} color="#5b6170" />
+                <ShoppingBag size={14} color={SUB} />
               </View>
             )}
             <View style={styles.itemInfo}>
@@ -159,7 +157,9 @@ export function OrderDetailPanel({ order, advancePending, onAdvance, onCancel, o
             accessibilityRole="button"
             accessibilityLabel={step.cta}
             style={[styles.advanceBtn, advancePending && { opacity: 0.7 }]}>
-            <Text style={styles.advanceBtnLabel}>{step.cta}</Text>
+            {advancePending
+              ? <ActivityIndicator color="#fff" />
+              : <Text style={styles.advanceBtnLabel}>{step.cta}</Text>}
           </PressableScale>
         ) : null}
 
@@ -174,24 +174,23 @@ export function OrderDetailPanel({ order, advancePending, onAdvance, onCancel, o
         {isActive && onChat ? (
           <PressableScale onPress={() => { feedback.tap(); onChat(); }} accessibilityRole="button" accessibilityLabel="Message customer"
             style={styles.secondaryBtn}>
-            <MessageSquare size={16} color="#5b6170" />
-            <Text style={[styles.secondaryBtnLabel, { color: '#5b6170' }]}>Message customer</Text>
+            <MessageSquare size={16} color={SUB} />
+            <Text style={[styles.secondaryBtnLabel, { color: SUB }]}>Message customer</Text>
           </PressableScale>
         ) : null}
 
         {order.status === 'completed' ? (
           <PressableScale onPress={() => { feedback.tap(); router.push({ pathname: '/orders/[id]', params: { id: order.id } }); }} accessibilityRole="button" accessibilityLabel="View full order details"
             style={styles.ghostBtn}>
-            <RotateCcw size={15} color="#5b6170" />
             <Text style={styles.ghostBtnLabel}>Full details</Text>
-            <ChevronRight size={14} color="#5b6170" />
+            <ChevronRight size={14} color={SUB} />
           </PressableScale>
         ) : null}
 
         {(order.status === 'pending' || order.status === 'confirmed') ? (
           <PressableScale onPress={() => { feedback.warning(); onCancel(); }} accessibilityRole="button" accessibilityLabel="Decline preorder"
             style={styles.cancelBtn}>
-            <X size={15} color="#fca5a5" />
+            <X size={15} color={Palette.danger} />
             <Text style={styles.cancelBtnLabel}>Decline preorder</Text>
           </PressableScale>
         ) : null}
@@ -209,7 +208,7 @@ const styles = StyleSheet.create({
     borderRadius: Radius.md,
     padding: 20,
     gap: 14,
-    ...Shadow.card,
+    ...S1,
   },
   header: {
     gap: 10,
@@ -225,7 +224,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
   },
   mealImgFallback: {
-    backgroundColor: '#1d2129',
+    backgroundColor: '#F0EDEA',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -236,12 +235,12 @@ const styles = StyleSheet.create({
   customerName: {
     fontFamily: Font.heading,
     fontSize: 16,
-    color: '#fff',
+    color: INK,
   },
   orderRef: {
     fontFamily: Font.body,
     fontSize: 12,
-    color: Palette.textMuted,
+    color: SUB,
   },
   statusBadge: {
     paddingHorizontal: 10,
@@ -274,17 +273,17 @@ const styles = StyleSheet.create({
   totalText: {
     fontFamily: Font.display,
     fontSize: 18,
-    color: '#fff',
+    color: INK,
     marginLeft: 'auto',
   },
   divider: {
     height: 1,
-    backgroundColor: '#252a34',
+    backgroundColor: BORDER,
   },
   sectionLabel: {
     fontFamily: Font.semibold,
     fontSize: 11,
-    color: Palette.textMuted,
+    color: SUB,
     textTransform: 'uppercase',
     letterSpacing: 0.8,
   },
@@ -303,7 +302,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   itemImgFallback: {
-    backgroundColor: '#1d2129',
+    backgroundColor: '#F0EDEA',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -314,17 +313,17 @@ const styles = StyleSheet.create({
   itemTitle: {
     fontFamily: Font.semibold,
     fontSize: 13,
-    color: '#fff',
+    color: INK,
   },
   itemQty: {
     fontFamily: Font.body,
     fontSize: 12,
-    color: Palette.textMuted,
+    color: SUB,
   },
   itemTotal: {
     fontFamily: Font.medium,
     fontSize: 13,
-    color: '#fff',
+    color: INK,
   },
   receiptRow: {
     flexDirection: 'row',
@@ -334,12 +333,12 @@ const styles = StyleSheet.create({
   receiptLabel: {
     fontFamily: Font.semibold,
     fontSize: 14,
-    color: '#fff',
+    color: INK,
   },
   receiptTotal: {
     fontFamily: Font.display,
     fontSize: 20,
-    color: '#fff',
+    color: ORANGE,
   },
   actions: {
     gap: 10,
@@ -360,7 +359,7 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: Radius.sm,
     borderWidth: 1,
-    borderColor: '#3f4451',
+    borderColor: BORDER,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -379,18 +378,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    backgroundColor: '#1d2129',
+    backgroundColor: '#F0EDEA',
   },
   ghostBtnLabel: {
     fontFamily: Font.medium,
     fontSize: 13,
-    color: '#5b6170',
+    color: SUB,
   },
   cancelBtn: {
     height: 44,
     borderRadius: Radius.sm,
     borderWidth: 1,
-    borderColor: '#7f1d1d',
+    borderColor: Palette.danger + '40',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -400,6 +399,6 @@ const styles = StyleSheet.create({
   cancelBtnLabel: {
     fontFamily: Font.semibold,
     fontSize: 13.5,
-    color: '#fca5a5',
+    color: Palette.danger,
   },
 });

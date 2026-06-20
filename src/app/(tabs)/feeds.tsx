@@ -1,3 +1,4 @@
+import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { MonitorPlay } from 'lucide-react-native';
 import { MotiView } from 'moti';
@@ -23,10 +24,53 @@ import { Palette, Radius } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
 import { BP } from '@/lib/layout';
 import { useFeed, useFollowingFeed, useLiveFeedItems, type FeedItem } from '@/lib/queries/feed';
+import { useActiveLiveSessions, type LiveSessionCard } from '@/lib/queries/live-sessions';
 import { useMyFollowIds, useMyPrepperApplication } from '@/lib/queries/preppers';
 import { useAuth } from '@/providers/auth-provider';
 
 const ORANGE = Palette.brand;
+const RED = '#EF4444';
+
+// ─── LiveNowStrip ─────────────────────────────────────────────────────────────
+
+function LiveNowStrip({ sessions }: { sessions: LiveSessionCard[] }) {
+  const router = useRouter();
+  if (!sessions.length) return null;
+  return (
+    <View style={{ position: 'absolute', top: 54, left: 0, right: 60, zIndex: 20 }} pointerEvents="box-none">
+      <ScrollView horizontal showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ paddingHorizontal: 14, gap: 10, paddingVertical: 4 }}
+        pointerEvents="box-only">
+        {sessions.map((s) => (
+          <PressableScale key={s.id}
+            onPress={() => { feedback.tap(); router.push(`/watch-live?prepperId=${s.prepperId}` as never); }}
+            accessibilityRole="button"
+            accessibilityLabel={`Watch ${s.prepperName} live`}
+            style={{ alignItems: 'center', gap: 3 }}>
+            <MotiView
+              from={{ borderColor: RED }}
+              animate={{ borderColor: 'rgba(239,68,68,0.35)' }}
+              transition={{ type: 'timing', duration: 900, loop: true, repeatReverse: true }}
+              style={{ width: 40, height: 40, borderRadius: 20, borderWidth: 2, overflow: 'visible', alignItems: 'center', justifyContent: 'center' }}>
+              <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: '#222', overflow: 'hidden' }}>
+                {s.avatarUrl
+                  ? <Image source={s.avatarUrl} style={{ flex: 1 }} contentFit="cover" />
+                  : <View style={{ flex: 1, backgroundColor: '#444', alignItems: 'center', justifyContent: 'center' }}>
+                      <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: '#fff' }}>
+                        {s.prepperName.charAt(0).toUpperCase()}
+                      </Text>
+                    </View>}
+              </View>
+            </MotiView>
+            <View style={{ backgroundColor: RED, borderRadius: 4, paddingHorizontal: 4, paddingVertical: 1 }}>
+              <Text style={{ fontFamily: Font.semibold, fontSize: 8.5, color: '#fff', letterSpacing: 0.5 }}>LIVE</Text>
+            </View>
+          </PressableScale>
+        ))}
+      </ScrollView>
+    </View>
+  );
+}
 
 // ─── Feed stream: real items + interleaved promo cards ───────────────────────
 
@@ -75,6 +119,7 @@ export default function FeedsScreen() {
 
   const [tab, setTab] = useState<'following' | 'explore'>('following');
   const { data: liveItems = [] } = useLiveFeedItems();
+  const { data: liveSessions = [] } = useActiveLiveSessions();
   const {
     data: exploreData,
     isLoading: exploreLoading,
@@ -95,7 +140,6 @@ export default function FeedsScreen() {
   const promoSeq = useMemo((): PromoKind[] => [
     'meal_plans',
     ...(hasActiveOrder ? ['order_tracking' as const] : []),
-    'post_request',
     'become_prepper',
     'dietary_profile',
   ], [hasActiveOrder]);
@@ -210,6 +254,7 @@ export default function FeedsScreen() {
         {/* Constrained feed column — TikTok-style vertical scroll */}
         <View style={{ width: 480, alignSelf: 'stretch' }} onLayout={e => setCardHeight(e.nativeEvent.layout.height)}>
           <FeedTabs tab={tab} onTab={(t) => { setTab(t); setPage(0); }} />
+          <LiveNowStrip sessions={liveSessions} />
           <ScrollView
             pagingEnabled
             showsVerticalScrollIndicator={false}
@@ -252,12 +297,19 @@ export default function FeedsScreen() {
               </View>
               {!currentItem.isPost ? (
                 <PressableScale
-                  onPress={() => { feedback.tap(); router.push(`/meal?id=${currentItem.id}`); }}
+                  onPress={() => {
+                    feedback.tap();
+                    if (currentItem.isLive && currentItem.prepper_id) {
+                      router.push(`/watch-live?prepperId=${currentItem.prepper_id}` as never);
+                    } else {
+                      router.push(`/meal?id=${currentItem.id}`);
+                    }
+                  }}
                   accessibilityRole="button"
-                  accessibilityLabel={`Order ${currentItem.title}`}
-                  style={{ height: 52, borderRadius: Radius.pill, backgroundColor: Palette.brand, alignItems: 'center', justifyContent: 'center' }}>
+                  accessibilityLabel={currentItem.isLive ? `Watch ${currentItem.prepper} live` : `Order ${currentItem.title}`}
+                  style={{ height: 52, borderRadius: Radius.pill, backgroundColor: currentItem.isLive ? RED : Palette.brand, alignItems: 'center', justifyContent: 'center' }}>
                   <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>
-                    Order now · ${currentItem.price.toFixed(2)}
+                    {currentItem.isLive ? '● Watch Live' : `Order now · $${currentItem.price.toFixed(2)}`}
                   </Text>
                 </PressableScale>
               ) : (
@@ -311,6 +363,7 @@ export default function FeedsScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: '#000' }} onLayout={e => setCardHeight(e.nativeEvent.layout.height)}>
       <FeedTabs tab={tab} onTab={(t) => { setTab(t); setPage(0); }} />
+      <LiveNowStrip sessions={liveSessions} />
       <ScrollView
         pagingEnabled
         showsVerticalScrollIndicator={false}

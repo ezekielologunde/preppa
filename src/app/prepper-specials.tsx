@@ -22,12 +22,13 @@ import { useAuth } from '@/providers/auth-provider';
 
 const ORANGE = Palette.brand;
 const BG = Palette.canvas;
+const S1 = { shadowColor: '#1A1714', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 };
 
 const DISCOUNTS = ['10%', '15%', '20%', 'Custom'];
 const WINDOWS = [
-  { label: 'Breakfast', sub: '7–10 am', icon: '☀️' },
-  { label: 'Lunch', sub: '12–2 pm', icon: '🌤️' },
-  { label: 'Dinner', sub: '6–9 pm', icon: '🌙' },
+  { label: 'Breakfast', sub: '7–10 am' },
+  { label: 'Lunch', sub: '12–2 pm' },
+  { label: 'Dinner', sub: '6–9 pm' },
 ];
 
 export default function PrepperSpecialsScreen() {
@@ -112,7 +113,7 @@ export default function PrepperSpecialsScreen() {
 
           {/* Form card */}
           <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 60 }}>
-            <View style={{ backgroundColor: Palette.surface, borderRadius: 20, padding: 16, gap: 18 }}>
+            <View style={{ backgroundColor: Palette.surface, borderRadius: 20, padding: 16, gap: 18, ...S1 }}>
 
               {/* Dish name */}
               <View>
@@ -121,7 +122,7 @@ export default function PrepperSpecialsScreen() {
                   value={dishName}
                   onChangeText={setDishName}
                   placeholder="e.g. Jollof Rice, Pepper Chicken…"
-                  placeholderTextColor={Palette.textMuted}
+                  placeholderTextColor={Palette.textSecondary}
                   maxLength={80}
                   returnKeyType="next"
                   accessibilityLabel="Dish name"
@@ -153,7 +154,7 @@ export default function PrepperSpecialsScreen() {
                       value={customDiscount}
                       onChangeText={(v) => setCustomDiscount(v.replace(/[^0-9]/g, '').slice(0, 2))}
                       placeholder="25"
-                      placeholderTextColor={Palette.textMuted}
+                      placeholderTextColor={Palette.textSecondary}
                       keyboardType="number-pad"
                       maxLength={2}
                       style={{ fontFamily: Font.body, fontSize: 15, color: Palette.ink, backgroundColor: Palette.canvas, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10, borderWidth: 1, borderColor: Palette.border, width: 80 }}
@@ -170,15 +171,14 @@ export default function PrepperSpecialsScreen() {
                   <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: Palette.inkSoft }}>time window</Text>
                 </View>
                 <View style={{ flexDirection: 'row', gap: 8 }}>
-                  {WINDOWS.map(({ label, sub, icon }) => {
+                  {WINDOWS.map(({ label, sub }) => {
                     const on = window === label;
                     return (
                       <PressableScale key={label} onPress={() => { feedback.tap(); setWindow(label); }}
                         accessibilityRole="radio" accessibilityState={{ selected: on }}
                         style={{ flex: 1, paddingVertical: 10, borderRadius: 14, backgroundColor: on ? ORANGE + '14' : Palette.canvas, borderWidth: 1.5, borderColor: on ? ORANGE : Palette.border, alignItems: 'center', gap: 2 }}>
-                        <Text style={{ fontSize: 18 }}>{icon}</Text>
                         <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: on ? ORANGE : Palette.ink }}>{label}</Text>
-                        <Text style={{ fontFamily: Font.body, fontSize: 11, color: Palette.textMuted }}>{sub}</Text>
+                        <Text style={{ fontFamily: Font.body, fontSize: 11, color: Palette.textSecondary }}>{sub}</Text>
                       </PressableScale>
                     );
                   })}
@@ -192,13 +192,13 @@ export default function PrepperSpecialsScreen() {
                   value={note}
                   onChangeText={(v) => setNote(v.slice(0, 120))}
                   placeholder="What makes it special? Fresh-caught, family recipe…"
-                  placeholderTextColor={Palette.textMuted}
+                  placeholderTextColor={Palette.textSecondary}
                   multiline
                   numberOfLines={2}
                   maxLength={120}
                   style={{ fontFamily: Font.body, fontSize: 14, color: Palette.ink, backgroundColor: Palette.canvas, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, borderWidth: 1, borderColor: Palette.border, minHeight: 72, textAlignVertical: 'top' }}
                 />
-                <Text style={{ fontFamily: Font.body, fontSize: 11, color: Palette.textMuted, textAlign: 'right', marginTop: 3 }}>{note.length}/120</Text>
+                <Text style={{ fontFamily: Font.body, fontSize: 11, color: Palette.textSecondary, textAlign: 'right', marginTop: 3 }}>{note.length}/120</Text>
               </View>
             </View>
           </MotiView>
@@ -206,7 +206,7 @@ export default function PrepperSpecialsScreen() {
           {/* Preview */}
           {dishName.trim() && effectiveDiscount ? (
             <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'spring', damping: 18, stiffness: 240 }}>
-              <View style={{ backgroundColor: Palette.surface, borderRadius: 16, padding: 14, borderWidth: 1.5, borderColor: ORANGE + '40' }}>
+              <View style={{ backgroundColor: Palette.surface, borderRadius: 16, padding: 14, borderWidth: 1.5, borderColor: ORANGE + '40', ...S1 }}>
                 <Text style={{ fontFamily: Font.medium, fontSize: 11, color: ORANGE, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 4 }}>preview</Text>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                   <View style={{ backgroundColor: ORANGE, borderRadius: Radius.pill, paddingHorizontal: 10, paddingVertical: 4 }}>
@@ -215,7 +215,7 @@ export default function PrepperSpecialsScreen() {
                   <Text style={{ fontFamily: Font.heading, fontSize: 14, color: Palette.ink, flex: 1 }}>{dishName.trim()}</Text>
                 </View>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 6 }}>
-                  <Clock size={12} color={Palette.textMuted} />
+                  <Clock size={12} color={Palette.textSecondary} />
                   <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary }}>
                     {WINDOWS.find((w) => w.label === window)?.label} · {WINDOWS.find((w) => w.label === window)?.sub}
                   </Text>

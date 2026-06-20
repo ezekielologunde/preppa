@@ -1,7 +1,7 @@
 import { useRouter } from 'expo-router';
 import { ChevronLeft, Clock } from 'lucide-react-native';
 import { useState } from 'react';
-import { Alert, FlatList, Modal, ScrollView, Switch, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, FlatList, Modal, Pressable, ScrollView, Switch, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PressableScale } from '@/components/ui/pressable-scale';
@@ -14,6 +14,7 @@ import {
   DAY_LABELS,
   DEFAULT_SCHEDULE,
   genTimes,
+  parseTimeToMinutes,
   useCookSchedule,
   useSaveCookSchedule,
   type CookSchedule,
@@ -22,14 +23,15 @@ import {
 } from '@/lib/queries/schedule';
 import { useAuth } from '@/providers/auth-provider';
 
-const BG = Palette.prepperBg;
-const CARD = Palette.prepperCard;
-const INK = '#FFFFFF';
-const MUTED = '#6B7280';
-const TEXT2 = '#9CA3AF';
-const BORDER = '#1E2330';
+const BG     = '#F8F6F3';
+const CARD   = '#FFFFFF';
+const INK    = '#1A1714';
+const MUTED  = '#78716C';
+const BORDER = '#EDE9E4';
+const S1     = { shadowColor: '#1A1714', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 };
 
 const TIMES = genTimes();
+const TZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
 // ── Time picker modal ──────────────────────────────────────────────────────────
 
@@ -44,8 +46,8 @@ type TimePickerProps = {
 function TimePicker({ visible, selected, title, onSelect, onClose }: TimePickerProps) {
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <TouchableOpacity activeOpacity={1} onPress={onClose} style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.6)' }}>
-        <TouchableOpacity activeOpacity={1} onPress={() => {}}>
+      <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="Dismiss" style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.6)' }}>
+        <Pressable onPress={(e) => e.stopPropagation()} accessible={false}>
           <SafeAreaView edges={['bottom']} style={{ backgroundColor: CARD, borderTopLeftRadius: 24, borderTopRightRadius: 24 }}>
             <View style={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 12, flexDirection: 'row', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: BORDER }}>
               <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK, flex: 1 }}>{title}</Text>
@@ -81,8 +83,8 @@ function TimePicker({ visible, selected, title, onSelect, onClose }: TimePickerP
               }}
             />
           </SafeAreaView>
-        </TouchableOpacity>
-      </TouchableOpacity>
+        </Pressable>
+      </Pressable>
     </Modal>
   );
 }
@@ -154,13 +156,40 @@ export default function PrepperScheduleScreen() {
   type PickerTarget = { day: Day; field: 'from' | 'to' } | null;
   const [picker, setPicker] = useState<PickerTarget>(null);
 
+  // Bulk apply state — separate from per-day picker
+  const [bulkFrom, setBulkFrom] = useState('10:00 AM');
+  const [bulkTo, setBulkTo]     = useState('6:00 PM');
+  const [bulkPicker, setBulkPicker] = useState<'from' | 'to' | null>(null);
+
   function toggleDay(day: Day) {
     feedback.tap();
     setSchedule({ ...effective, [day]: { ...effective[day], open: !effective[day].open } });
   }
 
   function setTime(day: Day, field: 'from' | 'to', value: string) {
+    const slot = effective[day];
+    const fromMins = field === 'from' ? parseTimeToMinutes(value) : parseTimeToMinutes(slot.from);
+    const toMins   = field === 'to'   ? parseTimeToMinutes(value) : parseTimeToMinutes(slot.to);
+    if (toMins <= fromMins) {
+      Alert.alert('Invalid range', 'Closing time must be after opening time.');
+      return;
+    }
     setSchedule({ ...effective, [day]: { ...effective[day], [field]: value } });
+  }
+
+  function applyBulkHours() {
+    if (parseTimeToMinutes(bulkTo) <= parseTimeToMinutes(bulkFrom)) {
+      Alert.alert('Invalid range', 'Closing time must be after opening time.');
+      return;
+    }
+    const updated = { ...effective };
+    for (const d of DAYS) {
+      if (effective[d]?.open) {
+        updated[d] = { ...effective[d], from: bulkFrom, to: bulkTo };
+      }
+    }
+    feedback.success();
+    setSchedule(updated);
   }
 
   async function handleSave() {
@@ -179,7 +208,7 @@ export default function PrepperScheduleScreen() {
 
   function goBack() {
     feedback.tap();
-    if (router.canGoBack()) { router.back(); } else { router.replace('/prepper-hub'); }
+    if (router.canGoBack()) { router.back(); } else { router.replace('/dashboard'); }
   }
 
   const pickerSlot = picker ? effective[picker.day] : null;
@@ -203,13 +232,13 @@ export default function PrepperScheduleScreen() {
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
           {/* Subheading */}
           <View style={{ paddingHorizontal: 20, paddingBottom: 16 }}>
-            <Text style={{ fontFamily: Font.body, fontSize: 14, color: TEXT2, lineHeight: 21 }}>
+            <Text style={{ fontFamily: Font.body, fontSize: 14, color: MUTED, lineHeight: 21 }}>
               Set the days and hours you're available to cook. Customers see this on your kitchen page.
             </Text>
           </View>
 
           {/* Day rows */}
-          <View style={{ backgroundColor: CARD, borderRadius: Radius.lg, marginHorizontal: 16, overflow: 'hidden' }}>
+          <View style={{ backgroundColor: CARD, borderRadius: Radius.lg, marginHorizontal: 16, overflow: 'hidden', ...S1 }}>
             {DAYS.map((day) => (
               <DayRow
                 key={day}
@@ -220,6 +249,36 @@ export default function PrepperScheduleScreen() {
                 onPickTo={() => { feedback.tap(); setPicker({ day, field: 'to' }); }}
               />
             ))}
+          </View>
+
+          {/* Timezone note */}
+          <Text style={{ fontFamily: Font.body, fontSize: 12, color: MUTED, marginTop: 8, marginHorizontal: 20 }}>
+            Times shown in your local timezone: {TZ}
+          </Text>
+
+          {/* Bulk apply row */}
+          <View style={{ marginTop: 16, marginHorizontal: 16, backgroundColor: CARD, borderRadius: Radius.lg, padding: 14, gap: 10, ...S1 }}>
+            <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: MUTED }}>Apply same hours to all open days</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <PressableScale
+                onPress={() => { feedback.tap(); setBulkPicker('from'); }}
+                style={{ flex: 1, height: 36, borderRadius: Radius.sm, backgroundColor: Palette.brand + '18', borderWidth: 1, borderColor: Palette.brand + '40', alignItems: 'center', justifyContent: 'center' }}>
+                <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: Palette.brand }}>{bulkFrom}</Text>
+              </PressableScale>
+              <Text style={{ fontFamily: Font.body, fontSize: 13, color: MUTED }}>—</Text>
+              <PressableScale
+                onPress={() => { feedback.tap(); setBulkPicker('to'); }}
+                style={{ flex: 1, height: 36, borderRadius: Radius.sm, backgroundColor: Palette.brand + '18', borderWidth: 1, borderColor: Palette.brand + '40', alignItems: 'center', justifyContent: 'center' }}>
+                <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: Palette.brand }}>{bulkTo}</Text>
+              </PressableScale>
+              <PressableScale
+                onPress={applyBulkHours}
+                accessibilityRole="button"
+                accessibilityLabel="Apply to all open days"
+                style={{ height: 36, paddingHorizontal: 14, borderRadius: Radius.sm, backgroundColor: Palette.brand, alignItems: 'center', justifyContent: 'center' }}>
+                <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: '#fff' }}>Apply</Text>
+              </PressableScale>
+            </View>
           </View>
 
           {/* Save button */}
@@ -252,7 +311,7 @@ export default function PrepperScheduleScreen() {
         </ScrollView>
       </SafeAreaView>
 
-      {/* Time picker modal */}
+      {/* Day time picker modal */}
       {picker && pickerSlot ? (
         <TimePicker
           visible
@@ -260,6 +319,17 @@ export default function PrepperScheduleScreen() {
           selected={picker.field === 'from' ? pickerSlot.from : pickerSlot.to}
           onSelect={(t) => { setTime(picker.day, picker.field, t); setPicker(null); }}
           onClose={() => setPicker(null)}
+        />
+      ) : null}
+
+      {/* Bulk time picker modal */}
+      {bulkPicker ? (
+        <TimePicker
+          visible
+          title={bulkPicker === 'from' ? 'All open days — opens at' : 'All open days — closes at'}
+          selected={bulkPicker === 'from' ? bulkFrom : bulkTo}
+          onSelect={(t) => { if (bulkPicker === 'from') setBulkFrom(t); else setBulkTo(t); setBulkPicker(null); }}
+          onClose={() => setBulkPicker(null)}
         />
       ) : null}
     </View>

@@ -364,7 +364,7 @@ export function useTodayOrders(prepperId?: string | null) {
       const todayStart = new Date();
       todayStart.setHours(0, 0, 0, 0);
 
-      const { data: orders } = await supabase
+      const { data: orders, error } = await supabase
         .from('orders')
         .select(`
           id, status, total, created_at,
@@ -374,6 +374,8 @@ export function useTodayOrders(prepperId?: string | null) {
         .eq('prepper_id', prepperId!)
         .gte('created_at', todayStart.toISOString())
         .order('created_at', { ascending: true });
+
+      if (error) throw error;
 
       const rows = (orders ?? []) as any[];
 

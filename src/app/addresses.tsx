@@ -353,7 +353,7 @@ export default function AddressesScreen() {
                 justifyContent: 'center',
                 marginBottom: Spacing.three,
               }}>
-              <MapPin size={36} color={Palette.textMuted} />
+              <MapPin size={36} color={Palette.textSecondary} />
             </View>
             <Text
               style={{

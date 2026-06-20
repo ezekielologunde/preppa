@@ -143,14 +143,14 @@ function FormField({
         }}>
         {label}
         {optional && (
-          <Text style={{ color: Palette.textMuted, fontFamily: Font.body }}> (optional)</Text>
+          <Text style={{ color: Palette.textSecondary, fontFamily: Font.body }}> (optional)</Text>
         )}
       </Text>
       <TextInput
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder ?? label}
-        placeholderTextColor={Palette.textMuted}
+        placeholderTextColor={Palette.textSecondary}
         autoCapitalize={autoCapitalize ?? 'sentences'}
         keyboardType={keyboardType ?? 'default'}
         maxLength={maxLength}
@@ -171,7 +171,7 @@ function FormField({
       {error ? (
         <FieldError msg={error} />
       ) : hint ? (
-        <Text style={{ fontFamily: Font.body, fontSize: Type.micro, color: Palette.textMuted, marginTop: 4 }}>{hint}</Text>
+        <Text style={{ fontFamily: Font.body, fontSize: Type.micro, color: Palette.textSecondary, marginTop: 4 }}>{hint}</Text>
       ) : null}
     </View>
   );

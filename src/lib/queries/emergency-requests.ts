@@ -31,6 +31,11 @@ export function useCreateEmergencyRequest() {
         cuisine: v.cuisine === 'anything' ? null : v.cuisine.trim().slice(0, 50),
       });
       if (error) throw error;
+
+      // Fire-and-forget: notify approved preppers (failure must not block the customer)
+      supabase.functions.invoke('notify-emergency-request', {
+        body: { urgencyLabel, cuisine: v.cuisine },
+      }).catch(() => {});
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['meal-requests'] }),
   });

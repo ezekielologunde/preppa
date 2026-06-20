@@ -1,4 +1,4 @@
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { CalendarCheck, ChevronLeft, MapPin, ShoppingBag, Ticket, Users } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useState } from 'react';
@@ -49,7 +49,10 @@ export default function PrepperOrdersScreen() {
   const [actionErr, setActionErr] = useState<string | null>(null);
   const onErr = (e: unknown) => { feedback.error(); setActionErr(e instanceof Error ? e.message : 'Could not update the preorder. Try again.'); };
 
-  const [tab, setTab] = useState<'preorders' | 'homecook' | 'experiences'>('preorders');
+  const { tab: tabParam } = useLocalSearchParams<{ tab?: string }>();
+  const [tab, setTab] = useState<'preorders' | 'homecook' | 'experiences'>(
+    tabParam === 'homecook' || tabParam === 'experiences' ? tabParam : 'preorders',
+  );
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [orderFilter, setOrderFilter] = useState<'active' | 'history'>('active');
 
@@ -120,8 +123,6 @@ export default function PrepperOrdersScreen() {
   // Tablet master-detail
   const [selectedOrder, setSelectedOrder] = useState<OrderSummary | null>(null);
 
-  const totalOrderCount = allOrders.length;
-
   return (
     <View style={{ flex: 1, backgroundColor: BG }}>
       <SafeAreaView edges={['top']} style={{ flex: 1 }}>
@@ -132,28 +133,28 @@ export default function PrepperOrdersScreen() {
             onPress={() => { feedback.tap(); if (router.canGoBack()) { router.back(); } else { router.replace('/dashboard'); } }}
             accessibilityRole="button"
             accessibilityLabel="Go back"
-            style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center' }}>
-            <ChevronLeft size={22} color="#fff" />
+            style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center', shadowColor: '#1A1714', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 4, elevation: 2 }}>
+            <ChevronLeft size={22} color="#1A1714" />
           </PressableScale>
-          <Text style={{ fontFamily: Font.display, fontSize: 22, color: '#fff', letterSpacing: -0.6, flex: 1 }}>
+          <Text style={{ fontFamily: Font.display, fontSize: 22, color: '#1A1714', letterSpacing: -0.6, flex: 1 }}>
             {tab === 'homecook' ? 'home cook jobs' : tab === 'experiences' ? 'experience jobs' : 'kitchen orders'}
           </Text>
-          {tab === 'preorders' && totalOrderCount > 0 ? (
+          {tab === 'preorders' && activeOrders.length > 0 ? (
             <View style={{ paddingHorizontal: 10, height: 28, borderRadius: Radius.pill, backgroundColor: ORANGE + '22', alignItems: 'center', justifyContent: 'center' }}>
-              <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: ORANGE }}>{totalOrderCount} orders</Text>
+              <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: ORANGE }}>{activeOrders.length} active</Text>
             </View>
           ) : null}
         </View>
 
         {/* Tab bar */}
-        <View style={{ flexDirection: 'row', marginHorizontal: 16, marginBottom: 8, backgroundColor: CARD, borderRadius: 14, padding: 4, gap: 4 }}>
+        <View style={{ flexDirection: 'row', marginHorizontal: 16, marginBottom: 8, backgroundColor: CARD, borderRadius: 14, padding: 4, gap: 4, shadowColor: '#1A1714', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 4, elevation: 2 }}>
           {([['preorders', 'Preorders', pendingCount], ['homecook', 'Home Cook', homeCookJobs?.length ?? 0], ['experiences', 'Experiences', expJobs?.length ?? 0]] as const).map(([key, label, badge]) => {
             const active = tab === key;
             const accentColor = key === 'homecook' ? HC : ORANGE;
             return (
               <PressableScale key={key} onPress={() => { feedback.tap(); setTab(key); }} accessibilityRole="tab" accessibilityLabel={label}
                 style={{ flex: 1, height: 36, borderRadius: 10, backgroundColor: active ? accentColor : 'transparent', alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 4 }}>
-                <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: active ? '#fff' : '#5b6170' }}>{label}</Text>
+                <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: active ? '#fff' : '#78716C' }}>{label}</Text>
                 {badge != null && badge > 0 ? (
                   <View style={{ width: 16, height: 16, borderRadius: 8, backgroundColor: active ? 'rgba(255,255,255,0.3)' : accentColor, alignItems: 'center', justifyContent: 'center' }}>
                     <Text style={{ fontFamily: Font.semibold, fontSize: 9, color: '#fff' }}>{badge}</Text>
@@ -166,8 +167,8 @@ export default function PrepperOrdersScreen() {
 
         {actionErr ? (
           <PressableScale onPress={() => { feedback.tap(); setActionErr(null); }} accessibilityRole="button" accessibilityLabel="Dismiss error"
-            style={{ marginHorizontal: 16, marginBottom: 8, backgroundColor: '#7f1d1d', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10 }}>
-            <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: '#fecaca' }}>{actionErr} (tap to dismiss)</Text>
+            style={{ marginHorizontal: 16, marginBottom: 8, backgroundColor: Palette.danger + '15', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10, borderWidth: 1, borderColor: Palette.danger + '40' }}>
+            <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: Palette.danger }}>{actionErr} (tap to dismiss)</Text>
           </PressableScale>
         ) : null}
 
@@ -186,16 +187,16 @@ export default function PrepperOrdersScreen() {
         {tab === 'experiences' ? (
           !prepperId ? (
             <MotiView from={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ type: 'timing', duration: 280 }} style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 10 }}>
-              <Ticket size={28} color="#5b6170" />
-              <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textMuted, textAlign: 'center' }}>Approved preppers see booked experience jobs here.</Text>
+              <Ticket size={28} color="#78716C" />
+              <Text style={{ fontFamily: Font.body, fontSize: 14, color: '#78716C', textAlign: 'center' }}>Approved preppers see booked experience jobs here.</Text>
             </MotiView>
           ) : !expJobs?.length ? (
             <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280 }} style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 10 }}>
-              <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center' }}>
-                <Ticket size={28} color="#5b6170" />
+              <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center', shadowColor: '#1A1714', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 }}>
+                <Ticket size={28} color="#78716C" />
               </View>
-              <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>No experience jobs yet</Text>
-              <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textMuted, textAlign: 'center', lineHeight: 20 }}>
+              <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#1A1714' }}>No experience jobs yet</Text>
+              <Text style={{ fontFamily: Font.body, fontSize: 14, color: '#78716C', textAlign: 'center', lineHeight: 20 }}>
                 When customers accept your bid on an experience request, the job appears here.
               </Text>
             </MotiView>
@@ -211,36 +212,38 @@ export default function PrepperOrdersScreen() {
                             <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: ORANGE, textTransform: 'capitalize' }}>{job.kind.replace('_', ' ')}</Text>
                           </View>
                           <View style={{ backgroundColor: '#16a34a22', borderRadius: 10, paddingHorizontal: 8, paddingVertical: 2 }}>
-                            <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: '#4ade80' }}>Booked</Text>
+                            <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: '#16a34a' }}>Booked</Text>
                           </View>
                         </View>
-                        <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#fff' }}>{job.title}</Text>
+                        <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#1A1714' }}>{job.title}</Text>
                       </View>
                       <Text style={{ fontFamily: Font.display, fontSize: 20, color: ORANGE, letterSpacing: -0.4 }}>${job.amount.toLocaleString('en-US')}</Text>
                     </View>
                     <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
                       {job.guests != null ? (
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: '#1d2129', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 6 }}>
-                          <Users size={12} color={Palette.textMuted} />
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: '#F0EDEA', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 6 }}>
+                          <Users size={12} color={'#78716C'} />
                           <Text style={{ fontFamily: Font.medium, fontSize: 12, color: Palette.textSecondary }}>{job.guests} guests</Text>
                         </View>
                       ) : null}
                       {job.location ? (
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: '#1d2129', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 6 }}>
-                          <MapPin size={12} color={Palette.textMuted} />
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: '#F0EDEA', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 6 }}>
+                          <MapPin size={12} color={'#78716C'} />
                           <Text style={{ fontFamily: Font.medium, fontSize: 12, color: Palette.textSecondary }} numberOfLines={1}>{job.location}</Text>
                         </View>
                       ) : null}
                       {job.event_date ? (
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: '#1d2129', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 6 }}>
-                          <CalendarCheck size={12} color={Palette.textMuted} />
-                          <Text style={{ fontFamily: Font.medium, fontSize: 12, color: Palette.textSecondary }}>{job.event_date}</Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: '#F0EDEA', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 6 }}>
+                          <CalendarCheck size={12} color={'#78716C'} />
+                          <Text style={{ fontFamily: Font.medium, fontSize: 12, color: Palette.textSecondary }}>
+                            {(() => { const d = new Date(job.event_date); return isNaN(d.getTime()) ? job.event_date : d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }); })()}
+                          </Text>
                         </View>
                       ) : null}
                     </View>
-                    {job.details ? <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textMuted, lineHeight: 18 }} numberOfLines={3}>{job.details}</Text> : null}
+                    {job.details ? <Text style={{ fontFamily: Font.body, fontSize: 13, color: '#78716C', lineHeight: 18 }} numberOfLines={3}>{job.details}</Text> : null}
                     {job.message ? (
-                      <View style={{ backgroundColor: '#1d2129', borderRadius: 10, padding: 10 }}>
+                      <View style={{ backgroundColor: '#F0EDEA', borderRadius: 10, padding: 10 }}>
                         <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: Palette.textSecondary, fontStyle: 'italic', lineHeight: 18 }}>&ldquo;{job.message}&rdquo;</Text>
                       </View>
                     ) : null}
@@ -255,18 +258,18 @@ export default function PrepperOrdersScreen() {
         {tab === 'preorders' ? (
           !prepperId ? (
             <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280 }} style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
-              <ShoppingBag size={28} color="#5b6170" />
-              <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textMuted, textAlign: 'center' }}>This is your kitchen&apos;s preorder queue. Approved preppers see incoming preorders here.</Text>
+              <ShoppingBag size={28} color="#78716C" />
+              <Text style={{ fontFamily: Font.body, fontSize: 14, color: '#78716C', textAlign: 'center' }}>This is your kitchen&apos;s preorder queue. Approved preppers see incoming preorders here.</Text>
             </MotiView>
           ) : isLoading ? (
             <ListSkeleton count={4} rowHeight={110} />
           ) : ordersError ? (
             <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }} style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 10 }}>
-              <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center' }}>
-                <ShoppingBag size={28} color="#5b6170" />
+              <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center', shadowColor: '#1A1714', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 }}>
+                <ShoppingBag size={28} color="#78716C" />
               </View>
-              <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>Couldn't load preorders</Text>
-              <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textMuted, textAlign: 'center' }}>Check your connection and try again.</Text>
+              <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#1A1714' }}>Couldn't load preorders</Text>
+              <Text style={{ fontFamily: Font.body, fontSize: 14, color: '#78716C', textAlign: 'center' }}>Check your connection and try again.</Text>
               <PressableScale onPress={() => { feedback.tap(); void refetch(); }} accessibilityRole="button" accessibilityLabel="Retry loading preorders"
                 style={{ marginTop: 4, paddingHorizontal: 22, height: 48, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
                 <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#fff' }}>retry</Text>
@@ -277,8 +280,8 @@ export default function PrepperOrdersScreen() {
               <View style={{ width: 80, height: 80, borderRadius: 24, backgroundColor: ORANGE + '14', alignItems: 'center', justifyContent: 'center' }}>
                 <ShoppingBag size={40} color={ORANGE} />
               </View>
-              <Text style={{ fontFamily: Font.heading, fontSize: 18, color: '#fff', textAlign: 'center' }}>No preorders yet</Text>
-              <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textMuted, textAlign: 'center', lineHeight: 21 }}>Share your kitchen to start getting orders</Text>
+              <Text style={{ fontFamily: Font.heading, fontSize: 18, color: '#1A1714', textAlign: 'center' }}>No preorders yet</Text>
+              <Text style={{ fontFamily: Font.body, fontSize: 14, color: '#78716C', textAlign: 'center', lineHeight: 21 }}>Share your kitchen to start getting orders</Text>
               <PressableScale onPress={() => { feedback.tap(); router.push('/post-video'); }} accessibilityRole="button" accessibilityLabel="Share your kitchen"
                 style={{ marginTop: 4, backgroundColor: ORANGE, borderRadius: Radius.pill, paddingHorizontal: 24, paddingVertical: 12 }}>
                 <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: '#fff' }}>share your kitchen</Text>
@@ -292,7 +295,7 @@ export default function PrepperOrdersScreen() {
                   {(['active', 'history'] as const).map((f) => (
                     <PressableScale key={f} onPress={() => { feedback.tap(); setOrderFilter(f); setSelectedOrder(null); }} accessibilityRole="button" accessibilityState={{ selected: orderFilter === f }}
                       style={{ backgroundColor: orderFilter === f ? ORANGE : CARD, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 9, minHeight: 44 }}>
-                      <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: orderFilter === f ? '#fff' : '#5b6170' }}>
+                      <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: orderFilter === f ? '#fff' : '#78716C' }}>
                         {f === 'active' ? `Active${pendingCount > 0 ? ` (${pendingCount})` : ''}` : 'History'}
                       </Text>
                     </PressableScale>
@@ -300,8 +303,8 @@ export default function PrepperOrdersScreen() {
                 </View>
                 {filteredOrders.length === 0 ? (
                   <View style={{ alignItems: 'center', paddingVertical: 40, gap: 10 }}>
-                    <ShoppingBag size={24} color="#5b6170" />
-                    <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textMuted, textAlign: 'center' }}>
+                    <ShoppingBag size={24} color="#78716C" />
+                    <Text style={{ fontFamily: Font.body, fontSize: 13, color: '#78716C', textAlign: 'center' }}>
                       {orderFilter === 'active' ? 'No active preorders' : 'No history yet'}
                     </Text>
                   </View>
@@ -312,10 +315,10 @@ export default function PrepperOrdersScreen() {
                       <PressableScale onPress={() => { feedback.tap(); setSelectedOrder(o); }} accessibilityRole="button" accessibilityLabel={`View order from ${o.customer}`}
                         style={{ backgroundColor: selectedOrder?.id === o.id ? ORANGE + '22' : CARD, borderRadius: 14, padding: 14, borderWidth: 1, borderColor: selectedOrder?.id === o.id ? ORANGE + '66' : 'transparent', minHeight: 44 }}>
                         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-                          <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: '#fff', flex: 1 }} numberOfLines={1}>{o.customer}</Text>
+                          <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: '#1A1714', flex: 1 }} numberOfLines={1}>{o.customer}</Text>
                           <Text style={{ fontFamily: Font.display, fontSize: 14, color: ORANGE }}>${o.total.toFixed(2)}</Text>
                         </View>
-                        <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted, marginTop: 3 }} numberOfLines={1}>
+                        <Text style={{ fontFamily: Font.body, fontSize: 12, color: '#78716C', marginTop: 3 }} numberOfLines={1}>
                           {o.items[0]?.title ?? 'preorder'}{o.items.length > 1 ? ` +${o.items.length - 1}` : ''}
                         </Text>
                       </PressableScale>
@@ -323,7 +326,7 @@ export default function PrepperOrdersScreen() {
                   ))}
                 </View>
               </ScrollView>
-              <View style={{ width: 1, backgroundColor: '#252a34', marginVertical: 8 }} />
+              <View style={{ width: 1, backgroundColor: '#EDE9E4', marginVertical: 8 }} />
               <View style={{ flex: 6 }}>
                 {selectedOrder ? (
                   <OrderDetailPanel
@@ -341,8 +344,8 @@ export default function PrepperOrdersScreen() {
                   />
                 ) : (
                   <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 10, opacity: 0.45 }}>
-                    <ShoppingBag size={32} color="#5b6170" />
-                    <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textMuted, textAlign: 'center' }}>Select a preorder to view details</Text>
+                    <ShoppingBag size={32} color="#78716C" />
+                    <Text style={{ fontFamily: Font.body, fontSize: 14, color: '#78716C', textAlign: 'center' }}>Select a preorder to view details</Text>
                   </View>
                 )}
               </View>
@@ -359,7 +362,7 @@ export default function PrepperOrdersScreen() {
                 {(['active', 'history'] as const).map((f) => (
                   <PressableScale key={f} onPress={() => { feedback.tap(); setOrderFilter(f); setStatusFilter('all'); }} accessibilityRole="button" accessibilityState={{ selected: orderFilter === f }}
                     style={{ backgroundColor: orderFilter === f ? ORANGE : CARD, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 7, minHeight: 44 }}>
-                    <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: orderFilter === f ? '#fff' : '#5b6170' }}>
+                    <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: orderFilter === f ? '#fff' : '#78716C' }}>
                       {f === 'active' ? `Active${pendingCount > 0 ? ` (${pendingCount})` : ''}` : 'History'}
                     </Text>
                   </PressableScale>
@@ -377,7 +380,7 @@ export default function PrepperOrdersScreen() {
                   <FilterEmptyState filter={statusFilter !== 'all' ? statusFilter : orderFilter === 'active' ? 'all' : 'done'} />
                   {statusFilter === 'all' && orderFilter === 'active' ? (
                     <View style={{ alignItems: 'center', marginTop: -10 }}>
-                      <PressableScale onPress={() => { feedback.tap(); router.push('/prepper-hub'); }} accessibilityRole="button" accessibilityLabel="Go to kitchen hub"
+                      <PressableScale onPress={() => { feedback.tap(); router.push('/dashboard'); }} accessibilityRole="button" accessibilityLabel="Go to kitchen hub"
                         style={{ marginTop: 4, backgroundColor: ORANGE, borderRadius: Radius.pill, paddingHorizontal: 22, paddingVertical: 11 }}>
                         <Text style={{ fontFamily: Font.semibold, fontSize: 13.5, color: '#fff' }}>kitchen hub →</Text>
                       </PressableScale>

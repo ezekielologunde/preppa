@@ -1,6 +1,6 @@
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
-import { Camera, ChevronLeft } from 'lucide-react-native';
+import { Camera, ChevronLeft, Home, Truck } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useEffect, useState } from 'react';
 import {
@@ -30,11 +30,11 @@ import { useAuth } from '@/providers/auth-provider';
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 
-const BG = Palette.prepperBg;
-const CARD = Palette.prepperCard;
-const INK = '#FFFFFF';
-const MUTED = '#6B7280';
-const BORDER = '#1E2330';
+const BG     = '#F8F6F3';
+const CARD   = '#FFFFFF';
+const INK    = '#1A1714';
+const MUTED  = '#78716C';
+const BORDER = '#EDE9E4';
 const ORANGE = Palette.brand;
 
 const CUISINE_OPTIONS = ['Nigerian', 'West African', 'Caribbean', 'Soul Food', 'African', 'Other'];
@@ -149,20 +149,30 @@ async function pickAndUpload(
   bucket: string,
   path: string,
   aspect: [number, number],
+  useCamera = false,
 ): Promise<string | null> {
-  const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-  if (status !== 'granted') {
-    Alert.alert('Permission required', 'Allow photo access to upload images.');
-    return null;
+  let asset: ImagePicker.ImagePickerAsset | undefined;
+
+  if (useCamera) {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission required', 'Allow camera access to take photos.');
+      return null;
+    }
+    const result = await ImagePicker.launchCameraAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, allowsEditing: true, aspect, quality: 0.8 });
+    if (result.canceled) return null;
+    asset = result.assets[0];
+  } else {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission required', 'Allow photo access to upload images.');
+      return null;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, allowsEditing: true, aspect, quality: 0.8 });
+    if (result.canceled) return null;
+    asset = result.assets[0];
   }
-  const result = await ImagePicker.launchImageLibraryAsync({
-    mediaTypes: ImagePicker.MediaTypeOptions.Images,
-    allowsEditing: true,
-    aspect,
-    quality: 0.8,
-  });
-  if (result.canceled) return null;
-  const asset = result.assets[0];
+
   if (!asset?.uri) return null;
   const response = await fetch(asset.uri);
   const blob = await response.blob();
@@ -219,13 +229,21 @@ export default function PrepperProfileEditScreen() {
     setDeliveryRadiusText(profile.delivery_radius_km != null ? String(profile.delivery_radius_km) : '');
   }, [profile]);
 
-  function goBack() { feedback.tap(); if (router.canGoBack()) router.back(); else router.replace('/prepper-hub'); }
+  function goBack() { feedback.tap(); if (router.canGoBack()) router.back(); else router.replace('/dashboard'); }
 
   async function handlePickAvatar() {
     if (!user?.id) return;
+    const source = await new Promise<'camera' | 'library' | null>((resolve) => {
+      Alert.alert('Change photo', 'Choose a source', [
+        { text: 'Camera', onPress: () => resolve('camera') },
+        { text: 'Photo Library', onPress: () => resolve('library') },
+        { text: 'Cancel', style: 'cancel', onPress: () => resolve(null) },
+      ]);
+    });
+    if (!source) return;
     setUploadingAvatar(true);
     try {
-      const url = await pickAndUpload(user.id, 'profile-images', 'avatar', [1, 1]);
+      const url = await pickAndUpload(user.id, 'profile-images', 'avatar', [1, 1], source === 'camera');
       if (!url) return;
       setLocalAvatar(url);
       await updateAvatar.mutateAsync(url);
@@ -240,9 +258,17 @@ export default function PrepperProfileEditScreen() {
 
   async function handlePickCover() {
     if (!user?.id) return;
+    const source = await new Promise<'camera' | 'library' | null>((resolve) => {
+      Alert.alert('Change cover', 'Choose a source', [
+        { text: 'Camera', onPress: () => resolve('camera') },
+        { text: 'Photo Library', onPress: () => resolve('library') },
+        { text: 'Cancel', style: 'cancel', onPress: () => resolve(null) },
+      ]);
+    });
+    if (!source) return;
     setUploadingCover(true);
     try {
-      const url = await pickAndUpload(user.id, 'profile-images', 'cover', [16, 9]);
+      const url = await pickAndUpload(user.id, 'profile-images', 'cover', [16, 9], source === 'camera');
       if (!url) return;
       setLocalCover(url);
       await updateCover.mutateAsync(url);
@@ -439,7 +465,7 @@ export default function PrepperProfileEditScreen() {
                       borderWidth: 1.5, borderColor: pickup ? ORANGE : BORDER,
                       alignItems: 'center', gap: 4,
                     }}>
-                    <Text style={{ fontFamily: Font.semibold, fontSize: 20 }}>🏠</Text>
+                    <Home size={20} color={pickup ? '#fff' : INK} />
                     <Text style={{ fontFamily: Font.medium, fontSize: 13, color: pickup ? '#fff' : INK }}>Pickup</Text>
                   </PressableScale>
                   <PressableScale
@@ -452,7 +478,7 @@ export default function PrepperProfileEditScreen() {
                       borderWidth: 1.5, borderColor: delivers ? ORANGE : BORDER,
                       alignItems: 'center', gap: 4,
                     }}>
-                    <Text style={{ fontFamily: Font.semibold, fontSize: 20 }}>🚗</Text>
+                    <Truck size={20} color={delivers ? '#fff' : INK} />
                     <Text style={{ fontFamily: Font.medium, fontSize: 13, color: delivers ? '#fff' : INK }}>Delivery</Text>
                   </PressableScale>
                 </View>

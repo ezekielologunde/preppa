@@ -65,7 +65,7 @@ const PILL_TONES: Record<string, { bg: string; fg: string }> = {
   pending: { bg: Palette.amber + '22', fg: Palette.amber },
   approved: { bg: Palette.success + '22', fg: Palette.success },
   rejected: { bg: Palette.danger + '22', fg: Palette.danger },
-  suspended: { bg: Palette.textSecondary + '22', fg: Palette.textMuted },
+  suspended: { bg: Palette.textSecondary + '22', fg: Palette.textSecondary },
   active: { bg: Palette.success + '22', fg: Palette.success },
   completed: { bg: Palette.success + '22', fg: Palette.success },
   confirmed: { bg: Palette.brand + '22', fg: Palette.brand },

@@ -44,7 +44,7 @@ export function AboutKitchenCard({ bio, city, specialties, memberSinceIso, certi
         shadowRadius: 12,
         shadowOffset: { width: 0, height: 5 },
       }}>
-      <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: Palette.textMuted, letterSpacing: 0.5, textTransform: 'uppercase' }}>
+      <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: Palette.textSecondary, letterSpacing: 0.5, textTransform: 'uppercase' }}>
         about this kitchen
       </Text>
 

@@ -27,7 +27,7 @@ function CheckMark({ value }: { value: boolean | string }) {
   }
   return value
     ? <Check size={14} color={Palette.success} />
-    : <X size={14} color={Palette.textMuted} />;
+    : <X size={14} color={Palette.textSecondary} />;
 }
 
 /** Horizontally scrollable plan comparison table derived from live plan data. */

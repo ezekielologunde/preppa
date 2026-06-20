@@ -106,7 +106,7 @@ export function VibePicker({ vibe, onSelect }: VibePickerProps) {
     <View style={{ paddingHorizontal: 20, marginBottom: 28 }}>
       <Text style={{ fontFamily: Font.heading, fontSize: 16, color: Palette.ink, marginBottom: 12 }}>
         vibe{' '}
-        <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textMuted }}>
+        <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary }}>
           (optional)
         </Text>
       </Text>

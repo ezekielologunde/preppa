@@ -252,7 +252,7 @@ export default function ChatScreen() {
           ) : messagesError ? (
             <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }}
               style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 10 }}>
-              <MessageCircle size={32} color={Palette.textMuted} />
+              <MessageCircle size={32} color={Palette.textSecondary} />
               <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>couldn't load messages</Text>
               <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center', maxWidth: 280, lineHeight: 20 }}>Check your connection and try again.</Text>
               <PressableScale onPress={() => { feedback.tap(); void refetchMessages(); }} accessibilityRole="button" accessibilityLabel="Retry loading messages"
@@ -265,7 +265,7 @@ export default function ChatScreen() {
               {!messages?.length ? (
                 <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280 }} style={{ alignItems: 'center', gap: 10 }}>
                   <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: Palette.canvas, alignItems: 'center', justifyContent: 'center' }}>
-                    <MessageCircle size={28} color={Palette.textMuted} />
+                    <MessageCircle size={28} color={Palette.textSecondary} />
                   </View>
                   <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>Say hello</Text>
                   <Text style={{ fontFamily: Font.body, fontSize: 13.5, color: Palette.textSecondary, textAlign: 'center', maxWidth: 260, lineHeight: 19 }}>
@@ -279,7 +279,7 @@ export default function ChatScreen() {
                   return (
                     <View key={m.id} style={{ gap: 8 }}>
                       {showTime ? (
-                        <Text style={{ fontFamily: Font.medium, fontSize: 11.5, color: Palette.textMuted, textAlign: 'center', marginVertical: 4 }}>
+                        <Text style={{ fontFamily: Font.medium, fontSize: 11.5, color: Palette.textSecondary, textAlign: 'center', marginVertical: 4 }}>
                           {timeLabel(m.created_at)}
                         </Text>
                       ) : null}
@@ -320,7 +320,7 @@ export default function ChatScreen() {
               value={text}
               onChangeText={setText}
               placeholder="Message…"
-              placeholderTextColor={Palette.textMuted}
+              placeholderTextColor={Palette.textSecondary}
               multiline
               maxLength={2000}
               accessibilityLabel="Type a message"
@@ -345,7 +345,7 @@ export default function ChatScreen() {
               </View>
               <PressableScale onPress={() => { feedback.tap(); setShowTermsModal(false); }} accessibilityRole="button" accessibilityLabel="Close"
                 style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: Palette.canvas, alignItems: 'center', justifyContent: 'center' }}>
-                <X size={17} color={Palette.textMuted} />
+                <X size={17} color={Palette.textSecondary} />
               </PressableScale>
             </View>
             <Text style={{ fontFamily: Font.display, fontSize: 20, color: INK, letterSpacing: -0.4 }}>Propose terms</Text>
@@ -358,18 +358,18 @@ export default function ChatScreen() {
                 value={cookingFeeInput}
                 onChangeText={setCookingFeeInput}
                 placeholder="e.g. 120"
-                placeholderTextColor={Palette.textMuted}
+                placeholderTextColor={Palette.textSecondary}
                 keyboardType="numeric"
                 maxLength={7}
                 style={{ height: 50, borderRadius: 13, backgroundColor: Palette.canvas, paddingHorizontal: 14, fontFamily: Font.body, fontSize: 15, color: INK, borderWidth: 1, borderColor: Palette.border }}
                 accessibilityLabel="Cooking fee"
               />
-              <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: INK }}>Travel / transport ($) <Text style={{ fontFamily: Font.body, color: Palette.textMuted }}>optional</Text></Text>
+              <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: INK }}>Travel / transport ($) <Text style={{ fontFamily: Font.body, color: Palette.textSecondary }}>optional</Text></Text>
               <TextInput
                 value={travelFeeInput}
                 onChangeText={setTravelFeeInput}
                 placeholder="e.g. 15"
-                placeholderTextColor={Palette.textMuted}
+                placeholderTextColor={Palette.textSecondary}
                 keyboardType="numeric"
                 maxLength={7}
                 style={{ height: 50, borderRadius: 13, backgroundColor: Palette.canvas, paddingHorizontal: 14, fontFamily: Font.body, fontSize: 15, color: INK, borderWidth: 1, borderColor: Palette.border }}

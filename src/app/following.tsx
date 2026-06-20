@@ -63,8 +63,8 @@ function KitchenRow({ item, onUnfollow }: { item: FollowedKitchen; onUnfollow: (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
             {item.city ? (
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
-                <MapPin size={11} color={Palette.textMuted} />
-                <Text numberOfLines={1} style={{ fontFamily: Font.body, fontSize: 11, color: Palette.textMuted }}>
+                <MapPin size={11} color={Palette.textSecondary} />
+                <Text numberOfLines={1} style={{ fontFamily: Font.body, fontSize: 11, color: Palette.textSecondary }}>
                   {item.city}
                 </Text>
               </View>
@@ -72,13 +72,13 @@ function KitchenRow({ item, onUnfollow }: { item: FollowedKitchen; onUnfollow: (
             {item.rating > 0 ? (
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
                 <Star size={11} color={Palette.amber} fill={Palette.amber} />
-                <Text style={{ fontFamily: Font.medium, fontSize: 11, color: Palette.textMuted }}>
+                <Text style={{ fontFamily: Font.medium, fontSize: 11, color: Palette.textSecondary }}>
                   {item.rating.toFixed(1)}
                 </Text>
               </View>
             ) : null}
             {item.mealCount > 0 ? (
-              <Text style={{ fontFamily: Font.body, fontSize: 11, color: Palette.textMuted }}>
+              <Text style={{ fontFamily: Font.body, fontSize: 11, color: Palette.textSecondary }}>
                 {item.mealCount} meal{item.mealCount !== 1 ? 's' : ''}
               </Text>
             ) : null}
@@ -153,7 +153,7 @@ function EmptyState({ filtered }: { filtered: boolean }) {
       <Text style={{ fontFamily: Font.heading, fontSize: 17, color: Palette.ink }}>
         {filtered ? 'no results' : "you're not following any kitchens"}
       </Text>
-      <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textMuted, textAlign: 'center', maxWidth: 260, lineHeight: 20 }}>
+      <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center', maxWidth: 260, lineHeight: 20 }}>
         {filtered
           ? 'Try a different name.'
           : 'Discover great kitchens and tap "Follow" on their page.'}
@@ -243,13 +243,13 @@ export default function FollowingScreen() {
               backgroundColor: Palette.surface, borderRadius: 12, paddingHorizontal: 12,
               borderWidth: 1, borderColor: Palette.border,
             }}>
-              <Search size={16} color={Palette.textMuted} />
+              <Search size={16} color={Palette.textSecondary} />
               <TextInput
                 ref={inputRef}
                 value={query}
                 onChangeText={setQuery}
                 placeholder="Search kitchens…"
-                placeholderTextColor={Palette.textMuted}
+                placeholderTextColor={Palette.textSecondary}
                 style={{ flex: 1, height: 40, fontFamily: Font.body, fontSize: 14, color: Palette.ink }}
                 autoCapitalize="none"
                 autoCorrect={false}
@@ -257,7 +257,7 @@ export default function FollowingScreen() {
               />
               {query.length > 0 ? (
                 <PressableScale onPress={() => setQuery('')} accessibilityRole="button" accessibilityLabel="Clear search">
-                  <Users size={16} color={Palette.textMuted} />
+                  <Users size={16} color={Palette.textSecondary} />
                 </PressableScale>
               ) : null}
             </View>
@@ -276,7 +276,7 @@ export default function FollowingScreen() {
               <ChefHat size={28} color={Palette.brand} />
             </View>
             <Text style={{ fontFamily: Font.heading, fontSize: 16, color: Palette.ink }}>couldn't load kitchens</Text>
-            <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textMuted, textAlign: 'center', maxWidth: 260, lineHeight: 20 }}>
+            <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center', maxWidth: 260, lineHeight: 20 }}>
               Check your connection and try again.
             </Text>
             <PressableScale

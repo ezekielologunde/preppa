@@ -88,7 +88,7 @@ function DrillDownModal({ item, deliveryDay, paymentsOn, onPay, paying, onClose 
             <Image source={{ uri: img }} style={{ width: '100%', height: 180, borderRadius: 18 }} contentFit="cover" transition={200} />
           ) : (
             <View style={{ height: 110, borderRadius: 18, backgroundColor: Palette.chip, alignItems: 'center', justifyContent: 'center' }}>
-              <ChefHat size={28} color={Palette.textMuted} />
+              <ChefHat size={28} color={Palette.textSecondary} />
             </View>
           )}
 
@@ -178,14 +178,14 @@ function ChefSection({ group, deliveryDay, onItemPress, onPayChef, paying, payme
             style={{ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: Palette.surface, borderRadius: 16, padding: 12 }}>
             {img
               ? <Image source={{ uri: img }} style={{ width: 62, height: 62, borderRadius: 12 }} contentFit="cover" transition={200} />
-              : <View style={{ width: 62, height: 62, borderRadius: 12, backgroundColor: Palette.chip, alignItems: 'center', justifyContent: 'center' }}><ChefHat size={20} color={Palette.textMuted} /></View>
+              : <View style={{ width: 62, height: 62, borderRadius: 12, backgroundColor: Palette.chip, alignItems: 'center', justifyContent: 'center' }}><ChefHat size={20} color={Palette.textSecondary} /></View>
             }
             <View style={{ flex: 1 }}>
               <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: INK }} numberOfLines={1}>{meal.title}</Text>
               {item.qty > 1 && <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary }}>×{item.qty} servings</Text>}
               <Text style={{ fontFamily: Font.heading, fontSize: 13, color: ORANGE, marginTop: 2 }}>{money(meal.base_price * item.qty)}/cycle</Text>
             </View>
-            <ChevronRight size={16} color={Palette.textMuted} />
+            <ChevronRight size={16} color={Palette.textSecondary} />
           </PressableScale>
         );
       })}
@@ -271,7 +271,7 @@ export default function CustomPlanScreen() {
           <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }}
             style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
             <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
-              <ChefHat size={28} color={Palette.textMuted} />
+              <ChefHat size={28} color={Palette.textSecondary} />
             </View>
             <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>couldn't load plan</Text>
             <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center', maxWidth: 260, lineHeight: 20 }}>
@@ -382,7 +382,7 @@ export default function CustomPlanScreen() {
 
           {groups.length === 0 && (
             <View style={{ alignItems: 'center', gap: 10, paddingVertical: 32 }}>
-              <ChefHat size={28} color={Palette.textMuted} />
+              <ChefHat size={28} color={Palette.textSecondary} />
               <Text style={{ fontFamily: Font.body, fontSize: 13.5, color: Palette.textSecondary, textAlign: 'center' }}>
                 No meals in this plan yet.
               </Text>

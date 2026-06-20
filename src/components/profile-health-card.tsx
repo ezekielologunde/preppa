@@ -54,15 +54,15 @@ export function ProfileHealthCard({ profile }: { profile: PrepperProfile }) {
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
         <View style={{ flex: 1 }}>
           <Text style={{ fontFamily: Font.heading, fontSize: 13.5, color: '#fff' }}>profile health</Text>
-          <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted, marginTop: 1 }}>
+          <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary, marginTop: 1 }}>
             {pct >= 100 ? 'fully optimised' : `${missing.length} item${missing.length !== 1 ? 's' : ''} to complete`}
           </Text>
         </View>
         <View style={{ alignItems: 'flex-end', gap: 2 }}>
           <Text style={{ fontFamily: Font.display, fontSize: 28, color, letterSpacing: -0.5 }}>{pct}%</Text>
-          <Text style={{ fontFamily: Font.semibold, fontSize: 10.5, color: Palette.textMuted }}>{done}/{items.length} done</Text>
+          <Text style={{ fontFamily: Font.semibold, fontSize: 10.5, color: Palette.textSecondary }}>{done}/{items.length} done</Text>
         </View>
-        <ChevronRight size={16} color={Palette.textMuted} />
+        <ChevronRight size={16} color={Palette.textSecondary} />
       </View>
 
       {/* Progress bar */}
@@ -75,8 +75,8 @@ export function ProfileHealthCard({ profile }: { profile: PrepperProfile }) {
         <View style={{ gap: 6 }}>
           {missing.slice(0, 3).map((item) => (
             <View key={item.label} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <Circle size={14} color={Palette.textMuted} />
-              <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: Palette.textMuted }}>add {item.label}</Text>
+              <Circle size={14} color={Palette.textSecondary} />
+              <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: Palette.textSecondary }}>add {item.label}</Text>
             </View>
           ))}
         </View>

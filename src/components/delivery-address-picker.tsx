@@ -78,7 +78,7 @@ export function DeliveryAddressPicker({
               <View style={{ width: 20, height: 20, borderRadius: 10, borderWidth: selected ? 0 : 2, borderColor: selected ? 'transparent' : Palette.border, backgroundColor: selected ? Palette.brand : 'transparent', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 {selected ? <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#fff' }} /> : null}
               </View>
-              <MapPin size={14} color={selected ? Palette.brand : Palette.textMuted} />
+              <MapPin size={14} color={selected ? Palette.brand : Palette.textSecondary} />
               <View style={{ flex: 1 }}>
                 <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: selected ? Palette.brandPressed : Palette.ink }}>{address.label}</Text>
                 <Text numberOfLines={1} style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary, marginTop: 1 }}>{formatAddress(address)}</Text>

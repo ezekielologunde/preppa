@@ -56,7 +56,7 @@ function ToggleRow({
         </View>
         <View style={{ flex: 1 }}>
           <Text numberOfLines={1} style={{ fontFamily: Font.heading, fontSize: 15, color: Palette.ink }}>{label}</Text>
-          {sub ? <Text numberOfLines={1} style={{ fontFamily: Font.body, fontSize: 12.5, color: Palette.textMuted, marginTop: 1 }}>{sub}</Text> : null}
+          {sub ? <Text numberOfLines={1} style={{ fontFamily: Font.body, fontSize: 12.5, color: Palette.textSecondary, marginTop: 1 }}>{sub}</Text> : null}
         </View>
         <Switch
           value={value}
@@ -165,7 +165,7 @@ function NavRow({
         </View>
         <View style={{ flex: 1 }}>
           <Text numberOfLines={1} style={{ fontFamily: Font.heading, fontSize: 15, color: Palette.ink }}>{label}</Text>
-          {sub ? <Text numberOfLines={1} style={{ fontFamily: Font.body, fontSize: 12.5, color: Palette.textMuted, marginTop: 1 }}>{sub}</Text> : null}
+          {sub ? <Text numberOfLines={1} style={{ fontFamily: Font.body, fontSize: 12.5, color: Palette.textSecondary, marginTop: 1 }}>{sub}</Text> : null}
         </View>
         <ChevronRight size={17} color={Palette.textSecondary} />
       </PressableScale>
@@ -397,7 +397,7 @@ export default function AppSettingsScreen() {
                 <AlertCircle size={19} color={Palette.textSecondary} />
               </View>
               <Text numberOfLines={1} style={{ flex: 1, fontFamily: Font.heading, fontSize: 15, color: Palette.ink }}>Version</Text>
-              <Text style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.textMuted }}>{APP_VERSION}</Text>
+              <Text style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.textSecondary }}>{APP_VERSION}</Text>
             </View>
           </SettingsGroup>
 

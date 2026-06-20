@@ -14,7 +14,7 @@ import type { OrderSummary } from '@/lib/queries/orders';
 const ORANGE = Palette.brand;
 const GREEN = Palette.success;
 const INK = Palette.ink;
-const MUTED = Palette.textMuted;
+const MUTED = Palette.textSecondary;
 const CARD = Palette.surface;
 
 const FL: Record<FulfillmentType, string> = { pickup: 'pickup', delivery: 'delivery', meetup: 'meetup', home_cook: 'home cook' };
@@ -110,8 +110,8 @@ export function PrepperNextOrder({ next, step, activeCount, statsLoading, advanc
         </View>
       ) : (
         <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }} style={{ marginHorizontal: 20, backgroundColor: CARD, borderRadius: 22, padding: 24, alignItems: 'center', gap: 10 }}>
-          <View style={{ width: 52, height: 52, borderRadius: 16, backgroundColor: '#ffffff10', alignItems: 'center', justifyContent: 'center' }}>
-            <ShoppingBag size={24} color={Palette.textSecondary} />
+          <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: Palette.canvas, alignItems: 'center', justifyContent: 'center', shadowColor: '#1A1714', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 }}>
+            <ShoppingBag size={28} color={Palette.textSecondary} />
           </View>
           <Text style={{ fontFamily: Font.heading, fontSize: 15, color: INK, textAlign: 'center' }}>No active preorders</Text>
           <Text style={{ fontFamily: Font.body, fontSize: 13, color: MUTED, textAlign: 'center', lineHeight: 19 }}>

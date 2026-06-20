@@ -116,7 +116,7 @@ export function TipSelector({ tip, setTip, customTip, setCustomTip, prepper }: P
               setTip(Number.isFinite(n) ? Math.min(n, 200) : 0);
             }}
             placeholder="0"
-            placeholderTextColor={Palette.textMuted}
+            placeholderTextColor={Palette.textSecondary}
             keyboardType="decimal-pad"
             autoFocus
             maxLength={6}

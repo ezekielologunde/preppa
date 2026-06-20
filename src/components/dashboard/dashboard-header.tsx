@@ -12,7 +12,7 @@ import { greeting } from '@/lib/greeting';
 const ORANGE = Palette.brand;
 const GREEN = Palette.success;
 const INK = Palette.ink;
-const MUTED = Palette.textMuted;
+const MUTED = Palette.textSecondary;
 const CARD = Palette.surface;
 
 export interface DashboardHeaderProps {

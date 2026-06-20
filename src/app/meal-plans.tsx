@@ -54,7 +54,7 @@ function CustomPlanCard({ plan, onView, onUpdate, onCancel, busy }: { plan: Cust
         <View style={{ backgroundColor: plan.status === 'active' ? Palette.success + '1A' : Palette.amber + '26', borderRadius: Radius.pill, paddingHorizontal: 10, paddingVertical: 4 }}>
           <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: plan.status === 'active' ? Palette.success : Palette.amber, textTransform: 'capitalize' }}>{plan.status}</Text>
         </View>
-        <ChevronRight size={16} color={Palette.textMuted} />
+        <ChevronRight size={16} color={Palette.textSecondary} />
       </PressableScale>
       <View style={{ flexDirection: 'row', gap: 8, paddingHorizontal: 14, paddingBottom: 12 }}>
         <Button
@@ -81,7 +81,7 @@ function CustomPlanCard({ plan, onView, onUpdate, onCancel, busy }: { plan: Cust
 function Meta({ Icon, text }: { Icon: typeof Users; text: string }) {
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-      <Icon size={13} color={Palette.textMuted} />
+      <Icon size={13} color={Palette.textSecondary} />
       <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary }}>{text}</Text>
     </View>
   );
@@ -178,7 +178,7 @@ function BillingHistorySection({ records, onSeeAll }: { records: BillingRecord[]
       <Text style={{ fontFamily: Font.display, fontSize: 16, color: Palette.ink, letterSpacing: -0.4, paddingHorizontal: 20, marginBottom: 12 }}>billing history</Text>
       {shown.length === 0 ? (
         <View style={{ marginHorizontal: 20, backgroundColor: Palette.surface, borderRadius: Radius.md, padding: 20, alignItems: 'center', gap: 8 }}>
-          <X size={22} color={Palette.textMuted} />
+          <X size={22} color={Palette.textSecondary} />
           <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary, textAlign: 'center' }}>Your billing history will appear here once you subscribe.</Text>
         </View>
       ) : (
@@ -311,7 +311,7 @@ export default function MealPlansScreen() {
               <MotiView from={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ type: 'timing', duration: 220 }}
                 style={{ marginHorizontal: 20, marginBottom: 16, backgroundColor: Palette.surface, borderRadius: Radius.md, padding: 16, flexDirection: 'row', alignItems: 'center', gap: 14 }}>
                 <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: Palette.chip, alignItems: 'center', justifyContent: 'center' }}>
-                  <ChefHat size={19} color={Palette.textMuted} />
+                  <ChefHat size={19} color={Palette.textSecondary} />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={{ fontFamily: Font.heading, fontSize: 14.5, color: INK }}>No active custom plans</Text>
@@ -395,7 +395,7 @@ export default function MealPlansScreen() {
           ) : livePlansError ? (
             <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }}
               style={{ marginHorizontal: 20, alignItems: 'center', gap: 10, paddingVertical: 24 }}>
-              <ChefHat size={30} color={Palette.textMuted} />
+              <ChefHat size={30} color={Palette.textSecondary} />
               <Text style={{ fontFamily: Font.heading, fontSize: 15, color: INK }}>couldn't load plans</Text>
               <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary, textAlign: 'center' }}>Check your connection and try again.</Text>
               <PressableScale onPress={() => { feedback.tap(); void refetchPlans(); }} accessibilityRole="button" accessibilityLabel="Retry loading plans"
@@ -413,7 +413,7 @@ export default function MealPlansScreen() {
             </View>
           ) : (
             <View style={{ marginHorizontal: 20, backgroundColor: Palette.surface, borderRadius: Radius.md, padding: 20, alignItems: 'center', gap: 8 }}>
-              <ChefHat size={26} color={Palette.textMuted} />
+              <ChefHat size={26} color={Palette.textSecondary} />
               <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary, textAlign: 'center', lineHeight: 19 }}>
                 No live plans in your area yet. Browse the featured plans below — or follow your favourite preppers to hear when they launch one.
               </Text>

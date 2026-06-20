@@ -101,7 +101,7 @@ export default function HolidaySpecialsScreen() {
           <ListSkeleton count={4} rowHeight={96} />
         ) : isError ? (
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
-            <Gift size={28} color={Palette.textMuted} />
+            <Gift size={28} color={Palette.textSecondary} />
             <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>couldn't load holiday events</Text>
             <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center' }}>Check your connection and try again.</Text>
             <PressableScale onPress={() => { feedback.tap(); void refetch(); }} accessibilityRole="button" accessibilityLabel="Retry loading holiday events"
@@ -178,7 +178,7 @@ export default function HolidaySpecialsScreen() {
                       <View style={{ backgroundColor: urge.color + '18', borderRadius: Radius.pill, paddingHorizontal: 8, paddingVertical: 4 }}>
                         <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: urge.color }}>{urge.label}</Text>
                       </View>
-                      <Text style={{ fontFamily: Font.body, fontSize: 11, color: Palette.textMuted }}>in {daysAway}d</Text>
+                      <Text style={{ fontFamily: Font.body, fontSize: 11, color: Palette.textSecondary }}>in {daysAway}d</Text>
                     </View>
                   </View>
                   <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary, lineHeight: 19 }}>{description}</Text>
@@ -190,7 +190,7 @@ export default function HolidaySpecialsScreen() {
                     ))}
                     {dishes.length > 3 ? (
                       <View style={{ backgroundColor: Palette.border, borderRadius: Radius.pill, paddingHorizontal: 9, paddingVertical: 4 }}>
-                        <Text style={{ fontFamily: Font.medium, fontSize: 11.5, color: Palette.textMuted }}>+{dishes.length - 3} more</Text>
+                        <Text style={{ fontFamily: Font.medium, fontSize: 11.5, color: Palette.textSecondary }}>+{dishes.length - 3} more</Text>
                       </View>
                     ) : null}
                   </View>
@@ -214,7 +214,7 @@ export default function HolidaySpecialsScreen() {
                 <Text style={{ fontFamily: Font.heading, fontSize: 15, color: INK }}>are you a prepper?</Text>
                 <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: Palette.textSecondary, marginTop: 2 }}>Add your holiday special and get early discovery placement</Text>
               </View>
-              <ChevronRight size={16} color={Palette.textMuted} />
+              <ChevronRight size={16} color={Palette.textSecondary} />
             </PressableScale>
             </MotiView>
 

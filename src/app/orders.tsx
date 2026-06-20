@@ -265,7 +265,7 @@ export default function OrdersScreen() {
 
         {!user ? (
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
-            <Receipt size={28} color={Palette.textMuted} />
+            <Receipt size={28} color={Palette.textSecondary} />
             <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center' }}>Sign in to see your preorders.</Text>
             <PressableScale onPress={() => { feedback.tap(); router.push('/auth?mode=signin'); }} accessibilityRole="button" accessibilityLabel="Sign in"
               style={{ marginTop: 4, paddingHorizontal: 22, height: 48, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
@@ -278,7 +278,7 @@ export default function OrdersScreen() {
           <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }}
             style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
             <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
-              <Receipt size={28} color={Palette.textMuted} />
+              <Receipt size={28} color={Palette.textSecondary} />
             </View>
             <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>Couldn't load preorders</Text>
             <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center', lineHeight: 20, maxWidth: 280 }}>Check your connection and try again.</Text>
@@ -311,7 +311,7 @@ export default function OrdersScreen() {
                   {stats.map(({ label, value }) => (
                     <View key={label} style={{ flex: 1, backgroundColor: Palette.surface, borderRadius: 14, padding: 12, alignItems: 'center', gap: 2 }}>
                       <Text style={{ fontFamily: Font.display, fontSize: 20, color: INK, fontVariant: ['tabular-nums'] }}>{value}</Text>
-                      <Text style={{ fontFamily: Font.body, fontSize: 11, color: Palette.textMuted, textAlign: 'center' }}>{label}</Text>
+                      <Text style={{ fontFamily: Font.body, fontSize: 11, color: Palette.textSecondary, textAlign: 'center' }}>{label}</Text>
                     </View>
                   ))}
                 </MotiView>
@@ -449,7 +449,7 @@ export default function OrdersScreen() {
                       </View>
                       {/* Customer note */}
                       {o.fulfillmentNote ? (
-                        <Text numberOfLines={2} style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted, fontStyle: 'italic', marginTop: 8 }}>
+                        <Text numberOfLines={2} style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary, fontStyle: 'italic', marginTop: 8 }}>
                           &ldquo;{o.fulfillmentNote}&rdquo;
                         </Text>
                       ) : null}

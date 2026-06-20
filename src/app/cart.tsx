@@ -220,7 +220,6 @@ export default function CartScreen() {
 
   function checkout() {
     if (busy || !user) { if (!user) router.push('/auth?mode=signin'); return; }
-    if (method === 'in_home') { feedback.tap(); router.push('/experience-request?kind=private_chef'); return; }
     if (method === 'delivery' && !addressId) { feedback.warning(); return setErr('Select a delivery address.'); }
     if (method === 'meetup' && note.trim().length < 3) { feedback.warning(); return setErr('Where should you meet?'); }
     feedback.tap();
@@ -348,7 +347,7 @@ export default function CartScreen() {
                 <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: on ? ORANGE : Palette.chip, alignItems: 'center', justifyContent: 'center' }}><m.Icon size={20} color={on ? '#fff' : Palette.textSecondary} /></View>
                 <Text style={{ fontFamily: Font.heading, fontSize: 13.5, color: on ? Palette.brandPressed : INK }}>{m.label}</Text>
                 <Text style={{ fontFamily: Font.semibold, fontSize: 11.5, color: m.fee === 'Free' ? Palette.success : on ? Palette.brandPressed : Palette.textSecondary }}>{m.fee}</Text>
-                <Text style={{ fontFamily: Font.body, fontSize: 10.5, color: Palette.textMuted, textAlign: 'center' }} numberOfLines={1}>{m.eta}</Text>
+                <Text style={{ fontFamily: Font.body, fontSize: 10.5, color: Palette.textSecondary, textAlign: 'center' }} numberOfLines={1}>{m.eta}</Text>
               </PressableScale>
             </MotiView>
           );
@@ -370,7 +369,7 @@ export default function CartScreen() {
       {noteConfig[method] ? (
         <View style={{ gap: 6 }}>
           <Text style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.textSecondary }}>{noteConfig[method]!.label}</Text>
-          <TextInput value={note} onChangeText={(t) => { setNote(t); setErr(null); }} placeholder={noteConfig[method]!.placeholder} placeholderTextColor={Palette.textMuted} maxLength={300} accessibilityLabel={noteConfig[method]!.label} style={{ minHeight: 48, backgroundColor: Palette.surface, borderRadius: Radius.md, borderWidth: 1, borderColor: Palette.border, paddingHorizontal: 14, paddingVertical: 12, fontFamily: Font.body, fontSize: 15, color: INK }} />
+          <TextInput value={note} onChangeText={(t) => { setNote(t); setErr(null); }} placeholder={noteConfig[method]!.placeholder} placeholderTextColor={Palette.textSecondary} maxLength={300} accessibilityLabel={noteConfig[method]!.label} style={{ minHeight: 48, backgroundColor: Palette.surface, borderRadius: Radius.md, borderWidth: 1, borderColor: Palette.border, paddingHorizontal: 14, paddingVertical: 12, fontFamily: Font.body, fontSize: 15, color: INK }} />
           {method === 'meetup' && <Text style={{ fontSize: 12, color: Palette.textSecondary, marginTop: 4, fontFamily: Font.body }}>* Required for meetup orders</Text>}
         </View>
       ) : null}
@@ -469,7 +468,7 @@ export default function CartScreen() {
 
         {!user ? (
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
-            <ShoppingBag size={28} color={Palette.textMuted} />
+            <ShoppingBag size={28} color={Palette.textSecondary} />
             <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center' }}>Sign in to start a preorder.</Text>
             <PressableScale onPress={() => { feedback.tap(); router.push('/auth?mode=signin'); }} accessibilityRole="button" accessibilityLabel="Sign in" style={{ marginTop: 4, paddingHorizontal: 22, height: 48, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
               <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#fff' }}>Sign in</Text>
@@ -479,7 +478,7 @@ export default function CartScreen() {
           <ListSkeleton count={3} />
         ) : isError ? (
           <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }} style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
-            <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}><ShoppingBag size={28} color={Palette.textMuted} /></View>
+            <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}><ShoppingBag size={28} color={Palette.textSecondary} /></View>
             <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>Couldn't load your cart</Text>
             <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center', lineHeight: 20 }}>Check your connection and try again.</Text>
             <PressableScale onPress={() => { feedback.tap(); void refetch(); }} accessibilityRole="button" accessibilityLabel="Retry loading cart" style={{ marginTop: 4, paddingHorizontal: 22, height: 48, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
@@ -488,7 +487,7 @@ export default function CartScreen() {
           </MotiView>
         ) : !cart?.items.length ? (
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 10 }}>
-            <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}><ShoppingBag size={28} color={Palette.textMuted} /></View>
+            <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}><ShoppingBag size={28} color={Palette.textSecondary} /></View>
             {canceled ? (
               <>
                 <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>Payment canceled</Text>

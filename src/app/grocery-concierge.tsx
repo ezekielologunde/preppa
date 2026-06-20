@@ -118,7 +118,7 @@ export default function GroceryConciergeScreen() {
             ].map(({ value, label }) => (
               <View key={label} style={{ flex: 1, backgroundColor: Palette.surface, borderRadius: 12, padding: 10, alignItems: 'center', gap: 3 }}>
                 <Text style={{ fontFamily: Font.display, fontSize: 18, color: ORANGE }}>{value}</Text>
-                <Text style={{ fontFamily: Font.body, fontSize: 10, color: Palette.textMuted, textAlign: 'center', lineHeight: 14 }}>{label}</Text>
+                <Text style={{ fontFamily: Font.body, fontSize: 10, color: Palette.textSecondary, textAlign: 'center', lineHeight: 14 }}>{label}</Text>
               </View>
             ))}
           </View>
@@ -152,13 +152,13 @@ export default function GroceryConciergeScreen() {
                       Serves {kit.serves} · {kit.prepMins} min prep · ${kit.price}
                     </Text>
                   </View>
-                  <Package size={17} color={isOpen ? kit.color : Palette.textMuted} />
+                  <Package size={17} color={isOpen ? kit.color : Palette.textSecondary} />
                 </View>
 
                 {isOpen ? (
                   <View style={{ paddingHorizontal: 14, paddingBottom: 14, gap: 10 }}>
                     <View style={{ height: 1, backgroundColor: Palette.divider }} />
-                    <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: Palette.textMuted }}>included ingredients</Text>
+                    <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: Palette.textSecondary }}>included ingredients</Text>
                     <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
                       {kit.ingredients.map((ing) => (
                         <View key={ing} style={{ backgroundColor: kit.color + '14', borderRadius: Radius.pill, paddingHorizontal: 10, paddingVertical: 5 }}>
@@ -193,7 +193,7 @@ export default function GroceryConciergeScreen() {
               <Text style={{ fontFamily: Font.heading, fontSize: 15, color: INK }}>custom ingredient kit</Text>
               <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: Palette.textSecondary, marginTop: 2 }}>Describe what you want to cook and get bids from local preppers</Text>
             </View>
-            <ChevronRight size={16} color={Palette.textMuted} />
+            <ChevronRight size={16} color={Palette.textSecondary} />
           </PressableScale>
           </MotiView>
 

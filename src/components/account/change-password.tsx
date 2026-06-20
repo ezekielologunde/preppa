@@ -104,7 +104,7 @@ export function ChangePasswordPanel({ onClose }: { onClose: () => void }) {
             value={current}
             onChangeText={setCurrent}
             placeholder="Current password"
-            placeholderTextColor={Palette.textMuted}
+            placeholderTextColor={Palette.textSecondary}
             secureTextEntry
             maxLength={128}
             accessibilityLabel="Current password"
@@ -115,7 +115,7 @@ export function ChangePasswordPanel({ onClose }: { onClose: () => void }) {
               value={next}
               onChangeText={setNext}
               placeholder="New password (min 8 characters)"
-              placeholderTextColor={Palette.textMuted}
+              placeholderTextColor={Palette.textSecondary}
               secureTextEntry={!showNext}
               maxLength={128}
               accessibilityLabel="New password"
@@ -133,9 +133,9 @@ export function ChangePasswordPanel({ onClose }: { onClose: () => void }) {
                 justifyContent: 'center',
               }}>
               {showNext ? (
-                <EyeOff size={18} color={Palette.textMuted} />
+                <EyeOff size={18} color={Palette.textSecondary} />
               ) : (
-                <Eye size={18} color={Palette.textMuted} />
+                <Eye size={18} color={Palette.textSecondary} />
               )}
             </PressableScale>
           </View>
@@ -144,7 +144,7 @@ export function ChangePasswordPanel({ onClose }: { onClose: () => void }) {
               value={confirm}
               onChangeText={setConfirm}
               placeholder="Confirm new password"
-              placeholderTextColor={Palette.textMuted}
+              placeholderTextColor={Palette.textSecondary}
               secureTextEntry={!showConfirm}
               maxLength={128}
               accessibilityLabel="Confirm new password"
@@ -162,9 +162,9 @@ export function ChangePasswordPanel({ onClose }: { onClose: () => void }) {
                 justifyContent: 'center',
               }}>
               {showConfirm ? (
-                <EyeOff size={18} color={Palette.textMuted} />
+                <EyeOff size={18} color={Palette.textSecondary} />
               ) : (
-                <Eye size={18} color={Palette.textMuted} />
+                <Eye size={18} color={Palette.textSecondary} />
               )}
             </PressableScale>
           </View>

@@ -92,7 +92,7 @@ export default function ChangeEmailScreen() {
             <View style={{ gap: 14 }}>
               {user?.email ? (
                 <View style={{ backgroundColor: Palette.canvas, borderRadius: 12, padding: 12, gap: 3 }}>
-                  <Text style={{ fontFamily: Font.medium, fontSize: 11.5, color: Palette.textMuted }}>current email</Text>
+                  <Text style={{ fontFamily: Font.medium, fontSize: 11.5, color: Palette.textSecondary }}>current email</Text>
                   <Text style={{ fontFamily: Font.semibold, fontSize: 15, color: Palette.ink }}>{user.email}</Text>
                 </View>
               ) : null}
@@ -103,7 +103,7 @@ export default function ChangeEmailScreen() {
                   value={email}
                   onChangeText={setEmail}
                   placeholder="Enter new email"
-                  placeholderTextColor={Palette.textMuted}
+                  placeholderTextColor={Palette.textSecondary}
                   keyboardType="email-address"
                   autoCapitalize="none"
                   autoCorrect={false}

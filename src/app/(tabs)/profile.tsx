@@ -274,9 +274,9 @@ export default function ProfileScreen() {
               </View>
               <View style={{ flex: 1 }}>
                 <Text numberOfLines={1} style={{ fontFamily: Font.heading, fontSize: 14, color: Palette.ink }}>{row.label}</Text>
-                <Text numberOfLines={1} style={{ fontFamily: Font.body, fontSize: 11, color: Palette.textMuted, marginTop: 1 }}>{row.sub}</Text>
+                <Text numberOfLines={1} style={{ fontFamily: Font.body, fontSize: 11, color: Palette.textSecondary, marginTop: 1 }}>{row.sub}</Text>
               </View>
-              <ChevronRight size={15} color={Palette.textMuted} />
+              <ChevronRight size={15} color={Palette.textSecondary} />
             </PressableScale>
           ))}
         </View>
@@ -350,10 +350,10 @@ export default function ProfileScreen() {
             </View>
             <View style={{ flex: 1 }}>
               <Text style={{ fontFamily: Font.heading, fontSize: 14.5, color: Palette.ink }}>invite friends</Text>
-              <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted, marginTop: 1 }}>Give $5, Get $5</Text>
+              <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary, marginTop: 1 }}>Give $5, Get $5</Text>
             </View>
             <PressableScale onPress={() => { feedback.tap(); go('/referral'); }} accessibilityRole="button" accessibilityLabel="View full referral page">
-              <ChevronRight size={16} color={Palette.textMuted} />
+              <ChevronRight size={16} color={Palette.textSecondary} />
             </PressableScale>
           </View>
 
@@ -365,7 +365,7 @@ export default function ProfileScreen() {
           {/* Code display + copy */}
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <View style={{ flex: 1, backgroundColor: Palette.canvas, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10 }}>
-              <Text style={{ fontFamily: Font.body, fontSize: 11, color: Palette.textMuted, marginBottom: 2 }}>your code</Text>
+              <Text style={{ fontFamily: Font.body, fontSize: 11, color: Palette.textSecondary, marginBottom: 2 }}>your code</Text>
               <Text style={{ fontFamily: Font.display, fontSize: 20, color: Palette.brand, letterSpacing: 2 }}>{displayCode}</Text>
             </View>
             <PressableScale
@@ -416,7 +416,7 @@ export default function ProfileScreen() {
               </View>
               <View style={{ flex: 1 }}>
                 <Text numberOfLines={1} style={{ fontFamily: Font.heading, fontSize: 14, color: Palette.ink }}>{row.label}</Text>
-                <Text numberOfLines={1} style={{ fontFamily: Font.body, fontSize: 11.5, color: Palette.textMuted, marginTop: 1 }}>{row.sub}</Text>
+                <Text numberOfLines={1} style={{ fontFamily: Font.body, fontSize: 11.5, color: Palette.textSecondary, marginTop: 1 }}>{row.sub}</Text>
               </View>
               <ChevronRight size={15} color={Palette.textSecondary} />
             </PressableScale>

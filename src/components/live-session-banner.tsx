@@ -1,6 +1,6 @@
 import { MotiView } from 'moti';
 import { useEffect, useRef, useState } from 'react';
-import { Alert, Text, View } from 'react-native';
+import { Alert, Platform, Text, View } from 'react-native';
 
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
@@ -48,25 +48,29 @@ export function LiveSessionBanner({ prepperId }: Props) {
 
   const isLive = !!session;
 
+  function goLive(title?: string) {
+    startSession.mutate(title?.trim() || undefined, {
+      onSuccess: () => feedback.success(),
+      onError: () => { feedback.error(); Alert.alert('Could not start session', 'Please try again.'); },
+    });
+  }
+
   function handleStart() {
-    Alert.prompt(
-      'Start live session',
-      'Give your session a title (optional)',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Go live',
-          onPress: (title?: string) => {
-            startSession.mutate(title?.trim() || undefined, {
-              onSuccess: () => feedback.success(),
-              onError: () => { feedback.error(); Alert.alert('Could not start session', 'Please try again.'); },
-            });
-          },
-        },
-      ],
-      'plain-text',
-      '',
-    );
+    if (Platform.OS === 'ios') {
+      Alert.prompt(
+        'Start live session',
+        'Give your session a title (optional)',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Go live', onPress: (title?: string) => goLive(title) },
+        ],
+        'plain-text',
+        '',
+      );
+    } else {
+      // Alert.prompt is iOS-only; start immediately with no title on Android/web
+      goLive();
+    }
   }
 
   function handleEnd() {
@@ -81,7 +85,7 @@ export function LiveSessionBanner({ prepperId }: Props) {
           style: 'destructive',
           onPress: () => {
             endSession.mutate(session.id, {
-              onSuccess: () => feedback.tap(),
+              onSuccess: () => feedback.success(),
               onError: () => { feedback.error(); Alert.alert('Could not end session', 'Please try again.'); },
             });
           },

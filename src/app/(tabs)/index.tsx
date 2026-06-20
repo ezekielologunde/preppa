@@ -9,7 +9,7 @@ import { Platform, RefreshControl, ScrollView, Text, View, useWindowDimensions }
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import {
-  ActionSplitter, CategoryIconsRow, ExperiencesBar, MyPlansSection,
+  ActionSplitter, CategoryIconsRow, MyPlansSection,
   RewardsBanner, SurpriseMeBanner,
 } from '@/components/home-extras';
 import {
@@ -37,7 +37,7 @@ import { getCurrentRush, getNextRush, getRushUrgency } from '@/lib/rush-hour';
 
 const ORANGE = Palette.brand;
 const INK = Palette.ink;
-const MUTED = Palette.textMuted;
+const MUTED = Palette.textSecondary;
 
 const ORDER_STATUS_LABEL: Record<string, string> = {
   pending: 'Preorder placed — awaiting kitchen',
@@ -279,7 +279,6 @@ export default function HomeScreen() {
                 <ActionSplitter planImage={meals[0]?.image} dropImage={meals[1]?.image} />
                 <ChefsInActionFeed />
                 <View style={{ marginTop: 24 }}><FreshDropsSection /></View>
-                <View style={{ marginTop: 24 }}><ExperiencesBar /></View>
                 <View style={{ marginTop: 24 }}><RecentlyViewedSection /></View>
                 {uid ? <View style={{ marginTop: 24 }}><FollowingKitchensSection userId={uid} /></View> : null}
                 <View style={{ marginTop: 24 }}><ForYouSection userId={uid} firstName={firstName} /></View>
@@ -319,7 +318,6 @@ export default function HomeScreen() {
           <ActionSplitter planImage={meals[0]?.image} dropImage={meals[1]?.image} />
           <ChefsInActionFeed />
           <View style={{ marginTop: 24 }}><FreshDropsSection /></View>
-          <View style={{ marginTop: 24 }}><ExperiencesBar /></View>
           <View style={{ marginTop: 24 }}><RecentlyViewedSection /></View>
           {uid ? <View style={{ marginTop: 24 }}><FollowingKitchensSection userId={uid} /></View> : null}
           <View style={{ marginTop: 24 }}><ForYouSection userId={uid} firstName={firstName} /></View>

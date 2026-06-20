@@ -21,6 +21,7 @@ import { useAuth } from '@/providers/auth-provider';
 
 const ORANGE = Palette.brand;
 const INK = Palette.ink;
+const S1 = { shadowColor: '#1A1714', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 };
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const TIME_SLOTS = ['7–10am', '11am–2pm', '4–8pm', 'other'];
@@ -146,7 +147,7 @@ export default function PrepperAnalyticsScreen() {
     { icon: Clock, color: '#0891b2', text: repeatRate >= 30 ? `${repeatRate}% of your customers are repeat buyers — strong loyalty. Engage them with weekly specials and subscription plans.` : `Grow repeat buyers beyond ${repeatRate}% by offering subscription plans and responding to reviews promptly.` },
   ];
 
-  function goBack() { feedback.tap(); if (router.canGoBack()) { router.back(); } else { router.replace('/prepper-hub'); } }
+  function goBack() { feedback.tap(); if (router.canGoBack()) { router.back(); } else { router.replace('/dashboard'); } }
 
   if (!isPro && !membershipLoading && !appLoading) {
     return (
@@ -212,7 +213,7 @@ export default function PrepperAnalyticsScreen() {
             {PERIODS.map((p) => (
               <PressableScale key={p.key} onPress={() => { feedback.tap(); setPeriod(p.key); }} accessibilityRole="button" accessibilityState={{ selected: period === p.key }}
                 style={{ backgroundColor: period === p.key ? Palette.brandTint : Palette.chip, borderRadius: 8, paddingHorizontal: 9, paddingVertical: 5, minHeight: 44, justifyContent: 'center', alignItems: 'center' }}>
-                <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: period === p.key ? ORANGE : Palette.textMuted }}>{p.label}</Text>
+                <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: period === p.key ? ORANGE : Palette.textSecondary }}>{p.label}</Text>
               </PressableScale>
             ))}
           </View>
@@ -235,7 +236,9 @@ export default function PrepperAnalyticsScreen() {
         ) : ordersError ? (
           <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }}
             style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
-            <TrendingUp size={32} color={Palette.textMuted} />
+            <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center', ...S1 }}>
+              <TrendingUp size={28} color={Palette.textSecondary} />
+            </View>
             <Text style={{ fontFamily: Font.heading, fontSize: 17, color: INK }}>couldn't load analytics</Text>
             <Text style={{ fontFamily: Font.body, fontSize: 13.5, color: Palette.textSecondary, textAlign: 'center', lineHeight: 20 }}>
               Check your connection and try again.
@@ -247,7 +250,9 @@ export default function PrepperAnalyticsScreen() {
           </MotiView>
         ) : application && application.status !== 'approved' ? (
           <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260 }} style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
-            <Package size={32} color={Palette.textMuted} />
+            <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center', ...S1 }}>
+              <Package size={28} color={Palette.textSecondary} />
+            </View>
             <Text style={{ fontFamily: Font.heading, fontSize: 17, color: INK, textAlign: 'center' }}>
               {application.status === 'pending' ? 'Application under review' : 'Analytics unavailable'}
             </Text>
@@ -272,19 +277,19 @@ export default function PrepperAnalyticsScreen() {
           <View style={{ flexDirection: 'row', gap: 10 }}>
             <View style={{ flex: 1, backgroundColor: Palette.surface, borderRadius: 14, padding: 12, alignItems: 'center', gap: 4 }}>
               <Text style={{ fontFamily: Font.display, fontSize: 22, color: '#06b6d4', letterSpacing: -0.5, fontVariant: ['tabular-nums'] }}>{completed.length}</Text>
-              <Text style={{ fontFamily: Font.body, fontSize: 10.5, color: Palette.textMuted, textAlign: 'center' }}>total preorders</Text>
+              <Text style={{ fontFamily: Font.body, fontSize: 10.5, color: Palette.textSecondary, textAlign: 'center' }}>total preorders</Text>
             </View>
             <View style={{ flex: 1, backgroundColor: Palette.surface, borderRadius: 14, padding: 12, alignItems: 'center', gap: 4 }}>
               <Text style={{ fontFamily: Font.display, fontSize: 22, color: ORANGE, letterSpacing: -0.5, fontVariant: ['tabular-nums'] }}>${avgOrder.toFixed(0)}</Text>
-              <Text style={{ fontFamily: Font.body, fontSize: 10.5, color: Palette.textMuted, textAlign: 'center' }}>avg preorder</Text>
+              <Text style={{ fontFamily: Font.body, fontSize: 10.5, color: Palette.textSecondary, textAlign: 'center' }}>avg preorder</Text>
             </View>
             <View style={{ flex: 1, backgroundColor: Palette.surface, borderRadius: 14, padding: 12, alignItems: 'center', gap: 4 }}>
               <Text style={{ fontFamily: Font.display, fontSize: 22, color: Palette.success, letterSpacing: -0.5, fontVariant: ['tabular-nums'] }}>
                 {repeatStats?.rate ?? repeatRate}%
               </Text>
-              <Text style={{ fontFamily: Font.body, fontSize: 10.5, color: Palette.textMuted, textAlign: 'center' }}>repeat customers</Text>
+              <Text style={{ fontFamily: Font.body, fontSize: 10.5, color: Palette.textSecondary, textAlign: 'center' }}>repeat customers</Text>
               {repeatStats != null && repeatStats.totalUnique > 0 ? (
-                <Text style={{ fontFamily: Font.body, fontSize: 9, color: Palette.textMuted, textAlign: 'center' }}>
+                <Text style={{ fontFamily: Font.body, fontSize: 9, color: Palette.textSecondary, textAlign: 'center' }}>
                   {repeatStats.repeatCount} of {repeatStats.totalUnique} returned
                 </Text>
               ) : null}
@@ -302,7 +307,7 @@ export default function PrepperAnalyticsScreen() {
             </View>
             <View style={{ flex: 1, backgroundColor: Palette.surface, borderRadius: 14, padding: 12, alignItems: 'center', gap: 4 }}>
               <Text style={{ fontFamily: Font.display, fontSize: 22, color: Palette.textSecondary, letterSpacing: -0.5, fontVariant: ['tabular-nums'] }}>{prepperProfile.stats.unique_customers}</Text>
-              <Text style={{ fontFamily: Font.body, fontSize: 10.5, color: Palette.textMuted, textAlign: 'center' }}>lifetime customers</Text>
+              <Text style={{ fontFamily: Font.body, fontSize: 10.5, color: Palette.textSecondary, textAlign: 'center' }}>lifetime customers</Text>
             </View>
           </View>
           </MotiView>
@@ -311,15 +316,15 @@ export default function PrepperAnalyticsScreen() {
           {/* Orders by day + revenue by day — side by side on desktop */}
           <View style={isDesktop ? { flexDirection: 'row', gap: 14 } : undefined}>
           <MotiView style={isDesktop ? { flex: 1 } : undefined} from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 60 }}>
-          <View style={{ backgroundColor: Palette.surface, borderRadius: Radius.lg, padding: 16 }}>
+          <View style={{ backgroundColor: Palette.surface, borderRadius: Radius.lg, padding: 16, ...S1 }}>
             <Text style={{ fontFamily: Font.heading, fontSize: 14.5, color: INK, marginBottom: 14 }}>preorders by day of week</Text>
             <View style={{ flexDirection: 'row', gap: 4, alignItems: 'flex-end', height: 68 }}>
               {dayBars.map(({ day, count }, i) => {
                 const isToday = i === todayIdx;
                 return (
                   <View key={day} style={{ flex: 1, alignItems: 'center', gap: 4 }}>
-                    <Bar value={count} max={maxDay} color={isToday ? ORANGE : 'rgba(255,255,255,0.25)'} />
-                    <Text style={{ fontFamily: Font.medium, fontSize: 10, color: isToday ? ORANGE : Palette.textMuted }}>{day}</Text>
+                    <Bar value={count} max={maxDay} color={isToday ? ORANGE : Palette.border} />
+                    <Text style={{ fontFamily: Font.medium, fontSize: 10, color: isToday ? ORANGE : Palette.textSecondary }}>{day}</Text>
                   </View>
                 );
               })}
@@ -328,7 +333,7 @@ export default function PrepperAnalyticsScreen() {
           </MotiView>
 
           <MotiView style={isDesktop ? { flex: 1 } : undefined} from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 80 }}>
-          <View style={{ backgroundColor: Palette.surface, borderRadius: Radius.lg, padding: 16 }}>
+          <View style={{ backgroundColor: Palette.surface, borderRadius: Radius.lg, padding: 16, ...S1 }}>
             <Text style={{ fontFamily: Font.heading, fontSize: 14.5, color: INK, marginBottom: 14 }}>earnings by day of week</Text>
             <View style={{ flexDirection: 'row', gap: 4, alignItems: 'flex-end', height: 68 }}>
               {revenueBars.map(({ day, revenue }, i) => {
@@ -338,7 +343,7 @@ export default function PrepperAnalyticsScreen() {
                   <View key={day} style={{ flex: 1, alignItems: 'center', gap: 4 }}>
                     <Bar value={revenue} max={maxRevenue} color={isToday ? Palette.success : Palette.success + '60'} />
                     {revenue > 0 ? <Text style={{ fontFamily: Font.medium, fontSize: 8, color: Palette.success, marginTop: -2 }} numberOfLines={1}>{label}</Text> : null}
-                    <Text style={{ fontFamily: Font.medium, fontSize: 10, color: isToday ? ORANGE : Palette.textMuted }}>{day}</Text>
+                    <Text style={{ fontFamily: Font.medium, fontSize: 10, color: isToday ? ORANGE : Palette.textSecondary }}>{day}</Text>
                   </View>
                 );
               })}
@@ -349,7 +354,7 @@ export default function PrepperAnalyticsScreen() {
 
           {/* Weekly revenue bar chart */}
           <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 90 }}>
-          <View style={{ backgroundColor: Palette.surface, borderRadius: Radius.lg, padding: 16 }}>
+          <View style={{ backgroundColor: Palette.surface, borderRadius: Radius.lg, padding: 16, ...S1 }}>
             <Text style={{ fontFamily: Font.display, fontSize: 16, color: INK, letterSpacing: -0.3, marginBottom: 12 }}>revenue by week</Text>
             <RevenueBarChart data={weeklyRevenue} />
           </View>
@@ -357,7 +362,7 @@ export default function PrepperAnalyticsScreen() {
 
           {/* Orders by time slot */}
           <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 100 }}>
-          <View style={{ backgroundColor: Palette.surface, borderRadius: Radius.lg, padding: 16 }}>
+          <View style={{ backgroundColor: Palette.surface, borderRadius: Radius.lg, padding: 16, ...S1 }}>
             <Text style={{ fontFamily: Font.heading, fontSize: 14.5, color: INK, marginBottom: 14 }}>preorders by rush window</Text>
             <View style={{ gap: 8 }}>
               {slotBars.map(({ slot, count }) => {
@@ -368,9 +373,9 @@ export default function PrepperAnalyticsScreen() {
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                       <Text style={{ fontFamily: Font.medium, fontSize: 12, color: isTop ? ORANGE : Palette.textSecondary, width: 76 }}>{slot}</Text>
                       <View style={{ flex: 1, height: 8, backgroundColor: Palette.border, borderRadius: 4, overflow: 'hidden' }}>
-                        <View style={{ width: `${pct}%`, height: 8, backgroundColor: isTop ? ORANGE : Palette.textMuted, borderRadius: 4 }} />
+                        <View style={{ width: `${pct}%`, height: 8, backgroundColor: isTop ? ORANGE : Palette.textSecondary, borderRadius: 4 }} />
                       </View>
-                      <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: isTop ? ORANGE : Palette.textMuted, width: 24, textAlign: 'right', fontVariant: ['tabular-nums'] }}>{count}</Text>
+                      <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: isTop ? ORANGE : Palette.textSecondary, width: 24, textAlign: 'right', fontVariant: ['tabular-nums'] }}>{count}</Text>
                     </View>
                   </View>
                 );
@@ -382,7 +387,7 @@ export default function PrepperAnalyticsScreen() {
           {/* Top meals + top customers — side by side on desktop */}
           <View style={isDesktop ? { flexDirection: 'row', gap: 14, alignItems: 'flex-start' } : undefined}>
           <MotiView style={isDesktop ? { flex: 1 } : undefined} from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 140 }}>
-          <View style={{ backgroundColor: Palette.surface, borderRadius: Radius.lg, padding: 16, gap: 12 }}>
+          <View style={{ backgroundColor: Palette.surface, borderRadius: Radius.lg, padding: 16, gap: 12, ...S1 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               <Package size={15} color={Palette.amber} />
               <Text style={{ fontFamily: Font.display, fontSize: 16, color: INK, letterSpacing: -0.3 }}>top meals</Text>
@@ -393,18 +398,18 @@ export default function PrepperAnalyticsScreen() {
 
           {topCustomers.length > 0 ? (
             <MotiView style={isDesktop ? { flex: 1 } : undefined} from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 160 }}>
-            <View style={{ backgroundColor: Palette.surface, borderRadius: Radius.lg, padding: 16, gap: 12 }}>
+            <View style={{ backgroundColor: Palette.surface, borderRadius: Radius.lg, padding: 16, gap: 12, ...S1 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                 <Users size={15} color={Palette.success} />
                 <Text style={{ fontFamily: Font.heading, fontSize: 14, color: INK }}>top customers</Text>
               </View>
               {topCustomers.map(({ name, orders, spend }, i) => (
-                <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                <View key={name || i} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                   <View style={{ width: 26, height: 26, borderRadius: 13, backgroundColor: Palette.success + '22', alignItems: 'center', justifyContent: 'center' }}>
                     <Text style={{ fontFamily: Font.heading, fontSize: 10, color: Palette.success }}>#{i + 1}</Text>
                   </View>
                   <Text style={{ flex: 1, fontFamily: Font.semibold, fontSize: 13.5, color: INK }} numberOfLines={1}>{name}</Text>
-                  <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted }}>{orders} order{orders === 1 ? '' : 's'}</Text>
+                  <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary }}>{orders} order{orders === 1 ? '' : 's'}</Text>
                   <Text style={{ fontFamily: Font.heading, fontSize: 13.5, color: Palette.success, fontVariant: ['tabular-nums'], minWidth: 52, textAlign: 'right' }}>${spend.toFixed(0)}</Text>
                 </View>
               ))}
@@ -419,11 +424,11 @@ export default function PrepperAnalyticsScreen() {
           <View style={{ gap: 10 }}>
             {insights.map(({ icon: Icon, color, text }, i) => (
               <MotiView key={i} from={{ opacity: 0, translateX: -6 }} animate={{ opacity: 1, translateX: 0 }} transition={{ type: 'timing', duration: 220, delay: 200 + i * 40 }}>
-              <View style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 14, padding: 14, flexDirection: 'row', alignItems: 'flex-start', gap: 12 }}>
+              <View style={{ backgroundColor: Palette.surface, borderRadius: 14, padding: 14, flexDirection: 'row', alignItems: 'flex-start', gap: 12 }}>
                 <View style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: color + '22', alignItems: 'center', justifyContent: 'center', marginTop: 1 }}>
                   <Icon size={15} color={color} />
                 </View>
-                <Text style={{ flex: 1, fontFamily: Font.body, fontSize: 13, color: 'rgba(255,255,255,0.82)', lineHeight: 19 }}>{text}</Text>
+                <Text style={{ flex: 1, fontFamily: Font.body, fontSize: 13, color: INK, lineHeight: 19 }}>{text}</Text>
               </View>
               </MotiView>
             ))}
@@ -441,7 +446,7 @@ export default function PrepperAnalyticsScreen() {
               <Text style={{ fontFamily: Font.heading, fontSize: 15, color: INK }}>detailed earnings</Text>
               <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: Palette.textSecondary, marginTop: 2 }}>Full payout history, transaction breakdown, and net earnings</Text>
             </View>
-            <ChevronRight size={16} color={Palette.textMuted} />
+            <ChevronRight size={16} color={Palette.textSecondary} />
           </PressableScale>
           </MotiView>
 

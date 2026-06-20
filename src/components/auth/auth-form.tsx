@@ -70,7 +70,7 @@ function AnimatedInput({
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
-        placeholderTextColor={Palette.textMuted}
+        placeholderTextColor={Palette.textSecondary}
         secureTextEntry={secureTextEntry}
         editable={editable}
         onFocus={() => setFocused(true)}

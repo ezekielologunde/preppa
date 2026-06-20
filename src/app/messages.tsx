@@ -69,7 +69,7 @@ function ConversationRow({ c, onPress, selected }: { c: Conversation; onPress: (
       <View style={{ flex: 1 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <Text style={{ fontFamily: Font.heading, fontSize: 15, color: INK, flex: 1 }} numberOfLines={1}>{c.otherName}</Text>
-          <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted }}>{timeAgo(c.lastAt)}</Text>
+          <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary }}>{timeAgo(c.lastAt)}</Text>
         </View>
         <Text style={{ fontFamily: c.unread ? Font.semibold : Font.body, fontSize: 13.5, color: c.unread ? INK : Palette.textSecondary, marginTop: 2 }} numberOfLines={1}>
           {c.lastMessage ?? 'Say hello'}
@@ -91,7 +91,7 @@ function NotificationRow({ o, onPress }: { o: OrderSummary; onPress: () => void 
       <View style={{ flex: 1 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <Text style={{ fontFamily: Font.heading, fontSize: 14.5, color: INK, flex: 1 }} numberOfLines={1}>{n.title}</Text>
-          <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted }}>{timeAgo(o.created_at)}</Text>
+          <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary }}>{timeAgo(o.created_at)}</Text>
         </View>
         <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary, marginTop: 2 }} numberOfLines={1}>{n.sub}</Text>
       </View>
@@ -126,7 +126,7 @@ function NotificationItemRow({ n, onPress }: { n: AppNotification; onPress: () =
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <Text style={{ fontFamily: Font.heading, fontSize: 14.5, color: INK, flex: 1 }} numberOfLines={1}>{n.title}</Text>
           {!n.read ? <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: ORANGE }} /> : null}
-          <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted }}>{timeAgo(n.created_at)}</Text>
+          <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary }}>{timeAgo(n.created_at)}</Text>
         </View>
         {n.body ? <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary, marginTop: 2 }} numberOfLines={2}>{n.body}</Text> : null}
       </View>
@@ -138,7 +138,7 @@ function Empty({ Icon, title, sub }: { Icon: LucideIcon; title: string; sub: str
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 10 }}>
       <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: Palette.canvas, alignItems: 'center', justifyContent: 'center' }}>
-        <Icon size={28} color={Palette.textMuted} />
+        <Icon size={28} color={Palette.textSecondary} />
       </View>
       <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>{title}</Text>
       <Text style={{ fontFamily: Font.body, fontSize: 13.5, color: Palette.textSecondary, textAlign: 'center', maxWidth: 280, lineHeight: 19 }}>{sub}</Text>
@@ -255,7 +255,7 @@ export default function MessagesScreen() {
     <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }}
       style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
       <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: Palette.canvas, alignItems: 'center', justifyContent: 'center' }}>
-        <Bell size={28} color={Palette.textMuted} />
+        <Bell size={28} color={Palette.textSecondary} />
       </View>
       <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>couldn't load updates</Text>
       <Text style={{ fontFamily: Font.body, fontSize: 13.5, color: Palette.textSecondary, textAlign: 'center', maxWidth: 280, lineHeight: 19 }}>Check your connection and try again.</Text>
@@ -271,7 +271,7 @@ export default function MessagesScreen() {
       {(notifications?.length ?? 0) > 0 ? (
         <>
           {(orders?.length ?? 0) > 0 ? (
-            <Text style={{ paddingHorizontal: 20, paddingTop: 4, paddingBottom: 6, fontFamily: Font.semibold, fontSize: 11, color: Palette.textMuted, textTransform: 'uppercase', letterSpacing: 0.8 }}>
+            <Text style={{ paddingHorizontal: 20, paddingTop: 4, paddingBottom: 6, fontFamily: Font.semibold, fontSize: 11, color: Palette.textSecondary, textTransform: 'uppercase', letterSpacing: 0.8 }}>
               activity
             </Text>
           ) : null}
@@ -285,7 +285,7 @@ export default function MessagesScreen() {
       {(orders?.length ?? 0) > 0 ? (
         <>
           {(notifications?.length ?? 0) > 0 ? (
-            <Text style={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 6, fontFamily: Font.semibold, fontSize: 11, color: Palette.textMuted, textTransform: 'uppercase', letterSpacing: 0.8 }}>
+            <Text style={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 6, fontFamily: Font.semibold, fontSize: 11, color: Palette.textSecondary, textTransform: 'uppercase', letterSpacing: 0.8 }}>
               recent orders
             </Text>
           ) : null}
@@ -305,7 +305,7 @@ export default function MessagesScreen() {
     <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }}
       style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
       <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: Palette.canvas, alignItems: 'center', justifyContent: 'center' }}>
-        <MessageCircle size={28} color={Palette.textMuted} />
+        <MessageCircle size={28} color={Palette.textSecondary} />
       </View>
       <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>couldn't load messages</Text>
       <Text style={{ fontFamily: Font.body, fontSize: 13.5, color: Palette.textSecondary, textAlign: 'center', maxWidth: 280, lineHeight: 19 }}>Check your connection and try again.</Text>
@@ -317,7 +317,7 @@ export default function MessagesScreen() {
   ) : !conversations?.length ? (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 10 }}>
       <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: Palette.canvas, alignItems: 'center', justifyContent: 'center' }}>
-        <MessageCircle size={28} color={Palette.textMuted} />
+        <MessageCircle size={28} color={Palette.textSecondary} />
       </View>
       <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>No messages yet</Text>
       <Text style={{ fontFamily: Font.body, fontSize: 13.5, color: Palette.textSecondary, textAlign: 'center', maxWidth: 280, lineHeight: 19 }}>Message a prepper from a meal or experience to start a conversation.</Text>
@@ -356,7 +356,7 @@ export default function MessagesScreen() {
 
         {!user ? (
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
-            <Bell size={28} color={Palette.textMuted} />
+            <Bell size={28} color={Palette.textSecondary} />
             <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center' }}>Sign in to see your updates and messages.</Text>
             <PressableScale onPress={() => { feedback.tap(); router.push('/auth?mode=signin'); }} accessibilityRole="button" accessibilityLabel="Sign in" style={{ marginTop: 4, paddingHorizontal: 22, height: 48, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
               <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#fff' }}>Sign in</Text>
@@ -393,15 +393,15 @@ export default function MessagesScreen() {
                 <ScrollView ref={chatScrollRef} showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 14, gap: 6, flexGrow: 1, justifyContent: chatMessages?.length ? 'flex-end' : 'center' }}>
                   {!chatMessages?.length ? (
                     <MotiView from={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ type: 'timing', duration: 280 }} style={{ alignItems: 'center', gap: 8 }}>
-                      <MessageCircle size={26} color={Palette.textMuted} />
-                      <Text style={{ fontFamily: Font.body, fontSize: 13.5, color: Palette.textMuted }}>No messages yet — say hello</Text>
+                      <MessageCircle size={26} color={Palette.textSecondary} />
+                      <Text style={{ fontFamily: Font.body, fontSize: 13.5, color: Palette.textSecondary }}>No messages yet — say hello</Text>
                     </MotiView>
                   ) : (
                     chatMessages.map((m) => (
                       <MotiView key={m.id} from={{ opacity: 0, translateY: 4 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 140 }}
                         style={{ alignSelf: m.mine ? 'flex-end' : 'flex-start', maxWidth: '75%', backgroundColor: m.mine ? ORANGE : Palette.canvas, borderRadius: 16, borderBottomRightRadius: m.mine ? 4 : 16, borderBottomLeftRadius: m.mine ? 16 : 4, paddingHorizontal: 12, paddingVertical: 8, flexDirection: 'row', alignItems: 'flex-end', gap: 4 }}>
                         <Text style={{ fontFamily: Font.body, fontSize: 14, color: m.mine ? '#fff' : INK, lineHeight: 19, flex: 1 }}>{m.body}</Text>
-                        {m.mine && sendMsg.isPending && <Clock size={10} color={m.mine ? 'rgba(255,255,255,0.6)' : Palette.textMuted} style={{ marginLeft: 4 }} />}
+                        {m.mine && sendMsg.isPending && <Clock size={10} color={m.mine ? 'rgba(255,255,255,0.6)' : Palette.textSecondary} style={{ marginLeft: 4 }} />}
                       </MotiView>
                     ))
                   )}
@@ -410,7 +410,7 @@ export default function MessagesScreen() {
                   <Text style={{ fontFamily: Font.medium, fontSize: 12, color: Palette.danger, paddingHorizontal: 14, paddingTop: 6, paddingBottom: 2 }}>{sendErr}</Text>
                 ) : null}
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 12, paddingVertical: 8, borderTopWidth: 1, borderTopColor: Palette.border }}>
-                  <TextInput value={chatText} onChangeText={setChatText} placeholder="Message…" placeholderTextColor={Palette.textMuted} onSubmitEditing={submitChat} maxLength={2000} accessibilityLabel="Type a message"
+                  <TextInput value={chatText} onChangeText={setChatText} placeholder="Message…" placeholderTextColor={Palette.textSecondary} onSubmitEditing={submitChat} maxLength={2000} accessibilityLabel="Type a message"
                     style={{ flex: 1, height: 40, borderRadius: 20, backgroundColor: Palette.canvas, paddingHorizontal: 14, fontFamily: Font.body, fontSize: 14, color: INK }} />
                   <PressableScale onPress={submitChat} disabled={!chatText.trim() || sendMsg.isPending} accessibilityRole="button" accessibilityLabel="Send"
                     style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: chatText.trim() ? ORANGE : Palette.border, alignItems: 'center', justifyContent: 'center' }}>
@@ -420,8 +420,8 @@ export default function MessagesScreen() {
               </View>
             ) : (
               <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 10 }}>
-                <MessageCircle size={28} color={Palette.textMuted} />
-                <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textMuted }}>Select a conversation</Text>
+                <MessageCircle size={28} color={Palette.textSecondary} />
+                <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary }}>Select a conversation</Text>
               </View>
             )}
           </View>

@@ -42,7 +42,7 @@ export function SettingsGroup({ title, children, delay = 0 }: { title?: string; 
       transition={{ type: 'timing', duration: 280, delay }}
       style={{ marginHorizontal: 20 }}>
       {title ? (
-        <Text style={{ fontFamily: Font.semibold, fontSize: 11.5, color: Palette.textMuted, textTransform: 'uppercase', letterSpacing: 0.7, marginBottom: 8, paddingHorizontal: 4 }}>{title}</Text>
+        <Text style={{ fontFamily: Font.semibold, fontSize: 11.5, color: Palette.textSecondary, textTransform: 'uppercase', letterSpacing: 0.7, marginBottom: 8, paddingHorizontal: 4 }}>{title}</Text>
       ) : null}
       <View style={{ backgroundColor: Palette.surface, borderRadius: 20, overflow: 'hidden', ...Shadow.card }}>
         {children}
@@ -119,7 +119,7 @@ export function SettingsRow({
         </View>
         <View style={{ flex: 1 }}>
           <Text numberOfLines={1} style={{ fontFamily: Font.heading, fontSize: 15, color: labelColor }}>{label}</Text>
-          {sub ? <Text numberOfLines={2} style={{ fontFamily: Font.body, fontSize: 12.5, color: Palette.textMuted, marginTop: 1, lineHeight: 17 }}>{sub}</Text> : null}
+          {sub ? <Text numberOfLines={2} style={{ fontFamily: Font.body, fontSize: 12.5, color: Palette.textSecondary, marginTop: 1, lineHeight: 17 }}>{sub}</Text> : null}
         </View>
         {right.type === 'chevron' ? <ChevronRight size={18} color={Palette.textSecondary} /> : null}
         {right.type === 'value' ? <Text style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.textSecondary }}>{right.label}</Text> : null}

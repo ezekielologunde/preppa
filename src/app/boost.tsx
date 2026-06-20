@@ -83,7 +83,7 @@ export default function BoostScreen() {
   const insertBoost = useInsertBoost();
   const isPending = boostCheckout.isPending || insertBoost.isPending;
 
-  function goBack() { feedback.tap(); if (router.canGoBack()) { router.back(); } else { router.replace('/prepper-hub'); } }
+  function goBack() { feedback.tap(); if (router.canGoBack()) { router.back(); } else { router.replace('/dashboard'); } }
 
   async function handleActivate() {
     if (!prepper?.id) return;
@@ -145,11 +145,11 @@ export default function BoostScreen() {
 
   if (!isPro) {
     return (
-      <View style={{ flex: 1, backgroundColor: Palette.prepperBg }}>
+      <View style={{ flex: 1, backgroundColor: '#F8F6F3' }}>
         <SafeAreaView edges={['top']} style={{ flex: 1 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingTop: 8 }}>
-            <PressableScale onPress={goBack} accessibilityRole="button" accessibilityLabel="Go back" style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: Palette.prepperCard, alignItems: 'center', justifyContent: 'center' }}>
-              <ChevronLeft size={22} color="#fff" />
+            <PressableScale onPress={goBack} accessibilityRole="button" accessibilityLabel="Go back" style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center' }}>
+              <ChevronLeft size={22} color={INK} />
             </PressableScale>
           </View>
           <MotiView from={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', damping: 18, stiffness: 200 }}
@@ -157,8 +157,8 @@ export default function BoostScreen() {
             <View style={{ width: 72, height: 72, borderRadius: 36, backgroundColor: '#F59E0B22', alignItems: 'center', justifyContent: 'center' }}>
               <Crown size={40} color="#F59E0B" />
             </View>
-            <Text style={{ fontFamily: Font.display, fontSize: 26, color: '#fff', letterSpacing: -0.6, textAlign: 'center' }}>Boost is a Pro feature</Text>
-            <Text style={{ fontFamily: Font.body, fontSize: 14.5, color: 'rgba(255,255,255,0.65)', textAlign: 'center', lineHeight: 22 }}>
+            <Text style={{ fontFamily: Font.display, fontSize: 26, color: INK, letterSpacing: -0.6, textAlign: 'center' }}>Boost is a Pro feature</Text>
+            <Text style={{ fontFamily: Font.body, fontSize: 14.5, color: '#78716C', textAlign: 'center', lineHeight: 22 }}>
               Upgrade to Go Pro to promote your meals and get priority placement.
             </Text>
             <PressableScale onPress={() => { feedback.tap(); router.push('/prepper-premium'); }} accessibilityRole="button" accessibilityLabel="Upgrade to Pro"
@@ -222,8 +222,8 @@ export default function BoostScreen() {
                           </View>
                         ))}
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 }}>
-                          <Eye size={13} color={Palette.textMuted} />
-                          <Text style={{ fontFamily: Font.medium, fontSize: 12, color: Palette.textMuted }}>est. {impressions} per period</Text>
+                          <Eye size={13} color={Palette.textSecondary} />
+                          <Text style={{ fontFamily: Font.medium, fontSize: 12, color: Palette.textSecondary }}>est. {impressions} per period</Text>
                         </View>
                       </View>
                     ) : null}

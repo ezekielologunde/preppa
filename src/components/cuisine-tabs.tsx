@@ -52,7 +52,7 @@ export function CuisineTabsRow({ active, pad, onSelect }: Props) {
                 overflow: 'hidden',
                 fontFamily: Font.semibold,
                 fontSize: 13,
-                color: on ? '#fff' : Palette.textMuted,
+                color: on ? '#fff' : Palette.textSecondary,
                 backgroundColor: on ? Palette.brand : Palette.surface,
                 borderWidth: on ? 0 : 1,
                 borderColor: Palette.border,

@@ -20,30 +20,36 @@ const DAY_LABELS: Record<string, string> = {
   thursday: 'Thu', friday: 'Fri', saturday: 'Sat', sunday: 'Sun',
 };
 
-const BG = Palette.prepperBg;
-const CARD = Palette.prepperCard;
-const INK = '#FFFFFF';
-const MUTED = '#6B7280';
-const TEXT2 = '#9CA3AF';
-const BORDER = '#1E2330';
+const BG     = '#F8F6F3';
+const CARD   = '#FFFFFF';
+const INK    = '#1A1714';
+const MUTED  = '#78716C';
+const BORDER = '#EDE9E4';
 
 // ── Day chip ──────────────────────────────────────────────────────────────────
 
+const TODAY_MAP = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+const todayDayName = TODAY_MAP[new Date().getDay()] ?? 'monday';
+
 function DayChip({ day, active, onPress }: { day: string; active: boolean; onPress: () => void }) {
+  const isToday = day === todayDayName;
   return (
     <MotiView
-      animate={{ backgroundColor: active ? Palette.brand : CARD, borderColor: active ? Palette.brand : BORDER }}
+      animate={{ backgroundColor: active ? Palette.brand : CARD, borderColor: active ? Palette.brand : isToday ? Palette.brand + '55' : BORDER }}
       transition={{ type: 'timing', duration: 180 }}
       style={{ borderRadius: Radius.pill, borderWidth: 1.5, overflow: 'hidden', minWidth: 48 }}>
       <PressableScale
         onPress={onPress}
         accessibilityRole="button"
-        accessibilityLabel={DAY_LABELS[day]}
+        accessibilityLabel={`${DAY_LABELS[day]}${isToday ? ' (today)' : ''}`}
         accessibilityState={{ selected: active }}
-        style={{ paddingHorizontal: 14, paddingVertical: 8, alignItems: 'center', justifyContent: 'center' }}>
-        <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: active ? '#fff' : TEXT2 }}>
+        style={{ paddingHorizontal: 14, paddingVertical: 8, alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+        <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: active ? '#fff' : isToday ? Palette.brand : MUTED }}>
           {DAY_LABELS[day]}
         </Text>
+        {isToday && !active ? (
+          <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: Palette.brand }} />
+        ) : null}
       </PressableScale>
     </MotiView>
   );
@@ -81,11 +87,11 @@ function MealRow({ meal, day, onToggle, isPending }: MealRowProps) {
           ) : null}
         </View>
         <MotiView
-          animate={{ backgroundColor: isAvailable ? '#D1FAE5' : '#1d2129', borderColor: isAvailable ? '#065F46' : BORDER }}
+          animate={{ backgroundColor: isAvailable ? '#D1FAE5' : '#F0EDEA', borderColor: isAvailable ? '#065F46' : BORDER }}
           transition={{ type: 'timing', duration: 200 }}
           style={{ borderRadius: Radius.pill, borderWidth: 1.5, overflow: 'hidden' }}>
           <View style={{ paddingHorizontal: 12, paddingVertical: 5 }}>
-            <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: isAvailable ? '#065F46' : TEXT2 }}>
+            <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: isAvailable ? '#065F46' : MUTED }}>
               {isAvailable ? `✓ Available ${dayLabel}` : `+ Add for ${dayLabel}`}
             </Text>
           </View>
@@ -103,12 +109,12 @@ export default function PrepperMealPlannerScreen() {
   const { data: application, isLoading: appLoading } = useMyPrepperApplication(user?.id);
   const prepperId = application?.id ?? '';
 
-  const { data: meals, isLoading, isError } = usePlannerMeals(prepperId);
+  const { data: meals, isLoading, isError, refetch } = usePlannerMeals(prepperId);
   const toggleDay = useToggleMealDay(prepperId);
 
   // Optimistic local day overrides: mealId → days[]
   const [localDays, setLocalDays] = useState<Record<string, string[]>>({});
-  const [selectedDay, setSelectedDay] = useState<string>('monday');
+  const [selectedDay, setSelectedDay] = useState<string>(todayDayName);
 
   function getMealDays(meal: PlannerMeal): string[] {
     return localDays[meal.id] ?? meal.availableDays;
@@ -137,7 +143,7 @@ export default function PrepperMealPlannerScreen() {
   const dayMeals = (meals ?? []).filter((m) => getMealDays(m).includes(selectedDay));
   const otherMeals = (meals ?? []).filter((m) => !getMealDays(m).includes(selectedDay));
 
-  function goBack() { feedback.tap(); if (router.canGoBack()) router.back(); else router.replace('/prepper-hub'); }
+  function goBack() { feedback.tap(); if (router.canGoBack()) router.back(); else router.replace('/dashboard'); }
 
   const isReady = !appLoading && !!prepperId;
   const dayLabel = DAY_LABELS[selectedDay] ?? selectedDay;
@@ -148,14 +154,14 @@ export default function PrepperMealPlannerScreen() {
         {/* Header */}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingTop: 8, paddingBottom: 12 }}>
           <PressableScale onPress={goBack} accessibilityRole="button" accessibilityLabel="Go back"
-            style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center' }}>
+            style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center', shadowColor: '#1A1714', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 4, elevation: 2 }}>
             <ChevronLeft size={22} color={INK} />
           </PressableScale>
           <View style={{ flex: 1 }}>
             <Text style={{ fontFamily: Font.display, fontSize: 22, color: INK, letterSpacing: -0.5 }}>
               meal planner
             </Text>
-            <Text style={{ fontFamily: Font.body, fontSize: 12, color: TEXT2, marginTop: 1 }}>
+            <Text style={{ fontFamily: Font.body, fontSize: 12, color: MUTED, marginTop: 1 }}>
               set which days each meal is available
             </Text>
           </View>
@@ -180,10 +186,18 @@ export default function PrepperMealPlannerScreen() {
             {[1, 2, 3, 4].map((n) => <Skeleton key={n} height={72} radius={12} />)}
           </View>
         ) : isError ? (
-          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32 }}>
-            <Text style={{ fontFamily: Font.medium, fontSize: 14, color: Palette.danger, textAlign: 'center' }}>
-              Could not load meals. Pull down to retry.
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
+            <CalendarDays size={32} color={Palette.textSecondary} />
+            <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK, textAlign: 'center' }}>
+              Couldn't load meals
             </Text>
+            <Text style={{ fontFamily: Font.body, fontSize: 13.5, color: MUTED, textAlign: 'center' }}>
+              Check your connection and try again.
+            </Text>
+            <PressableScale onPress={() => { feedback.tap(); void refetch(); }} accessibilityRole="button" accessibilityLabel="Retry loading meals"
+              style={{ marginTop: 4, backgroundColor: Palette.brand, borderRadius: Radius.pill, paddingHorizontal: 24, paddingVertical: 12 }}>
+              <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: '#fff' }}>retry</Text>
+            </PressableScale>
           </View>
         ) : (
           <FlatList
@@ -193,15 +207,17 @@ export default function PrepperMealPlannerScreen() {
             contentContainerStyle={{ gap: 8, paddingHorizontal: 16, paddingBottom: 100 }}
             ListHeaderComponent={
               <MotiView from={{ opacity: 0, translateY: -4 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 200 }}>
-                <Text style={{ fontFamily: Font.medium, fontSize: 13, color: TEXT2, marginBottom: 4 }}>
+                <Text style={{ fontFamily: Font.medium, fontSize: 13, color: MUTED, marginBottom: 4 }}>
                   {dayMeals.length} meal{dayMeals.length !== 1 ? 's' : ''} available on {dayLabel}
                 </Text>
               </MotiView>
             }
             ListEmptyComponent={
               <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: 48, gap: 10 }}>
-                <CalendarDays size={36} color={MUTED} />
-                <Text style={{ fontFamily: Font.semibold, fontSize: 15, color: TEXT2 }}>No meals yet</Text>
+                <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center', shadowColor: '#1A1714', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 }}>
+                  <CalendarDays size={28} color={MUTED} />
+                </View>
+                <Text style={{ fontFamily: Font.semibold, fontSize: 15, color: INK }}>No meals yet</Text>
                 <Text style={{ fontFamily: Font.body, fontSize: 13, color: MUTED, textAlign: 'center', maxWidth: 240 }}>
                   Add your first meal to start planning your weekly schedule.
                 </Text>
@@ -232,9 +248,9 @@ export default function PrepperMealPlannerScreen() {
           </PressableScale>
         </View>
 
-        {/* Pending spinner overlay */}
+        {/* Pending spinner — floats above FAB, clear of header */}
         {toggleDay.isPending ? (
-          <View style={{ position: 'absolute', top: 16, right: 16 }}>
+          <View style={{ position: 'absolute', bottom: 108, right: 24 }}>
             <ActivityIndicator color={Palette.brand} size="small" />
           </View>
         ) : null}

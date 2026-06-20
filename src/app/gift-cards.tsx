@@ -94,7 +94,7 @@ function SendTab({ userId }: { userId: string }) {
 
         {/* Code card */}
         <View style={{ width: '100%', backgroundColor: Palette.surface, borderRadius: Radius.lg, borderWidth: 1, borderColor: Palette.border, padding: 20, gap: 12, alignItems: 'center' }}>
-          <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted, letterSpacing: 0.5, textTransform: 'uppercase' }}>Gift card code</Text>
+          <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary, letterSpacing: 0.5, textTransform: 'uppercase' }}>Gift card code</Text>
           <Text style={{ fontFamily: Font.display, fontSize: 28, color: ORANGE, letterSpacing: 3 }}>{createdCode}</Text>
           <View style={{ flexDirection: 'row', gap: 10 }}>
             <PressableScale onPress={handleCopy} accessibilityRole="button" accessibilityLabel="Copy gift card code"
@@ -157,7 +157,7 @@ function SendTab({ userId }: { userId: string }) {
             onFocus={() => setIsCustom(true)}
             keyboardType="decimal-pad"
             placeholder="Enter amount"
-            placeholderTextColor={Palette.textMuted}
+            placeholderTextColor={Palette.textSecondary}
             accessibilityLabel="Custom gift card amount"
             style={{ flex: 1, height: 44, backgroundColor: Palette.surface, borderRadius: Radius.md, borderWidth: 1.5, borderColor: isCustom ? ORANGE : Palette.border, paddingHorizontal: 14, fontFamily: Font.body, fontSize: 15, color: INK }}
           />
@@ -174,7 +174,7 @@ function SendTab({ userId }: { userId: string }) {
           value={msg}
           onChangeText={setMsg}
           placeholder="e.g. Happy birthday! Enjoy a home-cooked meal."
-          placeholderTextColor={Palette.textMuted}
+          placeholderTextColor={Palette.textSecondary}
           multiline
           maxLength={200}
           accessibilityLabel="Personal message for gift card"
@@ -185,12 +185,12 @@ function SendTab({ userId }: { userId: string }) {
       {/* Recipient email */}
       <View style={{ gap: 6 }}>
         <Text style={{ fontFamily: Font.heading, fontSize: 15, color: INK }}>Recipient email (optional)</Text>
-        <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted, marginTop: -4 }}>Leave blank to share the code yourself</Text>
+        <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary, marginTop: -4 }}>Leave blank to share the code yourself</Text>
         <TextInput
           value={email}
           onChangeText={setEmail}
           placeholder="email@example.com"
-          placeholderTextColor={Palette.textMuted}
+          placeholderTextColor={Palette.textSecondary}
           keyboardType="email-address"
           autoCapitalize="none"
           maxLength={200}
@@ -209,8 +209,8 @@ function SendTab({ userId }: { userId: string }) {
         {send.isPending
           ? <ActivityIndicator color="#fff" size="small" />
           : <>
-            <Gift size={18} color={finalAmount >= 5 ? '#fff' : Palette.textMuted} />
-            <Text style={{ fontFamily: Font.heading, fontSize: 16, color: finalAmount >= 5 ? '#fff' : Palette.textMuted }}>
+            <Gift size={18} color={finalAmount >= 5 ? '#fff' : Palette.textSecondary} />
+            <Text style={{ fontFamily: Font.heading, fontSize: 16, color: finalAmount >= 5 ? '#fff' : Palette.textSecondary }}>
               Send gift card — {money(finalAmount)}
             </Text>
           </>
@@ -237,7 +237,7 @@ function MyCardsTab({ userId }: { userId: string }) {
     return (
       <View style={{ alignItems: 'center', padding: 40, gap: 12 }}>
         <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
-          <Gift size={28} color={Palette.textMuted} />
+          <Gift size={28} color={Palette.textSecondary} />
         </View>
         <Text style={{ fontFamily: Font.heading, fontSize: 15, color: INK }}>No gift cards sent yet</Text>
         <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary, textAlign: 'center', lineHeight: 19 }}>
@@ -252,7 +252,7 @@ function MyCardsTab({ userId }: { userId: string }) {
       {cards.map((card) => {
         const isRedeemed = !card.isActive || card.balance === 0;
         const isExpired = !!card.expiresAt && new Date(card.expiresAt) < new Date() && !isRedeemed;
-        const statusColor = isExpired ? Palette.danger : isRedeemed ? Palette.textMuted : Palette.success;
+        const statusColor = isExpired ? Palette.danger : isRedeemed ? Palette.textSecondary : Palette.success;
         const statusLabel = isExpired ? 'Expired' : isRedeemed ? 'Redeemed' : `Active · ${money(card.balance)} left`;
 
         return (
@@ -266,12 +266,12 @@ function MyCardsTab({ userId }: { userId: string }) {
             </View>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
               <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary }}>Value: {money(card.amount)}</Text>
-              <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted }}>
+              <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary }}>
                 {new Date(card.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
               </Text>
             </View>
             {card.recipientEmail ? (
-              <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted }}>To: {card.recipientEmail}</Text>
+              <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary }}>To: {card.recipientEmail}</Text>
             ) : null}
             {card.message ? (
               <Text numberOfLines={2} style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary, fontStyle: 'italic' }}>"{card.message}"</Text>
@@ -328,7 +328,7 @@ export default function GiftCardsScreen() {
 
         {!user ? (
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
-            <Gift size={28} color={Palette.textMuted} />
+            <Gift size={28} color={Palette.textSecondary} />
             <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center' }}>Sign in to send or view gift cards.</Text>
             <PressableScale onPress={() => { feedback.tap(); router.push('/auth?mode=signin'); }} accessibilityRole="button" accessibilityLabel="Sign in"
               style={{ marginTop: 4, paddingHorizontal: 22, height: 48, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>

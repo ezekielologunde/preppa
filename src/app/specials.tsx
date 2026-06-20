@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { ChevronLeft, ChevronRight, Clock, Flame, Gift, Leaf, Sparkles, Star, Sun, Zap } from 'lucide-react-native';
+import { ChevronLeft, ChevronRight, Clock, Flame, Gift, Leaf, Sparkles, Star, Sun } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useState } from 'react';
 import { RefreshControl, ScrollView, Text, View } from 'react-native';
@@ -164,31 +164,6 @@ export default function SpecialsScreen() {
 
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120, gap: 28 }}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={ORANGE} colors={[ORANGE]} />}>
-          {/* Emergency food CTA */}
-          <MotiView from={{ opacity: 0, translateY: 6 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260 }}>
-          <PressableScale onPress={() => { feedback.tap(); router.push('/emergency-food'); }} accessibilityRole="button" accessibilityLabel="Emergency food mode"
-            style={{ marginHorizontal: 20, backgroundColor: '#7f1d1d', borderRadius: 14, paddingHorizontal: 16, paddingVertical: 13, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-            <Zap size={17} color="#fca5a5" />
-            <View style={{ flex: 1 }}>
-              <Text style={{ fontFamily: Font.heading, fontSize: 14, color: '#fff' }}>need food urgently?</Text>
-              <Text style={{ fontFamily: Font.body, fontSize: 12, color: 'rgba(255,255,255,0.7)', marginTop: 1 }}>Notify nearby preppers instantly</Text>
-            </View>
-            <ChevronRight size={15} color="rgba(255,255,255,0.5)" />
-          </PressableScale>
-          </MotiView>
-
-          {/* Holiday specials CTA */}
-          <MotiView from={{ opacity: 0, translateY: 6 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 40 }}>
-          <PressableScale onPress={() => { feedback.tap(); router.push('/holiday-specials'); }} accessibilityRole="button" accessibilityLabel="Holiday specials"
-            style={{ marginHorizontal: 20, backgroundColor: Palette.surface, borderRadius: 14, paddingHorizontal: 16, paddingVertical: 13, flexDirection: 'row', alignItems: 'center', gap: 10, borderWidth: 1, borderColor: ORANGE + '30' }}>
-            <Gift size={17} color={ORANGE} />
-            <View style={{ flex: 1 }}>
-              <Text style={{ fontFamily: Font.heading, fontSize: 14, color: Palette.ink }}>holiday & cultural specials</Text>
-              <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary, marginTop: 1 }}>Eid, Juneteenth, Father's Day meals & more</Text>
-            </View>
-            <ChevronRight size={15} color={Palette.textMuted} />
-          </PressableScale>
-          </MotiView>
 
           {/* Rush hour */}
           <RushHourCard />

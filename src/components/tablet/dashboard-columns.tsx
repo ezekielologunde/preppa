@@ -45,7 +45,7 @@ const PURPLE = '#a78bfa';
 const YELLOW = Palette.amber;
 const CARD = Palette.surface;
 const INK = Palette.ink;
-const MUTED = Palette.textMuted;
+const MUTED = Palette.textSecondary;
 
 const money = (n: number) => (n >= 1000 ? `$${(n / 1000).toFixed(1)}k` : `$${Math.round(n)}`);
 

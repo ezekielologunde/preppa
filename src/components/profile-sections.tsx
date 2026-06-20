@@ -69,7 +69,7 @@ export function SectionCard({ rows }: { rows: RowItem[] }) {
           </View>
           <View style={{ flex: 1 }}>
             <Text numberOfLines={1} style={{ fontFamily: Font.heading, fontSize: 14, color: row.accent ? Palette.brand : Palette.ink }}>{row.label}</Text>
-            {row.sub ? <Text numberOfLines={1} style={{ fontFamily: Font.body, fontSize: 11.5, color: Palette.textMuted, marginTop: 1 }}>{row.sub}</Text> : null}
+            {row.sub ? <Text numberOfLines={1} style={{ fontFamily: Font.body, fontSize: 11.5, color: Palette.textSecondary, marginTop: 1 }}>{row.sub}</Text> : null}
           </View>
           <ChevronRight size={15} color={Palette.textSecondary} />
         </PressableScale>
@@ -90,7 +90,7 @@ export function DarkModeRow({ dark }: { dark: boolean }) {
       </View>
       <View style={{ flex: 1 }}>
         <Text numberOfLines={1} style={{ fontFamily: Font.heading, fontSize: 14, color: Palette.ink }}>dark mode</Text>
-        <Text numberOfLines={1} style={{ fontFamily: Font.body, fontSize: 11.5, color: Palette.textMuted, marginTop: 1 }}>{dark ? 'on' : 'off'}</Text>
+        <Text numberOfLines={1} style={{ fontFamily: Font.body, fontSize: 11.5, color: Palette.textSecondary, marginTop: 1 }}>{dark ? 'on' : 'off'}</Text>
       </View>
       <MotiView animate={{ backgroundColor: dark ? Palette.brand : Palette.border }} transition={{ type: 'timing', duration: 200 }}
         style={{ width: 40, height: 24, borderRadius: 12, justifyContent: 'center', paddingHorizontal: 3 }}>
@@ -108,13 +108,13 @@ export function DarkCard({ Icon, title, sub, onPress, accessibilityLabel }: {
 }) {
   return (
     <PressableScale onPress={onPress} accessibilityRole="button" accessibilityLabel={accessibilityLabel}
-      style={{ marginHorizontal: 20, marginTop: 16, backgroundColor: Palette.prepperBg, borderRadius: 18, padding: 16, flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+      style={{ marginHorizontal: 20, marginTop: 16, backgroundColor: '#FFFFFF', borderRadius: 18, padding: 16, flexDirection: 'row', alignItems: 'center', gap: 14 }}>
       <View style={{ width: 42, height: 42, borderRadius: 13, backgroundColor: Palette.brand + '2E', alignItems: 'center', justifyContent: 'center' }}>
         <Icon size={20} color={Palette.brand} />
       </View>
       <View style={{ flex: 1 }}>
-        <Text style={{ fontFamily: Font.heading, fontSize: 15, color: Palette.surface }}>{title}</Text>
-        <Text style={{ fontFamily: Font.body, fontSize: 12, color: '#9AA1AD', marginTop: 1 }}>{sub}</Text>
+        <Text style={{ fontFamily: Font.heading, fontSize: 15, color: Palette.ink }}>{title}</Text>
+        <Text style={{ fontFamily: Font.body, fontSize: 12, color: '#78716C', marginTop: 1 }}>{sub}</Text>
       </View>
       <ChevronRight size={18} color={Palette.textSecondary} />
     </PressableScale>
@@ -168,7 +168,7 @@ export function MealPlansSection({ subs, onViewAll, onPress }: {
                   </View>
                   <Text style={{ fontFamily: Font.heading, fontSize: 15, color: Palette.ink }} numberOfLines={1}>{s.plan_name}</Text>
                   {s.prepper?.display_name ? (
-                    <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted }}>by {s.prepper.display_name}</Text>
+                    <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary }}>by {s.prepper.display_name}</Text>
                   ) : null}
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                     <View style={{ paddingHorizontal: 9, height: 22, borderRadius: Radius.pill, backgroundColor: badge.bg, alignItems: 'center', justifyContent: 'center' }}>
@@ -190,7 +190,7 @@ export function MealPlansSection({ subs, onViewAll, onPress }: {
           </View>
           <View style={{ flex: 1 }}>
             <Text style={{ fontFamily: Font.heading, fontSize: 15, color: Palette.ink }}>Subscribe & save</Text>
-            <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: Palette.textMuted, marginTop: 1 }}>Weekly meal plans from your favorite kitchens, on repeat.</Text>
+            <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: Palette.textSecondary, marginTop: 1 }}>Weekly meal plans from your favorite kitchens, on repeat.</Text>
           </View>
           <ChevronRight size={18} color={Palette.textSecondary} />
         </PressableScale>

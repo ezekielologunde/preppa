@@ -60,6 +60,35 @@ export async function pickAndUploadImageNative(bucket: string, path: string): Pr
 }
 
 /**
+ * Native camera capture and upload. Requests camera permission, opens the camera,
+ * and uploads the captured photo to Supabase Storage. Returns the public URL,
+ * null if the user cancels, or throws on permission denial or upload failure.
+ */
+export async function captureAndUploadImageNative(bucket: string, path: string): Promise<string | null> {
+  const { status } = await ImagePicker.requestCameraPermissionsAsync();
+  if (status !== 'granted') throw new Error('Camera permission is required to take photos.');
+
+  const result = await ImagePicker.launchCameraAsync({
+    mediaTypes: ImagePicker.MediaTypeOptions.Images,
+    quality: 0.85,
+  });
+
+  if (result.canceled) return null;
+
+  const asset = result.assets[0];
+  if (!asset?.uri) return null;
+
+  const response = await fetch(asset.uri);
+  const blob = await response.blob();
+
+  const ext = (asset.uri.split('.').pop() ?? 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+  const fullPath = `${path}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+  const { error } = await supabase.storage.from(bucket).upload(fullPath, blob, { contentType: blob.type || 'image/jpeg', upsert: false });
+  if (error) throw new Error(error.message || 'Upload failed.');
+  return supabase.storage.from(bucket).getPublicUrl(fullPath).data.publicUrl;
+}
+
+/**
  * Native multi-image upload. Opens the picker with allowsMultipleSelection, then
  * uploads every selected asset in parallel. Returns an array of public URLs (empty
  * if cancelled). Respects `remainingSlots` so the picker's selection limit matches

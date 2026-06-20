@@ -97,7 +97,7 @@ export default function OrderReceiptScreen() {
   if (isError || !order) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
-        <XCircle size={36} color={Palette.textMuted} />
+        <XCircle size={36} color={Palette.textSecondary} />
         <Text style={{ fontFamily: Font.heading, fontSize: 16, color: Palette.ink }}>Could not load receipt</Text>
         <PressableScale onPress={() => { feedback.tap(); void refetch(); }} accessibilityRole="button" accessibilityLabel="Retry"
           style={{ height: 48, paddingHorizontal: 28, borderRadius: Radius.pill, backgroundColor: Palette.brand, alignItems: 'center', justifyContent: 'center' }}>
@@ -149,7 +149,7 @@ export default function OrderReceiptScreen() {
             </Text>
           </View>
           {order.fulfillmentNote ? (
-            <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted, fontStyle: 'italic' }}>
+            <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary, fontStyle: 'italic' }}>
               &ldquo;{order.fulfillmentNote}&rdquo;
             </Text>
           ) : null}
@@ -167,7 +167,7 @@ export default function OrderReceiptScreen() {
         {/* Items card */}
         <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 40 }}
           style={{ backgroundColor: Palette.canvas, borderRadius: 20, padding: 16, marginBottom: 16 }}>
-          <Text style={{ fontFamily: Font.heading, fontSize: 12, color: Palette.textMuted, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10 }}>
+          <Text style={{ fontFamily: Font.heading, fontSize: 12, color: Palette.textSecondary, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10 }}>
             your order
           </Text>
           <View style={{ gap: 10 }}>
@@ -192,7 +192,7 @@ export default function OrderReceiptScreen() {
         {/* Fee breakdown card */}
         <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280, delay: 80 }}
           style={{ backgroundColor: Palette.canvas, borderRadius: 20, padding: 16, marginBottom: 16 }}>
-          <Text style={{ fontFamily: Font.heading, fontSize: 12, color: Palette.textMuted, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10 }}>
+          <Text style={{ fontFamily: Font.heading, fontSize: 12, color: Palette.textSecondary, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10 }}>
             total
           </Text>
           <ReceiptRow label="Subtotal" value={money(order.subtotal)} />
@@ -203,8 +203,8 @@ export default function OrderReceiptScreen() {
           <ReceiptRow label="Total" value={money(order.total)} bold />
           {order.paymentStatus ? (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 6 }}>
-              <CreditCard size={12} color={Palette.textMuted} />
-              <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted }}>
+              <CreditCard size={12} color={Palette.textSecondary} />
+              <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary }}>
                 {order.paymentStatus === 'succeeded' ? 'Paid' : order.paymentStatus}
               </Text>
             </View>

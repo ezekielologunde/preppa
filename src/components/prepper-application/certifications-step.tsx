@@ -28,7 +28,7 @@ function DocRow({ label, subtext, optional, doc, onPick, onRemove }: DocRowProps
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 }}>
         <Text style={{ fontFamily: Font.semibold, fontSize: 13.5, color: Palette.ink }}>{label}</Text>
         {optional && (
-          <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted }}>(optional)</Text>
+          <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary }}>(optional)</Text>
         )}
       </View>
       <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary, lineHeight: 19, marginBottom: 10 }}>

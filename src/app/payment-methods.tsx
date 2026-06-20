@@ -27,6 +27,17 @@ import {
   useSetDefaultPaymentMethod,
 } from '@/lib/queries/payment-methods';
 
+// ─── Expiry helpers ──────────────────────────────────────────────────────────
+
+function expiryStatus(expMonth: number, expYear: number): 'expired' | 'soon' | null {
+  const now = new Date();
+  const exp = new Date(expYear, expMonth - 1, 28); // last usable day of month
+  if (exp < now) return 'expired';
+  const twoMonthsOut = new Date(now.getFullYear(), now.getMonth() + 2, 1);
+  if (exp <= twoMonthsOut) return 'soon';
+  return null;
+}
+
 // ─── Payment card item ────────────────────────────────────────────────────────
 
 function PaymentCard({
@@ -172,14 +183,29 @@ function PaymentCard({
                 </View>
               )}
             </View>
-            <Text
-              style={{
-                fontFamily: Font.body,
-                fontSize: Type.label,
-                color: Palette.textSecondary,
-              }}>
-              Expires {card.expMonth}/{card.expYear}
-            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <Text
+                style={{
+                  fontFamily: Font.body,
+                  fontSize: Type.label,
+                  color: (() => {
+                    const s = expiryStatus(card.expMonth, card.expYear);
+                    return s === 'expired' ? Palette.danger : s === 'soon' ? '#f59e0b' : Palette.textSecondary;
+                  })(),
+                }}>
+                Expires {card.expMonth}/{card.expYear}
+              </Text>
+              {expiryStatus(card.expMonth, card.expYear) === 'expired' && (
+                <View style={{ backgroundColor: Palette.danger + '20', borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2 }}>
+                  <Text style={{ fontFamily: Font.semibold, fontSize: 10, color: Palette.danger }}>Expired</Text>
+                </View>
+              )}
+              {expiryStatus(card.expMonth, card.expYear) === 'soon' && (
+                <View style={{ backgroundColor: '#f59e0b20', borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2 }}>
+                  <Text style={{ fontFamily: Font.semibold, fontSize: 10, color: '#f59e0b' }}>Expiring soon</Text>
+                </View>
+              )}
+            </View>
           </View>
 
           {/* Delete */}
@@ -217,6 +243,12 @@ export default function PaymentMethodsScreen() {
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [mutationErr, setMutationErr] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [addedToast, setAddedToast] = useState(false);
+
+  function showAddedToast() {
+    setAddedToast(true);
+    setTimeout(() => setAddedToast(false), 2500);
+  }
   async function handleRefresh() { setRefreshing(true); await refetch(); setRefreshing(false); }
 
   const triggerDelete = (id: string) => {
@@ -270,6 +302,12 @@ export default function PaymentMethodsScreen() {
           </Text>
         </View>
 
+        {addedToast ? (
+          <MotiView from={{ opacity: 0, translateY: -8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 200 }}
+            style={{ marginHorizontal: Spacing.three, marginBottom: 4, backgroundColor: '#14532d22', borderRadius: Radius.md, padding: 12, borderWidth: 1, borderColor: '#4ade8044', flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: '#4ade80' }}>✓ Card added successfully</Text>
+          </MotiView>
+        ) : null}
         {mutationErr ? (
           <View style={{ marginHorizontal: Spacing.three, marginBottom: 4, backgroundColor: Palette.danger + '14', borderRadius: Radius.md, padding: 12, borderWidth: 1, borderColor: Palette.danger + '40' }}>
             <Text style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.danger }}>{mutationErr}</Text>
@@ -282,7 +320,7 @@ export default function PaymentMethodsScreen() {
           <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }}
             style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
             <View style={{ width: 72, height: 72, borderRadius: 24, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
-              <Lock size={30} color={Palette.textMuted} />
+              <Lock size={30} color={Palette.textSecondary} />
             </View>
             <Text style={{ fontFamily: Font.heading, fontSize: 16, color: Palette.ink }}>couldn't load payment methods</Text>
             <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center', maxWidth: 280, lineHeight: 20 }}>Check your connection and try again.</Text>
@@ -367,12 +405,12 @@ export default function PaymentMethodsScreen() {
                 gap: 6,
                 marginTop: Spacing.two,
               }}>
-              <Lock size={13} color={Palette.textMuted} />
+              <Lock size={13} color={Palette.textSecondary} />
               <Text
                 style={{
                   fontFamily: Font.body,
                   fontSize: Type.micro,
-                  color: Palette.textMuted,
+                  color: Palette.textSecondary,
                 }}>
                 Cards are secured with 256-bit encryption
               </Text>
@@ -385,7 +423,7 @@ export default function PaymentMethodsScreen() {
         visible={sheetVisible}
         isFirstCard={cards.length === 0}
         onClose={() => setSheetVisible(false)}
-        onSaved={() => { qc.invalidateQueries({ queryKey: ['payment-methods'] }); setSheetVisible(false); }}
+        onSaved={() => { qc.invalidateQueries({ queryKey: ['payment-methods'] }); setSheetVisible(false); showAddedToast(); }}
       />
     </View>
   );

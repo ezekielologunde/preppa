@@ -52,7 +52,7 @@ export function DiscountInputs({
         <View style={{ gap: 4 }}>
           <View style={{ flexDirection: 'row', gap: 8 }}>
             <TextInput value={promoInput} onChangeText={(t) => setPromoInput(t.toUpperCase())} placeholder="Promo code"
-              placeholderTextColor={Palette.textMuted} autoCapitalize="characters" maxLength={32} accessibilityLabel="Promo code"
+              placeholderTextColor={Palette.textSecondary} autoCapitalize="characters" maxLength={32} accessibilityLabel="Promo code"
               style={{ flex: 1, height: 44, backgroundColor: Palette.surface, borderRadius: Radius.md, borderWidth: 1, borderColor: Palette.border, paddingHorizontal: 14, fontFamily: Font.body, fontSize: 15, color: Palette.ink }} />
             <PressableScale onPress={onApplyPromo} disabled={promoLoading || !promoInput.trim()} accessibilityRole="button" accessibilityLabel="Apply promo code"
               style={{ width: 80, height: 44, borderRadius: Radius.md, backgroundColor: promoInput.trim() ? Palette.brand : Palette.chip, alignItems: 'center', justifyContent: 'center', opacity: promoLoading ? 0.6 : 1 }}>
@@ -81,7 +81,7 @@ export function DiscountInputs({
         <View style={{ gap: 4 }}>
           <View style={{ flexDirection: 'row', gap: 8 }}>
             <TextInput value={giftInput} onChangeText={(t) => { setGiftInput(t.toUpperCase()); }} placeholder="Gift card code"
-              placeholderTextColor={Palette.textMuted} autoCapitalize="characters" maxLength={16} accessibilityLabel="Gift card code"
+              placeholderTextColor={Palette.textSecondary} autoCapitalize="characters" maxLength={16} accessibilityLabel="Gift card code"
               style={{ flex: 1, height: 44, backgroundColor: Palette.surface, borderRadius: Radius.md, borderWidth: 1, borderColor: Palette.border, paddingHorizontal: 14, fontFamily: Font.body, fontSize: 15, color: Palette.ink }} />
             <PressableScale onPress={onApplyGiftCard} disabled={giftCardPending || !giftInput.trim()} accessibilityRole="button" accessibilityLabel="Apply gift card"
               style={{ width: 80, height: 44, borderRadius: Radius.md, backgroundColor: giftInput.trim() ? Palette.brand : Palette.chip, alignItems: 'center', justifyContent: 'center', opacity: giftCardPending ? 0.6 : 1 }}>

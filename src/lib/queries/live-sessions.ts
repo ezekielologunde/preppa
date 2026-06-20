@@ -26,6 +26,45 @@ export function useMyActiveLiveSession(prepperId?: string | null) {
   });
 }
 
+export type LiveSessionCard = {
+  id: string;
+  prepperId: string;
+  prepperName: string;
+  avatarUrl: string | null;
+  title: string | null;
+  viewerCount: number;
+  startedAt: string;
+};
+
+export function useActiveLiveSessions() {
+  return useQuery({
+    queryKey: ['live-sessions'],
+    staleTime: 30_000,
+    refetchInterval: 60_000,
+    queryFn: async (): Promise<LiveSessionCard[]> => {
+      const { data, error } = await supabase
+        .from('live_sessions')
+        .select('id, prepper_id, title, viewer_count, started_at, prepper:preppers(display_name, avatar_url)')
+        .is('ended_at', null)
+        .order('viewer_count', { ascending: false })
+        .limit(20);
+      if (error) throw error;
+      return ((data ?? []) as any[]).map((r) => {
+        const prepper = Array.isArray(r.prepper) ? r.prepper[0] : r.prepper;
+        return {
+          id: r.id,
+          prepperId: r.prepper_id,
+          prepperName: prepper?.display_name ?? 'Kitchen',
+          avatarUrl: prepper?.avatar_url ?? null,
+          title: r.title,
+          viewerCount: r.viewer_count ?? 0,
+          startedAt: r.started_at,
+        };
+      });
+    },
+  });
+}
+
 export function useStartLiveSession(prepperId?: string | null) {
   const qc = useQueryClient();
   return useMutation({

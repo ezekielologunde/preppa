@@ -24,15 +24,17 @@ import { useMyPrepperApplication, useToggleAvailability } from '@/lib/queries/pr
 import { useAuth } from '@/providers/auth-provider';
 import type { OrderStatus } from '@/types/database.types';
 
-// ─── Design tokens (dark chef theme) ─────────────────────────────────────────
-const BG     = '#0C0E13';
-const CARD   = '#161B27';
-const BORDER = '#252D3D';
-const WHITE  = '#F0F2F5';
-const MUTED  = '#6B7280';
+// ── Design tokens (light kitchen theme) ──────────────────────────────────────
+const BG     = '#F8F6F3';
+const CARD   = '#FFFFFF';
+const BORDER = '#EDE9E4';
+const INK    = '#1A1714';
+const MUTED  = Palette.textSecondary;
 const ORANGE = Palette.brand;
+const S1     = { shadowColor: '#1A1714', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 };
+const S2     = { shadowColor: '#1A1714', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 12, elevation: 4 };
 
-// ─── Order status helpers ─────────────────────────────────────────────────────
+// ── Order status helpers ──────────────────────────────────────────────────────
 const ADVANCE: Partial<Record<OrderStatus, { next: OrderStatus; cta: string }>> = {
   pending:   { next: 'confirmed',  cta: 'Accept order'  },
   confirmed: { next: 'preparing',  cta: 'Start prepping' },
@@ -40,24 +42,24 @@ const ADVANCE: Partial<Record<OrderStatus, { next: OrderStatus; cta: string }>> 
   ready:     { next: 'completed',  cta: 'Hand off'      },
 };
 const STATUS_COLOR: Partial<Record<OrderStatus, string>> = {
-  pending:   '#F59E0B',
+  pending:   '#D97706',
   confirmed: ORANGE,
   preparing: ORANGE,
-  ready:     '#22C55E',
+  ready:     '#16A34A',
 };
 const STATUS_LABEL: Partial<Record<OrderStatus, string>> = {
   pending: 'New', confirmed: 'Confirmed', preparing: 'Prepping', ready: 'Ready!',
 };
 const money = (n: number) => n >= 1000 ? `$${(n / 1000).toFixed(1)}k` : `$${Math.round(n)}`;
 
-// ─── Application status gate ──────────────────────────────────────────────────
+// ── Application status gate ───────────────────────────────────────────────────
 function StatusGate({ prepper, router }: { prepper: any; router: ReturnType<typeof useRouter> }) {
   const cfg = prepper?.status === 'pending'
-    ? { Icon: Clock,    color: '#F59E0B', title: 'Under review',         body: "We're reviewing your kitchen — usually 48 hours." }
+    ? { Icon: Clock,    color: '#D97706', title: 'Under review',          body: "We're reviewing your kitchen — usually 48 hours." }
     : prepper?.status === 'rejected'
       ? { Icon: ShieldX, color: '#EF4444', title: 'Not approved',          body: prepper.rejection_note ?? 'Contact support or reapply.' }
       : prepper?.status === 'suspended'
-        ? { Icon: ShieldX, color: MUTED,    title: 'Kitchen paused',        body: 'Contact support to reactivate your account.' }
+        ? { Icon: ShieldX, color: MUTED,    title: 'Kitchen paused',         body: 'Contact support to reactivate your account.' }
         : { Icon: ChefHat, color: ORANGE,   title: 'Start cooking on Preppa', body: 'Apply to list your meals and earn on your schedule.' };
   return (
     <View style={{ flex: 1, backgroundColor: BG }}>
@@ -65,14 +67,14 @@ function StatusGate({ prepper, router }: { prepper: any; router: ReturnType<type
         <TouchableOpacity onPress={() => { feedback.tap(); router.canGoBack() ? router.back() : router.replace('/profile'); }}
           accessibilityRole="button" accessibilityLabel="Go back"
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          style={{ margin: 16, width: 44, height: 44, borderRadius: 22, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center' }}>
-          <ChevronLeft size={22} color={WHITE} />
+          style={{ margin: 16, width: 44, height: 44, borderRadius: 22, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center', ...S1 }}>
+          <ChevronLeft size={22} color={INK} />
         </TouchableOpacity>
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 20 }}>
-          <View style={{ width: 88, height: 88, borderRadius: 28, backgroundColor: cfg.color + '20', alignItems: 'center', justifyContent: 'center' }}>
+          <View style={{ width: 88, height: 88, borderRadius: 28, backgroundColor: cfg.color + '15', alignItems: 'center', justifyContent: 'center' }}>
             <cfg.Icon size={40} color={cfg.color} />
           </View>
-          <Text style={{ fontFamily: Font.display, fontSize: 24, color: WHITE, textAlign: 'center', letterSpacing: -0.6 }}>{cfg.title}</Text>
+          <Text style={{ fontFamily: Font.display, fontSize: 24, color: INK, textAlign: 'center', letterSpacing: -0.6 }}>{cfg.title}</Text>
           <Text style={{ fontFamily: Font.body, fontSize: 15, color: MUTED, textAlign: 'center', lineHeight: 22, maxWidth: 300 }}>{cfg.body}</Text>
           <PressableScale onPress={() => { feedback.tap(); router.replace('/become-prepper'); }}
             accessibilityRole="button" accessibilityLabel={prepper ? 'View application status' : 'Apply to become a prepper'}
@@ -85,7 +87,7 @@ function StatusGate({ prepper, router }: { prepper: any; router: ReturnType<type
   );
 }
 
-// ─── Main dashboard ───────────────────────────────────────────────────────────
+// ── Main dashboard ────────────────────────────────────────────────────────────
 export default function DashboardScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -135,9 +137,7 @@ export default function DashboardScreen() {
     toggleAvailability.mutate({ accepting_orders: toOpen } as never, {
       onSuccess: () => {
         feedback.success();
-        const msg = toOpen
-          ? 'Kitchen open. Takes effect in ~30 seconds.'
-          : 'Kitchen paused. Takes effect in ~30 seconds.';
+        const msg = toOpen ? 'Kitchen open. Takes effect in ~30 seconds.' : 'Kitchen paused. Takes effect in ~30 seconds.';
         setKitchenToast(msg);
         setTimeout(() => setKitchenToast(null), 3500);
       },
@@ -146,23 +146,23 @@ export default function DashboardScreen() {
   }
 
   const QUICK = [
-    { label: 'Orders',    Icon: Package,  color: '#3B82F6', route: '/prepper-orders',   badge: newCount as number | undefined },
-    { label: 'Menu',      Icon: Utensils, color: '#10B981', route: '/meal-editor',       badge: undefined },
-    { label: 'Earnings',  Icon: Wallet,   color: '#F59E0B', route: '/prepper-payouts',   badge: undefined },
-    { label: 'Analytics', Icon: BarChart3,color: '#8B5CF6', route: '/prepper-analytics', badge: undefined },
+    { label: 'Orders',    Icon: Package,   color: '#2563EB', route: '/prepper-orders',   badge: newCount as number | undefined },
+    { label: 'Menu',      Icon: Utensils,  color: '#16A34A', route: '/meal-editor',       badge: undefined },
+    { label: 'Earnings',  Icon: Wallet,    color: '#D97706', route: '/prepper-payouts',   badge: undefined },
+    { label: 'Analytics', Icon: BarChart3, color: '#8B5CF6', route: '/prepper-analytics', badge: undefined },
   ];
 
   return (
     <View style={{ flex: 1, backgroundColor: BG }}>
       <SafeAreaView edges={['top']} style={{ flex: 1 }}>
 
-        {/* ── Toggle Confirmation Modal ────────────────────────────────── */}
+        {/* ── Toggle Confirmation Modal ──────────────────────────────── */}
         <Modal visible={confirmToggle} transparent animationType="fade" onRequestClose={() => setConfirmToggle(false)}>
           <TouchableOpacity activeOpacity={1} onPress={() => setConfirmToggle(false)} accessibilityLabel="Dismiss"
-            style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.72)', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+            style={{ flex: 1, backgroundColor: 'rgba(26,23,20,0.5)', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
             <MotiView from={{ opacity: 0, scale: 0.94 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'spring', damping: 22 }}
-              style={{ backgroundColor: CARD, borderRadius: 20, padding: 28, width: '100%', maxWidth: 360, gap: 16, borderWidth: 1, borderColor: BORDER }}>
-              <Text style={{ fontFamily: Font.display, fontSize: 20, color: WHITE, textAlign: 'center', letterSpacing: -0.4 }}>
+              style={{ backgroundColor: CARD, borderRadius: 24, padding: 28, width: '100%', maxWidth: 360, gap: 16, ...S2 }}>
+              <Text style={{ fontFamily: Font.display, fontSize: 20, color: INK, textAlign: 'center', letterSpacing: -0.4 }}>
                 {isOpen ? 'Pause kitchen?' : 'Open kitchen?'}
               </Text>
               <Text style={{ fontFamily: Font.body, fontSize: 14, color: MUTED, textAlign: 'center', lineHeight: 21 }}>
@@ -176,7 +176,7 @@ export default function DashboardScreen() {
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => commitToggle(!isOpen)}
                   accessibilityRole="button" accessibilityLabel={isOpen ? 'Confirm pause kitchen' : 'Confirm open kitchen'}
-                  style={{ flex: 1, height: 52, borderRadius: Radius.pill, backgroundColor: isOpen ? '#EF4444' : '#22C55E', alignItems: 'center', justifyContent: 'center' }}>
+                  style={{ flex: 1, height: 52, borderRadius: Radius.pill, backgroundColor: isOpen ? '#EF4444' : '#16A34A', alignItems: 'center', justifyContent: 'center' }}>
                   <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#fff' }}>{isOpen ? 'Pause' : 'Open'}</Text>
                 </TouchableOpacity>
               </View>
@@ -188,9 +188,9 @@ export default function DashboardScreen() {
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={ORANGE} colors={[ORANGE]} />}
           contentContainerStyle={{ paddingBottom: insets.bottom + 80 }}>
 
-          {/* ── Header ──────────────────────────────────────────────────── */}
+          {/* ── Header ────────────────────────────────────────────────── */}
           <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingTop: 16, paddingBottom: 24, gap: 12 }}>
-            <View style={{ width: 46, height: 46, borderRadius: 23, backgroundColor: CARD, overflow: 'hidden', borderWidth: 2, borderColor: ORANGE + '55' }}>
+            <View style={{ width: 46, height: 46, borderRadius: 23, backgroundColor: CARD, overflow: 'hidden', borderWidth: 2, borderColor: ORANGE + '55', ...S1 }}>
               {avatarUrl
                 ? <Image source={avatarUrl} style={{ width: 46, height: 46 }} contentFit="cover" accessibilityLabel="Kitchen avatar" />
                 : <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
@@ -200,45 +200,45 @@ export default function DashboardScreen() {
             </View>
             <View style={{ flex: 1 }}>
               <Text style={{ fontFamily: Font.body, fontSize: 12, color: MUTED }}>kitchen hub</Text>
-              <Text style={{ fontFamily: Font.heading, fontSize: 17, color: WHITE, letterSpacing: -0.2 }} numberOfLines={1}>{kitchenName}</Text>
+              <Text style={{ fontFamily: Font.heading, fontSize: 17, color: INK, letterSpacing: -0.2 }} numberOfLines={1}>{kitchenName}</Text>
             </View>
             <TouchableOpacity onPress={() => { feedback.tap(); setConfirmToggle(true); }}
               accessibilityRole="switch" accessibilityLabel={isOpen ? 'Kitchen open — tap to pause' : 'Kitchen paused — tap to open'}
               accessibilityState={{ checked: isOpen }}
-              style={{ flexDirection: 'row', alignItems: 'center', gap: 7, paddingHorizontal: 14, height: 36, borderRadius: Radius.pill, borderWidth: 1.5, borderColor: isOpen ? '#22C55E55' : BORDER, backgroundColor: isOpen ? '#22C55E15' : CARD, minWidth: 44 }}>
-              <MotiView animate={{ backgroundColor: isOpen ? '#22C55E' : MUTED }} transition={{ type: 'timing', duration: 220 }}
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 7, paddingHorizontal: 14, height: 36, borderRadius: Radius.pill, borderWidth: 1.5, borderColor: isOpen ? '#16A34A55' : BORDER, backgroundColor: isOpen ? '#16A34A12' : CARD, minWidth: 44 }}>
+              <MotiView animate={{ backgroundColor: isOpen ? '#16A34A' : MUTED }} transition={{ type: 'timing', duration: 220 }}
                 style={{ width: 8, height: 8, borderRadius: 4 }} />
-              <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: isOpen ? '#22C55E' : MUTED }}>{isOpen ? 'Open' : 'Paused'}</Text>
+              <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: isOpen ? '#16A34A' : MUTED }}>{isOpen ? 'Open' : 'Paused'}</Text>
             </TouchableOpacity>
           </View>
 
-          {/* ── Kitchen toggle toast ────────────────────────────────────── */}
+          {/* ── Kitchen toggle toast ──────────────────────────────────── */}
           {kitchenToast && (
             <MotiView from={{ opacity: 0, translateY: -8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 200 }}
-              style={{ marginHorizontal: 20, marginBottom: 8, backgroundColor: '#22C55E22', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 10, borderWidth: 1, borderColor: '#22C55E44' }}>
-              <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: '#22C55E', textAlign: 'center' }}>{kitchenToast}</Text>
+              style={{ marginHorizontal: 20, marginBottom: 8, backgroundColor: '#16A34A18', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 10, borderWidth: 1, borderColor: '#16A34A44' }}>
+              <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: '#16A34A', textAlign: 'center' }}>{kitchenToast}</Text>
             </MotiView>
           )}
 
-          {/* ── At-a-glance stats ───────────────────────────────────────── */}
+          {/* ── At-a-glance stats ─────────────────────────────────────── */}
           <MotiView from={{ opacity: 0, translateY: 6 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 240 }}
-            style={{ flexDirection: 'row', marginHorizontal: 20, marginBottom: 32, backgroundColor: CARD, borderRadius: 16, borderWidth: 1, borderColor: BORDER }}>
+            style={{ flexDirection: 'row', marginHorizontal: 20, marginBottom: 32, backgroundColor: CARD, borderRadius: 16, ...S1 }}>
             {([
-              { label: 'Active',       value: active.length,                        hot: active.length > 0 as boolean | undefined },
-              { label: 'Done today',   value: todayDone,                            hot: undefined },
-              { label: 'This week (net)', value: money(earnings?.net_week ?? 0),   hot: undefined },
+              { label: 'Active',          value: active.length,                     hot: active.length > 0 as boolean | undefined },
+              { label: 'Done today',      value: todayDone,                         hot: undefined },
+              { label: 'This week (net)', value: money(earnings?.net_week ?? 0),    hot: undefined },
             ]).map((s, i) => (
               <View key={s.label} style={{ flex: 1, paddingVertical: 18, alignItems: 'center', borderLeftWidth: i > 0 ? 1 : 0, borderLeftColor: BORDER }}>
-                <Text style={{ fontFamily: Font.display, fontSize: 22, color: s.hot ? ORANGE : WHITE, letterSpacing: -0.4 }}>{s.value}</Text>
+                <Text style={{ fontFamily: Font.display, fontSize: 22, color: s.hot ? ORANGE : INK, letterSpacing: -0.4 }}>{s.value}</Text>
                 <Text style={{ fontFamily: Font.body, fontSize: 11, color: MUTED, marginTop: 2 }}>{s.label}</Text>
               </View>
             ))}
           </MotiView>
 
-          {/* ── Needs action ────────────────────────────────────────────── */}
+          {/* ── Needs action ──────────────────────────────────────────── */}
           <View style={{ paddingHorizontal: 20, marginBottom: 32 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16, gap: 10 }}>
-              <Text style={{ fontFamily: Font.display, fontSize: 20, color: WHITE, letterSpacing: -0.5, flex: 1 }}>needs action</Text>
+              <Text style={{ fontFamily: Font.display, fontSize: 20, color: INK, letterSpacing: -0.5, flex: 1 }}>needs action</Text>
               {active.length > 0 && (
                 <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
                   <Text style={{ fontFamily: Font.heading, fontSize: 13, color: '#fff' }}>{active.length}</Text>
@@ -248,9 +248,8 @@ export default function DashboardScreen() {
 
             {active.length === 0 ? (
               <MotiView from={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ type: 'timing', duration: 300 }}
-                style={{ backgroundColor: CARD, borderRadius: 16, padding: 28, alignItems: 'center', gap: 10, borderWidth: 1, borderColor: BORDER }}>
-                <Text style={{ fontSize: 30 }}>🎉</Text>
-                <Text style={{ fontFamily: Font.heading, fontSize: 17, color: WHITE }}>All caught up</Text>
+                style={{ backgroundColor: CARD, borderRadius: 16, padding: 28, alignItems: 'center', gap: 10, ...S1 }}>
+                <Text style={{ fontFamily: Font.heading, fontSize: 17, color: INK }}>All caught up</Text>
                 <Text style={{ fontFamily: Font.body, fontSize: 14, color: MUTED, textAlign: 'center', lineHeight: 20 }}>No orders waiting right now.</Text>
                 <PressableScale onPress={() => { feedback.tap(); router.push('/prepper-orders' as never); }}
                   accessibilityRole="button" accessibilityLabel="View order history"
@@ -269,15 +268,14 @@ export default function DashboardScreen() {
                     const name  = parts.length > 1 ? `${parts[0]} ${parts[parts.length - 1][0]}.` : (parts[0] ?? 'Customer');
                     return (
                       <MotiView key={order.id} from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 240, delay: idx * 40 }}
-                        style={{ backgroundColor: CARD, borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: BORDER }}>
-                        <View style={{ height: 3, backgroundColor: color }} />
+                        style={{ backgroundColor: CARD, borderRadius: 16, overflow: 'hidden', borderLeftWidth: 4, borderLeftColor: color, ...S2 }}>
                         <View style={{ padding: 16, gap: 14 }}>
                           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                             <View>
-                              <Text style={{ fontFamily: Font.semibold, fontSize: 15, color: WHITE }}>{name}</Text>
+                              <Text style={{ fontFamily: Font.semibold, fontSize: 15, color: INK }}>{name}</Text>
                               <Text style={{ fontFamily: Font.body, fontSize: 13, color: MUTED, marginTop: 2 }}>{order.items?.length ?? 0} items · {money(order.total)}</Text>
                             </View>
-                            <View style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: Radius.pill, backgroundColor: color + '22' }}>
+                            <View style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: Radius.pill, backgroundColor: color + '18' }}>
                               <Text style={{ fontFamily: Font.semibold, fontSize: 12, color }}>{label}</Text>
                             </View>
                           </View>
@@ -306,16 +304,16 @@ export default function DashboardScreen() {
             )}
           </View>
 
-          {/* ── Quick access 2×2 ────────────────────────────────────────── */}
+          {/* ── Quick access 2×2 ──────────────────────────────────────── */}
           <View style={{ paddingHorizontal: 20, marginBottom: 28 }}>
-            <Text style={{ fontFamily: Font.display, fontSize: 20, color: WHITE, letterSpacing: -0.5, marginBottom: 16 }}>quick access</Text>
+            <Text style={{ fontFamily: Font.display, fontSize: 20, color: INK, letterSpacing: -0.5, marginBottom: 16 }}>quick access</Text>
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
               {QUICK.map(({ label, Icon, color, route, badge }) => (
                 <PressableScale key={label} onPress={() => { feedback.tap(); router.push(route as never); }}
                   accessibilityRole="button" accessibilityLabel={label}
-                  style={{ width: '47%', aspectRatio: 1.65, backgroundColor: CARD, borderRadius: 16, borderWidth: 1, borderColor: BORDER, alignItems: 'flex-start', justifyContent: 'space-between', padding: 16 }}>
+                  style={{ width: '47%', aspectRatio: 1.65, backgroundColor: CARD, borderRadius: 16, alignItems: 'flex-start', justifyContent: 'space-between', padding: 16, ...S1 }}>
                   <View style={{ position: 'relative' }}>
-                    <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: color + '20', alignItems: 'center', justifyContent: 'center' }}>
+                    <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: color + '18', alignItems: 'center', justifyContent: 'center' }}>
                       <Icon size={20} color={color} />
                     </View>
                     {!!badge && badge > 0 && (
@@ -324,13 +322,13 @@ export default function DashboardScreen() {
                       </View>
                     )}
                   </View>
-                  <Text style={{ fontFamily: Font.semibold, fontSize: 15, color: WHITE }}>{label}</Text>
+                  <Text style={{ fontFamily: Font.semibold, fontSize: 15, color: INK }}>{label}</Text>
                 </PressableScale>
               ))}
             </View>
           </View>
 
-          {/* ── Add meal CTA ─────────────────────────────────────────────── */}
+          {/* ── Add meal CTA ──────────────────────────────────────────── */}
           <View style={{ paddingHorizontal: 20 }}>
             <PressableScale onPress={() => { feedback.impact(); router.push('/meal-editor' as never); }}
               accessibilityRole="button" accessibilityLabel="Add a new meal to your menu"
@@ -349,8 +347,8 @@ export default function DashboardScreen() {
 
         </ScrollView>
 
-        {/* ── Bottom navigation ────────────────────────────────────────────── */}
-        <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, flexDirection: 'row', backgroundColor: CARD, borderTopWidth: 1, borderTopColor: BORDER, paddingTop: 10, paddingBottom: Math.max(insets.bottom, 16) }}>
+        {/* ── Bottom navigation ─────────────────────────────────────────── */}
+        <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, flexDirection: 'row', backgroundColor: CARD, borderTopWidth: 1, borderTopColor: BORDER, paddingTop: 10, paddingBottom: Math.max(insets.bottom, 16), shadowColor: '#1A1714', shadowOffset: { width: 0, height: -2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 8 }}>
           {([
             { label: 'Home',    Icon: Home,          route: '/',                active: false, badge: undefined as number | undefined },
             { label: 'Orders',  Icon: Package,       route: '/prepper-orders',  active: false, badge: newCount as number | undefined },

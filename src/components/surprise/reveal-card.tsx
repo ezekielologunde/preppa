@@ -36,7 +36,7 @@ export function RevealError({ onRetry }: RevealErrorProps) {
       animate={{ opacity: 1, translateY: 0 }}
       transition={{ type: 'timing', duration: 260 }}
       style={{ alignItems: 'center', paddingVertical: 32, paddingHorizontal: 32, gap: 12 }}>
-      <Compass size={32} color={Palette.textMuted} />
+      <Compass size={32} color={Palette.textSecondary} />
       <Text style={{ fontFamily: Font.heading, fontSize: 16, color: Palette.ink }}>
         Couldn't fetch picks
       </Text>
@@ -63,7 +63,7 @@ export function RevealEmpty() {
       animate={{ opacity: 1, translateY: 0 }}
       transition={{ type: 'timing', duration: 260 }}
       style={{ alignItems: 'center', paddingVertical: 32, paddingHorizontal: 32, gap: 10 }}>
-      <Compass size={32} color={Palette.textMuted} />
+      <Compass size={32} color={Palette.textSecondary} />
       <Text style={{ fontFamily: Font.heading, fontSize: 16, color: Palette.ink }}>
         No matches found
       </Text>
@@ -107,7 +107,7 @@ export function RevealResults({
         <Text style={{ fontFamily: Font.heading, fontSize: 16, color: Palette.ink }}>
           {picks.length === 1 ? "here's your pick" : `here's ${picks.length} options`}
         </Text>
-        <Text style={{ fontFamily: Font.body, fontSize: 12, color: isPersonalized ? Palette.brand : Palette.textMuted, marginTop: 2 }}>
+        <Text style={{ fontFamily: Font.body, fontSize: 12, color: isPersonalized ? Palette.brand : Palette.textSecondary, marginTop: 2 }}>
           {headerSubtitle}
         </Text>
       </MotiView>

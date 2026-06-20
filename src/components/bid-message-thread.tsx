@@ -58,7 +58,7 @@ export function BidMessageThread({ bidId, currentUserId }: Props) {
           </View>
         ) : messages.length === 0 ? (
           <View style={{ paddingVertical: 16, alignItems: 'center' }}>
-            <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textMuted }}>No messages yet. Say hello!</Text>
+            <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary }}>No messages yet. Say hello!</Text>
           </View>
         ) : (
           <ScrollView
@@ -85,7 +85,7 @@ export function BidMessageThread({ bidId, currentUserId }: Props) {
                       {m.body}
                     </Text>
                   </View>
-                  <Text style={{ fontFamily: Font.body, fontSize: 10, color: Palette.textMuted, marginTop: 3, marginHorizontal: 4 }}>
+                  <Text style={{ fontFamily: Font.body, fontSize: 10, color: Palette.textSecondary, marginTop: 3, marginHorizontal: 4 }}>
                     {formatTime(m.created_at)}
                   </Text>
                 </View>
@@ -101,7 +101,7 @@ export function BidMessageThread({ bidId, currentUserId }: Props) {
           value={draft}
           onChangeText={setDraft}
           placeholder="Type a message..."
-          placeholderTextColor={Palette.textMuted}
+          placeholderTextColor={Palette.textSecondary}
           maxLength={500}
           returnKeyType="send"
           onSubmitEditing={handleSend}
@@ -135,8 +135,8 @@ export function BidMessageThread({ bidId, currentUserId }: Props) {
           }}
         >
           {send.isPending
-            ? <ActivityIndicator size="small" color={draft.trim() ? '#fff' : Palette.textMuted} />
-            : <Send size={16} color={draft.trim() ? '#fff' : Palette.textMuted} strokeWidth={2.2} />
+            ? <ActivityIndicator size="small" color={draft.trim() ? '#fff' : Palette.textSecondary} />
+            : <Send size={16} color={draft.trim() ? '#fff' : Palette.textSecondary} strokeWidth={2.2} />
           }
         </PressableScale>
       </View>

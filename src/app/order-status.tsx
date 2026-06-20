@@ -59,7 +59,7 @@ function TimelineStep({
 }) {
   const IconComp = ICON_MAP[step.icon] ?? Clock;
   const dotColor = state === 'done' ? Palette.success : state === 'current' ? Palette.brand : Palette.border;
-  const labelColor = state === 'current' ? Palette.brand : state === 'done' ? Palette.ink : Palette.textMuted;
+  const labelColor = state === 'current' ? Palette.brand : state === 'done' ? Palette.ink : Palette.textSecondary;
   const lineColor = state === 'done' ? Palette.success : Palette.border;
 
   return (
@@ -106,7 +106,7 @@ function TimelineStep({
         }}>
           {step.label}
         </Text>
-        <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textMuted, marginTop: 1 }}>
+        <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary, marginTop: 1 }}>
           {step.description}
         </Text>
       </View>
@@ -118,7 +118,7 @@ function SectionLabel({ title }: { title: string }) {
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 12 }}>
       <View style={{ flex: 1, height: 1, backgroundColor: Palette.border }} />
-      <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: Palette.textMuted, letterSpacing: 0.8, textTransform: 'uppercase' }}>
+      <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: Palette.textSecondary, letterSpacing: 0.8, textTransform: 'uppercase' }}>
         {title}
       </Text>
       <View style={{ flex: 1, height: 1, backgroundColor: Palette.border }} />

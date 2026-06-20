@@ -63,7 +63,7 @@ export default function Step1Name() {
               value={name}
               onChangeText={setName}
               placeholder="First name"
-              placeholderTextColor={Palette.textMuted}
+              placeholderTextColor={Palette.textSecondary}
               maxLength={50}
               autoCapitalize="words"
               returnKeyType="done"
@@ -99,7 +99,7 @@ export default function Step1Name() {
                 style={{
                   fontFamily: Font.heading,
                   fontSize: 16,
-                  color: name.trim() ? '#fff' : Palette.textMuted,
+                  color: name.trim() ? '#fff' : Palette.textSecondary,
                 }}>
                 Continue
               </Text>

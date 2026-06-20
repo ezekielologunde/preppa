@@ -61,7 +61,7 @@ function MealPickerRow({ meal, selected, onToggle }: { meal: Meal; selected: boo
           accessibilityRole="button"
           accessibilityLabel={selected ? `Remove ${meal.title}` : `Add ${meal.title}`}
           style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          {selected ? <X size={15} color={ORANGE} strokeWidth={2.5} /> : <Plus size={15} color={Palette.textMuted} strokeWidth={2.5} />}
+          {selected ? <X size={15} color={ORANGE} strokeWidth={2.5} /> : <Plus size={15} color={Palette.textSecondary} strokeWidth={2.5} />}
         </PressableScale>
       </MotiView>
     </MotiView>
@@ -166,7 +166,7 @@ export default function CreateMealPlanScreen() {
             <View style={{ gap: 8 }}>
               <Text style={{ fontFamily: Font.heading, fontSize: 13, color: Palette.textSecondary }}>plan name</Text>
               <TextInput value={name} onChangeText={setName} placeholder="e.g. My Healthy Week"
-                placeholderTextColor={Palette.textMuted} maxLength={60} accessibilityLabel="Plan name"
+                placeholderTextColor={Palette.textSecondary} maxLength={60} accessibilityLabel="Plan name"
                 style={{ height: 50, backgroundColor: Palette.surface, borderRadius: Radius.sm, paddingHorizontal: 16, fontFamily: Font.body, fontSize: 15, color: INK }} />
             </View>
           </MotiView>
@@ -236,17 +236,17 @@ export default function CreateMealPlanScreen() {
             <View style={{ gap: 12 }}>
               <Text style={{ fontFamily: Font.heading, fontSize: 13, color: Palette.textSecondary }}>add meals</Text>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, height: 46, backgroundColor: Palette.surface, borderRadius: Radius.sm, paddingHorizontal: 14 }}>
-                <Search size={16} color={Palette.textMuted} />
+                <Search size={16} color={Palette.textSecondary} />
                 <TextInput value={search} onChangeText={setSearch} placeholder="search any meal…"
-                  placeholderTextColor={Palette.textMuted} maxLength={100} accessibilityLabel="Search meals"
+                  placeholderTextColor={Palette.textSecondary} maxLength={100} accessibilityLabel="Search meals"
                   style={{ flex: 1, fontFamily: Font.body, fontSize: 14, color: INK }} />
-                {searching ? <ActivityIndicator size="small" color={Palette.textMuted} /> : null}
+                {searching ? <ActivityIndicator size="small" color={Palette.textSecondary} /> : null}
               </View>
               {loadingFeatured && search.length < 2 ? (
                 <ListSkeleton count={3} rowHeight={60} />
               ) : featuredError && search.length < 2 ? (
                 <View style={{ alignItems: 'center', gap: 10, paddingVertical: 16 }}>
-                  <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textMuted, textAlign: 'center' }}>Couldn't load meals. Check your connection.</Text>
+                  <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary, textAlign: 'center' }}>Couldn't load meals. Check your connection.</Text>
                   <PressableScale onPress={() => { feedback.tap(); void refetchFeatured(); }} accessibilityRole="button" accessibilityLabel="Retry loading meals"
                     style={{ paddingHorizontal: 16, height: 36, borderRadius: Radius.pill, borderWidth: 1.5, borderColor: Palette.border, alignItems: 'center', justifyContent: 'center' }}>
                     <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: Palette.textSecondary }}>retry</Text>
@@ -254,7 +254,7 @@ export default function CreateMealPlanScreen() {
                 </View>
               ) : displayMeals.length === 0 ? (
                 <View style={{ alignItems: 'center', gap: 10, paddingVertical: 16 }}>
-                  <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textMuted, textAlign: 'center' }}>
+                  <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary, textAlign: 'center' }}>
                     {search.length >= 2 ? 'No meals match that search.' : 'No meals available right now.'}
                   </Text>
                   {search.length < 2 ? (

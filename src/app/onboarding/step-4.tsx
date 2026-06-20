@@ -122,7 +122,7 @@ export default function Step4Location() {
               value={location}
               onChangeText={setLocation}
               placeholder="Lagos, NG · Chicago, IL · London, UK"
-              placeholderTextColor={Palette.textMuted}
+              placeholderTextColor={Palette.textSecondary}
               maxLength={100}
               autoCapitalize="words"
               returnKeyType="done"
@@ -173,7 +173,7 @@ export default function Step4Location() {
               accessibilityRole="button"
               accessibilityLabel="Skip location"
               style={{ height: 44, alignItems: 'center', justifyContent: 'center' }}>
-              <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: Palette.textMuted }}>Skip</Text>
+              <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: Palette.textSecondary }}>Skip</Text>
             </PressableScale>
           </MotiView>
         </KeyboardAvoidingView>

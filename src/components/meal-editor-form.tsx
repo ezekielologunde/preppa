@@ -2,7 +2,7 @@ import { Image } from 'expo-image';
 import { AlertTriangle, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, ImageIcon, Play, Plus, X } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Modal, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, Modal, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 
 import { DayPicker } from '@/components/day-picker';
 import { DIETARY_TAGS } from '@/constants/dietary';
@@ -10,11 +10,16 @@ import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
 import { Palette, Radius } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
-import { pickAndUploadMultipleImages, pickAndUploadMultipleNative, pickAndUploadMultipleVideosNative } from '@/lib/upload';
+import { captureAndUploadImageNative, pickAndUploadMultipleImages, pickAndUploadMultipleNative, pickAndUploadMultipleVideosNative } from '@/lib/upload';
 import { useMealCategories, useSaveMeal, type MealDraft } from '@/lib/queries/my-meals';
 import { useTodaySingleStock, useSetMealStock } from '@/lib/queries/stock';
 
 const ORANGE = Palette.brand;
+const CARD   = '#FFFFFF';
+const BG     = '#F8F6F3';
+const INK    = '#1A1714';
+const SUB    = '#78716C';
+const BORDER = '#EDE9E4';
 
 const DROP_DURATIONS = [
   { key: '24h', label: '24 hours', hours: 24 },
@@ -36,20 +41,22 @@ const ALLERGEN_CHIPS = ['gluten', 'dairy', 'eggs', 'nuts', 'peanuts', 'soy', 'sh
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <View style={{ gap: 6 }}>
-      <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: Palette.textMuted }}>{label}</Text>
+      <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: SUB }}>{label}</Text>
       {children}
     </View>
   );
 }
 
 const inputStyle = {
-  backgroundColor: '#1d2129',
+  backgroundColor: BG,
   borderRadius: 12,
+  borderWidth: 1,
+  borderColor: BORDER,
   paddingHorizontal: 14,
   height: 48,
   fontFamily: Font.body,
   fontSize: 14.5,
-  color: '#fff',
+  color: INK,
 } as const;
 
 const EMPTY: MealDraft = {
@@ -91,7 +98,6 @@ export function MealEditorForm({ draft, setDraft, prepperId, userId, save }: Pro
   const { data: todayStock } = useTodaySingleStock(draft?.id);
   const setMealStock = useSetMealStock();
 
-  // Seed stock field when today's stock loads for an existing meal
   useEffect(() => {
     if (todayStock != null) {
       setStockText(String(todayStock.qtyTotal));
@@ -104,14 +110,47 @@ export function MealEditorForm({ draft, setDraft, prepperId, userId, save }: Pro
     const remaining = 5 - current;
     if (remaining <= 0) { setFormErr('Max 5 photos per meal.'); return; }
     setFormErr(null);
+
+    if (Platform.OS === 'web') {
+      setUploading(true);
+      try {
+        const urls = await pickAndUploadMultipleImages('meal-images', userId, remaining);
+        if (urls.length) {
+          setDraft((d) => d && { ...d, imageUrls: [...d.imageUrls, ...urls].slice(0, 5) });
+          feedback.success();
+        }
+      } catch (e) {
+        feedback.error();
+        setFormErr(e instanceof Error ? e.message : 'Could not upload the photo.');
+      } finally {
+        setUploading(false);
+      }
+      return;
+    }
+
+    const source = await new Promise<'camera' | 'library' | null>((resolve) => {
+      Alert.alert('Add photo', 'Choose a source', [
+        { text: 'Camera', onPress: () => resolve('camera') },
+        { text: 'Photo Library', onPress: () => resolve('library') },
+        { text: 'Cancel', style: 'cancel', onPress: () => resolve(null) },
+      ]);
+    });
+    if (!source) return;
+
     setUploading(true);
     try {
-      const urls = Platform.OS === 'web'
-        ? await pickAndUploadMultipleImages('meal-images', userId, remaining)
-        : await pickAndUploadMultipleNative('meal-images', userId, remaining);
-      if (urls.length) {
-        setDraft((d) => d && { ...d, imageUrls: [...d.imageUrls, ...urls].slice(0, 5) });
-        feedback.success();
+      if (source === 'camera') {
+        const url = await captureAndUploadImageNative('meal-images', userId);
+        if (url) {
+          setDraft((d) => d && { ...d, imageUrls: [...d.imageUrls, url].slice(0, 5) });
+          feedback.success();
+        }
+      } else {
+        const urls = await pickAndUploadMultipleNative('meal-images', userId, remaining);
+        if (urls.length) {
+          setDraft((d) => d && { ...d, imageUrls: [...d.imageUrls, ...urls].slice(0, 5) });
+          feedback.success();
+        }
       }
     } catch (e) {
       feedback.error();
@@ -212,17 +251,17 @@ export function MealEditorForm({ draft, setDraft, prepperId, userId, save }: Pro
 
   return (
     <Modal visible transparent animationType="fade" onRequestClose={() => setDraft(null)}>
-      <Pressable onPress={() => setDraft(null)} accessibilityRole="button" accessibilityLabel="Close" style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end' }}>
-        <Pressable onPress={(e) => e.stopPropagation()} accessible={false} style={{ backgroundColor: Palette.prepperCard, borderTopLeftRadius: Radius.lg, borderTopRightRadius: Radius.lg, padding: 22, paddingBottom: 30, gap: 14, alignSelf: 'center', width: '100%', maxWidth: 480, maxHeight: '92%' }}>
+      <Pressable onPress={() => setDraft(null)} accessibilityRole="button" accessibilityLabel="Close" style={{ flex: 1, backgroundColor: 'rgba(26,23,20,0.5)', justifyContent: 'flex-end' }}>
+        <Pressable onPress={(e) => e.stopPropagation()} accessible={false} style={{ backgroundColor: CARD, borderTopLeftRadius: Radius.lg, borderTopRightRadius: Radius.lg, padding: 22, paddingBottom: 30, gap: 14, alignSelf: 'center', width: '100%', maxWidth: 480, maxHeight: '92%' }}>
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ gap: 14 }} keyboardShouldPersistTaps="handled">
-            <Text style={{ fontFamily: Font.display, fontSize: 20, color: '#fff', letterSpacing: -0.4 }}>{draft.id ? 'edit meal' : 'new meal'}</Text>
+            <Text style={{ fontFamily: Font.display, fontSize: 20, color: INK, letterSpacing: -0.4 }}>{draft.id ? 'edit meal' : 'new meal'}</Text>
 
             <Field label="NAME">
-              <TextInput value={draft.title} onChangeText={(t) => setDraft((d) => d && { ...d, title: t })} placeholder="e.g. Honey Garlic Salmon Bowl" placeholderTextColor="#4b5563" style={inputStyle} maxLength={80} />
+              <TextInput value={draft.title} onChangeText={(t) => setDraft((d) => d && { ...d, title: t })} placeholder="e.g. Honey Garlic Salmon Bowl" placeholderTextColor={SUB} style={inputStyle} maxLength={80} />
             </Field>
 
             <Field label="PRICE ($)">
-              <TextInput value={priceText} onChangeText={setPriceText} placeholder="14.99" placeholderTextColor="#4b5563" keyboardType="decimal-pad" style={inputStyle} maxLength={7} />
+              <TextInput value={priceText} onChangeText={setPriceText} placeholder="14.99" placeholderTextColor={SUB} keyboardType="decimal-pad" style={inputStyle} maxLength={7} />
             </Field>
 
             <Field label="CATEGORY">
@@ -230,9 +269,9 @@ export function MealEditorForm({ draft, setDraft, prepperId, userId, save }: Pro
                 {(categories ?? []).map((c) => {
                   const sel = draft.category_id === c.id;
                   return (
-                    <MotiView key={c.id} animate={{ backgroundColor: sel ? ORANGE : '#1d2129' }} transition={{ type: 'timing', duration: 180 }} style={{ borderRadius: Radius.pill, overflow: 'hidden' }}>
+                    <MotiView key={c.id} animate={{ backgroundColor: sel ? ORANGE : '#F0EDEA' }} transition={{ type: 'timing', duration: 180 }} style={{ borderRadius: Radius.pill, overflow: 'hidden' }}>
                       <PressableScale onPress={() => { feedback.tap(); setDraft((d) => d && { ...d, category_id: sel ? null : c.id }); }} accessibilityRole="button" accessibilityLabel={`Category ${c.name}`} accessibilityState={{ selected: sel }} style={{ paddingHorizontal: 13, height: 34, alignItems: 'center', justifyContent: 'center' }}>
-                        <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: sel ? '#fff' : Palette.textMuted }}>{c.name}</Text>
+                        <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: sel ? '#fff' : SUB }}>{c.name}</Text>
                       </PressableScale>
                     </MotiView>
                   );
@@ -241,7 +280,7 @@ export function MealEditorForm({ draft, setDraft, prepperId, userId, save }: Pro
             </Field>
 
             <Field label="DESCRIPTION">
-              <TextInput value={draft.description} onChangeText={(t) => setDraft((d) => d && { ...d, description: t })} placeholder="What makes this meal great?" placeholderTextColor="#4b5563" multiline style={[inputStyle, { height: 84, paddingTop: 12, textAlignVertical: 'top' }]} maxLength={500} />
+              <TextInput value={draft.description} onChangeText={(t) => setDraft((d) => d && { ...d, description: t })} placeholder="What makes this meal great?" placeholderTextColor={SUB} multiline style={[inputStyle, { height: 84, paddingTop: 12, textAlignVertical: 'top' }]} maxLength={500} />
             </Field>
 
             {/* PHOTOS */}
@@ -255,7 +294,6 @@ export function MealEditorForm({ draft, setDraft, prepperId, userId, save }: Pro
                         <Text style={{ fontFamily: Font.semibold, fontSize: 9, color: '#fff', letterSpacing: 0.2 }}>cover</Text>
                       </View>
                     ) : null}
-                    {/* Reorder arrows */}
                     <View style={{ position: 'absolute', bottom: 4, right: 4, flexDirection: 'row', gap: 3 }}>
                       {i > 0 ? (
                         <PressableScale onPress={() => movePhoto(i, 'left')} accessibilityRole="button" accessibilityLabel={`Move photo ${i + 1} left`} style={{ width: 18, height: 18, borderRadius: 4, backgroundColor: 'rgba(0,0,0,0.55)', alignItems: 'center', justifyContent: 'center' }}>
@@ -274,13 +312,13 @@ export function MealEditorForm({ draft, setDraft, prepperId, userId, save }: Pro
                   </View>
                 ))}
                 {draft.imageUrls.length < 5 ? (
-                  <PressableScale onPress={() => { feedback.tap(); void pickPhoto(); }} disabled={uploading} accessibilityRole="button" accessibilityLabel="Add photo" style={{ width: 72, height: 72, borderRadius: 12, borderWidth: 1.5, borderColor: '#3f4451', alignItems: 'center', justifyContent: 'center', opacity: uploading ? 0.5 : 1 }}>
-                    {uploading ? <ActivityIndicator color="#fff" size="small" /> : <Plus size={22} color="#5b6170" />}
+                  <PressableScale onPress={() => { feedback.tap(); void pickPhoto(); }} disabled={uploading} accessibilityRole="button" accessibilityLabel="Add photo" style={{ width: 72, height: 72, borderRadius: 12, borderWidth: 1.5, borderColor: BORDER, backgroundColor: '#F0EDEA', alignItems: 'center', justifyContent: 'center', opacity: uploading ? 0.5 : 1 }}>
+                    {uploading ? <ActivityIndicator color={ORANGE} size="small" /> : <Plus size={22} color={SUB} />}
                   </PressableScale>
                 ) : null}
               </ScrollView>
               {formErr?.includes('permission') || formErr?.includes('URL') ? (
-                <TextInput value={draft.imageUrls[0] ?? ''} onChangeText={(t) => setDraft((d) => d && { ...d, imageUrls: t ? [t] : [] })} placeholder="Or paste image URL as fallback" placeholderTextColor="#4b5563" autoCapitalize="none" maxLength={500} style={[inputStyle, { marginTop: 8 }]} />
+                <TextInput value={draft.imageUrls[0] ?? ''} onChangeText={(t) => setDraft((d) => d && { ...d, imageUrls: t ? [t] : [] })} placeholder="Or paste image URL as fallback" placeholderTextColor={SUB} autoCapitalize="none" maxLength={500} style={[inputStyle, { marginTop: 8 }]} />
               ) : null}
             </Field>
 
@@ -289,9 +327,9 @@ export function MealEditorForm({ draft, setDraft, prepperId, userId, save }: Pro
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingVertical: 4 }}>
                 {(draft.videoUrls ?? []).map((url, i) => (
                   <View key={`${url}-${i}`} style={{ position: 'relative' }}>
-                    <View style={{ width: 72, height: 72, borderRadius: 12, backgroundColor: '#1d2129', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-                      <Play size={24} color="#fff" fill="#fff" />
-                      <Text style={{ fontFamily: Font.body, fontSize: 9, color: '#9ca3af', marginTop: 3 }}>video</Text>
+                    <View style={{ width: 72, height: 72, borderRadius: 12, backgroundColor: '#F0EDEA', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                      <Play size={24} color={SUB} fill={SUB} />
+                      <Text style={{ fontFamily: Font.body, fontSize: 9, color: SUB, marginTop: 3 }}>video</Text>
                     </View>
                     <PressableScale onPress={() => { feedback.tap(); setDraft((d) => d && { ...d, videoUrls: (d.videoUrls ?? []).filter((_, j) => j !== i) }); }} accessibilityRole="button" accessibilityLabel={`Remove video ${i + 1}`} style={{ position: 'absolute', top: -6, right: -6, width: 22, height: 22, borderRadius: 11, backgroundColor: '#ef4444', alignItems: 'center', justifyContent: 'center' }}>
                       <X size={12} color="#fff" strokeWidth={3} />
@@ -299,11 +337,11 @@ export function MealEditorForm({ draft, setDraft, prepperId, userId, save }: Pro
                   </View>
                 ))}
                 {(draft.videoUrls?.length ?? 0) < 3 ? (
-                  <PressableScale onPress={() => { feedback.tap(); void pickVideo(); }} disabled={uploadingVideo} accessibilityRole="button" accessibilityLabel="Add video" style={{ width: 72, height: 72, borderRadius: 12, borderWidth: 1.5, borderColor: '#3f4451', alignItems: 'center', justifyContent: 'center', opacity: uploadingVideo ? 0.5 : 1 }}>
-                    {uploadingVideo ? <ActivityIndicator color="#fff" size="small" /> : (
+                  <PressableScale onPress={() => { feedback.tap(); void pickVideo(); }} disabled={uploadingVideo} accessibilityRole="button" accessibilityLabel="Add video" style={{ width: 72, height: 72, borderRadius: 12, borderWidth: 1.5, borderColor: BORDER, backgroundColor: '#F0EDEA', alignItems: 'center', justifyContent: 'center', opacity: uploadingVideo ? 0.5 : 1 }}>
+                    {uploadingVideo ? <ActivityIndicator color={ORANGE} size="small" /> : (
                       <View style={{ alignItems: 'center', gap: 3 }}>
-                        <Play size={18} color="#5b6170" />
-                        <Text style={{ fontFamily: Font.body, fontSize: 9, color: '#5b6170' }}>+ video</Text>
+                        <Play size={18} color={SUB} />
+                        <Text style={{ fontFamily: Font.body, fontSize: 9, color: SUB }}>+ video</Text>
                       </View>
                     )}
                   </PressableScale>
@@ -312,26 +350,26 @@ export function MealEditorForm({ draft, setDraft, prepperId, userId, save }: Pro
             </Field>
 
             {/* Limited drop toggle */}
-            <PressableScale onPress={() => { feedback.tap(); setDraft((d) => d && { ...d, is_limited: !d.is_limited, expires_at: d.is_limited ? null : d.expires_at }); }} accessibilityRole="switch" accessibilityState={{ checked: !!draft.is_limited }} accessibilityLabel="Mark as limited drop" style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#1d2129', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 13 }}>
+            <PressableScale onPress={() => { feedback.tap(); setDraft((d) => d && { ...d, is_limited: !d.is_limited, expires_at: d.is_limited ? null : d.expires_at }); }} accessibilityRole="switch" accessibilityState={{ checked: !!draft.is_limited }} accessibilityLabel="Mark as limited drop" style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: BG, borderRadius: 12, borderWidth: 1, borderColor: BORDER, paddingHorizontal: 14, paddingVertical: 13 }}>
               <View style={{ flex: 1, gap: 2 }}>
-                <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: '#fff' }}>Limited drop</Text>
-                <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary }}>Show a &quot;limited drop&quot; badge — builds scarcity &amp; hype</Text>
+                <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: INK }}>Limited drop</Text>
+                <Text style={{ fontFamily: Font.body, fontSize: 12, color: SUB }}>Show a &quot;limited drop&quot; badge — builds scarcity &amp; hype</Text>
               </View>
-              <MotiView animate={{ backgroundColor: draft.is_limited ? ORANGE : '#374151' }} transition={{ type: 'timing', duration: 200 }} style={{ width: 44, height: 26, borderRadius: 13, padding: 3, marginLeft: 12 }}>
+              <MotiView animate={{ backgroundColor: draft.is_limited ? ORANGE : '#D1CBC5' }} transition={{ type: 'timing', duration: 200 }} style={{ width: 44, height: 26, borderRadius: 13, padding: 3, marginLeft: 12 }}>
                 <MotiView animate={{ translateX: draft.is_limited ? 18 : 0 }} transition={{ type: 'timing', duration: 200 }} style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: '#fff' }} />
               </MotiView>
             </PressableScale>
 
             {draft.is_limited ? (
               <MotiView from={{ opacity: 0, translateY: -6 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 220 }} style={{ gap: 6 }}>
-                <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: Palette.textMuted }}>Drop ends</Text>
+                <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: SUB }}>Drop ends</Text>
                 <View style={{ flexDirection: 'row', gap: 8 }}>
                   {DROP_DURATIONS.map((d) => {
                     const on = dropChipFor(draft.expires_at) === d.key;
                     return (
-                      <MotiView key={d.key} animate={{ backgroundColor: on ? ORANGE + '26' : '#1d2129', borderColor: on ? ORANGE : '#1d2129' }} transition={{ type: 'timing', duration: 180 }} style={{ flex: 1, height: 38, borderRadius: 10, borderWidth: 1.5, overflow: 'hidden' }}>
+                      <MotiView key={d.key} animate={{ backgroundColor: on ? ORANGE + '26' : '#F0EDEA', borderColor: on ? ORANGE : BORDER }} transition={{ type: 'timing', duration: 180 }} style={{ flex: 1, height: 38, borderRadius: 10, borderWidth: 1.5, overflow: 'hidden' }}>
                         <PressableScale onPress={() => { feedback.tap(); setDraft((dr) => dr && { ...dr, expires_at: d.hours ? new Date(Date.now() + d.hours * 3_600_000).toISOString() : null }); }} accessibilityRole="button" accessibilityState={{ selected: on }} accessibilityLabel={`Drop ends: ${d.label}`} style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-                          <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: on ? ORANGE : Palette.textMuted }}>{d.label}</Text>
+                          <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: on ? ORANGE : SUB }}>{d.label}</Text>
                         </PressableScale>
                       </MotiView>
                     );
@@ -341,9 +379,9 @@ export function MealEditorForm({ draft, setDraft, prepperId, userId, save }: Pro
             ) : null}
 
             {/* Nutritional details — collapsible */}
-            <PressableScale onPress={() => { feedback.tap(); setNutritionOpen((v) => !v); }} accessibilityRole="button" accessibilityLabel={nutritionOpen ? 'Collapse nutritional details' : 'Expand nutritional details'} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#1d2129', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 13 }}>
-              <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: '#fff' }}>Nutritional details</Text>
-              {nutritionOpen ? <ChevronUp size={18} color={Palette.textMuted} /> : <ChevronDown size={18} color={Palette.textMuted} />}
+            <PressableScale onPress={() => { feedback.tap(); setNutritionOpen((v) => !v); }} accessibilityRole="button" accessibilityLabel={nutritionOpen ? 'Collapse nutritional details' : 'Expand nutritional details'} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: BG, borderRadius: 12, borderWidth: 1, borderColor: BORDER, paddingHorizontal: 14, paddingVertical: 13 }}>
+              <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: INK }}>Nutritional details</Text>
+              {nutritionOpen ? <ChevronUp size={18} color={SUB} /> : <ChevronDown size={18} color={SUB} />}
             </PressableScale>
 
             {nutritionOpen ? (
@@ -353,10 +391,10 @@ export function MealEditorForm({ draft, setDraft, prepperId, userId, save }: Pro
                     {ALLERGEN_CHIPS.map((a) => {
                       const sel = (draft.allergens ?? []).includes(a);
                       return (
-                        <MotiView key={a} animate={{ backgroundColor: sel ? '#92400e' : '#1d2129', borderColor: sel ? '#f59e0b' : '#3f4451' }} transition={{ type: 'timing', duration: 180 }} style={{ borderRadius: Radius.pill, borderWidth: 1.5, overflow: 'hidden' }}>
+                        <MotiView key={a} animate={{ backgroundColor: sel ? Palette.amber + '25' : '#F0EDEA', borderColor: sel ? Palette.amber : BORDER }} transition={{ type: 'timing', duration: 180 }} style={{ borderRadius: Radius.pill, borderWidth: 1.5, overflow: 'hidden' }}>
                           <PressableScale onPress={() => { feedback.tap(); setDraft((d) => { if (!d) return d; const cur = d.allergens ?? []; return { ...d, allergens: sel ? cur.filter((x) => x !== a) : [...cur, a] }; }); }} accessibilityRole="checkbox" accessibilityState={{ checked: sel }} accessibilityLabel={`Allergen: ${a}`} style={{ flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 12, height: 34 }}>
-                            {sel ? <AlertTriangle size={12} color="#f59e0b" /> : null}
-                            <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: sel ? '#f59e0b' : Palette.textMuted }}>{a}</Text>
+                            {sel ? <AlertTriangle size={12} color={Palette.amber} /> : null}
+                            <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: sel ? Palette.amber : SUB }}>{a}</Text>
                           </PressableScale>
                         </MotiView>
                       );
@@ -366,12 +404,12 @@ export function MealEditorForm({ draft, setDraft, prepperId, userId, save }: Pro
                 <View style={{ flexDirection: 'row', gap: 10 }}>
                   <View style={{ flex: 1 }}>
                     <Field label="READY IN (MIN)">
-                      <TextInput value={timeText} onChangeText={setTimeText} placeholder="30" placeholderTextColor="#4b5563" keyboardType="number-pad" style={inputStyle} maxLength={3} />
+                      <TextInput value={timeText} onChangeText={setTimeText} placeholder="30" placeholderTextColor={SUB} keyboardType="number-pad" style={inputStyle} maxLength={3} />
                     </Field>
                   </View>
                   <View style={{ flex: 1 }}>
                     <Field label="~CAL PER SERVING">
-                      <TextInput value={caloriesText} onChangeText={setCaloriesText} placeholder="450" placeholderTextColor="#4b5563" keyboardType="number-pad" style={inputStyle} maxLength={4} />
+                      <TextInput value={caloriesText} onChangeText={setCaloriesText} placeholder="450" placeholderTextColor={SUB} keyboardType="number-pad" style={inputStyle} maxLength={4} />
                     </Field>
                   </View>
                 </View>
@@ -384,14 +422,14 @@ export function MealEditorForm({ draft, setDraft, prepperId, userId, save }: Pro
                 {DIETARY_TAGS.map((t) => {
                   const sel = (draft.dietary_tags ?? []).includes(t.key);
                   return (
-                    <MotiView key={t.key} animate={{ backgroundColor: sel ? '#10B98126' : '#1d2129', borderColor: sel ? '#10B981' : '#3f4451' }} transition={{ type: 'timing', duration: 180 }} style={{ borderRadius: Radius.pill, borderWidth: 1.5, overflow: 'hidden' }}>
+                    <MotiView key={t.key} animate={{ backgroundColor: sel ? '#10B98126' : '#F0EDEA', borderColor: sel ? '#10B981' : BORDER }} transition={{ type: 'timing', duration: 180 }} style={{ borderRadius: Radius.pill, borderWidth: 1.5, overflow: 'hidden' }}>
                       <PressableScale
                         onPress={() => { feedback.tap(); setDraft((d) => { if (!d) return d; const cur = d.dietary_tags ?? []; return { ...d, dietary_tags: sel ? cur.filter((x) => x !== t.key) : [...cur, t.key] }; }); }}
                         accessibilityRole="checkbox"
                         accessibilityState={{ checked: sel }}
                         accessibilityLabel={`Dietary tag: ${t.label}`}
                         style={{ flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 12, height: 34 }}>
-                        <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: sel ? '#10B981' : Palette.textMuted }}>{t.emoji} {t.label}</Text>
+                        <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: sel ? '#10B981' : SUB }}>{t.emoji} {t.label}</Text>
                       </PressableScale>
                     </MotiView>
                   );
@@ -407,7 +445,7 @@ export function MealEditorForm({ draft, setDraft, prepperId, userId, save }: Pro
 
             {/* Today's stock */}
             <Field label="TODAY'S STOCK">
-              <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary, marginBottom: 4 }}>
+              <Text style={{ fontFamily: Font.body, fontSize: 12, color: SUB, marginBottom: 4 }}>
                 How many portions are you making today?{'\n'}Leave empty = unlimited
               </Text>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
@@ -415,17 +453,17 @@ export function MealEditorForm({ draft, setDraft, prepperId, userId, save }: Pro
                   value={stockText}
                   onChangeText={setStockText}
                   placeholder="e.g. 50"
-                  placeholderTextColor="#4b5563"
+                  placeholderTextColor={SUB}
                   keyboardType="number-pad"
                   style={[inputStyle, { flex: 1 }]}
                   maxLength={4}
                   accessibilityLabel="Today's portion count"
                 />
-                <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textMuted }}>portions</Text>
+                <Text style={{ fontFamily: Font.body, fontSize: 13, color: SUB }}>portions</Text>
               </View>
             </Field>
 
-            {formErr ? <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: '#fca5a5' }}>{formErr}</Text> : null}
+            {formErr ? <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: Palette.danger }}>{formErr}</Text> : null}
 
             {/* Primary CTA */}
             <PressableScale onPress={() => { feedback.tap(); submit(); }} disabled={save.isPending} accessibilityRole="button" accessibilityLabel="Save meal" style={{ height: 52, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', opacity: save.isPending ? 0.7 : 1 }}>
@@ -439,7 +477,7 @@ export function MealEditorForm({ draft, setDraft, prepperId, userId, save }: Pro
               </PressableScale>
             ) : null}
 
-            {!draft.id ? <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary, textAlign: 'center' }}>New meals start as drafts — publish when you&apos;re ready.</Text> : null}
+            {!draft.id ? <Text style={{ fontFamily: Font.body, fontSize: 12, color: SUB, textAlign: 'center' }}>New meals start as drafts — publish when you&apos;re ready.</Text> : null}
           </ScrollView>
         </Pressable>
       </Pressable>

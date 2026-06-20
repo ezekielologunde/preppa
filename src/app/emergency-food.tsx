@@ -126,7 +126,7 @@ export default function EmergencyFoodScreen() {
                     style={{ padding: 12, alignItems: 'center', gap: 4 }}>
                     <Clock size={17} color={sel ? '#fff' : u.color} />
                     <Text style={{ fontFamily: Font.heading, fontSize: 14, color: sel ? '#fff' : INK }}>{u.label}</Text>
-                    <Text style={{ fontFamily: Font.body, fontSize: 11, color: sel ? 'rgba(255,255,255,0.8)' : Palette.textMuted, textAlign: 'center' }}>{u.sub}</Text>
+                    <Text style={{ fontFamily: Font.body, fontSize: 11, color: sel ? 'rgba(255,255,255,0.8)' : Palette.textSecondary, textAlign: 'center' }}>{u.sub}</Text>
                   </PressableScale>
                 </MotiView>
               );
@@ -174,7 +174,7 @@ export default function EmergencyFoodScreen() {
                 <Text style={{ fontFamily: Font.medium, fontSize: 14, color: ORANGE }}>Add a delivery address</Text>
               )}
             </View>
-            <ChevronRight size={16} color={Palette.textMuted} />
+            <ChevronRight size={16} color={Palette.textSecondary} />
           </PressableScale>
           </MotiView>
 
@@ -185,7 +185,7 @@ export default function EmergencyFoodScreen() {
             value={notes}
             onChangeText={setNotes}
             placeholder="E.g. no nuts, vegetarian, extra spicy…"
-            placeholderTextColor={Palette.textMuted}
+            placeholderTextColor={Palette.textSecondary}
             multiline
             numberOfLines={3}
             maxLength={300}
@@ -205,7 +205,7 @@ export default function EmergencyFoodScreen() {
                 <View key={p.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 14, paddingVertical: 11, borderTopWidth: i === 0 ? 0 : 1, borderTopColor: Palette.divider }}>
                   <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: Palette.success }} />
                   <Text style={{ flex: 1, fontFamily: Font.medium, fontSize: 13.5, color: INK }}>{p.name}</Text>
-                  <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted }}>★ {p.rating.toFixed(1)}</Text>
+                  <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary }}>★ {p.rating.toFixed(1)}</Text>
                 </View>
               ))}
             </View>
@@ -229,7 +229,7 @@ export default function EmergencyFoodScreen() {
               </>
             )}
           </PressableScale>
-          <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted, textAlign: 'center', marginTop: 8 }}>
+          <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary, textAlign: 'center', marginTop: 8 }}>
             Preppers in your area will see your request and respond via messages.
           </Text>
           </MotiView>

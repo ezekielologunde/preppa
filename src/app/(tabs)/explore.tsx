@@ -80,10 +80,10 @@ function SearchBar({ value, onChangeText, onClear, pad, placeholderIdx }: { valu
   return (
     <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'spring', damping: 20, stiffness: 260 }} style={{ paddingHorizontal: pad, paddingBottom: 4 }}>
       <Animated.View style={{ flexDirection: 'row', alignItems: 'center', height: 52, borderRadius: 26, backgroundColor: Palette.surface, borderWidth: 1, borderColor: border, paddingLeft: 14, paddingRight: 12, gap: 10, ...Shadow.card }}>
-        <Search size={18} color={focused ? Palette.brand : Palette.textMuted} />
+        <Search size={18} color={focused ? Palette.brand : Palette.textSecondary} />
         {value.length === 0 && !focused ? (
           <MotiView key={placeholderIdx} from={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ type: 'timing', duration: 400 }} style={{ flex: 1 }}>
-            <Text numberOfLines={1} style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textMuted }}>{SEARCH_PLACEHOLDERS[placeholderIdx]}</Text>
+            <Text numberOfLines={1} style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary }}>{SEARCH_PLACEHOLDERS[placeholderIdx]}</Text>
           </MotiView>
         ) : (
           <TextInput style={{ flex: 1, fontFamily: Font.body, fontSize: 14, color: Palette.ink, padding: 0, margin: 0 }} value={value} onChangeText={onChangeText}
@@ -256,7 +256,7 @@ export default function ExploreScreen() {
             <Text numberOfLines={1} style={{ flex: 1, fontFamily: Font.display, fontSize: 26, color: Palette.ink, letterSpacing: -0.9 }}>explore</Text>
             <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: Palette.surface, borderRadius: Radius.pill, height: 40, maxWidth: 200, overflow: 'hidden', ...Shadow.card }}>
               <PressableScale onPress={handleGpsTap} accessibilityRole="button" accessibilityLabel="Detect my location" style={{ paddingLeft: 11, paddingRight: 7, height: 40, alignItems: 'center', justifyContent: 'center' }}>
-                {locCapturing ? <ActivityIndicator size="small" color={Palette.brand} /> : <Compass size={13} color={loc.status === 'granted' ? Palette.brand : Palette.textMuted} />}
+                {locCapturing ? <ActivityIndicator size="small" color={Palette.brand} /> : <Compass size={13} color={loc.status === 'granted' ? Palette.brand : Palette.textSecondary} />}
               </PressableScale>
               <PressableScale onPress={handleAddressTap} accessibilityRole="button" accessibilityLabel={`Location: ${locationLabel}. Tap to change.`} style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 3, paddingRight: 10, height: 40, minWidth: 0 }}>
                 <Text numberOfLines={1} style={{ fontFamily: Font.medium, fontSize: 13, color: locationLabel !== 'near you' ? Palette.inkSoft : Palette.textSecondary, flexShrink: 1 }}>{locCapturing ? 'detecting...' : locationLabel}</Text>
@@ -353,7 +353,7 @@ export default function ExploreScreen() {
 
           {/* Cuisines */}
           <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 40 }}>
-            <SectionHeader title="cuisines" pad={pad} Icon={UtensilsCrossed} onSeeAll={() => router.push('/cuisine-explorer')} />
+            <SectionHeader title="cuisines" pad={pad} Icon={UtensilsCrossed} />
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: pad, gap: 12, paddingBottom: 20 }}>
               {CUISINES.map((c, i) => (
                 <MotiView key={c.id} from={{ opacity: 0, translateX: 14 }} animate={{ opacity: 1, translateX: 0 }} transition={{ type: 'timing', duration: 220, delay: i * 35 }}>
@@ -374,7 +374,7 @@ export default function ExploreScreen() {
               <SearchEmptyState query={searchQuery.trim()} />
             ) : filteredMeals.length === 0 ? (
               <View style={{ paddingHorizontal: pad, paddingBottom: 24, alignItems: 'flex-start', gap: 12 }}>
-                <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textMuted }}>
+                <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary }}>
                   {activeCategory !== 'all' && countActiveFilters(advFilters) === 0 ? `No ${activeCategory} meals available right now.` : 'No meals match your current filters.'}
                 </Text>
                 <PressableScale onPress={() => { feedback.tap(); setActiveCategory('all'); setAdvFilters({ ...FILTER_DEFAULTS }); setSearchQuery(''); }}

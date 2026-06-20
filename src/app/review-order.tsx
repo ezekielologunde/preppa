@@ -325,7 +325,7 @@ export default function ReviewOrderScreen() {
                   value={body}
                   onChangeText={setBody}
                   placeholder="Describe your experience..."
-                  placeholderTextColor={Palette.textMuted}
+                  placeholderTextColor={Palette.textSecondary}
                   multiline
                   numberOfLines={5}
                   maxLength={500}
@@ -343,7 +343,7 @@ export default function ReviewOrderScreen() {
                     textAlignVertical: 'top',
                   }}
                 />
-                <Text style={{ fontFamily: Font.body, fontSize: Type.micro, color: Palette.textMuted, textAlign: 'right' }}>{body.length}/500</Text>
+                <Text style={{ fontFamily: Font.body, fontSize: Type.micro, color: Palette.textSecondary, textAlign: 'right' }}>{body.length}/500</Text>
               </View>
             </MotiView>
 
@@ -403,7 +403,7 @@ export default function ReviewOrderScreen() {
                 style={{
                   height: 54,
                   borderRadius: Radius.pill,
-                  backgroundColor: rating < 1 ? Palette.textMuted : Palette.brand,
+                  backgroundColor: rating < 1 ? Palette.textSecondary : Palette.brand,
                   alignItems: 'center',
                   justifyContent: 'center',
                   opacity: submit.isPending ? 0.75 : 1,

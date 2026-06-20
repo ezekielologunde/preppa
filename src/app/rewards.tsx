@@ -66,7 +66,7 @@ function ActivityRow({ entry, onOrderPress }: { entry: PointsEntry; onOrderPress
         <Text style={{ fontFamily: Font.semibold, fontSize: 13.5, color: Palette.success }}>+{entry.points} pts</Text>
         <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.ink, marginTop: 2 }}>{label}</Text>
       </View>
-      <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted, marginRight: entry.orderId ? 4 : 0 }}>{date}</Text>
+      <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary, marginRight: entry.orderId ? 4 : 0 }}>{date}</Text>
       {entry.orderId ? (
         <TouchableOpacity onPress={() => { feedback.tap(); onOrderPress(entry.orderId!); }}
           accessibilityRole="button" accessibilityLabel="View order details" hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
@@ -99,7 +99,7 @@ function RedeemSheet({ perk, canRedeem, userPoints, onClose, onCta }: { perk: Pe
               <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary }}>{desc}</Text>
             </View>
             <View style={{ paddingHorizontal: 11, paddingVertical: 5, borderRadius: Radius.pill, backgroundColor: canRedeem ? color + '18' : Palette.chip }}>
-              <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: canRedeem ? color : Palette.textMuted, fontVariant: ['tabular-nums'] }}>{pts.toLocaleString()} pts</Text>
+              <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: canRedeem ? color : Palette.textSecondary, fontVariant: ['tabular-nums'] }}>{pts.toLocaleString()} pts</Text>
             </View>
           </View>
           <Text style={{ fontFamily: Font.body, fontSize: 14.5, color: Palette.textSecondary, lineHeight: 22 }}>{body}</Text>
@@ -114,7 +114,7 @@ function RedeemSheet({ perk, canRedeem, userPoints, onClose, onCta }: { perk: Pe
           ) : (
             <View style={{ gap: 10 }}>
               <View style={{ height: 54, borderRadius: Radius.pill, backgroundColor: Palette.chip, alignItems: 'center', justifyContent: 'center' }}>
-                <Text style={{ fontFamily: Font.semibold, fontSize: 15, color: Palette.textMuted }}>
+                <Text style={{ fontFamily: Font.semibold, fontSize: 15, color: Palette.textSecondary }}>
                   Need {Math.max(0, pts - userPoints).toLocaleString()} more points
                 </Text>
               </View>
@@ -151,14 +151,14 @@ function TierCard({ tier, reached, current }: { tier: Tier; reached: boolean; cu
         </View>
         <Text style={{ fontFamily: Font.heading, fontSize: 16, color: current ? '#fff' : INK }}>{tier.name}</Text>
         <View style={{ flex: 1 }} />
-        <Text style={{ fontFamily: Font.medium, fontSize: 12.5, color: current ? 'rgba(255,255,255,0.9)' : Palette.textMuted }}>
+        <Text style={{ fontFamily: Font.medium, fontSize: 12.5, color: current ? 'rgba(255,255,255,0.9)' : Palette.textSecondary }}>
           {tier.min === 0 ? 'starter' : `${money(tier.min)} spent`}
         </Text>
       </View>
       {tier.perks.map((p) => (
         <View key={p} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-          {reached || current ? <Check size={14} color={current ? '#fff' : Palette.success} strokeWidth={2.6} /> : <Lock size={13} color={Palette.textMuted} />}
-          <Text style={{ fontFamily: Font.body, fontSize: 13, color: current ? '#fff' : reached ? Palette.textSecondary : Palette.textMuted }}>{p}</Text>
+          {reached || current ? <Check size={14} color={current ? '#fff' : Palette.success} strokeWidth={2.6} /> : <Lock size={13} color={Palette.textSecondary} />}
+          <Text style={{ fontFamily: Font.body, fontSize: 13, color: current ? '#fff' : reached ? Palette.textSecondary : Palette.textSecondary }}>{p}</Text>
         </View>
       ))}
     </View>
@@ -197,7 +197,7 @@ export default function RewardsScreen() {
 
         {!user ? (
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
-            <Gift size={28} color={Palette.textMuted} />
+            <Gift size={28} color={Palette.textSecondary} />
             <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center' }}>Sign in to start earning points on every preorder.</Text>
             <PressableScale onPress={() => { feedback.tap(); router.push('/auth?mode=signin'); }} accessibilityRole="button" accessibilityLabel="Sign in" style={{ marginTop: 4, paddingHorizontal: 22, height: 48, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
               <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#fff' }}>Sign in</Text>
@@ -216,7 +216,7 @@ export default function RewardsScreen() {
         ) : r.isError ? (
           <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }}
             style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
-            <Gift size={28} color={Palette.textMuted} />
+            <Gift size={28} color={Palette.textSecondary} />
             <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>couldn't load rewards</Text>
             <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center' }}>Check your connection and try again.</Text>
             <PressableScale onPress={() => { feedback.tap(); void r.refetch(); }} accessibilityRole="button" accessibilityLabel="Retry loading rewards"
@@ -290,9 +290,9 @@ export default function RewardsScreen() {
                       <Icon size={17} color={color} />
                     </View>
                     <Text style={{ fontFamily: Font.heading, fontSize: 14, color: INK }}>{title}</Text>
-                    <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted }}>{desc}</Text>
+                    <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary }}>{desc}</Text>
                     <View style={{ alignSelf: 'flex-start', paddingHorizontal: 9, paddingVertical: 4, borderRadius: Radius.pill, backgroundColor: canRedeem ? color + '18' : Palette.chip }}>
-                      <Text style={{ fontFamily: Font.semibold, fontSize: 11.5, color: canRedeem ? color : Palette.textMuted, fontVariant: ['tabular-nums'] }}>{pts.toLocaleString()} pts</Text>
+                      <Text style={{ fontFamily: Font.semibold, fontSize: 11.5, color: canRedeem ? color : Palette.textSecondary, fontVariant: ['tabular-nums'] }}>{pts.toLocaleString()} pts</Text>
                     </View>
                   </PressableScale>
                 );

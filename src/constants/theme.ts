@@ -88,7 +88,7 @@ export const Palette = {
   // Neutral ink ramp — warm (taupe-leaning) instead of cool slate
   ink: '#1C1A18', // primary text, headings, dark buttons (warm near-black)
   inkSoft: '#44403C', // labels and emphasized secondary text
-  textSecondary: '#8A8480', // real secondary copy — warm grey
+  textSecondary: '#78716C', // real secondary copy — warm grey (~4.8:1 on white, WCAG AA)
   textMuted: '#B8B0A8', // ⚠️  DECORATIVE/DISABLED ONLY — never use on load-bearing text (contrast < 3:1)
 
   // Customer (light) surfaces — warm cream canvas framing white cards

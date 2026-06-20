@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { ChefHat, ChevronRight, Leaf, type LucideIcon, Megaphone, Package, Sparkles } from 'lucide-react-native';
+import { ChefHat, ChevronRight, Leaf, type LucideIcon, Package, Sparkles } from 'lucide-react-native';
 import { Text, View } from 'react-native';
 
 import { PressableScale } from '@/components/ui/pressable-scale';
@@ -9,7 +9,7 @@ import { Font } from '@/constants/fonts';
 import { Palette, Radius } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
 
-export type PromoKind = 'meal_plans' | 'post_request' | 'become_prepper' | 'order_tracking' | 'dietary_profile';
+export type PromoKind = 'meal_plans' | 'become_prepper' | 'order_tracking' | 'dietary_profile';
 
 const promoImg = (id: string) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=900&q=70`;
 
@@ -19,7 +19,7 @@ type Promo = {
   subtitle: string;
   cta: string;
   /** Literal union (not bare string) so expo-router's typed push accepts it. */
-  route: '/meal-plans' | '/experience-request' | '/become-prepper' | '/orders' | '/dietary-preferences';
+  route: '/meal-plans' | '/become-prepper' | '/orders' | '/dietary-preferences';
   Icon: LucideIcon;
   /** Brand-accent backdrop, shown if the image fails or while it loads. */
   gradient: [string, string];
@@ -37,16 +37,6 @@ export const PROMOS: Record<PromoKind, Promo> = {
     Icon: Sparkles,
     gradient: ['#F1872E', '#D9430F'],
     image: promoImg('photo-1490645935967-10de6ba17061'),
-  },
-  post_request: {
-    eyebrow: "Can't find it?",
-    title: 'Ask a chef\nto make it',
-    subtitle: 'Post a request, set your budget, and get bids from Preppas near you.',
-    cta: 'Post a request',
-    route: '/experience-request',
-    Icon: Megaphone,
-    gradient: ['#7C3AED', '#4C1D95'],
-    image: promoImg('photo-1556910103-1c02745aae4d'),
   },
   become_prepper: {
     eyebrow: 'Earn with Preppa',

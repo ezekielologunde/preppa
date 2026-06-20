@@ -159,13 +159,13 @@ export default function SearchScreen() {
             <ChevronLeft size={22} color={INK} />
           </PressableScale>
           <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: Palette.surface, borderRadius: 16, paddingHorizontal: 14, height: 50, gap: 8 }}>
-            <Search size={19} color={Palette.textMuted} />
+            <Search size={19} color={Palette.textSecondary} />
             <TextInput
               autoFocus
               value={text}
               onChangeText={setText}
               placeholder="search meals, cuisines, preppers"
-              placeholderTextColor={Palette.textMuted}
+              placeholderTextColor={Palette.textSecondary}
               returnKeyType="search"
               onFocus={() => setIsFocused(true)}
               onBlur={() => setIsFocused(false)}
@@ -178,7 +178,7 @@ export default function SearchScreen() {
             />
             {text.length > 0 ? (
               <PressableScale onPress={() => { feedback.tap(); setText(''); }} accessibilityRole="button" accessibilityLabel="Clear search" hitSlop={8}>
-                <X size={18} color={Palette.textMuted} />
+                <X size={18} color={Palette.textSecondary} />
               </PressableScale>
             ) : null}
           </View>
@@ -224,7 +224,7 @@ export default function SearchScreen() {
         {/* Results count — visible when query is active and data has loaded */}
         {active && !loading && ((sortedResults?.length ?? 0) > 0 || (preppers?.length ?? 0) > 0) ? (
           <MotiView from={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ type: 'timing', duration: 200 }}>
-            <Text style={{ paddingHorizontal: 20, paddingTop: 10, paddingBottom: 2, fontFamily: Font.medium, fontSize: 12, color: Palette.textMuted }}>
+            <Text style={{ paddingHorizontal: 20, paddingTop: 10, paddingBottom: 2, fontFamily: Font.medium, fontSize: 12, color: Palette.textSecondary }}>
               {[
                 (sortedResults?.length ?? 0) > 0 ? `${sortedResults!.length} meal${sortedResults!.length !== 1 ? 's' : ''}` : null,
                 (preppers?.length ?? 0) > 0 ? `${preppers!.length} kitchen${preppers!.length !== 1 ? 's' : ''}` : null,
@@ -242,17 +242,17 @@ export default function SearchScreen() {
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, marginBottom: 4 }}>
                   <Text style={{ fontFamily: Font.display, fontSize: 15, color: INK, letterSpacing: -0.3 }}>recent searches</Text>
                   <PressableScale onPress={() => { feedback.tap(); clearRecentSearches(); }} accessibilityRole="button" accessibilityLabel="Clear all recent searches" hitSlop={8}>
-                    <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: Palette.textMuted }}>clear all</Text>
+                    <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: Palette.textSecondary }}>clear all</Text>
                   </PressableScale>
                 </View>
                 {recent.map((s) => (
                   <View key={s} style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 11 }}>
-                    <Clock size={16} color={Palette.textMuted} />
+                    <Clock size={16} color={Palette.textSecondary} />
                     <PressableScale onPress={() => { feedback.tap(); setText(s); }} accessibilityRole="button" accessibilityLabel={`Search ${s}`} style={{ flex: 1, marginLeft: 12 }}>
                       <Text numberOfLines={1} style={{ fontFamily: Font.medium, fontSize: 14.5, color: INK }}>{s}</Text>
                     </PressableScale>
                     <PressableScale onPress={() => { feedback.tap(); removeSearch(s); }} accessibilityRole="button" accessibilityLabel={`Remove ${s}`} hitSlop={8} style={{ padding: 4 }}>
-                      <X size={16} color={Palette.textMuted} />
+                      <X size={16} color={Palette.textSecondary} />
                     </PressableScale>
                   </View>
                 ))}
@@ -299,9 +299,9 @@ export default function SearchScreen() {
               animate={{ opacity: 1, translateY: 0 }}
               transition={{ type: 'timing', duration: 260, delay: recentMeals?.length ? 60 : 0 }}
               style={{ alignItems: 'center', padding: 32, gap: 10 }}>
-              <Search size={36} color={Palette.textMuted} />
+              <Search size={36} color={Palette.textSecondary} />
               <Text style={{ fontFamily: Font.heading, fontSize: 16, color: Palette.textSecondary }}>find your next meal</Text>
-              <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textMuted, textAlign: 'center' }}>type to search — or tap a filter to browse</Text>
+              <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center' }}>type to search — or tap a filter to browse</Text>
               {suggestions.length > 0 ? (
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 8, marginTop: 4 }}>
                   {suggestions.map((s) => (
@@ -321,10 +321,10 @@ export default function SearchScreen() {
           <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 240 }}
             style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 10 }}>
             <View style={{ width: 56, height: 56, borderRadius: 18, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
-              <Search size={22} color={Palette.textMuted} />
+              <Search size={22} color={Palette.textSecondary} />
             </View>
             <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>search unavailable</Text>
-            <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textMuted, textAlign: 'center', lineHeight: 20 }}>Check your connection and try again.</Text>
+            <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center', lineHeight: 20 }}>Check your connection and try again.</Text>
           </MotiView>
         ) : (sortedResults && sortedResults.length > 0) || (preppers && preppers.length > 0) ? (
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
@@ -386,7 +386,7 @@ export default function SearchScreen() {
             <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK, textAlign: 'center' }}>
               {debounced.trim() ? `No results for "${debounced.trim()}"` : 'nothing found'}
             </Text>
-            <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textMuted, textAlign: 'center' }}>
+            <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center' }}>
               {hasFilters ? 'try removing a filter, or search something else' : 'try a meal, cuisine, or kitchen — like "bowl" or "Kelsey"'}
             </Text>
             {trending.length >= 2 ? (
@@ -400,9 +400,6 @@ export default function SearchScreen() {
                   <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: ORANGE }}>clear filters</Text>
                 </PressableScale>
               ) : null}
-              <PressableScale onPress={() => { feedback.tap(); router.push('/emergency-food'); }} accessibilityRole="button" accessibilityLabel="Post a food request" style={{ paddingHorizontal: 20, height: 44, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
-                <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: '#fff' }}>post a food request</Text>
-              </PressableScale>
             </View>
           </MotiView>
         )}

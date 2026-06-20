@@ -174,7 +174,7 @@ export default function PreferencesScreen() {
                 style={{
                   fontFamily: Font.semibold,
                   fontSize: 15,
-                  color: isDirty ? Palette.brand : Palette.textMuted,
+                  color: isDirty ? Palette.brand : Palette.textSecondary,
                 }}>
                 Save
               </Text>
@@ -239,7 +239,7 @@ export default function PreferencesScreen() {
                 style={{
                   fontFamily: Font.body,
                   fontSize: 13,
-                  color: Palette.textMuted,
+                  color: Palette.textSecondary,
                   lineHeight: 19,
                   textAlign: 'center',
                 }}>

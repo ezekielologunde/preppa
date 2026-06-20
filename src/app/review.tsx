@@ -5,7 +5,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Camera, Check, ChevronLeft, Star, X } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useState } from 'react';
-import { ActivityIndicator, Image, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PressableScale } from '@/components/ui/pressable-scale';
@@ -57,9 +57,29 @@ export default function ReviewScreen() {
   const [err, setErr] = useState<string | null>(null);
 
   async function pickPhoto() {
-    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.8, allowsMultipleSelection: false });
-    if (result.canceled || !result.assets[0] || !user) return;
-    const uri = result.assets[0].uri;
+    if (!user) return;
+    const source = await new Promise<'camera' | 'library' | null>((resolve) => {
+      Alert.alert('Add photo', 'Choose a source', [
+        { text: 'Camera', onPress: () => resolve('camera') },
+        { text: 'Photo Library', onPress: () => resolve('library') },
+        { text: 'Cancel', style: 'cancel', onPress: () => resolve(null) },
+      ]);
+    });
+    if (!source) return;
+
+    let uri: string;
+    if (source === 'camera') {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== 'granted') return;
+      const result = await ImagePicker.launchCameraAsync({ mediaTypes: ['images'], quality: 0.8 });
+      if (result.canceled || !result.assets[0]) return;
+      uri = result.assets[0].uri;
+    } else {
+      const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.8, allowsMultipleSelection: false });
+      if (result.canceled || !result.assets[0]) return;
+      uri = result.assets[0].uri;
+    }
+
     let idx = 0;
     setPhotos((prev) => { idx = prev.length; return [...prev, { localUri: uri, publicUrl: null, uploading: true }]; });
     try {
@@ -176,7 +196,7 @@ export default function ReviewScreen() {
               value={body}
               onChangeText={setBody}
               placeholder="Share a few words (optional)"
-              placeholderTextColor={Palette.textMuted}
+              placeholderTextColor={Palette.textSecondary}
               multiline
               maxLength={1000}
               accessibilityLabel="Write your review"
@@ -224,7 +244,7 @@ export default function ReviewScreen() {
               disabled={rating < 1 || submit.isPending}
               accessibilityRole="button"
               accessibilityLabel="Submit review"
-              style={{ height: 54, borderRadius: Radius.pill, backgroundColor: rating < 1 ? Palette.textMuted : ORANGE, alignItems: 'center', justifyContent: 'center', opacity: submit.isPending ? 0.7 : 1 }}>
+              style={{ height: 54, borderRadius: Radius.pill, backgroundColor: rating < 1 ? Palette.textSecondary : ORANGE, alignItems: 'center', justifyContent: 'center', opacity: submit.isPending ? 0.7 : 1 }}>
               {submit.isPending ? <ActivityIndicator color="#fff" /> : <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>Submit review</Text>}
             </PressableScale>
           </MotiView>

@@ -52,7 +52,7 @@ export default function TermsScreen() {
           contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 24, paddingBottom: 48 }}
           showsVerticalScrollIndicator={false}>
 
-          <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textMuted, marginBottom: 24 }}>
+          <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary, marginBottom: 24 }}>
             Last updated: June 18, 2026
           </Text>
 

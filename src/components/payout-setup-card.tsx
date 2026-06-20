@@ -10,9 +10,10 @@ import { feedback } from '@/lib/feedback';
 import { useStripeConnect } from '@/lib/queries/stripe-connect';
 
 const ORANGE = Palette.brand;
-const GREEN = Palette.success;
-const CARD = Palette.prepperCard;
-const MUTED = Palette.textMuted;
+const GREEN  = Palette.success;
+const CARD   = '#FFFFFF';
+const INK    = '#1A1714';
+const MUTED  = '#78716C';
 
 export function PayoutSetupCard() {
   const { data, connectAccount, getOnboardingLink, getDashboardLink, syncStatus } = useStripeConnect();
@@ -81,10 +82,10 @@ export function PayoutSetupCard() {
 
   if (status === 'pending') {
     return (
-      <View style={{ backgroundColor: CARD, borderRadius: 16, padding: 14, gap: 10 }}>
+      <View style={{ backgroundColor: CARD, borderRadius: 16, padding: 14, gap: 10, shadowColor: '#1A1714', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <Wallet size={17} color={ORANGE} />
-          <Text style={{ fontFamily: Font.semibold, fontSize: 13.5, color: '#fff' }}>Payout setup in progress</Text>
+          <Text style={{ fontFamily: Font.semibold, fontSize: 13.5, color: INK }}>Payout setup in progress</Text>
         </View>
         <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: MUTED, lineHeight: 18 }}>
           Complete your Stripe setup to start receiving direct bank payouts.
@@ -101,10 +102,10 @@ export function PayoutSetupCard() {
 
   // 'not_connected' or null
   return (
-    <View style={{ backgroundColor: CARD, borderRadius: 16, padding: 14, gap: 10 }}>
+    <View style={{ backgroundColor: CARD, borderRadius: 16, padding: 14, gap: 10, shadowColor: '#1A1714', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
         <Wallet size={17} color={ORANGE} />
-        <Text style={{ fontFamily: Font.semibold, fontSize: 13.5, color: '#fff' }}>Get paid faster</Text>
+        <Text style={{ fontFamily: Font.semibold, fontSize: 13.5, color: INK }}>Get paid faster</Text>
       </View>
       <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: MUTED, lineHeight: 18 }}>
         Connect your bank account to receive automatic payouts directly to your bank. Card processing and platform fees are deducted automatically.

@@ -177,7 +177,7 @@ export default function BecomePrepperScreen() {
         <Centered>
           <MotiView from={{ opacity: 0, scale: 0.85 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'spring', damping: 20, stiffness: 220 }}>
             <View style={{ width: 72, height: 72, borderRadius: 22, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center', ...Shadow.card }}>
-              <ChefHat size={30} color={Palette.textMuted} />
+              <ChefHat size={30} color={Palette.textSecondary} />
             </View>
           </MotiView>
           <Text style={{ fontFamily: Font.display, fontSize: 22, color: INK, textAlign: 'center' }}>couldn't load your application</Text>
@@ -235,7 +235,7 @@ export default function BecomePrepperScreen() {
         <Centered>
           <MotiView from={{ opacity: 0, scale: 0.85 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'spring', damping: 20, stiffness: 220 }}>
             <View style={{ width: 72, height: 72, borderRadius: 22, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center', ...Shadow.card }}>
-              <Clock size={30} color={Palette.textMuted} />
+              <Clock size={30} color={Palette.textSecondary} />
             </View>
           </MotiView>
           <Text style={{ fontFamily: Font.display, fontSize: 22, color: INK, textAlign: 'center' }}>Applications are closed</Text>
@@ -305,13 +305,13 @@ export default function BecomePrepperScreen() {
             <SectionCard step="step 01" title="Kitchen basics" icon={<ChefHat size={22} color={ORANGE} />} delay={60}>
               <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: Palette.inkSoft, marginBottom: 6 }}>Kitchen / chef name</Text>
               <TextInput value={name} onChangeText={setName} placeholder="e.g. Kelsi's Kitchen"
-                placeholderTextColor={Palette.textMuted} autoCapitalize="words" maxLength={80}
+                placeholderTextColor={Palette.textSecondary} autoCapitalize="words" maxLength={80}
                 accessibilityLabel="Kitchen or chef name"
                 style={{ height: 52, borderRadius: 14, backgroundColor: Palette.canvas, paddingHorizontal: 16, fontSize: 15, fontFamily: Font.body, color: INK }} />
 
               <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: Palette.inkSoft, marginTop: 16, marginBottom: 6 }}>About your kitchen</Text>
               <TextInput value={bio} onChangeText={setBio} placeholder="Tell customers what makes your food special…"
-                placeholderTextColor={Palette.textMuted} multiline maxLength={500}
+                placeholderTextColor={Palette.textSecondary} multiline maxLength={500}
                 accessibilityLabel="About your kitchen"
                 style={{ minHeight: 92, borderRadius: 14, backgroundColor: Palette.canvas, padding: 16, fontSize: 15, fontFamily: Font.body, color: INK, textAlignVertical: 'top' }} />
 
@@ -420,7 +420,7 @@ export default function BecomePrepperScreen() {
                 style={{ height: 56, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', ...Shadow.floating }}>
                 <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>Review & accept terms</Text>
               </PressableScale>
-              <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted, textAlign: 'center', marginTop: 12, lineHeight: 18 }}>
+              <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary, textAlign: 'center', marginTop: 12, lineHeight: 18 }}>
                 Reviewed within 1–2 days. You'll be notified once approved.
               </Text>
             </MotiView>

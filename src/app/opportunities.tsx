@@ -21,7 +21,7 @@ const money = (n: number | null) => (n == null ? '—' : `$${n.toLocaleString('e
 function Meta({ Icon, text }: { Icon: typeof Users; text: string }) {
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-      <Icon size={13} color={Palette.textMuted} />
+      <Icon size={13} color={Palette.textSecondary} />
       <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary }}>{text}</Text>
     </View>
   );
@@ -66,15 +66,15 @@ function RequestCard({ req, prepperId }: { req: OpenRequest; prepperId: string }
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 14, paddingTop: 12, borderTopWidth: 1, borderTopColor: Palette.border }}>
           <Check size={16} color={Palette.success} strokeWidth={3} />
           <Text style={{ fontFamily: Font.semibold, fontSize: 13.5, color: INK }}>Your bid: {money(req.myBid.amount)}</Text>
-          <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: Palette.textMuted, textTransform: 'capitalize' }}>· {req.myBid.status}</Text>
+          <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: Palette.textSecondary, textTransform: 'capitalize' }}>· {req.myBid.status}</Text>
         </View>
       ) : (
         <View style={{ marginTop: 14, paddingTop: 12, borderTopWidth: 1, borderTopColor: Palette.border, gap: 10 }}>
           <View style={{ flexDirection: 'row', gap: 10 }}>
-            <TextInput value={amount} onChangeText={setAmount} placeholder="Your quote $" placeholderTextColor={Palette.textMuted} keyboardType="decimal-pad" maxLength={8}
+            <TextInput value={amount} onChangeText={setAmount} placeholder="Your quote $" placeholderTextColor={Palette.textSecondary} keyboardType="decimal-pad" maxLength={8}
               accessibilityLabel="Your quote amount"
               style={{ width: 120, height: 46, borderRadius: 12, backgroundColor: Palette.canvas, paddingHorizontal: 14, fontFamily: Font.body, fontSize: 15, color: INK }} />
-            <TextInput value={message} onChangeText={setMessage} placeholder="Short note (optional)" placeholderTextColor={Palette.textMuted} maxLength={300}
+            <TextInput value={message} onChangeText={setMessage} placeholder="Short note (optional)" placeholderTextColor={Palette.textSecondary} maxLength={300}
               accessibilityLabel="Optional note"
               style={{ flex: 1, height: 46, borderRadius: 12, backgroundColor: Palette.canvas, paddingHorizontal: 14, fontFamily: Font.body, fontSize: 15, color: INK }} />
           </View>
@@ -94,7 +94,7 @@ function Gate({ title, body }: { title: string; body: string }) {
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
       <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: Palette.canvas, alignItems: 'center', justifyContent: 'center' }}>
-        <Lock size={26} color={Palette.textMuted} />
+        <Lock size={26} color={Palette.textSecondary} />
       </View>
       <Text style={{ fontFamily: Font.display, fontSize: 20, color: INK, textAlign: 'center' }}>{title}</Text>
       <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center', lineHeight: 20, maxWidth: 300 }}>{body}</Text>
@@ -146,7 +146,7 @@ export default function OpportunitiesScreen() {
         ) : isError ? (
           <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }}
             style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
-            <Inbox size={28} color={Palette.textMuted} />
+            <Inbox size={28} color={Palette.textSecondary} />
             <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>couldn't load requests</Text>
             <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center' }}>Check your connection and try again.</Text>
             <PressableScale onPress={() => { feedback.tap(); void refetch(); }} accessibilityRole="button" accessibilityLabel="Retry"
@@ -158,7 +158,7 @@ export default function OpportunitiesScreen() {
           <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }}
             style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
             <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
-              <Inbox size={28} color={Palette.textMuted} />
+              <Inbox size={28} color={Palette.textSecondary} />
             </View>
             <Text style={{ fontFamily: Font.heading, fontSize: 17, color: INK, textAlign: 'center' }}>No open requests</Text>
             <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center', lineHeight: 20, maxWidth: 300 }}>Customer experience requests will appear here when posted. Pull down to refresh.</Text>

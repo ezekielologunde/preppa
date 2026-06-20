@@ -208,7 +208,7 @@ export default function OrderDetailScreen() {
           </PressableScale>
           <View style={{ flex: 1 }}>
             <Text style={{ fontFamily: Font.display, fontSize: 22, color: Palette.ink, letterSpacing: -0.6 }}>preorder</Text>
-            <Text style={{ fontFamily: Font.body, fontSize: 11.5, color: Palette.textMuted, fontVariant: ['tabular-nums'] }}>#{orderNum}</Text>
+            <Text style={{ fontFamily: Font.body, fontSize: 11.5, color: Palette.textSecondary, fontVariant: ['tabular-nums'] }}>#{orderNum}</Text>
           </View>
           <View style={{ paddingHorizontal: 12, height: 28, borderRadius: Radius.pill, backgroundColor: st.bg, alignItems: 'center', justifyContent: 'center' }}>
             <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: st.fg }}>{STATUS_LABEL[order.status]}</Text>
@@ -326,7 +326,7 @@ export default function OrderDetailScreen() {
             </View>
             {order.paymentStatus ? (
               <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted }}>Payment</Text>
+                <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary }}>Payment</Text>
                 <Text style={{ fontFamily: Font.medium, fontSize: 12, color: order.paymentStatus === 'succeeded' ? Palette.success : Palette.textSecondary, textTransform: 'capitalize' }}>
                   {order.paymentStatus === 'succeeded' ? 'Paid' : order.paymentStatus}
                 </Text>
@@ -351,7 +351,7 @@ export default function OrderDetailScreen() {
               </PressableScale>
             ) : cancelWindowClosed ? (
               <View style={{ height: 46, borderRadius: Radius.sm, borderWidth: 1, borderColor: Palette.border, alignItems: 'center', justifyContent: 'center', opacity: 0.5 }}>
-                <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: Palette.textMuted }}>Cancellation window closed</Text>
+                <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: Palette.textSecondary }}>Cancellation window closed</Text>
               </View>
             ) : null}
             {order.status === 'completed' ? (
@@ -371,8 +371,8 @@ export default function OrderDetailScreen() {
             {(order.status === 'completed' || order.status === 'cancelled') ? (
               order.disputed ? (
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 2 }}>
-                  <AlertTriangle size={13} color={Palette.textMuted} />
-                  <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted }}>Issue reported — we&apos;re looking into it.</Text>
+                  <AlertTriangle size={13} color={Palette.textSecondary} />
+                  <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary }}>Issue reported — we&apos;re looking into it.</Text>
                 </View>
               ) : (
                 <PressableScale onPress={() => { feedback.tap(); setReportReason(''); setReportErr(null); setReportModal(true); }}
@@ -427,7 +427,7 @@ export default function OrderDetailScreen() {
             <Text style={{ fontFamily: Font.body, fontSize: 13.5, color: Palette.textSecondary, lineHeight: 20 }}>
               {`Tell us what went wrong with your preorder from ${order.prepper}. Our team will review it.`}
             </Text>
-            <TextInput value={reportReason} onChangeText={setReportReason} placeholder="Describe the issue…" placeholderTextColor={Palette.textMuted}
+            <TextInput value={reportReason} onChangeText={setReportReason} placeholder="Describe the issue…" placeholderTextColor={Palette.textSecondary}
               multiline maxLength={1000} accessibilityLabel="Describe the issue"
               style={{ minHeight: 100, backgroundColor: Palette.canvas, borderRadius: 12, borderWidth: 1, borderColor: Palette.border, padding: 12, fontFamily: Font.body, fontSize: 14, color: Palette.ink, textAlignVertical: 'top' }} />
             {reportErr ? <Text style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.danger }}>{reportErr}</Text> : null}

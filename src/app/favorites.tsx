@@ -39,7 +39,7 @@ function PrepperByIdRow({ id }: { id: string }) {
           {p.city ? `${p.city} · ` : ''}{p.specialties.slice(0, 2).join(', ')}
         </Text>
       </View>
-      <ChevronRight size={16} color={Palette.textMuted} />
+      <ChevronRight size={16} color={Palette.textSecondary} />
     </PressableScale>
   );
 }

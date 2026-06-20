@@ -45,7 +45,7 @@ function TimeDivider({ label }: { label: string }) {
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginVertical: 10, paddingHorizontal: 4 }}>
       <View style={{ flex: 1, height: 1, backgroundColor: Palette.border }} />
-      <Text style={{ fontFamily: Font.body, fontSize: 11, color: Palette.textMuted }}>{label}</Text>
+      <Text style={{ fontFamily: Font.body, fontSize: 11, color: Palette.textSecondary }}>{label}</Text>
       <View style={{ flex: 1, height: 1, backgroundColor: Palette.border }} />
     </View>
   );
@@ -69,7 +69,7 @@ function MessageBubble({ msg, isOwn }: { msg: Msg; isOwn: boolean }) {
           {msg.body}
         </Text>
       </View>
-      <Text style={{ fontFamily: Font.body, fontSize: 10.5, color: Palette.textMuted, marginTop: 3, marginHorizontal: 4 }}>
+      <Text style={{ fontFamily: Font.body, fontSize: 10.5, color: Palette.textSecondary, marginTop: 3, marginHorizontal: 4 }}>
         {formatTime(msg.createdAt)}
       </Text>
     </View>
@@ -135,7 +135,7 @@ export default function OrderChatScreen() {
             <Text style={{ fontFamily: Font.display, fontSize: 18, color: Palette.ink, letterSpacing: -0.4 }}>
               Order chat
             </Text>
-            <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted, marginTop: 1 }}>
+            <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary, marginTop: 1 }}>
               {kitchenName}
             </Text>
           </View>
@@ -192,7 +192,7 @@ export default function OrderChatScreen() {
               value={draft}
               onChangeText={setDraft}
               placeholder="Message..."
-              placeholderTextColor={Palette.textMuted}
+              placeholderTextColor={Palette.textSecondary}
               maxLength={1000}
               multiline
               returnKeyType="send"
@@ -228,8 +228,8 @@ export default function OrderChatScreen() {
               }}
             >
               {send.isPending
-                ? <ActivityIndicator size="small" color={draft.trim() ? '#fff' : Palette.textMuted} />
-                : <Send size={17} color={draft.trim() ? '#fff' : Palette.textMuted} strokeWidth={2.2} />
+                ? <ActivityIndicator size="small" color={draft.trim() ? '#fff' : Palette.textSecondary} />
+                : <Send size={17} color={draft.trim() ? '#fff' : Palette.textSecondary} strokeWidth={2.2} />
               }
             </PressableScale>
           </View>

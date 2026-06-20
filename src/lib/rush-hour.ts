@@ -72,8 +72,13 @@ export function getCurrentRush(hour = new Date().getHours()): RushWindow | null 
 }
 
 /** Returns the next upcoming rush today/tomorrow with minutes until it starts. */
-export function getNextRush(hour = new Date().getHours()): { window: RushWindow; inMins: number } | null {
-  const upcoming = RUSH_WINDOWS.map((w) => ({ window: w, inMins: (w.start - hour) * 60 })).filter((r) => r.inMins > 0);
+export function getNextRush(
+  hour = new Date().getHours(),
+  minute = new Date().getMinutes(),
+): { window: RushWindow; inMins: number } | null {
+  const upcoming = RUSH_WINDOWS
+    .map((w) => ({ window: w, inMins: (w.start - hour) * 60 - minute }))
+    .filter((r) => r.inMins > 0);
   return upcoming.length ? upcoming[0] : null;
 }
 
@@ -114,7 +119,7 @@ export function getRushPushPayloads(role: 'buyer' | 'prepper'): Array<{ title: s
   if (role === 'buyer') {
     return [{ title: `${rush.emoji} ${rush.label}`, body: rush.pushBody, route: '/specials' }];
   }
-  return [{ title: `${rush.emoji} ${rush.prepperAlert}`, body: rush.prepperPrepTip, route: '/prepper-hub' }];
+  return [{ title: `${rush.emoji} ${rush.prepperAlert}`, body: rush.prepperPrepTip, route: '/dashboard' }];
 }
 
 /**
@@ -128,10 +133,9 @@ export type RushUrgency = 'live' | 'soon' | 'upcoming' | 'quiet';
 
 export function getRushUrgency(hour = new Date().getHours(), minute = new Date().getMinutes()): RushUrgency {
   if (getCurrentRush(hour)) return 'live';
-  const next = getNextRush(hour);
+  const next = getNextRush(hour, minute);
   if (!next) return 'quiet';
-  const totalMins = next.inMins - minute;
-  if (totalMins <= 60) return 'soon';
+  if (next.inMins <= 60) return 'soon';
   return 'upcoming';
 }
 

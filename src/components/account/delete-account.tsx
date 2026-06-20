@@ -161,7 +161,7 @@ export function DeleteAccountModals({
               value={deleteInput}
               onChangeText={onDeleteInput}
               placeholder="Type DELETE here"
-              placeholderTextColor={Palette.textMuted}
+              placeholderTextColor={Palette.textSecondary}
               autoCapitalize="characters"
               autoCorrect={false}
               maxLength={6}

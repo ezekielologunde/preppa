@@ -13,6 +13,8 @@ import { useVerifyHandoffToken } from '@/lib/queries/orders';
 import { useAuth } from '@/providers/auth-provider';
 
 const ORANGE = Palette.brand;
+const INK    = '#1A1714';
+const SUB    = '#78716C';
 
 /**
  * QR landing: the cook scans the customer's pickup/meetup QR with their phone
@@ -24,7 +26,6 @@ export default function VerifyScreen() {
   const { user, loading } = useAuth();
   const { t } = useLocalSearchParams<{ t?: string }>();
   const verify = useVerifyHandoffToken();
-  // A link with no token can never verify — start in the failed state directly.
   const token = (t ?? '').toString();
   const [state, setState] = useState<'working' | 'ok' | 'fail'>(token ? 'working' : 'fail');
   const [reason, setReason] = useState<string | null>(token ? null : 'No code in the link.');
@@ -32,7 +33,7 @@ export default function VerifyScreen() {
 
   useEffect(() => {
     if (loading || ran.current || !token) return;
-    if (!user) return; // wait for sign-in (handled in render)
+    if (!user) return;
     ran.current = true;
     verify.mutate(token, {
       onSuccess: (r) => {
@@ -47,12 +48,12 @@ export default function VerifyScreen() {
   const color = state === 'ok' ? Palette.success : state === 'fail' ? Palette.danger : ORANGE;
 
   return (
-    <View style={{ flex: 1, backgroundColor: Palette.prepperBg }}>
+    <View style={{ flex: 1, backgroundColor: '#F8F6F3' }}>
       <SafeAreaView style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 16 }}>
         {loading || (user && state === 'working') ? (
           <>
             <ActivityIndicator color={ORANGE} size="large" />
-            <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>Verifying handoff…</Text>
+            <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>Verifying handoff…</Text>
           </>
         ) : !user ? (
           <>
@@ -62,10 +63,10 @@ export default function VerifyScreen() {
               </View>
             </MotiView>
             <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280, delay: 80 }}>
-              <Text style={{ fontFamily: Font.display, fontSize: 22, color: '#fff', textAlign: 'center' }}>Sign in to verify</Text>
+              <Text style={{ fontFamily: Font.display, fontSize: 22, color: INK, textAlign: 'center' }}>Sign in to verify</Text>
             </MotiView>
             <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280, delay: 140 }}>
-              <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textMuted, textAlign: 'center', maxWidth: 300, lineHeight: 20 }}>
+              <Text style={{ fontFamily: Font.body, fontSize: 14, color: SUB, textAlign: 'center', maxWidth: 300, lineHeight: 20 }}>
                 Only the order&apos;s kitchen can confirm a handoff. Sign in to your prepper account to continue.
               </Text>
             </MotiView>
@@ -83,12 +84,12 @@ export default function VerifyScreen() {
               </View>
             </MotiView>
             <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280, delay: 80 }}>
-              <Text style={{ fontFamily: Font.display, fontSize: 24, color: '#fff', textAlign: 'center', letterSpacing: -0.5 }}>
+              <Text style={{ fontFamily: Font.display, fontSize: 24, color: INK, textAlign: 'center', letterSpacing: -0.5 }}>
                 {state === 'ok' ? 'Handoff confirmed' : 'Could not verify'}
               </Text>
             </MotiView>
             <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280, delay: 140 }}>
-              <Text style={{ fontFamily: Font.body, fontSize: 14.5, color: Palette.textMuted, textAlign: 'center', maxWidth: 300, lineHeight: 21 }}>
+              <Text style={{ fontFamily: Font.body, fontSize: 14.5, color: SUB, textAlign: 'center', maxWidth: 300, lineHeight: 21 }}>
                 {state === 'ok' ? 'The preorder is now marked complete and counts toward your earnings.' : reason}
               </Text>
             </MotiView>

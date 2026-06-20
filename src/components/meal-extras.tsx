@@ -53,7 +53,7 @@ export function MealReviewList({ reviews, allReviews, onToggleAll }: { reviews: 
           {rv.body ? <Text style={{ fontFamily: Font.body, fontSize: 13.5, lineHeight: 20, color: Palette.inkSoft }}>{rv.body}</Text> : null}
           {rv.prepper_reply ? (
             <View style={{ marginTop: 4, paddingLeft: 12, borderLeftWidth: 3, borderLeftColor: Palette.brand + '30' }}>
-              <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: Palette.textMuted, marginBottom: 2 }}>{'🍳 Kitchen\'s response'}</Text>
+              <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: Palette.textSecondary, marginBottom: 2 }}>Kitchen response</Text>
               <Text style={{ fontFamily: Font.body, fontSize: 13, lineHeight: 18, color: Palette.inkSoft }}>{rv.prepper_reply}</Text>
             </View>
           ) : null}

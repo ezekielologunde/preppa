@@ -67,7 +67,7 @@ export function SchedulePickerModal({ visible, pickDate, pickHour, pickMinute, o
               <X size={18} color={Palette.textSecondary} />
             </PressableScale>
           </View>
-          <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: Palette.textMuted }}>Minimum 2 hours from now · up to 7 days ahead</Text>
+          <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: Palette.textSecondary }}>Minimum 2 hours from now · up to 7 days ahead</Text>
 
           {/* Date */}
           <View>

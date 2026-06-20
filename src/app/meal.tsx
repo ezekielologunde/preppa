@@ -214,7 +214,7 @@ export default function MealScreen() {
                     accessibilityRole="button"
                     accessibilityLabel="Share this meal"
                     style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: Palette.border }}>
-                    <Share2 size={18} color={Palette.textMuted} />
+                    <Share2 size={18} color={Palette.textSecondary} />
                   </PressableScale>
                   <PressableScale
                     onPress={handleToggleSaved}
@@ -224,7 +224,7 @@ export default function MealScreen() {
                     style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: Palette.border }}>
                     <Bookmark
                       size={19}
-                      color={effectiveSaved ? ORANGE : Palette.textMuted}
+                      color={effectiveSaved ? ORANGE : Palette.textSecondary}
                       fill={effectiveSaved ? ORANGE : 'transparent'}
                       strokeWidth={effectiveSaved ? 2 : 1.8}
                     />
@@ -305,7 +305,7 @@ export default function MealScreen() {
                   <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary }}>({meal.reviews})</Text>
                 </View>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-                  <Clock size={14} color={Palette.textMuted} />
+                  <Clock size={14} color={Palette.textSecondary} />
                   <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary }}>{meal.time} prep</Text>
                 </View>
               </View>
@@ -318,7 +318,7 @@ export default function MealScreen() {
               {/* Dietary info section */}
               {(meal.dietaryTags && meal.dietaryTags.length > 0) || (meal.allergens && meal.allergens.length > 0) ? (
                 <View style={{ gap: 10 }}>
-                  <Text style={{ fontFamily: Font.heading, fontSize: 14, color: Palette.textMuted, letterSpacing: 0.2 }}>Dietary info</Text>
+                  <Text style={{ fontFamily: Font.heading, fontSize: 14, color: Palette.textSecondary, letterSpacing: 0.2 }}>Dietary info</Text>
                   {meal.dietaryTags && meal.dietaryTags.length > 0 ? (
                     <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
                       {meal.dietaryTags.map((tag) => <DietaryBadge key={tag} tag={tag} />)}
@@ -349,7 +349,7 @@ export default function MealScreen() {
 
               {meal.prepperBio ? (
                 <View style={{ backgroundColor: Palette.canvas, borderRadius: 16, padding: 14, marginTop: 4 }}>
-                  <Text style={{ fontFamily: Font.heading, fontSize: 13, color: Palette.textMuted, marginBottom: 4 }}>about the prepper</Text>
+                  <Text style={{ fontFamily: Font.heading, fontSize: 13, color: Palette.textSecondary, marginBottom: 4 }}>about the prepper</Text>
                   <Text style={{ fontFamily: Font.body, fontSize: 13.5, lineHeight: 20, color: Palette.inkSoft }}>{meal.prepperBio}</Text>
                 </View>
               ) : null}
@@ -357,7 +357,7 @@ export default function MealScreen() {
               {/* Fulfillment */}
               {(meal.prepperDelivers || meal.prepperPickup) ? (
                 <View style={{ backgroundColor: Palette.canvas, borderRadius: 16, padding: 14, marginTop: 4, gap: 10 }}>
-                  <Text style={{ fontFamily: Font.heading, fontSize: 13, color: Palette.textMuted }}>Fulfillment</Text>
+                  <Text style={{ fontFamily: Font.heading, fontSize: 13, color: Palette.textSecondary }}>Fulfillment</Text>
                   {meal.prepperPickup ? (
                     <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10 }}>
                       <Text style={{ fontSize: 18 }}>🏠</Text>
@@ -442,7 +442,7 @@ export default function MealScreen() {
                 accessibilityLabel="Decrease quantity"
                 hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
                 style={{ width: 44, height: 52, alignItems: 'center', justifyContent: 'center' }}>
-                <Minus size={16} color={qty <= 1 ? Palette.textMuted : INK} strokeWidth={2.5} />
+                <Minus size={16} color={qty <= 1 ? Palette.textSecondary : INK} strokeWidth={2.5} />
               </PressableScale>
               <Text style={{ fontFamily: Font.display, fontSize: 16, color: INK, minWidth: 24, textAlign: 'center', fontVariant: ['tabular-nums'] }}>{qty}</Text>
               <PressableScale
@@ -455,7 +455,7 @@ export default function MealScreen() {
               </PressableScale>
             </View>
             <MotiView
-              animate={{ backgroundColor: !orderingOn ? Palette.textMuted : added ? Palette.success : ORANGE }}
+              animate={{ backgroundColor: !orderingOn ? Palette.textSecondary : added ? Palette.success : ORANGE }}
               transition={{ type: 'timing', duration: 300 }}
               style={{ flex: 1, height: 52, borderRadius: 14, overflow: 'hidden' }}>
               <PressableScale

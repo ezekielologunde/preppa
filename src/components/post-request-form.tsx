@@ -149,7 +149,7 @@ export function PostRequestForm({ kitName, onClose, onSubmit, isPending }: Props
               returnKeyType="next"
               maxLength={100}
               placeholder="e.g. Jerk chicken meal prep for 4"
-              placeholderTextColor={Palette.textMuted}
+              placeholderTextColor={Palette.textSecondary}
               accessibilityLabel="Request title"
               style={{
                 height: 48, borderRadius: 12, paddingHorizontal: 14,
@@ -170,7 +170,7 @@ export function PostRequestForm({ kitName, onClose, onSubmit, isPending }: Props
               numberOfLines={3}
               maxLength={500}
               placeholder="Dietary needs, preferred cuisine, deadline…"
-              placeholderTextColor={Palette.textMuted}
+              placeholderTextColor={Palette.textSecondary}
               accessibilityLabel="Request details"
               style={{
                 minHeight: 72, borderRadius: 12, padding: 14,
@@ -186,7 +186,7 @@ export function PostRequestForm({ kitName, onClose, onSubmit, isPending }: Props
                 At least 3 characters required
               </Text>
             )}
-            <Text style={{ fontFamily: Font.body, fontSize: 11, color: Palette.textMuted, textAlign: 'right', marginTop: 4 }}>
+            <Text style={{ fontFamily: Font.body, fontSize: 11, color: Palette.textSecondary, textAlign: 'right', marginTop: 4 }}>
               {reqTitle.length}/100
             </Text>
           </FieldCard>
@@ -195,7 +195,7 @@ export function PostRequestForm({ kitName, onClose, onSubmit, isPending }: Props
           <FieldCard label="Budget Range" delay={60}>
             <View style={{ flexDirection: 'row', gap: 10 }}>
               <View style={{ flex: 1 }}>
-                <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted, marginBottom: 4 }}>Min $</Text>
+                <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary, marginBottom: 4 }}>Min $</Text>
                 <TextInput
                   value={reqBudgetMin}
                   onChangeText={(t) => {
@@ -205,7 +205,7 @@ export function PostRequestForm({ kitName, onClose, onSubmit, isPending }: Props
                     if (!isNaN(n) && n > 0) setReqBudget(n);
                   }}
                   placeholder="8"
-                  placeholderTextColor={Palette.textMuted}
+                  placeholderTextColor={Palette.textSecondary}
                   keyboardType="decimal-pad"
                   maxLength={6}
                   accessibilityLabel="Minimum budget per serving"
@@ -218,12 +218,12 @@ export function PostRequestForm({ kitName, onClose, onSubmit, isPending }: Props
                 />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted, marginBottom: 4 }}>Max $</Text>
+                <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary, marginBottom: 4 }}>Max $</Text>
                 <TextInput
                   value={reqBudgetMax}
                   onChangeText={(t) => setReqBudgetMax(t.replace(/[^0-9.]/g, ''))}
                   placeholder="25"
-                  placeholderTextColor={Palette.textMuted}
+                  placeholderTextColor={Palette.textSecondary}
                   keyboardType="decimal-pad"
                   maxLength={6}
                   accessibilityLabel="Maximum budget per serving"
@@ -236,7 +236,7 @@ export function PostRequestForm({ kitName, onClose, onSubmit, isPending }: Props
                 />
               </View>
             </View>
-            <Text style={{ fontFamily: Font.body, fontSize: 11.5, color: Palette.textMuted, marginTop: 6 }}>
+            <Text style={{ fontFamily: Font.body, fontSize: 11.5, color: Palette.textSecondary, marginTop: 6 }}>
               Per serving · optional
             </Text>
           </FieldCard>

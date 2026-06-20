@@ -116,7 +116,7 @@ export default function InsightsScreen() {
         ) : isError ? (
           <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }}
             style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
-            <TrendingUp size={28} color={Palette.textMuted} />
+            <TrendingUp size={28} color={Palette.textSecondary} />
             <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>couldn't load your stats</Text>
             <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center' }}>Check your connection and try again.</Text>
             <PressableScale onPress={() => { feedback.tap(); void refetch(); }} accessibilityRole="button" accessibilityLabel="Retry loading stats"
@@ -166,7 +166,7 @@ export default function InsightsScreen() {
               <View key={label} style={{ flex: 1, backgroundColor: Palette.surface, borderRadius: 14, padding: 12, alignItems: 'center', gap: 4 }}>
                 <Text style={{ fontFamily: Font.display, fontSize: 20, color: INK, fontVariant: ['tabular-nums'] }}>{value}</Text>
                 <Text style={{ fontFamily: Font.semibold, fontSize: 11.5, color: Palette.textSecondary }}>{label}</Text>
-                <Text style={{ fontFamily: Font.body, fontSize: 10.5, color: Palette.textMuted }}>{sub}</Text>
+                <Text style={{ fontFamily: Font.body, fontSize: 10.5, color: Palette.textSecondary }}>{sub}</Text>
               </View>
             ))}
           </View>

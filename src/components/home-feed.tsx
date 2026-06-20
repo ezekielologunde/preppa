@@ -92,7 +92,7 @@ export function QuickAddButton({ meal, pill = false }: { meal: Meal; pill?: bool
             : failed ? <X size={14} color="#fff" strokeWidth={2.5} />
             : soldOut ? null
             : <Plus size={15} color="#fff" strokeWidth={2.5} />}
-          <Text style={{ fontFamily: Font.heading, fontSize: 13, color: soldOut ? Palette.textMuted : '#fff', letterSpacing: -0.1 }}>
+          <Text style={{ fontFamily: Font.heading, fontSize: 13, color: soldOut ? Palette.textSecondary : '#fff', letterSpacing: -0.1 }}>
             {soldOut ? 'sold out' : done ? 'added!' : failed ? 'retry' : 'add to cart'}
           </Text>
         </PressableScale>
@@ -111,7 +111,7 @@ export function QuickAddButton({ meal, pill = false }: { meal: Meal; pill?: bool
           : failed ? <X size={13} color="#fff" strokeWidth={2.5} />
           : soldOut ? null
           : <Plus size={13} color="#fff" strokeWidth={2.5} />}
-        <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: soldOut ? Palette.textMuted : '#fff', letterSpacing: -0.1 }}>
+        <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: soldOut ? Palette.textSecondary : '#fff', letterSpacing: -0.1 }}>
           {soldOut ? 'sold out' : done ? 'added' : failed ? 'retry' : 'add'}
         </Text>
       </PressableScale>
@@ -297,11 +297,11 @@ function FollowingDropCard({ item }: { item: FeedItem }) {
       <View style={{ width: 140, height: 110, backgroundColor: Palette.border }}>
         {(item.thumbnail || item.image)
           ? <Image source={{ uri: imgUrl(item.thumbnail || item.image, 280) }} style={{ flex: 1 }} contentFit="cover" transition={200} />
-          : <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}><UtensilsCrossed size={28} color={Palette.textMuted} /></View>}
+          : <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}><UtensilsCrossed size={28} color={Palette.textSecondary} /></View>}
       </View>
       <View style={{ padding: 8, gap: 2 }}>
         <Text numberOfLines={1} style={{ fontFamily: Font.heading, fontSize: 12.5, color: INK }}>{item.title || 'post'}</Text>
-        <Text numberOfLines={1} style={{ fontFamily: Font.body, fontSize: 11, color: Palette.textMuted }}>{item.prepper}</Text>
+        <Text numberOfLines={1} style={{ fontFamily: Font.body, fontSize: 11, color: Palette.textSecondary }}>{item.prepper}</Text>
       </View>
     </PressableScale>
   );
@@ -333,7 +333,7 @@ export function FollowingKitchensSection({ userId }: { userId: string }) {
         </ScrollView>
       ) : (
         <View style={{ paddingHorizontal: 20, paddingBottom: 4 }}>
-          <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textMuted }}>
+          <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary }}>
             No recent drops from your kitchens.
           </Text>
         </View>
@@ -405,11 +405,11 @@ export function MealPlansDiscoverySection() {
                 </View>
                 <View style={{ padding: 12, gap: 4 }}>
                   <Text numberOfLines={1} style={{ fontFamily: Font.heading, fontSize: 14, color: INK }}>{plan.name}</Text>
-                  <Text numberOfLines={1} style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted }}>{plan.prepper}</Text>
+                  <Text numberOfLines={1} style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary }}>{plan.prepper}</Text>
                   <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 }}>
                     <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: ORANGE }}>${plan.price.toFixed(0)}/{plan.frequency}</Text>
                     {plan.tags?.length ? (
-                      <Text numberOfLines={1} style={{ fontFamily: Font.body, fontSize: 11, color: Palette.textMuted, flex: 1, textAlign: 'right' }}>
+                      <Text numberOfLines={1} style={{ fontFamily: Font.body, fontSize: 11, color: Palette.textSecondary, flex: 1, textAlign: 'right' }}>
                         {plan.tags[0]}
                       </Text>
                     ) : null}

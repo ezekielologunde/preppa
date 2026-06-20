@@ -181,7 +181,7 @@ function StockBadge({ stockRemaining }: { stockRemaining: number | null | undefi
   if (stockRemaining <= 10) {
     return (
       <View style={{ alignSelf: 'flex-start', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, backgroundColor: Palette.surface }}>
-        <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: Palette.textMuted }}>{stockRemaining} remaining</Text>
+        <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: Palette.textSecondary }}>{stockRemaining} remaining</Text>
       </View>
     );
   }
@@ -298,8 +298,8 @@ export function MealCard({ meal, width = 200, variant = 'normal' }: { meal: Meal
                 {/* Availability chip */}
                 {meal.availableDays && meal.availableDays.length > 0 ? (
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
-                    <Calendar size={10} color={Palette.textMuted} />
-                    <Text style={{ fontFamily: Font.body, fontSize: 10, color: Palette.textMuted }}>
+                    <Calendar size={10} color={Palette.textSecondary} />
+                    <Text style={{ fontFamily: Font.body, fontSize: 10, color: Palette.textSecondary }}>
                       {compressDays(meal.availableDays)}
                     </Text>
                   </View>
@@ -313,7 +313,7 @@ export function MealCard({ meal, width = 200, variant = 'normal' }: { meal: Meal
                       {visible.map((tag) => <DietaryBadge key={tag} tag={tag} />)}
                       {extra > 0 ? (
                         <View style={{ backgroundColor: Palette.canvas, borderRadius: 8, paddingHorizontal: 7, paddingVertical: 3, justifyContent: 'center' }}>
-                          <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: Palette.textMuted }}>+{extra} more</Text>
+                          <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: Palette.textSecondary }}>+{extra} more</Text>
                         </View>
                       ) : null}
                     </View>
@@ -323,10 +323,10 @@ export function MealCard({ meal, width = 200, variant = 'normal' }: { meal: Meal
                 {(meal.delivers != null || meal.pickup != null) ? (
                   <View style={{ flexDirection: 'row', gap: 5, marginTop: 2 }}>
                     {meal.delivers ? (
-                      <Text style={{ fontFamily: Font.body, fontSize: 10, color: Palette.textMuted }}>🚗</Text>
+                      <Text style={{ fontFamily: Font.body, fontSize: 10, color: Palette.textSecondary }}>🚗</Text>
                     ) : null}
                     {meal.pickup ? (
-                      <Text style={{ fontFamily: Font.body, fontSize: 10, color: Palette.textMuted }}>🏠</Text>
+                      <Text style={{ fontFamily: Font.body, fontSize: 10, color: Palette.textSecondary }}>🏠</Text>
                     ) : null}
                   </View>
                 ) : null}
@@ -338,7 +338,7 @@ export function MealCard({ meal, width = 200, variant = 'normal' }: { meal: Meal
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                 <Star size={12} color={Palette.amber} fill={Palette.amber} />
                 <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: Palette.inkSoft }}>{meal.rating.toFixed(1)}</Text>
-                <Text style={{ flex: 1, fontFamily: Font.body, fontSize: 11.5, color: Palette.textMuted }}>· {meal.time}</Text>
+                <Text style={{ flex: 1, fontFamily: Font.body, fontSize: 11.5, color: Palette.textSecondary }}>· {meal.time}</Text>
                 <Text style={{ fontFamily: Font.display, fontSize: 14, color: Palette.brand, letterSpacing: -0.2, fontVariant: ['tabular-nums'] }}>${meal.price.toFixed(2)}</Text>
               </View>
             ) : null}

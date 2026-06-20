@@ -188,7 +188,7 @@ export default function AboutAppScreen() {
           {/* Legal — each row has a colour-matched icon badge */}
           <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 140 }}>
             <View style={{ marginHorizontal: 20, gap: 12 }}>
-              <Text style={{ fontFamily: Font.semibold, fontSize: 11.5, color: Palette.textMuted, textTransform: 'uppercase', letterSpacing: 0.7, paddingHorizontal: 4 }}>legal & attributions</Text>
+              <Text style={{ fontFamily: Font.semibold, fontSize: 11.5, color: Palette.textSecondary, textTransform: 'uppercase', letterSpacing: 0.7, paddingHorizontal: 4 }}>legal & attributions</Text>
               <View style={{ backgroundColor: Palette.surface, borderRadius: 20, overflow: 'hidden' }}>
                 {(Object.keys(DOCS) as DocKey[]).map((key, i) => {
                   const doc = DOCS[key];
@@ -201,11 +201,11 @@ export default function AboutAppScreen() {
                       </View>
                       <View style={{ flex: 1 }}>
                         <Text style={{ fontFamily: Font.heading, fontSize: 14, color: Palette.ink }}>{doc.title}</Text>
-                        <Text numberOfLines={1} style={{ fontFamily: Font.body, fontSize: 11.5, color: Palette.textMuted, marginTop: 1 }}>
+                        <Text numberOfLines={1} style={{ fontFamily: Font.body, fontSize: 11.5, color: Palette.textSecondary, marginTop: 1 }}>
                           {key === 'terms' ? 'How Preppa works and what you agree to' : key === 'privacy' ? 'What we collect, how we use it, and your rights' : 'The libraries that power Preppa'}
                         </Text>
                       </View>
-                      <ExternalLink size={14} color={Palette.textMuted} />
+                      <ExternalLink size={14} color={Palette.textSecondary} />
                     </PressableScale>
                   );
                 })}

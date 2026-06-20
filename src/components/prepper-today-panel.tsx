@@ -3,6 +3,7 @@ import { CheckCircle, AlertTriangle, ChefHat } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { Alert, Text, View } from 'react-native';
 
+import { Avatar } from '@/components/ui/avatar';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Font } from '@/constants/fonts';
@@ -10,15 +11,15 @@ import { Palette, Radius } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
 import { useAdvanceOrder, useCancelOrder, useTodayOrders } from '@/lib/queries/orders';
 
-const ORANGE = Palette.brand;
-const INK = '#FFFFFF';
-const CARD = Palette.prepperCard;
-const MUTED = '#6B7280';
-const TEXT2 = '#9CA3AF';
-const GREEN = '#22c55e';
-const AMBER = '#f59e0b';
-const RED = '#ef4444';
-const DIVIDER = '#1E2330';
+const ORANGE  = Palette.brand;
+const INK     = '#1A1714';
+const CARD    = '#FFFFFF';
+const MUTED   = '#78716C';
+const S1      = { shadowColor: '#1A1714', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 };
+const GREEN   = '#22c55e';
+const AMBER   = '#f59e0b';
+const RED     = '#ef4444';
+const DIVIDER = '#EDE9E4';
 
 function timeAgo(iso: string): string {
   const diffMs = Date.now() - new Date(iso).getTime();
@@ -70,7 +71,7 @@ export function PrepperTodayPanel({ prepperId, prepperUserId }: Props) {
           onPress: () => {
             cancelOrder.mutate(
               { orderId, prepperUserId: prepperUserId ?? '', customerName },
-              { onSuccess: () => feedback.error(), onError: () => feedback.error() },
+              { onSuccess: () => feedback.success(), onError: () => feedback.error() },
             );
           },
         },
@@ -91,14 +92,14 @@ export function PrepperTodayPanel({ prepperId, prepperUserId }: Props) {
 
   const { totalOrders, pendingOrders, preparingOrders, completedOrders, todayRevenue, urgentOrders } = data;
   const pendingList = urgentOrders.filter(o => o.status === 'pending');
-  const preparingList = urgentOrders.filter(o => ['confirmed', 'preparing'].includes(o.status));
+  const preparingList = urgentOrders.filter(o => ['confirmed', 'preparing', 'ready'].includes(o.status));
 
   return (
     <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260 }}>
-      <Text style={{ fontFamily: Font.display, fontSize: 15, color: '#E5E7EB', letterSpacing: -0.3, marginBottom: 12 }}>today</Text>
+      <Text style={{ fontFamily: Font.display, fontSize: 15, color: INK, letterSpacing: -0.3, marginBottom: 12 }}>today</Text>
 
       {/* Stats row */}
-      <View style={{ backgroundColor: CARD, borderRadius: Radius.lg, padding: 16, marginBottom: 12 }}>
+      <View style={{ backgroundColor: CARD, borderRadius: Radius.lg, padding: 16, marginBottom: 12, ...S1 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <StatCell value={`$${todayRevenue.toFixed(0)}`} label="earned" color={ORANGE} />
           <View style={{ width: 1, height: 36, backgroundColor: DIVIDER }} />
@@ -127,15 +128,13 @@ export function PrepperTodayPanel({ prepperId, prepperUserId }: Props) {
             <View key={order.id} style={{
               backgroundColor: CARD, borderRadius: Radius.lg,
               padding: 14, gap: 10,
-              borderWidth: 1, borderColor: AMBER + '30',
+              borderWidth: 1, borderColor: AMBER + '30', ...S1,
             }}>
               <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10 }}>
-                <View style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: ORANGE + '22', alignItems: 'center', justifyContent: 'center' }}>
-                  <Text style={{ fontSize: 15 }}>👤</Text>
-                </View>
+                <Avatar name={order.customerName} size={32} />
                 <View style={{ flex: 1 }}>
                   <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: INK }}>{order.customerName}</Text>
-                  <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: TEXT2, marginTop: 2 }} numberOfLines={2}>
+                  <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: MUTED, marginTop: 2 }} numberOfLines={2}>
                     {order.mealTitles.length > 0 ? order.mealTitles.join(', ') : 'No items'}
                   </Text>
                   <Text style={{ fontFamily: Font.body, fontSize: 12, color: MUTED, marginTop: 4 }}>
@@ -154,8 +153,11 @@ export function PrepperTodayPanel({ prepperId, prepperUserId }: Props) {
                     flex: 1, paddingVertical: 9, borderRadius: Radius.pill,
                     backgroundColor: GREEN + '22', borderWidth: 1, borderColor: GREEN + '55',
                     alignItems: 'center',
+                    opacity: advanceOrder.isPending ? 0.55 : 1,
                   }}>
-                  <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: GREEN }}>Confirm</Text>
+                  <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: GREEN }}>
+                    {advanceOrder.isPending ? 'Confirming…' : 'Confirm'}
+                  </Text>
                 </PressableScale>
 
                 <PressableScale
@@ -167,7 +169,7 @@ export function PrepperTodayPanel({ prepperId, prepperUserId }: Props) {
                     backgroundColor: CARD, borderWidth: 1, borderColor: DIVIDER,
                     alignItems: 'center',
                   }}>
-                  <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: TEXT2 }}>View</Text>
+                  <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: MUTED }}>View</Text>
                 </PressableScale>
 
                 <PressableScale
@@ -179,8 +181,11 @@ export function PrepperTodayPanel({ prepperId, prepperUserId }: Props) {
                     paddingVertical: 9, paddingHorizontal: 16, borderRadius: Radius.pill,
                     borderWidth: 1, borderColor: RED + '55',
                     alignItems: 'center',
+                    opacity: cancelOrder.isPending ? 0.55 : 1,
                   }}>
-                  <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: RED }}>Decline</Text>
+                  <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: RED }}>
+                    {cancelOrder.isPending ? 'Declining…' : 'Decline'}
+                  </Text>
                 </PressableScale>
               </View>
             </View>
@@ -198,16 +203,16 @@ export function PrepperTodayPanel({ prepperId, prepperUserId }: Props) {
             accessibilityLabel={`${preparingList.length} order being prepared`}
             style={{
               backgroundColor: CARD, borderRadius: Radius.lg,
-              padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12,
+              padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12, ...S1,
             }}>
             <View style={{ width: 36, height: 36, borderRadius: 11, backgroundColor: ORANGE + '22', alignItems: 'center', justifyContent: 'center' }}>
               <ChefHat size={17} color={ORANGE} />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={{ fontFamily: Font.heading, fontSize: 14, color: INK }}>
-                {preparingList.length} order{preparingList.length === 1 ? '' : 's'} being prepared
+                {preparingList.length} order{preparingList.length === 1 ? '' : 's'} in progress
               </Text>
-              <Text style={{ fontFamily: Font.body, fontSize: 12, color: TEXT2, marginTop: 1 }}>Tap to view details</Text>
+              <Text style={{ fontFamily: Font.body, fontSize: 12, color: MUTED, marginTop: 1 }}>Tap to view details</Text>
             </View>
             <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: ORANGE }}>View all</Text>
           </PressableScale>

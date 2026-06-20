@@ -39,7 +39,7 @@ export function ReportModal({ reportModal, reportReason, setReportReason, report
             value={reportReason}
             onChangeText={setReportReason}
             placeholder="Describe the issue…"
-            placeholderTextColor={Palette.textMuted}
+            placeholderTextColor={Palette.textSecondary}
             multiline
             maxLength={1000}
             accessibilityLabel="Describe the issue"

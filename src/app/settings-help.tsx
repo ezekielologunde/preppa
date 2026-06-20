@@ -150,7 +150,7 @@ function FaqSection({
       <Text style={{
         fontFamily: Font.semibold,
         fontSize: 11.5,
-        color: Palette.textMuted,
+        color: Palette.textSecondary,
         textTransform: 'uppercase',
         letterSpacing: 0.7,
         marginBottom: 8,
@@ -192,7 +192,7 @@ function SearchResults({
     return (
       <View style={{ marginHorizontal: 20 }}>
         <View style={{ backgroundColor: Palette.surface, borderRadius: 20, overflow: 'hidden', ...Shadow.card }}>
-          <Text style={{ fontFamily: Font.body, fontSize: 13.5, color: Palette.textMuted, padding: 20, textAlign: 'center' }}>
+          <Text style={{ fontFamily: Font.body, fontSize: 13.5, color: Palette.textSecondary, padding: 20, textAlign: 'center' }}>
             No results found. Try the contact options below.
           </Text>
         </View>
@@ -201,7 +201,7 @@ function SearchResults({
   }
   return (
     <View style={{ marginHorizontal: 20 }}>
-      <Text style={{ fontFamily: Font.semibold, fontSize: 11.5, color: Palette.textMuted, textTransform: 'uppercase', letterSpacing: 0.7, marginBottom: 8, paddingHorizontal: 4 }}>
+      <Text style={{ fontFamily: Font.semibold, fontSize: 11.5, color: Palette.textSecondary, textTransform: 'uppercase', letterSpacing: 0.7, marginBottom: 8, paddingHorizontal: 4 }}>
         results
       </Text>
       <View style={{ backgroundColor: Palette.surface, borderRadius: 20, overflow: 'hidden', ...Shadow.card }}>
@@ -274,7 +274,7 @@ function ContactSupportModal({ visible, onClose, onSent }: { visible: boolean; o
             </PressableScale>
           </View>
 
-          <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: Palette.textMuted, textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 8 }}>
+          <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: Palette.textSecondary, textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 8 }}>
             what's it about?
           </Text>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 14 }}>
@@ -298,7 +298,7 @@ function ContactSupportModal({ visible, onClose, onSent }: { visible: boolean; o
             value={message}
             onChangeText={(t) => setMessage(cleanBlock(t))}
             placeholder="Tell us what happened…"
-            placeholderTextColor={Palette.textMuted}
+            placeholderTextColor={Palette.textSecondary}
             multiline
             maxLength={600}
             textAlignVertical="top"
@@ -315,10 +315,10 @@ function ContactSupportModal({ visible, onClose, onSent }: { visible: boolean; o
             accessibilityRole="button"
             accessibilityLabel="Send to Preppa support"
             style={{ marginTop: 8, height: 52, borderRadius: Radius.pill, backgroundColor: canSend ? Palette.brand : Palette.border, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8 }}>
-            <Send size={17} color={canSend ? '#fff' : Palette.textMuted} />
-            <Text style={{ fontFamily: Font.heading, fontSize: 15.5, color: canSend ? '#fff' : Palette.textMuted }}>Send message</Text>
+            <Send size={17} color={canSend ? '#fff' : Palette.textSecondary} />
+            <Text style={{ fontFamily: Font.heading, fontSize: 15.5, color: canSend ? '#fff' : Palette.textSecondary }}>Send message</Text>
           </PressableScale>
-          <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted, textAlign: 'center', marginTop: 10 }}>
+          <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary, textAlign: 'center', marginTop: 10 }}>
             We typically reply by email within one business day.
           </Text>
         </MotiView>
@@ -341,7 +341,7 @@ function ContactRow({ Icon, tint, label, sub, onPress }: { Icon: typeof MessageC
       </View>
       <View style={{ gap: 3 }}>
         <Text style={{ fontFamily: Font.heading, fontSize: 14, color: Palette.ink }}>{label}</Text>
-        <Text style={{ fontFamily: Font.body, fontSize: 11.5, color: Palette.textMuted, lineHeight: 16 }}>{sub}</Text>
+        <Text style={{ fontFamily: Font.body, fontSize: 11.5, color: Palette.textSecondary, lineHeight: 16 }}>{sub}</Text>
       </View>
     </PressableScale>
   );
@@ -397,12 +397,12 @@ export default function HelpScreen() {
             transition={{ type: 'timing', duration: 240 }}
             style={{ marginHorizontal: 20 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, height: 50, borderRadius: 16, backgroundColor: Palette.surface, paddingHorizontal: 14, ...Shadow.card }}>
-              <Search size={18} color={Palette.textMuted} />
+              <Search size={18} color={Palette.textSecondary} />
               <TextInput
                 value={query}
                 onChangeText={setQuery}
                 placeholder="What can we help with?"
-                placeholderTextColor={Palette.textMuted}
+                placeholderTextColor={Palette.textSecondary}
                 maxLength={100}
                 returnKeyType="search"
                 style={{ flex: 1, fontFamily: Font.body, fontSize: 14.5, color: Palette.ink }}
@@ -410,7 +410,7 @@ export default function HelpScreen() {
               />
               {query.length > 0 ? (
                 <PressableScale onPress={() => { feedback.tap(); setQuery(''); }} accessibilityRole="button" accessibilityLabel="Clear search">
-                  <X size={16} color={Palette.textMuted} />
+                  <X size={16} color={Palette.textSecondary} />
                 </PressableScale>
               ) : null}
             </View>
@@ -438,7 +438,7 @@ export default function HelpScreen() {
             animate={{ opacity: 1, translateY: 0 }}
             transition={{ type: 'timing', duration: 280, delay: 240 }}
             style={{ marginHorizontal: 20, gap: 10 }}>
-            <Text style={{ fontFamily: Font.semibold, fontSize: 11.5, color: Palette.textMuted, textTransform: 'uppercase', letterSpacing: 0.7, paddingHorizontal: 4 }}>
+            <Text style={{ fontFamily: Font.semibold, fontSize: 11.5, color: Palette.textSecondary, textTransform: 'uppercase', letterSpacing: 0.7, paddingHorizontal: 4 }}>
               still need help?
             </Text>
             <View style={{ flexDirection: 'row', gap: 12 }}>

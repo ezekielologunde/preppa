@@ -292,6 +292,7 @@ export default function AdminScreen() {
             {section === 'features' && <AdminFeatures />}
             {section === 'disputes' && <AdminDisputes />}
             {section === 'users' && <AdminUsers />}
+            {section === 'exports' && <AdminExports />}
           </MotiView>
         </ScrollView>
       </SafeAreaView>

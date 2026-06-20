@@ -67,7 +67,7 @@ export function RequestDetailSheet({
                     </Text>
                   </View>
                   <View style={{ backgroundColor: isBooked ? Palette.success + '1A' : isOpen ? Palette.brandTint : Palette.chip, borderRadius: Radius.pill, paddingHorizontal: 10, paddingVertical: 3 }}>
-                    <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: isBooked ? Palette.success : isOpen ? ORANGE : Palette.textMuted, textTransform: 'capitalize' }}>
+                    <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: isBooked ? Palette.success : isOpen ? ORANGE : Palette.textSecondary, textTransform: 'capitalize' }}>
                       {request.status}
                     </Text>
                   </View>
@@ -119,7 +119,7 @@ export function RequestDetailSheet({
                     onChangeText={(t) => setPrefsDraft(cleanBlock(t))}
                     multiline
                     placeholder="Cuisine preferences, dietary needs, vibe, must-haves…"
-                    placeholderTextColor={Palette.textMuted}
+                    placeholderTextColor={Palette.textSecondary}
                     maxLength={500}
                     textAlignVertical="top"
                     accessibilityLabel="Cuisine preferences"
@@ -159,7 +159,7 @@ export function RequestDetailSheet({
                   {prefsErr ? <Text style={{ fontFamily: Font.medium, fontSize: 12.5, color: Palette.danger }}>{prefsErr}</Text> : null}
                 </View>
               ) : (
-                <Text style={{ fontFamily: Font.body, fontSize: 13.5, color: request.details ? INK : Palette.textMuted, lineHeight: 20 }}>
+                <Text style={{ fontFamily: Font.body, fontSize: 13.5, color: request.details ? INK : Palette.textSecondary, lineHeight: 20 }}>
                   {request.details ?? 'No preferences noted — tap Edit to add dietary needs or cuisine wishes.'}
                 </Text>
               )}
@@ -194,7 +194,7 @@ export function RequestDetailSheet({
               ) : pendingBids.length === 0 ? (
                 <MotiView from={{ opacity: 0 }} animate={{ opacity: 1 }}
                   style={{ backgroundColor: Palette.canvas, borderRadius: 16, padding: 24, alignItems: 'center', gap: 10 }}>
-                  <Clock size={28} color={Palette.textMuted} />
+                  <Clock size={28} color={Palette.textSecondary} />
                   <Text style={{ fontFamily: Font.body, fontSize: 13.5, color: Palette.textSecondary, textAlign: 'center', lineHeight: 20 }}>
                     No bids yet. Preppers near you will see your request and send quotes shortly.
                   </Text>

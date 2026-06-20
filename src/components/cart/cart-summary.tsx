@@ -125,7 +125,7 @@ export function CartSummary({
           Remove unavailable items to continue
         </Text>
       ) : (
-        <Text style={{ fontFamily: Font.body, fontSize: 11, color: Palette.textMuted, textAlign: 'center', marginTop: 10 }}>
+        <Text style={{ fontFamily: Font.body, fontSize: 11, color: Palette.textSecondary, textAlign: 'center', marginTop: 10 }}>
           {mixed ? `${kitchenGroups.length} separate orders · ` : ''}{paymentsOn ? 'Auto-refunded if your preorder is declined.' : 'Payment collected when the prepper confirms.'}
         </Text>
       )}

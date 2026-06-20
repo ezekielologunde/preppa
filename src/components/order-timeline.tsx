@@ -98,7 +98,7 @@ export function OrderTimeline({ status }: { status: OrderStatus }) {
                 style={{
                   fontFamily: active ? Font.semibold : Font.body,
                   fontSize: 9.5,
-                  color: active ? Palette.brand : done ? Palette.inkSoft : Palette.textMuted,
+                  color: active ? Palette.brand : done ? Palette.inkSoft : Palette.textSecondary,
                 }}>
                 {step.label}
               </Text>

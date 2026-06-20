@@ -167,7 +167,7 @@ function BudgetPicker({ value, onChange }: { value: number | null; onChange: (n:
             <Text style={{ fontFamily: Font.heading, fontSize: 15, color: Palette.textSecondary }}>$</Text>
           </View>
           <TextInput value={raw} onChangeText={(t) => { const n = t.replace(/[^0-9.]/g, ''); setRaw(n); const v = parseFloat(n); onChange(!isNaN(v) && v > 0 ? v : null); }}
-            placeholder="enter amount" placeholderTextColor={Palette.textMuted} keyboardType="numeric" maxLength={8}
+            placeholder="enter amount" placeholderTextColor={Palette.textSecondary} keyboardType="numeric" maxLength={8}
             style={{ flex: 1, height: 50, paddingHorizontal: 12, fontFamily: Font.body, fontSize: 15, color: INK }}
             accessibilityLabel="Custom budget amount" />
         </View>
@@ -278,7 +278,7 @@ export default function ExperienceRequestScreen() {
               </MotiView>
               <Text style={{ fontFamily: Font.display, fontSize: 22, color: INK, letterSpacing: -0.5, textAlign: 'center' }}>Request sent!</Text>
               <View style={{ width: '100%', backgroundColor: Palette.surface, borderRadius: 16, padding: 14, gap: 8, borderWidth: 1, borderColor: Palette.border }}>
-                <Text style={{ fontFamily: Font.heading, fontSize: 11, color: Palette.textMuted, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                <Text style={{ fontFamily: Font.heading, fontSize: 11, color: Palette.textSecondary, textTransform: 'uppercase', letterSpacing: 0.5 }}>
                   {KINDS.find((k) => k.key === posted.kind)?.label ?? posted.kind}
                 </Text>
                 <Text style={{ fontFamily: Font.heading, fontSize: 15, color: INK }}>{posted.title}</Text>
@@ -312,28 +312,28 @@ export default function ExperienceRequestScreen() {
                 <View style={{ gap: 4 }}>
                   <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: INK }}>Title <Text style={{ color: Palette.danger }}>*</Text></Text>
                   <TextInput style={[inputStyle, { borderColor: titleTouched && title.trim().length < 3 ? Palette.danger : Palette.border, borderWidth: 1.5 }]}
-                    placeholder={cfg.titlePlaceholder} placeholderTextColor={Palette.textMuted}
+                    placeholder={cfg.titlePlaceholder} placeholderTextColor={Palette.textSecondary}
                     value={title} onChangeText={(t) => setTitle(cleanLine(t))} onBlur={() => setTitleTouched(true)} maxLength={100}
                     accessibilityLabel="Request title" />
                   {titleTouched && title.trim().length < 3
                     ? <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.danger }}>At least 3 characters required</Text>
-                    : <Text style={{ fontFamily: Font.body, fontSize: 11.5, color: Palette.textMuted, textAlign: 'right' }}>{title.length}/100</Text>}
+                    : <Text style={{ fontFamily: Font.body, fontSize: 11.5, color: Palette.textSecondary, textAlign: 'right' }}>{title.length}/100</Text>}
                 </View>
 
                 {/* Details */}
                 <View style={{ gap: 4 }}>
-                  <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: INK }}>Details <Text style={{ fontFamily: Font.body, color: Palette.textMuted }}>(optional)</Text></Text>
+                  <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: INK }}>Details <Text style={{ fontFamily: Font.body, color: Palette.textSecondary }}>(optional)</Text></Text>
                   <TextInput style={[inputStyle, { height: 90, paddingTop: 14, textAlignVertical: 'top' }]}
-                    placeholder={cfg.detailsPlaceholder} placeholderTextColor={Palette.textMuted}
+                    placeholder={cfg.detailsPlaceholder} placeholderTextColor={Palette.textSecondary}
                     value={details} onChangeText={(t) => setDetails(cleanBlock(t))} multiline maxLength={500}
                     accessibilityLabel="Request details" />
-                  <Text style={{ fontFamily: Font.body, fontSize: 11.5, color: Palette.textMuted, textAlign: 'right' }}>{details.length}/500</Text>
+                  <Text style={{ fontFamily: Font.body, fontSize: 11.5, color: Palette.textSecondary, textAlign: 'right' }}>{details.length}/500</Text>
                 </View>
 
                 {/* Skill level — cooking class only */}
                 {cfg.showSkillLevel ? (
                   <View style={{ gap: 8 }}>
-                    <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: INK }}>Your skill level <Text style={{ fontFamily: Font.body, color: Palette.textMuted }}>(optional)</Text></Text>
+                    <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: INK }}>Your skill level <Text style={{ fontFamily: Font.body, color: Palette.textSecondary }}>(optional)</Text></Text>
                     <View style={{ gap: 8 }}>
                       {SKILL_LEVELS.map((s) => {
                         const on = skillLevel === s.key;
@@ -346,7 +346,7 @@ export default function ExperienceRequestScreen() {
                             </View>
                             <View style={{ flex: 1 }}>
                               <Text style={{ fontFamily: Font.semibold, fontSize: 13.5, color: on ? ORANGE : INK }}>{s.label}</Text>
-                              <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted }}>{s.desc}</Text>
+                              <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary }}>{s.desc}</Text>
                             </View>
                           </PressableScale>
                         );
@@ -365,17 +365,17 @@ export default function ExperienceRequestScreen() {
 
                 {/* Budget */}
                 <View style={{ gap: 6 }}>
-                  <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: INK }}>Approximate budget <Text style={{ fontFamily: Font.body, color: Palette.textMuted }}>(optional)</Text></Text>
+                  <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: INK }}>Approximate budget <Text style={{ fontFamily: Font.body, color: Palette.textSecondary }}>(optional)</Text></Text>
                   <BudgetPicker value={budget} onChange={setBudget} />
                 </View>
 
                 {/* Location */}
                 <View style={{ gap: 4 }}>
-                  <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: INK }}>{cfg.locationLabel} <Text style={{ fontFamily: Font.body, color: Palette.textMuted }}>(optional)</Text></Text>
+                  <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: INK }}>{cfg.locationLabel} <Text style={{ fontFamily: Font.body, color: Palette.textSecondary }}>(optional)</Text></Text>
                   <TextInput
                     style={inputStyle}
                     placeholder={cfg.locationPlaceholder}
-                    placeholderTextColor={Palette.textMuted}
+                    placeholderTextColor={Palette.textSecondary}
                     value={location}
                     onChangeText={(t) => setLocation(cleanLine(t))}
                     maxLength={200}

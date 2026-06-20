@@ -70,22 +70,22 @@ function ReplyComposer({ reviewId, initialText, onDone }: { reviewId: string; in
 
   return (
     <View style={{ gap: 8, marginTop: 4 }}>
-      <Text style={{ fontFamily: Font.semibold, fontSize: 11.5, color: Palette.textMuted }}>your public response</Text>
+      <Text style={{ fontFamily: Font.semibold, fontSize: 11.5, color: Palette.textSecondary }}>your public response</Text>
       <TextInput
         ref={inputRef}
         value={draft}
         onChangeText={(t) => setDraft(t.slice(0, MAX))}
         placeholder="Thank you for your kind words!"
-        placeholderTextColor={Palette.textMuted}
+        placeholderTextColor={Palette.textSecondary}
         multiline
         autoFocus
         style={{ backgroundColor: Palette.surface, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, fontFamily: Font.body, fontSize: 13.5, color: INK, lineHeight: 20, minHeight: 72 }}
       />
-      <Text style={{ fontFamily: Font.body, fontSize: 11, color: Palette.textMuted, textAlign: 'right' }}>{draft.length}/{MAX}</Text>
+      <Text style={{ fontFamily: Font.body, fontSize: 11, color: Palette.textSecondary, textAlign: 'right' }}>{draft.length}/{MAX}</Text>
       <View style={{ flexDirection: 'row', gap: 8 }}>
         <PressableScale onPress={() => { feedback.tap(); onDone(); }} accessibilityRole="button"
           style={{ paddingHorizontal: 16, paddingVertical: 9, borderRadius: Radius.pill, backgroundColor: Palette.canvas }}>
-          <Text style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.textMuted }}>Cancel</Text>
+          <Text style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.textSecondary }}>Cancel</Text>
         </PressableScale>
         <TouchableOpacity onPress={handlePost} disabled={submit.isPending || !draft.trim()}
           accessibilityRole="button" accessibilityLabel="Post reply"
@@ -113,7 +113,7 @@ function ReviewCard({ r, index }: ReviewCardProps) {
           <Avatar name={r.author} size={40} />
           <View style={{ flex: 1, gap: 2 }}>
             <Text style={{ fontFamily: Font.semibold, fontSize: 13.5, color: INK }}>{r.author}</Text>
-            <Text style={{ fontFamily: Font.body, fontSize: 11.5, color: Palette.textMuted }}>{relativeTime(r.created_at)}</Text>
+            <Text style={{ fontFamily: Font.body, fontSize: 11.5, color: Palette.textSecondary }}>{relativeTime(r.created_at)}</Text>
           </View>
           <Stars rating={r.rating} size={13} />
         </View>
@@ -122,7 +122,7 @@ function ReviewCard({ r, index }: ReviewCardProps) {
         {r.body ? (
           <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, lineHeight: 21 }}>{r.body}</Text>
         ) : (
-          <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textMuted, fontStyle: 'italic' }}>No written review</Text>
+          <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary, fontStyle: 'italic' }}>No written review</Text>
         )}
 
         {/* Reply section */}
@@ -131,7 +131,7 @@ function ReviewCard({ r, index }: ReviewCardProps) {
         ) : r.prepper_reply ? (
           <View style={{ marginTop: 2, paddingLeft: 12, borderLeftWidth: 3, borderLeftColor: Palette.brand + '40', gap: 4 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: Palette.textMuted }}>
+              <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: Palette.textSecondary }}>
                 {'🍳 Kitchen\'s response'}
                 {r.replied_at ? `  ${relativeTime(r.replied_at)}` : ''}
               </Text>
@@ -200,7 +200,7 @@ export default function ReviewsScreen() {
           <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }}
             style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
             <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
-              <Star size={28} color={Palette.textMuted} />
+              <Star size={28} color={Palette.textSecondary} />
             </View>
             <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>couldn't load reviews</Text>
             <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center' }}>Check your connection and try again.</Text>
@@ -220,14 +220,14 @@ export default function ReviewsScreen() {
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 20 }}>
                   <View style={{ alignItems: 'center', gap: 4 }}>
                     <Text style={{ fontFamily: Font.display, fontSize: 48, color: Palette.brand, letterSpacing: -2, fontVariant: ['tabular-nums'] }}>{avg > 0 ? avg.toFixed(1) : '—'}</Text>
-                    <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textMuted }}>out of 5</Text>
+                    <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary }}>out of 5</Text>
                     <Stars rating={avg} size={16} />
                     <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: INK, marginTop: 2 }}>{reviews?.length ?? 0} review{reviews?.length !== 1 ? 's' : ''}</Text>
                   </View>
                   <View style={{ flex: 1, gap: 6 }}>
                     {ratingCounts.map(({ n, count }, i) => (
                       <View key={n} style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                        <Text style={{ fontFamily: Font.medium, fontSize: 11, color: Palette.textMuted, width: 8 }}>{n}</Text>
+                        <Text style={{ fontFamily: Font.medium, fontSize: 11, color: Palette.textSecondary, width: 8 }}>{n}</Text>
                         <View style={{ flex: 1, height: 6, backgroundColor: Palette.border, borderRadius: 3, overflow: 'hidden' }}>
                           <MotiView
                             from={{ width: '0%' }}
@@ -236,7 +236,7 @@ export default function ReviewsScreen() {
                             style={{ height: 6, borderRadius: 3, backgroundColor: Palette.brand }}
                           />
                         </View>
-                        <Text style={{ fontFamily: Font.medium, fontSize: 11, color: Palette.textMuted, width: 16, textAlign: 'right', fontVariant: ['tabular-nums'] }}>{count}</Text>
+                        <Text style={{ fontFamily: Font.medium, fontSize: 11, color: Palette.textSecondary, width: 16, textAlign: 'right', fontVariant: ['tabular-nums'] }}>{count}</Text>
                       </View>
                     ))}
                   </View>
@@ -259,7 +259,7 @@ export default function ReviewsScreen() {
                     <PressableScale key={key} onPress={() => { feedback.tap(); setStarFilter(key); }}
                       accessibilityRole="button" accessibilityState={{ selected: active }}
                       style={{ backgroundColor: active ? color : Palette.surface, borderRadius: Radius.pill, paddingHorizontal: 14, paddingVertical: 8 }}>
-                      <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: active ? '#fff' : Palette.textMuted }}>{label}</Text>
+                      <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: active ? '#fff' : Palette.textSecondary }}>{label}</Text>
                     </PressableScale>
                   );
                 })}
@@ -298,7 +298,7 @@ export default function ReviewsScreen() {
               </MotiView>
             ) : filteredReviews.length === 0 ? (
               <View style={{ alignItems: 'center', paddingVertical: 32, gap: 10 }}>
-                <Star size={28} color={Palette.textMuted} />
+                <Star size={28} color={Palette.textSecondary} />
                 <Text style={{ fontFamily: Font.heading, fontSize: 15, color: Palette.textSecondary }}>
                   no {starFilter === 'low' ? '1–2★' : '4–5★'} reviews
                 </Text>

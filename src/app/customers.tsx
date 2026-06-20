@@ -17,9 +17,12 @@ import { useMyPrepperApplication } from '@/lib/queries/preppers';
 import { useAuth } from '@/providers/auth-provider';
 
 const ORANGE = Palette.brand;
-const CARD = Palette.prepperCard;
-const BG = Palette.prepperBg;
-const money = (n: number) => `$${n.toFixed(2)}`;
+const CARD   = '#FFFFFF';
+const BG     = '#F8F6F3';
+const INK    = '#1A1714';
+const SUB    = '#78716C';
+const BORDER = '#EDE9E4';
+const money  = (n: number) => `$${n.toFixed(2)}`;
 
 type CustomerOrder = { id: string; title: string; itemCount: number; total: number; status: string; created_at: string };
 type CustomerRow = {
@@ -31,7 +34,6 @@ type CustomerRow = {
   recent: CustomerOrder[];
 };
 
-/** Group the prepper's own orders (RLS-scoped) into a customer roster. */
 function aggregate(orders: OrderSummary[]): CustomerRow[] {
   const map = new Map<string, CustomerRow>();
   for (const o of orders) {
@@ -86,7 +88,7 @@ export default function CustomersScreen() {
         <SafeAreaView edges={['top']} style={{ flex: 1 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingTop: 8 }}>
             <PressableScale onPress={goBack} accessibilityRole="button" accessibilityLabel="Go back" style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center' }}>
-              <ChevronLeft size={22} color="#fff" />
+              <ChevronLeft size={22} color={INK} />
             </PressableScale>
           </View>
           <MotiView from={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', damping: 18, stiffness: 200 }}
@@ -94,8 +96,8 @@ export default function CustomersScreen() {
             <View style={{ width: 72, height: 72, borderRadius: 36, backgroundColor: '#F59E0B22', alignItems: 'center', justifyContent: 'center' }}>
               <Crown size={40} color="#F59E0B" />
             </View>
-            <Text style={{ fontFamily: Font.display, fontSize: 26, color: '#fff', letterSpacing: -0.6, textAlign: 'center' }}>Customer insights is a Pro feature</Text>
-            <Text style={{ fontFamily: Font.body, fontSize: 14.5, color: 'rgba(255,255,255,0.65)', textAlign: 'center', lineHeight: 22 }}>
+            <Text style={{ fontFamily: Font.display, fontSize: 26, color: INK, letterSpacing: -0.6, textAlign: 'center' }}>Customer insights is a Pro feature</Text>
+            <Text style={{ fontFamily: Font.body, fontSize: 14.5, color: SUB, textAlign: 'center', lineHeight: 22 }}>
               See who's ordering from your kitchen, their spend history, and repeat buyer patterns with a Go Pro subscription.
             </Text>
             <PressableScale onPress={() => { feedback.tap(); router.push('/prepper-premium'); }} accessibilityRole="button" accessibilityLabel="Upgrade to Pro"
@@ -113,15 +115,15 @@ export default function CustomersScreen() {
       <SafeAreaView edges={['top']} style={{ flex: 1 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingTop: 8, paddingBottom: 8 }}>
           <PressableScale onPress={goBack} accessibilityRole="button" accessibilityLabel="Go back" style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center' }}>
-            <ChevronLeft size={22} color="#fff" />
+            <ChevronLeft size={22} color={INK} />
           </PressableScale>
-          <Text style={{ fontFamily: Font.display, fontSize: 24, color: '#fff', letterSpacing: -0.6, flex: 1 }}>customers</Text>
+          <Text style={{ fontFamily: Font.display, fontSize: 24, color: INK, letterSpacing: -0.6, flex: 1 }}>customers</Text>
           {rows.length > 1 ? (
             <View style={{ flexDirection: 'row', gap: 4 }}>
               {(['spend', 'recent'] as const).map((s) => (
                 <PressableScale key={s} onPress={() => { feedback.tap(); setSortBy(s); }} accessibilityRole="button" accessibilityState={{ selected: sortBy === s }}
-                  style={{ backgroundColor: sortBy === s ? ORANGE : CARD, borderRadius: 8, paddingHorizontal: 9, paddingVertical: 5 }}>
-                  <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: sortBy === s ? '#fff' : Palette.textMuted }}>{s === 'spend' ? 'top spend' : 'recent'}</Text>
+                  style={{ backgroundColor: sortBy === s ? ORANGE : '#F0EDEA', borderRadius: 8, paddingHorizontal: 9, paddingVertical: 5 }}>
+                  <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: sortBy === s ? '#fff' : SUB }}>{s === 'spend' ? 'top spend' : 'recent'}</Text>
                 </PressableScale>
               ))}
             </View>
@@ -130,8 +132,8 @@ export default function CustomersScreen() {
 
         {!prepperId ? (
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
-            <Users size={28} color="#5b6170" />
-            <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textMuted, textAlign: 'center' }}>Approved preppers see their customer roster here.</Text>
+            <Users size={28} color={SUB} />
+            <Text style={{ fontFamily: Font.body, fontSize: 14, color: SUB, textAlign: 'center' }}>Approved preppers see their customer roster here.</Text>
           </View>
         ) : isLoading ? (
           <ListSkeleton count={5} />
@@ -139,10 +141,10 @@ export default function CustomersScreen() {
           <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }}
             style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
             <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center' }}>
-              <Users size={28} color="#5b6170" />
+              <Users size={28} color={SUB} />
             </View>
-            <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>Couldn't load customers</Text>
-            <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textMuted, textAlign: 'center', maxWidth: 280 }}>Check your connection and try again.</Text>
+            <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>Couldn't load customers</Text>
+            <Text style={{ fontFamily: Font.body, fontSize: 14, color: SUB, textAlign: 'center', maxWidth: 280 }}>Check your connection and try again.</Text>
             <PressableScale onPress={() => { feedback.tap(); void refetch(); }} accessibilityRole="button" accessibilityLabel="Retry loading customers"
               style={{ marginTop: 4, paddingHorizontal: 22, height: 48, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
               <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#fff' }}>retry</Text>
@@ -151,26 +153,26 @@ export default function CustomersScreen() {
         ) : !rows.length ? (
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 10 }}>
             <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center' }}>
-              <Users size={28} color="#5b6170" />
+              <Users size={28} color={SUB} />
             </View>
-            <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>No customers yet</Text>
-            <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textMuted, textAlign: 'center', maxWidth: 280 }}>Every customer who preorders from your kitchen shows up here, with their preorder history.</Text>
+            <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>No customers yet</Text>
+            <Text style={{ fontFamily: Font.body, fontSize: 14, color: SUB, textAlign: 'center', maxWidth: 280 }}>Every customer who preorders from your kitchen shows up here, with their preorder history.</Text>
           </View>
         ) : (
           <ScrollView showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={ORANGE} colors={[ORANGE]} />} contentContainerStyle={{ padding: 20, gap: 10, paddingBottom: 40 }}>
             <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280 }}>
             <View style={{ flexDirection: 'row', gap: 10, marginBottom: 6 }}>
               <View style={{ flex: 1, backgroundColor: CARD, borderRadius: 16, padding: 14, gap: 2 }}>
-                <Text style={{ fontFamily: Font.display, fontSize: 24, color: '#fff', fontVariant: ['tabular-nums'] }}>{rows.length}</Text>
-                <Text style={{ fontFamily: Font.medium, fontSize: 12, color: Palette.textMuted }}>customers</Text>
+                <Text style={{ fontFamily: Font.display, fontSize: 24, color: INK, fontVariant: ['tabular-nums'] }}>{rows.length}</Text>
+                <Text style={{ fontFamily: Font.medium, fontSize: 12, color: SUB }}>customers</Text>
               </View>
               <View style={{ flex: 1, backgroundColor: CARD, borderRadius: 16, padding: 14, gap: 2 }}>
                 <Text style={{ fontFamily: Font.display, fontSize: 24, color: Palette.success, fontVariant: ['tabular-nums'] }}>{repeat}</Text>
-                <Text style={{ fontFamily: Font.medium, fontSize: 12, color: Palette.textMuted }}>repeat buyers</Text>
+                <Text style={{ fontFamily: Font.medium, fontSize: 12, color: SUB }}>repeat buyers</Text>
               </View>
               <View style={{ flex: 1, backgroundColor: CARD, borderRadius: 16, padding: 14, gap: 2 }}>
                 <Text style={{ fontFamily: Font.display, fontSize: 24, color: ORANGE, fontVariant: ['tabular-nums'] }}>${avgSpend.toFixed(0)}</Text>
-                <Text style={{ fontFamily: Font.medium, fontSize: 12, color: Palette.textMuted }}>avg spend</Text>
+                <Text style={{ fontFamily: Font.medium, fontSize: 12, color: SUB }}>avg spend</Text>
               </View>
             </View>
             </MotiView>
@@ -185,7 +187,7 @@ export default function CustomersScreen() {
                   <Avatar name={c.name} size={44} />
                   <View style={{ flex: 1, gap: 2 }}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                      <Text style={{ fontFamily: Font.heading, fontSize: 14.5, color: '#fff' }} numberOfLines={1}>{c.name}</Text>
+                      <Text style={{ fontFamily: Font.heading, fontSize: 14.5, color: INK }} numberOfLines={1}>{c.name}</Text>
                       {c.orders >= 2 ? (
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: Palette.success + '22', borderRadius: Radius.pill, paddingHorizontal: 8, height: 20 }}>
                           <Repeat size={10} color={Palette.success} />
@@ -193,35 +195,35 @@ export default function CustomersScreen() {
                         </View>
                       ) : null}
                     </View>
-                    <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: Palette.textMuted }}>
+                    <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: SUB }}>
                       {c.orders} preorder{c.orders === 1 ? '' : 's'} · last {fmtDate(c.lastOrder)}
                     </Text>
                   </View>
                   <View style={{ alignItems: 'flex-end', gap: 4 }}>
-                    <Text style={{ fontFamily: Font.display, fontSize: 16, color: '#fff', fontVariant: ['tabular-nums'] }}>{money(c.paidTotal)}</Text>
-                    {expanded ? <ChevronUp size={15} color={Palette.textMuted} /> : <ChevronDown size={15} color={Palette.textMuted} />}
+                    <Text style={{ fontFamily: Font.display, fontSize: 16, color: INK, fontVariant: ['tabular-nums'] }}>{money(c.paidTotal)}</Text>
+                    {expanded ? <ChevronUp size={15} color={SUB} /> : <ChevronDown size={15} color={SUB} />}
                   </View>
                 </PressableScale>
                 {expanded ? (
                   <MotiView from={{ opacity: 0, translateY: -6 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 200 }}
-                    style={{ paddingHorizontal: 14, paddingBottom: 12, paddingTop: 10, gap: 10, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.06)' }}>
+                    style={{ paddingHorizontal: 14, paddingBottom: 12, paddingTop: 10, gap: 10, borderTopWidth: 1, borderTopColor: BORDER }}>
                     {c.recent.slice(0, 6).map((o) => {
                       const done = o.status === 'completed';
                       return (
                         <View key={o.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                           <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: done ? Palette.success : ORANGE }} />
                           <View style={{ flex: 1 }}>
-                            <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: '#fff' }} numberOfLines={1}>
+                            <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: INK }} numberOfLines={1}>
                               {o.title}{o.itemCount > 1 ? ` +${o.itemCount - 1}` : ''}
                             </Text>
-                            <Text style={{ fontFamily: Font.body, fontSize: 11.5, color: Palette.textMuted }}>{fmtDate(o.created_at)} · {o.status}</Text>
+                            <Text style={{ fontFamily: Font.body, fontSize: 11.5, color: SUB }}>{fmtDate(o.created_at)} · {o.status}</Text>
                           </View>
-                          <Text style={{ fontFamily: Font.heading, fontSize: 13.5, color: done ? Palette.success : Palette.textSecondary, fontVariant: ['tabular-nums'] }}>{money(o.total)}</Text>
+                          <Text style={{ fontFamily: Font.heading, fontSize: 13.5, color: done ? Palette.success : SUB, fontVariant: ['tabular-nums'] }}>{money(o.total)}</Text>
                         </View>
                       );
                     })}
                     {c.recent.length > 6 ? (
-                      <Text style={{ fontFamily: Font.body, fontSize: 11.5, color: Palette.textMuted, textAlign: 'center' }}>+{c.recent.length - 6} earlier preorder{c.recent.length - 6 === 1 ? '' : 's'}</Text>
+                      <Text style={{ fontFamily: Font.body, fontSize: 11.5, color: SUB, textAlign: 'center' }}>+{c.recent.length - 6} earlier preorder{c.recent.length - 6 === 1 ? '' : 's'}</Text>
                     ) : null}
                   </MotiView>
                 ) : null}

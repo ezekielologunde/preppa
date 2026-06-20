@@ -212,8 +212,8 @@ export function AddCardSheet({
                 : <Text style={{ fontFamily: Font.heading, fontSize: Type.body, color: Palette.surface }}>Open payment portal</Text>}
             </PressableScale>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-              <Lock size={13} color={Palette.textMuted} />
-              <Text style={{ fontFamily: Font.body, fontSize: Type.micro, color: Palette.textMuted }}>
+              <Lock size={13} color={Palette.textSecondary} />
+              <Text style={{ fontFamily: Font.body, fontSize: Type.micro, color: Palette.textSecondary }}>
                 Secured by Stripe  -  we never see your card details
               </Text>
             </View>
@@ -227,7 +227,7 @@ export function AddCardSheet({
               value={name}
               onChangeText={setName}
               placeholder="Alex Johnson"
-              placeholderTextColor={Palette.textMuted}
+              placeholderTextColor={Palette.textSecondary}
               autoCapitalize="words"
               maxLength={80}
               accessibilityLabel="Cardholder name"
@@ -301,8 +301,8 @@ export function AddCardSheet({
             </PressableScale>
 
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: Spacing.three }}>
-              <Lock size={13} color={Palette.textMuted} />
-              <Text style={{ fontFamily: Font.body, fontSize: Type.micro, color: Palette.textMuted }}>
+              <Lock size={13} color={Palette.textSecondary} />
+              <Text style={{ fontFamily: Font.body, fontSize: Type.micro, color: Palette.textSecondary }}>
                 Card details are handled and encrypted by Stripe
               </Text>
             </View>

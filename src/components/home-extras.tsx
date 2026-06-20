@@ -4,7 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import type { ComponentType } from 'react';
 import {
-  CalendarCheck, ChefHat, ChevronRight, Coffee, Crown, Gift, LayoutGrid, Leaf, Moon, Sparkles, Sprout, Ticket, UtensilsCrossed, Zap,
+  CalendarCheck, ChefHat, ChevronRight, Coffee, Crown, Gift, LayoutGrid, Leaf, Moon, Sparkles, Sprout, UtensilsCrossed, Zap,
 } from 'lucide-react-native';
 import { imgUrl } from '@/lib/img';
 import { MotiView } from 'moti';
@@ -21,7 +21,7 @@ import { useAuth } from '@/providers/auth-provider';
 
 const ORANGE = Palette.brand;
 const INK = Palette.ink;
-const MUTED = Palette.textMuted;
+const MUTED = Palette.textSecondary;
 
 const ONBOARDING_KEY = 'preppa_onboarded';
 
@@ -115,6 +115,7 @@ export function RewardsBanner() {
   const onPress = () => { feedback.tap(); router.push('/rewards'); };
 
   if (user && !rewards.isLoading) {
+    if (rewards.points === 0) return null;
     const tc = rewards.tier.color;
     return (
       <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }}
@@ -404,43 +405,6 @@ export function ActionSplitter({ planImage, dropImage }: { planImage?: string; d
           </View>
         </View>
       </PressableScale>
-    </MotiView>
-  );
-}
-
-// ─── ExperiencesBar ───────────────────────────────────────────────────────────
-
-const EXP_TYPES: { key: string; label: string; Icon: React.ComponentType<{ size?: number; color?: string }>; color: string }[] = [
-  { key: 'private_chef', label: 'Private Chef', Icon: ChefHat,         color: '#7C3AED' },
-  { key: 'food_service', label: 'Cook at Mine', Icon: UtensilsCrossed, color: ORANGE    },
-  { key: 'class',        label: 'Classes',      Icon: Zap,             color: '#22C55E' },
-  { key: 'catering',     label: 'Catering',     Icon: CalendarCheck,   color: '#D97706' },
-];
-
-export function ExperiencesBar() {
-  const router = useRouter();
-  return (
-    <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }}
-      transition={{ type: 'timing', duration: 260, delay: 80 }}>
-      <SectionHeader title="experiences" Icon={Ticket} linkLabel="see all →"
-        onLink={() => { feedback.tap(); router.push('/experiences' as never); }} />
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: 20, gap: 14, paddingBottom: 4 }}>
-        {EXP_TYPES.map((exp, i) => (
-          <MotiView key={exp.key} from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }}
-            transition={{ type: 'timing', duration: 200, delay: 60 + i * 45 }}>
-            <PressableScale
-              onPress={() => { feedback.tap(); router.push(`/experience-request?kind=${exp.key}` as never); }}
-              accessibilityRole="button" accessibilityLabel={`Browse ${exp.label} experiences`}
-              style={{ alignItems: 'center', gap: 6 }}>
-              <View style={{ width: 60, height: 60, borderRadius: 18, backgroundColor: exp.color + '18', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: exp.color + '28' }}>
-                <exp.Icon size={24} color={exp.color} />
-              </View>
-              <Text style={{ fontFamily: Font.medium, fontSize: 10.5, color: Palette.textSecondary, textAlign: 'center', maxWidth: 60 }}>{exp.label}</Text>
-            </PressableScale>
-          </MotiView>
-        ))}
-      </ScrollView>
     </MotiView>
   );
 }

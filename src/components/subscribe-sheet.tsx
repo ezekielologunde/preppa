@@ -184,7 +184,7 @@ export function SubscribePlanSheet({ plan, userId, onClose }: { plan: MealPlan |
             </View>
           ) : (
             <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10, backgroundColor: paymentsOn ? Palette.brandTint : Palette.canvas, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12 }}>
-              <Lock size={14} color={paymentsOn ? ORANGE : Palette.textMuted} style={{ marginTop: 2 }} />
+              <Lock size={14} color={paymentsOn ? ORANGE : Palette.textSecondary} style={{ marginTop: 2 }} />
               <Text style={{ flex: 1, fontFamily: Font.body, fontSize: 12.5, color: paymentsOn ? ORANGE : Palette.textSecondary, lineHeight: 18 }}>
                 {paymentsOn
                   ? 'Billed securely via Stripe. Cancel anytime — no charge until after your first delivery.'

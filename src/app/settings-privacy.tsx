@@ -85,7 +85,7 @@ function DeleteAccountModal({ visible, onClose, onConfirm }: { visible: boolean;
                 value={note}
                 onChangeText={(t) => setNote(cleanBlock(t))}
                 placeholder="Anything else? (optional)"
-                placeholderTextColor={Palette.textMuted}
+                placeholderTextColor={Palette.textSecondary}
                 multiline
                 maxLength={300}
                 textAlignVertical="top"
@@ -98,7 +98,7 @@ function DeleteAccountModal({ visible, onClose, onConfirm }: { visible: boolean;
                 accessibilityRole="button"
                 accessibilityLabel="Permanently delete my account"
                 style={{ marginTop: 18, height: 52, borderRadius: Radius.pill, backgroundColor: reason ? Palette.danger : Palette.border, alignItems: 'center', justifyContent: 'center' }}>
-                <Text style={{ fontFamily: Font.heading, fontSize: 15.5, color: reason ? '#fff' : Palette.textMuted }}>Permanently delete account</Text>
+                <Text style={{ fontFamily: Font.heading, fontSize: 15.5, color: reason ? '#fff' : Palette.textSecondary }}>Permanently delete account</Text>
               </PressableScale>
               <PressableScale onPress={() => { feedback.tap(); close(); }} accessibilityRole="button" accessibilityLabel="Cancel"
                 style={{ marginTop: 10, height: 50, borderRadius: Radius.pill, alignItems: 'center', justifyContent: 'center' }}>
@@ -151,7 +151,7 @@ export default function PrivacySecurityScreen() {
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 8, paddingBottom: 40, gap: 20 }}>
           {/* Notifications */}
           <SettingsGroup title="notifications" delay={0}>
-            <SettingsRow Icon={Bell} label="Notification preferences" sub="Push, email & SMS, per category" onPress={() => router.push('/notification-settings')} isLast />
+            <SettingsRow Icon={Bell} label="Notification preferences" sub="Push, email & SMS, per category" onPress={() => router.push('/notification-preferences')} isLast />
           </SettingsGroup>
 
           {/* Security */}

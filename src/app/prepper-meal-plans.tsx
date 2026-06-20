@@ -69,10 +69,10 @@ function PlanCard({
   const cycleLabel = plan.frequency === 'weekly' ? '/wk' : plan.frequency === 'biweekly' ? '/2wk' : '/mo';
   const subscribers = stats?.activeSubscribers ?? 0;
   return (
-    <View style={{ backgroundColor: Palette.surface, borderRadius: 20, padding: 16, gap: 12 }}>
+    <View style={{ backgroundColor: Palette.surface, borderRadius: 20, padding: 16, gap: 12, shadowColor: '#1A1714', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 }}>
       <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10 }}>
         <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: plan.active ? Palette.brandTint : Palette.chip, alignItems: 'center', justifyContent: 'center' }}>
-          <RefreshCw size={17} color={plan.active ? ORANGE : Palette.textMuted} />
+          <RefreshCw size={17} color={plan.active ? ORANGE : Palette.textSecondary} />
         </View>
         <View style={{ flex: 1 }}>
           <Text style={{ fontFamily: Font.heading, fontSize: 15, color: INK }}>{plan.name}</Text>
@@ -84,16 +84,16 @@ function PlanCard({
           ) : null}
           {/* Subscriber chip */}
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6, alignSelf: 'flex-start', backgroundColor: Palette.chip, borderRadius: Radius.pill, paddingHorizontal: 8, paddingVertical: 3 }}>
-            <Users size={11} color={Palette.textMuted} />
-            <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: Palette.textMuted }}>
+            <Users size={11} color={Palette.textSecondary} />
+            <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: Palette.textSecondary }}>
               {subscribers} {subscribers === 1 ? 'subscriber' : 'subscribers'}
             </Text>
           </View>
         </View>
         <View style={{ alignItems: 'flex-end', gap: 6 }}>
-          <Text style={{ fontFamily: Font.display, fontSize: 18, color: ORANGE, letterSpacing: -0.4 }}>{money(plan.price)}<Text style={{ fontFamily: Font.body, fontSize: 11, color: Palette.textMuted }}>{cycleLabel}</Text></Text>
+          <Text style={{ fontFamily: Font.display, fontSize: 18, color: ORANGE, letterSpacing: -0.4 }}>{money(plan.price)}<Text style={{ fontFamily: Font.body, fontSize: 11, color: Palette.textSecondary }}>{cycleLabel}</Text></Text>
           <View style={{ backgroundColor: plan.active ? Palette.success + '1A' : Palette.chip, borderRadius: Radius.pill, paddingHorizontal: 8, paddingVertical: 3 }}>
-            <Text style={{ fontFamily: Font.semibold, fontSize: 10, color: plan.active ? Palette.success : Palette.textMuted }}>
+            <Text style={{ fontFamily: Font.semibold, fontSize: 10, color: plan.active ? Palette.success : Palette.textSecondary }}>
               {plan.active ? 'LIVE' : 'HIDDEN'}
             </Text>
           </View>
@@ -104,15 +104,15 @@ function PlanCard({
       <PressableScale onPress={() => { feedback.tap(); onToggle(); }} disabled={busy} accessibilityRole="button"
         accessibilityLabel={plan.active ? 'Hide plan from customers' : 'Make plan visible to customers'}
         style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, height: 38, borderRadius: Radius.sm, backgroundColor: Palette.canvas, borderWidth: 1, borderColor: Palette.border }}>
-        {busy ? <ActivityIndicator size="small" color={Palette.textMuted} /> : plan.active ? (
+        {busy ? <ActivityIndicator size="small" color={Palette.textSecondary} /> : plan.active ? (
           <>
             <ToggleRight size={17} color={Palette.success} />
             <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: Palette.success }}>Visible to customers — tap to hide</Text>
           </>
         ) : (
           <>
-            <ToggleLeft size={17} color={Palette.textMuted} />
-            <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: Palette.textMuted }}>Hidden — tap to make live</Text>
+            <ToggleLeft size={17} color={Palette.textSecondary} />
+            <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: Palette.textSecondary }}>Hidden — tap to make live</Text>
           </>
         )}
       </PressableScale>
@@ -202,7 +202,7 @@ export default function PrepperMealPlansScreen() {
   const totalRevenue = (planStats ?? []).reduce((sum, s) => sum + s.monthlyRevenue, 0);
   const activePlanCount = (plans ?? []).filter((p) => p.active).length;
 
-  function goBack() { feedback.tap(); if (router.canGoBack()) { router.back(); } else { router.replace('/prepper-hub'); } }
+  function goBack() { feedback.tap(); if (router.canGoBack()) { router.back(); } else { router.replace('/dashboard'); } }
 
   return (
     <View style={{ flex: 1, backgroundColor: Palette.canvas }}>
@@ -240,7 +240,7 @@ export default function PrepperMealPlansScreen() {
                 { label: 'ACTIVE PLANS', value: String(activePlanCount) },
               ] as const).map((cell) => (
                 <View key={cell.label} style={{ flex: 1, backgroundColor: Palette.surface, borderRadius: 16, padding: 14, gap: 4 }}>
-                  <Text style={{ fontFamily: Font.semibold, fontSize: 10, color: Palette.textMuted, textTransform: 'uppercase', letterSpacing: 0.4 }} numberOfLines={1}>{cell.label}</Text>
+                  <Text style={{ fontFamily: Font.semibold, fontSize: 10, color: Palette.textSecondary, textTransform: 'uppercase', letterSpacing: 0.4 }} numberOfLines={1}>{cell.label}</Text>
                   <Text style={{ fontFamily: Font.display, fontSize: 20, color: cell.label === 'MONTHLY RECURRING' ? ORANGE : INK, letterSpacing: -0.5 }} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>{cell.value}</Text>
                 </View>
               ))}
@@ -251,7 +251,7 @@ export default function PrepperMealPlansScreen() {
             <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }}
               style={{ flex: 1, alignItems: 'center', paddingTop: 60, gap: 12 }}>
               <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
-                <RefreshCw size={28} color={Palette.textMuted} strokeWidth={1.5} />
+                <RefreshCw size={28} color={Palette.textSecondary} strokeWidth={1.5} />
               </View>
               <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>couldn't load plans</Text>
               <Text style={{ fontFamily: Font.body, fontSize: 13.5, color: Palette.textSecondary, textAlign: 'center', maxWidth: 260, lineHeight: 20 }}>
@@ -265,7 +265,9 @@ export default function PrepperMealPlansScreen() {
           ) : (plans ?? []).length === 0 ? (
             <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260 }}
               style={{ alignItems: 'center', paddingTop: 60, gap: 10 }}>
-              <RefreshCw size={32} color={Palette.textMuted} strokeWidth={1.5} />
+              <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center', shadowColor: '#1A1714', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 }}>
+                <RefreshCw size={28} color={Palette.textSecondary} strokeWidth={1.5} />
+              </View>
               <Text style={{ fontFamily: Font.heading, fontSize: 18, color: INK }}>no plans yet</Text>
               <Text style={{ fontFamily: Font.body, fontSize: 13.5, color: Palette.textSecondary, textAlign: 'center', lineHeight: 20, paddingHorizontal: 24 }}>
                 Create your first subscription plan — customers can browse and join directly from the meal plans screen.
@@ -312,15 +314,15 @@ export default function PrepperMealPlansScreen() {
                 <View style={{ gap: 6 }}>
                   <Text style={{ fontFamily: Font.medium, fontSize: 13, color: INK }}>Plan name</Text>
                   <TextInput value={planName} onChangeText={(t) => setPlanName(cleanLine(t))} maxLength={80}
-                    placeholder="e.g. Weekly Family Prep" placeholderTextColor={Palette.textMuted}
+                    placeholder="e.g. Weekly Family Prep" placeholderTextColor={Palette.textSecondary}
                     style={{ height: 50, backgroundColor: Palette.canvas, borderRadius: 14, paddingHorizontal: 14, fontFamily: Font.body, fontSize: 15, color: INK, borderWidth: 1, borderColor: Palette.border }} />
                 </View>
 
                 {/* Description */}
                 <View style={{ gap: 6 }}>
-                  <Text style={{ fontFamily: Font.medium, fontSize: 13, color: INK }}>Description <Text style={{ fontFamily: Font.body, color: Palette.textMuted }}>(optional)</Text></Text>
+                  <Text style={{ fontFamily: Font.medium, fontSize: 13, color: INK }}>Description <Text style={{ fontFamily: Font.body, color: Palette.textSecondary }}>(optional)</Text></Text>
                   <TextInput value={planDesc} onChangeText={(t) => setPlanDesc(cleanBlock(t))} multiline maxLength={300}
-                    placeholder="What's included, cuisine style, any dietary focus…" placeholderTextColor={Palette.textMuted}
+                    placeholder="What's included, cuisine style, any dietary focus…" placeholderTextColor={Palette.textSecondary}
                     style={{ minHeight: 72, backgroundColor: Palette.canvas, borderRadius: 14, padding: 14, fontFamily: Font.body, fontSize: 14, color: INK, textAlignVertical: 'top', borderWidth: 1, borderColor: Palette.border }} />
                 </View>
 
@@ -332,7 +334,7 @@ export default function PrepperMealPlansScreen() {
                       <Text style={{ fontFamily: Font.heading, fontSize: 15, color: Palette.textSecondary }}>$</Text>
                     </View>
                     <TextInput value={planPrice} onChangeText={(t) => setPlanPrice(t.replace(/[^0-9.]/g, ''))}
-                      placeholder="0.00" placeholderTextColor={Palette.textMuted} keyboardType="decimal-pad" maxLength={7}
+                      placeholder="0.00" placeholderTextColor={Palette.textSecondary} keyboardType="decimal-pad" maxLength={7}
                       style={{ flex: 1, height: 50, paddingHorizontal: 14, fontFamily: Font.body, fontSize: 15, color: INK }}
                       accessibilityLabel="Price per cycle" />
                   </View>

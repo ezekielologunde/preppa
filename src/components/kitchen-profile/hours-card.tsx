@@ -22,7 +22,7 @@ export function KitchenHoursCard({ schedule, isOpen = true }: Props) {
         <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: Palette.inkSoft, textTransform: 'lowercase', letterSpacing: 0.3 }}>· hours</Text>
       </View>
       {!isOpen && nextOpen ? (
-        <Text style={{ fontFamily: Font.body, fontSize: 11, color: Palette.textMuted, marginBottom: 8 }}>{nextOpen}</Text>
+        <Text style={{ fontFamily: Font.body, fontSize: 11, color: Palette.textSecondary, marginBottom: 8 }}>{nextOpen}</Text>
       ) : null}
       <View style={{ height: 1, backgroundColor: Palette.border, marginBottom: 8 }} />
       {rows.map(({ label, hours }) => (

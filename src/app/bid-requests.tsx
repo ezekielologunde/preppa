@@ -113,7 +113,7 @@ export default function BidRequestsScreen() {
       <SafeAreaView edges={['top']} style={{ flex: 1 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 8, paddingBottom: 6, gap: 12 }}>
           <PressableScale onPress={() => { feedback.tap(); if (router.canGoBack()) { router.back(); } else { router.replace('/'); } }} accessibilityRole="button" accessibilityLabel="Back"
-            style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
+            style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center', shadowColor: '#1A1714', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 4, elevation: 2 }}>
             <ChevronLeft size={22} color={INK} />
           </PressableScale>
           <Text style={{ fontFamily: Font.display, fontSize: 22, color: INK, letterSpacing: -0.5, flex: 1 }}>{isPrepper ? 'meal requests' : 'requests'}</Text>
@@ -163,8 +163,8 @@ export default function BidRequestsScreen() {
             isLoading ? <ListSkeleton count={4} /> : isError ? (
               <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }}
                 style={{ alignItems: 'center', paddingTop: 60, gap: 12 }}>
-                <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
-                  <ShoppingBag size={28} color={Palette.textMuted} />
+                <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center', shadowColor: '#1A1714', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 }}>
+                  <ShoppingBag size={28} color={Palette.textSecondary} />
                 </View>
                 <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>couldn't load requests</Text>
                 <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center' }}>Check your connection and try again.</Text>
@@ -199,8 +199,8 @@ export default function BidRequestsScreen() {
             myLoading ? <ListSkeleton count={3} /> : myError ? (
               <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }}
                 style={{ alignItems: 'center', paddingTop: 60, gap: 12 }}>
-                <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
-                  <ShoppingBag size={28} color={Palette.textMuted} />
+                <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center', shadowColor: '#1A1714', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 }}>
+                  <ShoppingBag size={28} color={Palette.textSecondary} />
                 </View>
                 <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>couldn't load your requests</Text>
                 <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center' }}>Check your connection and try again.</Text>
@@ -227,10 +227,10 @@ export default function BidRequestsScreen() {
                       <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: r.status === 'open' ? ORANGE : Palette.success, textTransform: 'capitalize' }}>{r.status}</Text>
                     </View>
                   </View>
-                  <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: Palette.textMuted }}>
+                  <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: Palette.textSecondary }}>
                     {r.servings} servings{r.budget_per_serving ? ` · $${r.budget_per_serving}/serving budget` : ''}
                   </Text>
-                  <Text style={{ fontFamily: Font.heading, fontSize: 12, color: Palette.textMuted, textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 4 }}>
+                  <Text style={{ fontFamily: Font.heading, fontSize: 12, color: Palette.textSecondary, textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 4 }}>
                     {r.bids.length ? `${r.bids.length} bid${r.bids.length === 1 ? '' : 's'} received` : 'Waiting for bids'}
                   </Text>
                   {r.bids.map((b) => {
@@ -248,7 +248,7 @@ export default function BidRequestsScreen() {
                             borderRadius: Radius.pill, paddingHorizontal: 8, paddingVertical: 3,
                             backgroundColor: expiry.expired ? Palette.divider : expiry.urgent ? '#FEF3C7' : Palette.chip,
                           }}>
-                            <Text style={{ fontFamily: Font.semibold, fontSize: 10.5, color: expiry.expired ? Palette.textMuted : expiry.urgent ? '#B45309' : Palette.textSecondary }}>
+                            <Text style={{ fontFamily: Font.semibold, fontSize: 10.5, color: expiry.expired ? Palette.textSecondary : expiry.urgent ? '#B45309' : Palette.textSecondary }}>
                               {expiry.expired ? 'expired' : `⏱ ${expiry.label}`}
                             </Text>
                           </View>
@@ -266,7 +266,7 @@ export default function BidRequestsScreen() {
                                 <Text style={{ fontFamily: Font.heading, fontSize: 13, color: '#fff' }}>Review</Text>
                               </PressableScale>
                             ) : (
-                              <Text style={{ fontFamily: Font.medium, fontSize: 12, color: Palette.textMuted, textTransform: 'capitalize' }}>{b.status}</Text>
+                              <Text style={{ fontFamily: Font.medium, fontSize: 12, color: Palette.textSecondary, textTransform: 'capitalize' }}>{b.status}</Text>
                             )
                           ) : null}
                         </View>
@@ -287,7 +287,7 @@ export default function BidRequestsScreen() {
                         ) : null}
                         {b.status === 'accepted' && paymentsOn ? (
                           <View style={{ backgroundColor: Palette.canvas, borderRadius: 14, padding: 14, gap: 8 }}>
-                            <Text style={{ fontFamily: Font.heading, fontSize: 11, color: Palette.textMuted, textTransform: 'uppercase', letterSpacing: 0.5 }}>payment summary</Text>
+                            <Text style={{ fontFamily: Font.heading, fontSize: 11, color: Palette.textSecondary, textTransform: 'uppercase', letterSpacing: 0.5 }}>payment summary</Text>
                             <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                               <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary }}>Bid price</Text>
                               <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: INK }}>${bidTotal.toFixed(2)}</Text>
@@ -369,7 +369,7 @@ export default function BidRequestsScreen() {
                       <Text style={{ fontFamily: Font.heading, fontSize: 15, color: Palette.textSecondary }}>$</Text>
                     </View>
                     <TextInput value={bidPrice} onChangeText={(t) => setBidPrice(t.replace(/[^0-9.]/g, ''))}
-                      placeholder="e.g. 15.00" placeholderTextColor={Palette.textMuted} keyboardType="decimal-pad" maxLength={7}
+                      placeholder="e.g. 15.00" placeholderTextColor={Palette.textSecondary} keyboardType="decimal-pad" maxLength={7}
                       style={{ flex: 1, height: 50, paddingHorizontal: 12, fontFamily: Font.body, fontSize: 15, color: INK }}
                       accessibilityLabel="Price per serving" />
                   </View>
@@ -380,7 +380,7 @@ export default function BidRequestsScreen() {
                   ) : null}
                 </View>
                 <TextInput value={bidNote} onChangeText={(t) => setBidNote(cleanBlock(t))} multiline maxLength={300}
-                  placeholder="Message to the customer (optional)" placeholderTextColor={Palette.textMuted}
+                  placeholder="Message to the customer (optional)" placeholderTextColor={Palette.textSecondary}
                   accessibilityLabel="Bid note"
                   style={{ minHeight: 70, backgroundColor: Palette.canvas, borderRadius: 14, padding: 14, fontFamily: Font.body, fontSize: 14, color: INK, textAlignVertical: 'top', borderWidth: 1, borderColor: Palette.border }} />
                 {bidErr ? <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.danger, textAlign: 'center' }}>{bidErr}</Text> : null}
@@ -415,7 +415,7 @@ export default function BidRequestsScreen() {
                   </PressableScale>
                 </View>
                 <View style={{ backgroundColor: Palette.canvas, borderRadius: 16, padding: 16, gap: 10 }}>
-                  <Text style={{ fontFamily: Font.heading, fontSize: 12, color: Palette.textMuted, textTransform: 'uppercase', letterSpacing: 0.5 }}>order summary</Text>
+                  <Text style={{ fontFamily: Font.heading, fontSize: 12, color: Palette.textSecondary, textTransform: 'uppercase', letterSpacing: 0.5 }}>order summary</Text>
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                     <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary }}>Price per serving</Text>
                     <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: INK }}>${agreementTarget?.bid.pricePerServing.toFixed(2)}</Text>
@@ -456,12 +456,12 @@ export default function BidRequestsScreen() {
                 </View>
                 {agreementTarget?.bid.note ? (
                   <View style={{ backgroundColor: Palette.canvas, borderRadius: 14, padding: 14 }}>
-                    <Text style={{ fontFamily: Font.heading, fontSize: 12, color: Palette.textMuted, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>Note from prepper</Text>
+                    <Text style={{ fontFamily: Font.heading, fontSize: 12, color: Palette.textSecondary, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>Note from prepper</Text>
                     <Text style={{ fontFamily: Font.body, fontSize: 13.5, color: Palette.textSecondary, lineHeight: 20 }}>{agreementTarget.bid.note}</Text>
                   </View>
                 ) : null}
                 <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10, backgroundColor: paymentsOn ? Palette.brandTint : Palette.canvas, borderRadius: 14, padding: 14 }}>
-                  <ShoppingBag size={16} color={paymentsOn ? ORANGE : Palette.textMuted} style={{ marginTop: 1 }} />
+                  <ShoppingBag size={16} color={paymentsOn ? ORANGE : Palette.textSecondary} style={{ marginTop: 1 }} />
                   <Text style={{ flex: 1, fontFamily: Font.body, fontSize: 13, color: paymentsOn ? ORANGE : Palette.textSecondary, lineHeight: 19 }}>
                     {paymentsOn ? 'Payment is secured via Stripe and only collected when you tap Agree & Pay. You can cancel before the prepper starts cooking.' : 'Pay when confirmed — no charge until your prepper confirms the order.'}
                   </Text>
@@ -471,7 +471,7 @@ export default function BidRequestsScreen() {
                     <Text style={{ fontFamily: Font.medium, fontSize: 13, color: '#991B1B' }}>{agreementError}</Text>
                   </View>
                 ) : null}
-                <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted, textAlign: 'center', lineHeight: 17 }}>
+                <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary, textAlign: 'center', lineHeight: 17 }}>
                   By tapping below you agree to Preppa's Terms of Service. Both parties are bound to fulfil this agreement.
                 </Text>
                 <View style={{ flexDirection: 'row', gap: 10 }}>

@@ -36,7 +36,7 @@ import { useAuth } from '@/providers/auth-provider';
 const BG = Palette.prepperBg;
 const CARD = Palette.prepperCard;
 const ORANGE = Palette.brand;
-const MUTED = Palette.textMuted;
+const MUTED = Palette.textSecondary;
 const RED = '#EF4444';
 
 const PRO_FEATURES = [

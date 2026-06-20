@@ -49,7 +49,7 @@ function ProfileField({ label, icon, error, hint, delay, children }: {
         <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: Palette.inkSoft }}>{label}</Text>
       </View>
       {children}
-      {hint ? <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted, marginTop: 4 }}>{hint}</Text> : null}
+      {hint ? <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary, marginTop: 4 }}>{hint}</Text> : null}
       {error ? <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.danger, marginTop: 4 }}>{error}</Text> : null}
     </MotiView>
   );
@@ -179,7 +179,7 @@ export default function EditProfileScreen() {
 
               <ProfileField label="full name" icon={<User size={14} color={Palette.textSecondary} />} error={errors.full_name} delay={80}>
                 <TextInput value={fields.full_name} onChangeText={(v) => set('full_name', v)} onBlur={() => onBlur('full_name')}
-                  placeholder="Your full name" placeholderTextColor={Palette.textMuted} accessibilityLabel="Full name"
+                  placeholder="Your full name" placeholderTextColor={Palette.textSecondary} accessibilityLabel="Full name"
                   returnKeyType="next" textContentType="name" maxLength={80}
                   style={inputStyle(!!errors.full_name)} />
               </ProfileField>
@@ -187,7 +187,7 @@ export default function EditProfileScreen() {
               <ProfileField label="username" error={errors.username} delay={120}
                 hint={fields.username.length >= 3 && !errors.username ? `preppa.live/@${fields.username.toLowerCase()}` : undefined}>
                 <TextInput value={fields.username} onChangeText={(v) => set('username', v.toLowerCase())} onBlur={() => onBlur('username')}
-                  placeholder="your_handle" placeholderTextColor={Palette.textMuted} autoCapitalize="none" autoCorrect={false}
+                  placeholder="your_handle" placeholderTextColor={Palette.textSecondary} autoCapitalize="none" autoCorrect={false}
                   returnKeyType="next" textContentType="username" maxLength={30}
                   accessibilityLabel="Username" style={inputStyle(!!errors.username)} />
               </ProfileField>
@@ -195,21 +195,21 @@ export default function EditProfileScreen() {
               <ProfileField label="bio" error={errors.bio} delay={160}
                 hint={`${fields.bio.length}/200`}>
                 <TextInput value={fields.bio} onChangeText={(v) => set('bio', v)} onBlur={() => onBlur('bio')}
-                  placeholder="Tell people a little about yourself…" placeholderTextColor={Palette.textMuted}
+                  placeholder="Tell people a little about yourself…" placeholderTextColor={Palette.textSecondary}
                   multiline numberOfLines={3} maxLength={200} accessibilityLabel="Bio"
                   style={{ ...inputStyle(!!errors.bio), minHeight: 88, textAlignVertical: 'top' }} />
               </ProfileField>
 
               <ProfileField label="location" icon={<MapPin size={14} color={Palette.textSecondary} />} delay={200}>
                 <TextInput value={fields.location} onChangeText={(v) => set('location', v.slice(0, 80))}
-                  placeholder="City, State" placeholderTextColor={Palette.textMuted} accessibilityLabel="Location"
+                  placeholder="City, State" placeholderTextColor={Palette.textSecondary} accessibilityLabel="Location"
                   returnKeyType="next" textContentType="location" maxLength={80}
                   style={inputStyle()} />
               </ProfileField>
 
               <ProfileField label="website (optional)" icon={<Globe size={14} color={Palette.textSecondary} />} error={errors.website} delay={240}>
                 <TextInput value={fields.website} onChangeText={(v) => set('website', v)} onBlur={() => onBlur('website')}
-                  placeholder="https://yoursite.com" placeholderTextColor={Palette.textMuted}
+                  placeholder="https://yoursite.com" placeholderTextColor={Palette.textSecondary}
                   autoCapitalize="none" autoCorrect={false} keyboardType="url" accessibilityLabel="Website URL"
                   returnKeyType="done" textContentType="URL" maxLength={200}
                   style={inputStyle(!!errors.website)} />
@@ -228,7 +228,7 @@ export default function EditProfileScreen() {
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={{ fontFamily: Font.heading, fontSize: 14, color: Palette.ink }}>Dietary preferences</Text>
-                  <Text style={{ fontFamily: Font.body, fontSize: 11.5, color: Palette.textMuted, marginTop: 1 }}>Restrictions, allergies & cuisines</Text>
+                  <Text style={{ fontFamily: Font.body, fontSize: 11.5, color: Palette.textSecondary, marginTop: 1 }}>Restrictions, allergies & cuisines</Text>
                 </View>
                 <ChevronRight size={15} color={Palette.textSecondary} />
               </PressableScale>

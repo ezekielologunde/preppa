@@ -16,6 +16,7 @@ export type BidRequestType = MealRequest;
 
 const ORANGE = Palette.brand;
 const INK = Palette.ink;
+const S1 = { shadowColor: '#1A1714', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 };
 
 export function Stepper({ value, onChange, min = 1, max = 100 }: { value: number; onChange: (n: number) => void; min?: number; max?: number }) {
   return (
@@ -63,7 +64,7 @@ export function BudgetPerServingPicker({ value, onChange }: { value: number | nu
             <Text style={{ fontFamily: Font.heading, fontSize: 14, color: Palette.textSecondary }}>$</Text>
           </View>
           <TextInput value={raw} onChangeText={(t) => { const n = t.replace(/[^0-9.]/g, ''); setRaw(n); const v = parseFloat(n); onChange(!isNaN(v) && v > 0 ? v : null); }}
-            placeholder="per serving" placeholderTextColor={Palette.textMuted} keyboardType="numeric" maxLength={6}
+            placeholder="per serving" placeholderTextColor={Palette.textSecondary} keyboardType="numeric" maxLength={6}
             style={{ flex: 1, height: 46, paddingHorizontal: 12, fontFamily: Font.body, fontSize: 14, color: INK }}
             accessibilityLabel="Custom budget per serving" />
         </View>
@@ -74,7 +75,7 @@ export function BudgetPerServingPicker({ value, onChange }: { value: number | nu
 
 export function RequestCard({ r, isPrepper, onBid }: { r: BidRequestType; isPrepper: boolean; onBid: (r: BidRequestType) => void }) {
   return (
-    <View style={{ backgroundColor: Palette.surface, borderRadius: 20, padding: 16, gap: 10, marginBottom: 12 }}>
+    <View style={{ backgroundColor: Palette.surface, borderRadius: 20, padding: 16, gap: 10, marginBottom: 12, ...S1 }}>
       <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8 }}>
         <View style={{ flex: 1 }}>
           <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>{r.title}</Text>
@@ -88,24 +89,24 @@ export function RequestCard({ r, isPrepper, onBid }: { r: BidRequestType; isPrep
       </View>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-          <Users size={13} color={Palette.textMuted} />
+          <Users size={13} color={Palette.textSecondary} />
           <Text style={{ fontFamily: Font.medium, fontSize: 12.5, color: Palette.textSecondary }}>{r.servings} servings</Text>
         </View>
         {r.budget_per_serving != null ? (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-            <DollarSign size={13} color={Palette.textMuted} />
+            <DollarSign size={13} color={Palette.textSecondary} />
             <Text style={{ fontFamily: Font.medium, fontSize: 12.5, color: Palette.textSecondary }}>${r.budget_per_serving}/serving budget</Text>
           </View>
         ) : null}
         {r.deadline ? (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-            <Clock size={13} color={Palette.textMuted} />
+            <Clock size={13} color={Palette.textSecondary} />
             <Text style={{ fontFamily: Font.medium, fontSize: 12.5, color: Palette.textSecondary }}>by {new Date(r.deadline).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</Text>
           </View>
         ) : null}
       </View>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 2 }}>
-        <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted }}>from {r.poster}{r.cuisine ? ` · ${r.cuisine}` : ''}</Text>
+        <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary }}>from {r.poster}{r.cuisine ? ` · ${r.cuisine}` : ''}</Text>
         {isPrepper ? (
           <PressableScale onPress={() => onBid(r)} accessibilityRole="button" accessibilityLabel={`Bid on ${r.title}`}
             style={{ height: 38, paddingHorizontal: 18, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
@@ -173,14 +174,16 @@ export function ManageRequestModal({ request, onClose, onReviewBid }: ManageModa
                       <Text style={{ fontFamily: Font.heading, fontSize: 14, color: '#fff' }}>Review & accept bid</Text>
                     </PressableScale>
                   ) : (
-                    <Text style={{ fontFamily: Font.medium, fontSize: 12, color: Palette.textMuted, textTransform: 'capitalize' }}>{b.status}</Text>
+                    <Text style={{ fontFamily: Font.medium, fontSize: 12, color: Palette.textSecondary, textTransform: 'capitalize' }}>{b.status}</Text>
                   )}
                 </View>
               ))
             ) : (
-              <View style={{ alignItems: 'center', paddingVertical: 24 }}>
-                <Clock size={24} color={Palette.textMuted} />
-                <Text style={{ fontFamily: Font.body, fontSize: 13.5, color: Palette.textSecondary, marginTop: 10, textAlign: 'center', lineHeight: 20 }}>
+              <View style={{ alignItems: 'center', paddingVertical: 24, gap: 10 }}>
+                <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: Palette.canvas, alignItems: 'center', justifyContent: 'center', shadowColor: '#1A1714', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 4, elevation: 2 }}>
+                  <Clock size={28} color={Palette.textSecondary} />
+                </View>
+                <Text style={{ fontFamily: Font.body, fontSize: 13.5, color: Palette.textSecondary, textAlign: 'center', lineHeight: 20 }}>
                   No bids yet. Preppers in your area will see your request and send bids soon.
                 </Text>
               </View>

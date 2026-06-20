@@ -111,7 +111,7 @@ export function MealCardActionSheet({ meal, visible, onClose }: Props) {
                   <action.icon size={18} color={action.color} />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={{ fontFamily: Font.semibold, fontSize: 15, color: action.disabled ? Palette.textMuted : Palette.ink }}>{action.label}</Text>
+                  <Text style={{ fontFamily: Font.semibold, fontSize: 15, color: action.disabled ? Palette.textSecondary : Palette.ink }}>{action.label}</Text>
                   <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary, marginTop: 1 }}>{action.sublabel}</Text>
                 </View>
               </PressableScale>

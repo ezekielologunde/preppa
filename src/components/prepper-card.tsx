@@ -109,21 +109,21 @@ export function PrepperCard({ prepper, showRank = false, isLive = false }: { pre
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
             <Star size={13} color={Palette.amber} fill={Palette.amber} />
             <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: Palette.inkSoft }}>{prepper.rating.toFixed(1)}</Text>
-            <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted }}>({prepper.reviews})</Text>
+            <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary }}>({prepper.reviews})</Text>
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-            <Text style={{ fontSize: 7, color: prepper.isOpenNow ? '#10B981' : Palette.textMuted, lineHeight: 12 }}>{prepper.isOpenNow ? '●' : '○'}</Text>
-            <Text style={{ fontFamily: Font.medium, fontSize: 10, color: prepper.isOpenNow ? '#10B981' : Palette.textMuted }}>
+            <Text style={{ fontSize: 7, color: prepper.isOpenNow ? '#10B981' : Palette.textSecondary, lineHeight: 12 }}>{prepper.isOpenNow ? '●' : '○'}</Text>
+            <Text style={{ fontFamily: Font.medium, fontSize: 10, color: prepper.isOpenNow ? '#10B981' : Palette.textSecondary }}>
               {prepper.isOpenNow ? 'Open' : 'Closed'}
             </Text>
           </View>
           {prepper.tags.length ? (
-            <Text numberOfLines={1} style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted }}>{prepper.tags.join(' · ')}</Text>
+            <Text numberOfLines={1} style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary }}>{prepper.tags.join(' · ')}</Text>
           ) : null}
           {distanceKm != null && distanceKm < Infinity ? (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
-              <MapPin size={10} color={Palette.textMuted} />
-              <Text style={{ fontFamily: Font.body, fontSize: 11, color: Palette.textMuted }}>{formatDistance(distanceKm)}</Text>
+              <MapPin size={10} color={Palette.textSecondary} />
+              <Text style={{ fontFamily: Font.body, fontSize: 11, color: Palette.textSecondary }}>{formatDistance(distanceKm)}</Text>
             </View>
           ) : null}
           {prepper.from != null ? (

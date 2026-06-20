@@ -33,7 +33,7 @@ function paint(variant: Variant): { bg: string; fg: string; border?: ViewStyle }
     case 'ink':
       return { bg: Palette.ink, fg: '#fff' };
     case 'muted':
-      return { bg: Palette.chip, fg: Palette.textMuted };
+      return { bg: Palette.chip, fg: Palette.textSecondary };
     default:
       return { bg: Palette.brand, fg: '#fff' };
   }

@@ -27,7 +27,7 @@ export function DayPicker({ selected, onChange, label = 'AVAILABLE DAYS' }: DayP
 
   return (
     <View style={{ gap: 6 }}>
-      <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: Palette.textMuted }}>{label}</Text>
+      <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: Palette.textSecondary }}>{label}</Text>
       <View style={{ flexDirection: 'row', gap: 6 }}>
         {DAYS.map((day) => {
           const sel = selected.includes(day);
@@ -43,7 +43,7 @@ export function DayPicker({ selected, onChange, label = 'AVAILABLE DAYS' }: DayP
                 accessibilityState={{ checked: sel }}
                 accessibilityLabel={`${sel ? 'Remove' : 'Add'} ${day}`}
                 style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-                <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: sel ? '#fff' : Palette.textMuted }}>
+                <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: sel ? '#fff' : Palette.textSecondary }}>
                   {day}
                 </Text>
               </PressableScale>
@@ -51,7 +51,7 @@ export function DayPicker({ selected, onChange, label = 'AVAILABLE DAYS' }: DayP
           );
         })}
       </View>
-      <Text style={{ fontFamily: Font.body, fontSize: 11, color: Palette.textMuted }}>
+      <Text style={{ fontFamily: Font.body, fontSize: 11, color: Palette.textSecondary }}>
         leave empty = always available
       </Text>
     </View>

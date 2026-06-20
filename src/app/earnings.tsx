@@ -16,11 +16,13 @@ import { useMyEarnings, usePrepperRefunds, type EarningsRecent, type RefundRow }
 import { useStripeConnect } from '@/lib/queries/stripe-connect';
 
 const ORANGE = Palette.brand;
-const GREEN = Palette.success;
-const RED = Palette.danger;
-const CARD = Palette.prepperCard;
-const BG = Palette.prepperBg;
-const MUTED = Palette.textMuted;
+const GREEN  = Palette.success;
+const RED    = Palette.danger;
+const CARD   = '#FFFFFF';
+const BG     = '#F8F6F3';
+const INK    = '#1A1714';
+const MUTED  = '#78716C';
+const BORDER = '#EDE9E4';
 
 const money = (n: number) => `$${(n ?? 0).toFixed(2)}`;
 const shortDate = (iso: string) => {
@@ -55,7 +57,7 @@ function PeriodPills({ value, onChange }: { value: Period; onChange: (p: Period)
         return (
           <TouchableOpacity key={key} onPress={() => { feedback.tap(); onChange(key); }}
             style={{ borderRadius: Radius.pill, paddingHorizontal: 14, height: 44, alignItems: 'center', justifyContent: 'center',
-              backgroundColor: active ? ORANGE : CARD, borderWidth: active ? 0 : 1, borderColor: '#ffffff18' }}>
+              backgroundColor: active ? ORANGE : CARD, borderWidth: active ? 0 : 1, borderColor: BORDER }}>
             <Text style={{ fontFamily: Font.medium, fontSize: 12.5, color: active ? '#fff' : MUTED }}>{label}</Text>
           </TouchableOpacity>
         );
@@ -70,7 +72,7 @@ function MiniStat({ label, value, Icon, color }: { label: string; value: string;
       <View style={{ width: 34, height: 34, borderRadius: 11, backgroundColor: color + '22', alignItems: 'center', justifyContent: 'center' }}>
         <Icon size={18} color={color} />
       </View>
-      <Text style={{ fontFamily: Font.heading, fontSize: 19, color: '#fff' }}>{value}</Text>
+      <Text style={{ fontFamily: Font.heading, fontSize: 19, color: INK }}>{value}</Text>
       <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: MUTED }}>{label}</Text>
     </View>
   );
@@ -84,18 +86,18 @@ function EarningRow({ item }: { item: EarningsRecent }) {
   const who = item.customer_first ? `${item.customer_first} · ` : '';
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: CARD, borderRadius: 16, padding: 14 }}>
-      <View style={{ width: 38, height: 38, borderRadius: 12, backgroundColor: refunded ? '#7f1d1d' : ORANGE + '22', alignItems: 'center', justifyContent: 'center' }}>
-        <Receipt size={18} color={refunded ? '#fecaca' : ORANGE} />
+      <View style={{ width: 38, height: 38, borderRadius: 12, backgroundColor: refunded ? RED + '15' : ORANGE + '22', alignItems: 'center', justifyContent: 'center' }}>
+        <Receipt size={18} color={refunded ? RED : ORANGE} />
       </View>
       <View style={{ flex: 1 }}>
-        <Text numberOfLines={1} style={{ fontFamily: Font.semibold, fontSize: 14.5, color: '#fff' }}>{title}</Text>
+        <Text numberOfLines={1} style={{ fontFamily: Font.semibold, fontSize: 14.5, color: INK }}>{title}</Text>
         <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: MUTED }}>
           {who}{shortDate(item.created_at)}{!refunded && Number(item.fees) > 0 ? ` · ${money(item.amount)} − ${money(item.fees)} fees` : ''}
         </Text>
       </View>
       <View style={{ alignItems: 'flex-end' }}>
         <Text style={{ fontFamily: Font.heading, fontSize: 15, color: refunded ? MUTED : GREEN }}>{refunded ? money(0) : `+${money(net)}`}</Text>
-        {refunded ? <Text style={{ fontFamily: Font.medium, fontSize: 11.5, color: '#fca5a5' }}>refunded</Text> : null}
+        {refunded ? <Text style={{ fontFamily: Font.medium, fontSize: 11.5, color: RED }}>refunded</Text> : null}
       </View>
     </View>
   );
@@ -110,7 +112,7 @@ function RefundRow({ item }: { item: RefundRow }) {
         <Receipt size={18} color={RED} />
       </View>
       <View style={{ flex: 1 }}>
-        <Text numberOfLines={1} style={{ fontFamily: Font.semibold, fontSize: 14, color: '#fff' }}>{shortId}</Text>
+        <Text numberOfLines={1} style={{ fontFamily: Font.semibold, fontSize: 14, color: INK }}>{shortId}</Text>
         <Text numberOfLines={1} style={{ fontFamily: Font.body, fontSize: 12, color: MUTED }}>{shortDate(item.created_at)} · {reason}</Text>
       </View>
       <Text style={{ fontFamily: Font.heading, fontSize: 14.5, color: RED }}>−{money(item.amount)}</Text>
@@ -128,7 +130,6 @@ export default function EarningsScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [period, setPeriod] = useState<Period>('month');
 
-  // When Stripe redirects back after onboarding, sync the account status.
   useEffect(() => {
     if (params.stripe === 'return' || params.stripe === 'refresh') {
       void syncStatus.mutateAsync().catch(() => {});
@@ -177,9 +178,9 @@ export default function EarningsScreen() {
           <PressableScale onPress={() => { feedback.tap(); if (router.canGoBack()) { router.back(); } else { router.replace('/dashboard'); } }}
             accessibilityRole="button" accessibilityLabel="Go back"
             style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center' }}>
-            <ChevronLeft size={22} color="#fff" />
+            <ChevronLeft size={22} color={INK} />
           </PressableScale>
-          <Text style={{ fontFamily: Font.display, fontSize: 24, color: '#fff', letterSpacing: -0.6, flex: 1 }}>earnings</Text>
+          <Text style={{ fontFamily: Font.display, fontSize: 24, color: INK, letterSpacing: -0.6, flex: 1 }}>earnings</Text>
           {data?.is_prepper && (
             <TouchableOpacity onPress={exportTaxCSV} accessibilityRole="button" accessibilityLabel="Export earnings as CSV"
               style={{ flexDirection: 'row', alignItems: 'center', gap: 6, borderWidth: 1.5, borderColor: ORANGE,
@@ -192,17 +193,15 @@ export default function EarningsScreen() {
 
         {isLoading ? (
           <View style={{ padding: 20, gap: 14 }}>
-            <Skeleton width="100%" height={140} radius={22} style={{ backgroundColor: '#ffffff18' }} />
+            <Skeleton width="100%" height={140} radius={22} />
             <View style={{ flexDirection: 'row', gap: 14 }}>
-              <Skeleton height={96} radius={18} style={{ flex: 1, backgroundColor: '#ffffff18' }} />
-              <Skeleton height={96} radius={18} style={{ flex: 1, backgroundColor: '#ffffff18' }} />
+              <Skeleton height={96} radius={18} style={{ flex: 1 }} />
+              <Skeleton height={96} radius={18} style={{ flex: 1 }} />
             </View>
-            <Skeleton width="100%" height={56} radius={16} style={{ backgroundColor: '#ffffff18' }} />
-            <Skeleton width="100%" height={128} radius={18} style={{ backgroundColor: '#ffffff18' }} />
-            <Skeleton width={80} height={20} radius={6} style={{ backgroundColor: '#ffffff18' }} />
-            {[0, 1, 2].map(i => (
-              <Skeleton key={i} width="100%" height={66} radius={16} style={{ backgroundColor: '#ffffff18' }} />
-            ))}
+            <Skeleton width="100%" height={56} radius={16} />
+            <Skeleton width="100%" height={128} radius={18} />
+            <Skeleton width={80} height={20} radius={6} />
+            {[0, 1, 2].map(i => <Skeleton key={i} width="100%" height={66} radius={16} />)}
           </View>
         ) : isError ? (
           <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }}
@@ -210,7 +209,7 @@ export default function EarningsScreen() {
             <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center' }}>
               <TrendingUp size={28} color={MUTED} />
             </View>
-            <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>couldn't load earnings</Text>
+            <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>couldn't load earnings</Text>
             <Text style={{ fontFamily: Font.body, fontSize: 14, color: MUTED, textAlign: 'center' }}>Check your connection and try again.</Text>
             <PressableScale onPress={() => { feedback.tap(); void refetch(); }} accessibilityRole="button" accessibilityLabel="Retry loading earnings"
               style={{ marginTop: 6, backgroundColor: ORANGE, borderRadius: Radius.pill, paddingHorizontal: 22, paddingVertical: 12 }}>
@@ -220,9 +219,9 @@ export default function EarningsScreen() {
         ) : !data?.is_prepper ? (
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
             <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center' }}>
-              <Wallet size={28} color="#5b6170" />
+              <Wallet size={28} color={MUTED} />
             </View>
-            <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>No earnings yet</Text>
+            <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>No earnings yet</Text>
             <Text style={{ fontFamily: Font.body, fontSize: 14, color: MUTED, textAlign: 'center' }}>Become a prepper and your sales will show up here.</Text>
             <PressableScale onPress={() => { feedback.tap(); router.push('/become-prepper'); }} accessibilityRole="button" accessibilityLabel="Become a prepper"
               style={{ marginTop: 6, backgroundColor: ORANGE, borderRadius: Radius.pill, paddingHorizontal: 22, paddingVertical: 12 }}>
@@ -244,7 +243,7 @@ export default function EarningsScreen() {
                     </View>
                     <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: MUTED }}>Net earnings</Text>
                   </View>
-                  <Text style={{ fontFamily: Font.display, fontSize: 40, color: '#fff', letterSpacing: -1 }}>{money(data.net_total)}</Text>
+                  <Text style={{ fontFamily: Font.display, fontSize: 40, color: INK, letterSpacing: -1 }}>{money(data.net_total)}</Text>
                   <Text style={{ fontFamily: Font.body, fontSize: 13, color: MUTED }}>
                     from {data.orders_paid} paid {data.orders_paid === 1 ? 'preorder' : 'preorders'}
                     {Number(data.refunded_total) > 0 ? ` · ${money(data.refunded_total)} refunded` : ''}
@@ -284,7 +283,7 @@ export default function EarningsScreen() {
                 <View style={{ backgroundColor: CARD, borderRadius: 18, padding: 16, gap: 12 }}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                     <Lightbulb size={16} color={ORANGE} />
-                    <Text style={{ fontFamily: Font.heading, fontSize: 13.5, color: '#fff' }}>prepper insights</Text>
+                    <Text style={{ fontFamily: Font.heading, fontSize: 13.5, color: INK }}>prepper insights</Text>
                   </View>
                   {[
                     data.net_week < 50
@@ -298,7 +297,7 @@ export default function EarningsScreen() {
                   ].map(({ tip }, i) => (
                     <View key={i} style={{ flexDirection: 'row', gap: 10, alignItems: 'flex-start' }}>
                       <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: ORANGE, marginTop: 6 }} />
-                      <Text style={{ flex: 1, fontFamily: Font.body, fontSize: 12.5, color: '#cbd5e1', lineHeight: 18 }}>{tip}</Text>
+                      <Text style={{ flex: 1, fontFamily: Font.body, fontSize: 12.5, color: MUTED, lineHeight: 18 }}>{tip}</Text>
                     </View>
                   ))}
                 </View>
@@ -306,7 +305,7 @@ export default function EarningsScreen() {
 
               {/* Period selector + Recent */}
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 }}>
-                <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>Recent</Text>
+                <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>Recent</Text>
                 <PeriodPills value={period} onChange={setPeriod} />
               </View>
 
@@ -316,9 +315,9 @@ export default function EarningsScreen() {
                   <View style={{ width: 52, height: 52, borderRadius: 16, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center' }}>
                     <Receipt size={22} color={MUTED} />
                   </View>
-                  <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#fff', textAlign: 'center' }}>No paid orders yet</Text>
+                  <Text style={{ fontFamily: Font.heading, fontSize: 15, color: INK, textAlign: 'center' }}>No paid orders yet</Text>
                   <Text style={{ fontFamily: Font.body, fontSize: 13, color: MUTED, textAlign: 'center', lineHeight: 19 }}>Your first payout will show here once a customer checks out.</Text>
-                  <PressableScale onPress={() => { feedback.tap(); router.push('/prepper-hub'); }} accessibilityRole="button" accessibilityLabel="Go to kitchen hub"
+                  <PressableScale onPress={() => { feedback.tap(); router.push('/dashboard'); }} accessibilityRole="button" accessibilityLabel="Go to kitchen hub"
                     style={{ marginTop: 4, backgroundColor: ORANGE, borderRadius: Radius.pill, paddingHorizontal: 22, paddingVertical: 11 }}>
                     <Text style={{ fontFamily: Font.semibold, fontSize: 13.5, color: '#fff' }}>kitchen hub →</Text>
                   </PressableScale>
@@ -337,7 +336,7 @@ export default function EarningsScreen() {
               <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 100 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8 }}>
                   <Shield size={15} color={MUTED} />
-                  <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#fff' }}>Refunds</Text>
+                  <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>Refunds</Text>
                 </View>
 
                 {refunds.length === 0 ? (
@@ -346,7 +345,7 @@ export default function EarningsScreen() {
                       <Shield size={18} color={GREEN} />
                     </View>
                     <View style={{ flex: 1 }}>
-                      <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: '#fff' }}>No refunds — great work!</Text>
+                      <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: INK }}>No refunds — great work!</Text>
                       <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: MUTED }}>Refund requests will appear here.</Text>
                     </View>
                   </View>

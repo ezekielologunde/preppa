@@ -52,9 +52,9 @@ function ReferralRow({ status, creditAmount, createdAt, completedAt }: {
           {status === 'pending' ? 'Shared' : 'Friend joined'} {date}
         </Text>
         {status === 'pending' ? (
-          <Text style={{ fontSize: 11, color: Palette.textMuted, fontFamily: Font.body, marginTop: 1 }}>Shared via link</Text>
+          <Text style={{ fontSize: 11, color: Palette.textSecondary, fontFamily: Font.body, marginTop: 1 }}>Shared via link</Text>
         ) : (
-          <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted, marginTop: 1 }}>
+          <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary, marginTop: 1 }}>
             ${creditAmount.toFixed(2)} credit earned
           </Text>
         )}
@@ -215,7 +215,7 @@ export default function ReferralScreen() {
 
           {/* Fine print */}
           <View style={{ paddingHorizontal: 20, marginTop: 20 }}>
-            <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted, lineHeight: 17 }}>
+            <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary, lineHeight: 17 }}>
               Credits are applied automatically after your referee's first order is confirmed. One credit per referral. Credits do not expire.
             </Text>
           </View>

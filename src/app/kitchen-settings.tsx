@@ -183,7 +183,7 @@ export default function KitchenSettingsScreen() {
                   {avatarUrl ? (
                     <Image source={{ uri: avatarUrl }} style={{ width: 100, height: 100 }} contentFit="cover" accessibilityLabel="Kitchen cover photo" />
                   ) : (
-                    <ChefHat size={36} color={Palette.textMuted} />
+                    <ChefHat size={36} color={Palette.textSecondary} />
                   )}
                 </View>
                 <View style={{ position: 'absolute', bottom: 0, right: 0, width: 32, height: 32, borderRadius: 16, backgroundColor: Palette.brand, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: Palette.canvas }}>
@@ -195,7 +195,7 @@ export default function KitchenSettingsScreen() {
                   {uploadErr}
                 </Text>
               ) : null}
-              <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted, marginTop: 6 }}>
+              <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary, marginTop: 6 }}>
                 tap to change kitchen photo
               </Text>
             </MotiView>
@@ -217,7 +217,7 @@ export default function KitchenSettingsScreen() {
                   value={displayName}
                   onChangeText={(v) => { setDisplayName(v); setNameError(null); }}
                   placeholder="Your kitchen name"
-                  placeholderTextColor={Palette.textMuted}
+                  placeholderTextColor={Palette.textSecondary}
                   returnKeyType="next"
                   maxLength={60}
                   accessibilityLabel="Kitchen name"
@@ -237,14 +237,14 @@ export default function KitchenSettingsScreen() {
                   value={bio}
                   onChangeText={setBio}
                   placeholder="Tell customers what makes your kitchen special…"
-                  placeholderTextColor={Palette.textMuted}
+                  placeholderTextColor={Palette.textSecondary}
                   multiline
                   numberOfLines={4}
                   maxLength={200}
                   accessibilityLabel="Kitchen bio"
                   style={{ ...inputStyle(), minHeight: 96, textAlignVertical: 'top' }}
                 />
-                <Text style={{ fontFamily: Font.body, fontSize: 11.5, color: Palette.textMuted, marginTop: 4, textAlign: 'right' }}>
+                <Text style={{ fontFamily: Font.body, fontSize: 11.5, color: Palette.textSecondary, marginTop: 4, textAlign: 'right' }}>
                   {bio.length}/200
                 </Text>
               </View>
@@ -259,7 +259,7 @@ export default function KitchenSettingsScreen() {
                   value={city}
                   onChangeText={(v) => setCity(v.slice(0, 80))}
                   placeholder="City, State"
-                  placeholderTextColor={Palette.textMuted}
+                  placeholderTextColor={Palette.textSecondary}
                   returnKeyType="done"
                   textContentType="addressCity"
                   maxLength={80}
@@ -278,7 +278,7 @@ export default function KitchenSettingsScreen() {
               <Text style={{ fontFamily: Font.display, fontSize: 15, color: Palette.ink, letterSpacing: -0.3, marginBottom: 4 }}>
                 cuisine specialties
               </Text>
-              <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: Palette.textMuted, marginBottom: 12 }}>
+              <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: Palette.textSecondary, marginBottom: 12 }}>
                 Select all that apply — these appear on your kitchen page.
               </Text>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>

@@ -33,7 +33,7 @@ export function FavoriteButton({ id, size = 30 }: { id: string; size?: number })
         from={{ scale: on ? 0.6 : 1 }}
         animate={{ scale: 1 }}
         transition={{ type: 'spring', damping: 12, stiffness: 260 }}>
-        <Heart size={size * 0.53} color={on ? Palette.danger : Palette.textMuted} fill={on ? Palette.danger : 'transparent'} />
+        <Heart size={size * 0.53} color={on ? Palette.danger : Palette.textSecondary} fill={on ? Palette.danger : 'transparent'} />
       </MotiView>
     </Pressable>
   );

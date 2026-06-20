@@ -58,7 +58,7 @@ export function OrderReceiptPanel({ order }: { order: OrderSummary }) {
         <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: Palette.ink }}>
           {orderRef(order.id)}
         </Text>
-        <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted }}>
+        <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary }}>
           {orderDate(order.created_at)}
         </Text>
       </View>
@@ -97,7 +97,7 @@ export function OrderReceiptPanel({ order }: { order: OrderSummary }) {
 
       {/* Payment status */}
       {order.paymentStatus ? (
-        <Text style={{ fontFamily: Font.body, fontSize: 11.5, color: Palette.textMuted, marginTop: 6, textAlign: 'right' }}>
+        <Text style={{ fontFamily: Font.body, fontSize: 11.5, color: Palette.textSecondary, marginTop: 6, textAlign: 'right' }}>
           {order.paymentStatus === 'succeeded' ? 'Paid' : order.paymentStatus === 'refunded' ? 'Refunded' : order.paymentStatus}
         </Text>
       ) : null}

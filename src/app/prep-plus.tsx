@@ -207,7 +207,7 @@ export default function PrepPlusScreen() {
               )}
             </PressableScale>
           )}
-          <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textMuted, textAlign: 'center' }}>
+          <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary, textAlign: 'center' }}>
             Cancel anytime · Stripe-secured billing
           </Text>
         </View>

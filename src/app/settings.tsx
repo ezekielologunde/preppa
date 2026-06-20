@@ -22,32 +22,16 @@ type Bucket = {
 const BUCKETS: Bucket[] = [
   {
     key: 'account',
-    title: 'Personalization & Logistics',
+    title: 'Account',
     sub: 'Profile, delivery addresses, payment & invoicing',
     Icon: SlidersHorizontal,
     tint: Palette.brand,
     route: '/settings-account',
   },
   {
-    key: 'help',
-    title: 'Help & Knowledge Center',
-    sub: 'FAQs, message your chef, contact Preppa support',
-    Icon: LifeBuoy,
-    tint: '#16A34A',
-    route: '/settings-help',
-  },
-  {
-    key: 'about',
-    title: 'App Identity & Community',
-    sub: 'Our mission, version, terms & attributions',
-    Icon: Info,
-    tint: '#7C3AED',
-    route: '/settings-about',
-  },
-  {
     key: 'privacy',
-    title: 'Privacy, Security & Account',
-    sub: 'Notifications, security, delete account',
+    title: 'Privacy & Security',
+    sub: 'Notifications, password, data download & account deletion',
     Icon: ShieldCheck,
     tint: '#0EA5E9',
     route: '/settings-privacy',
@@ -55,10 +39,26 @@ const BUCKETS: Bucket[] = [
   {
     key: 'app',
     title: 'App Preferences',
-    sub: 'Haptics, display, privacy toggles & cached data',
+    sub: 'Haptics, display, theme & cached data',
     Icon: Settings2,
-    tint: Palette.brand,
+    tint: '#7C3AED',
     route: '/settings-app',
+  },
+  {
+    key: 'help',
+    title: 'Help & Support',
+    sub: 'FAQs, contact Preppa, message your chef',
+    Icon: LifeBuoy,
+    tint: '#16A34A',
+    route: '/settings-help',
+  },
+  {
+    key: 'about',
+    title: 'About Preppa',
+    sub: 'Our mission, version info, terms & community',
+    Icon: Info,
+    tint: Palette.brand,
+    route: '/settings-about',
   },
 ];
 
@@ -79,7 +79,7 @@ function BucketCard({ bucket, index }: { bucket: Bucket; index: number }) {
         </View>
         <View style={{ flex: 1 }}>
           <Text style={{ fontFamily: Font.heading, fontSize: 16, color: Palette.ink, letterSpacing: -0.2 }}>{bucket.title}</Text>
-          <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: Palette.textMuted, marginTop: 3, lineHeight: 17 }}>{bucket.sub}</Text>
+          <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: Palette.textSecondary, marginTop: 3, lineHeight: 17 }}>{bucket.sub}</Text>
         </View>
         <ChevronRight size={20} color={Palette.textSecondary} />
       </PressableScale>

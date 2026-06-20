@@ -118,7 +118,7 @@ function RequestCard({ r, onPress }: { r: MyExperienceRequest; onPress: () => vo
               <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: '#fff' }}>{pendingBids}</Text>
             </View>
           ) : null}
-          <ChevronRight size={16} color={Palette.textMuted} />
+          <ChevronRight size={16} color={Palette.textSecondary} />
         </View>
       </View>
     </PressableScale>
@@ -321,7 +321,7 @@ export default function ExperiencesScreen() {
               <Text style={{ fontFamily: Font.heading, fontSize: 13.5, color: Palette.ink }}>meal plans &amp; subscriptions</Text>
               <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: Palette.textSecondary, marginTop: 1 }}>weekly, monthly &amp; family — prepped on repeat</Text>
             </View>
-            <ChevronRight size={18} color={Palette.textMuted} />
+            <ChevronRight size={18} color={Palette.textSecondary} />
           </PressableScale>
 
           {/* ── How it works (new users only) ── */}

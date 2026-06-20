@@ -115,7 +115,7 @@ function SectionLabel({ children }: { children: string }) {
     <Text style={{
       fontFamily: Font.semibold,
       fontSize: 11,
-      color: Palette.textMuted,
+      color: Palette.textSecondary,
       letterSpacing: 0.7,
       textTransform: 'uppercase',
       marginBottom: 10,

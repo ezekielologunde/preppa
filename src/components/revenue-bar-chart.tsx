@@ -11,7 +11,7 @@ export function RevenueBarChart({ data }: Props) {
   if (!data.length) {
     return (
       <View style={{ paddingVertical: 24, alignItems: 'center' }}>
-        <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textMuted }}>
+        <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.textSecondary }}>
           No completed orders in the last 8 weeks.
         </Text>
       </View>
@@ -36,7 +36,7 @@ export function RevenueBarChart({ data }: Props) {
         {/* Y-axis labels */}
         <View style={{ width: Y_AXIS_WIDTH, height: CHART_HEIGHT, justifyContent: 'space-between', alignItems: 'flex-end', paddingRight: 6, paddingBottom: 0 }}>
           {yLabels.map(({ label }, i) => (
-            <Text key={i} style={{ fontFamily: Font.body, fontSize: 9, color: Palette.textMuted }}>
+            <Text key={i} style={{ fontFamily: Font.body, fontSize: 9, color: Palette.textSecondary }}>
               {label}
             </Text>
           ))}
@@ -75,7 +75,7 @@ export function RevenueBarChart({ data }: Props) {
               style={{
                 fontFamily: Font.body,
                 fontSize: 8,
-                color: i === peakIdx ? Palette.brand : Palette.textMuted,
+                color: i === peakIdx ? Palette.brand : Palette.textSecondary,
                 textAlign: 'center',
               }}
               numberOfLines={1}

@@ -9,7 +9,7 @@ import { feedback } from '@/lib/feedback';
 
 const CARD = Palette.surface;
 const INK = Palette.ink;
-const MUTED = Palette.textMuted;
+const MUTED = Palette.textSecondary;
 
 export function Sparkline({ color, data, w = 116, h = 30 }: { color: string; data: number[]; w?: number; h?: number }) {
   const max = Math.max(...data);
