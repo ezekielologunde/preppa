@@ -100,9 +100,9 @@ export function PrepperCard({ prepper, showRank = false, isLive = false }: { pre
             <Text numberOfLines={1} style={{ fontFamily: Font.heading, fontSize: 15, color: Palette.ink, flexShrink: 1 }}>{prepper.name}</Text>
             {prepper.verified ? <View accessibilityLabel="Verified kitchen" accessibilityRole="image"><BadgeCheck size={15} color={Palette.brand} fill={Palette.brand} stroke="#fff" /></View> : null}
             {prepper.isPro ? (
-              <View accessibilityLabel="Pro kitchen" accessibilityRole="image" style={{ flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: '#F59E0B18', borderRadius: 8, paddingHorizontal: 6, paddingVertical: 2 }}>
-                <Crown size={11} color="#F59E0B" fill="#F59E0B" />
-                <Text style={{ fontFamily: Font.semibold, fontSize: 10, color: '#F59E0B' }}>pro</Text>
+              <View accessibilityLabel="Pro kitchen" accessibilityRole="image" style={{ flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: Palette.amber + '18', borderRadius: 8, paddingHorizontal: 6, paddingVertical: 2 }}>
+                <Crown size={11} color={Palette.amber} fill={Palette.amber} />
+                <Text style={{ fontFamily: Font.semibold, fontSize: 10, color: Palette.amber }}>pro</Text>
               </View>
             ) : null}
           </View>

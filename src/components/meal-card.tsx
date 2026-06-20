@@ -167,7 +167,7 @@ function StockBadge({ stockRemaining }: { stockRemaining: number | null | undefi
   if (stockRemaining <= 0) {
     return (
       <View style={{ alignSelf: 'flex-start', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, backgroundColor: '#FEE2E2' }}>
-        <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: '#DC2626' }}>Sold out</Text>
+        <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: Palette.danger }}>Sold out</Text>
       </View>
     );
   }
@@ -248,7 +248,7 @@ export function MealCard({ meal, width = 200, variant = 'normal' }: { meal: Meal
 
             {/* Pro badge — top right (behind fav button) */}
             {meal.isPro ? (
-              <View style={{ position: 'absolute', top: 8, right: 8, flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: '#F59E0B', borderRadius: Radius.pill, paddingHorizontal: 7, paddingVertical: 3 }}>
+              <View style={{ position: 'absolute', top: 8, right: 8, flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: Palette.amber, borderRadius: Radius.pill, paddingHorizontal: 7, paddingVertical: 3 }}>
                 <Crown size={10} color="#fff" fill="#fff" />
                 <Text style={{ fontFamily: Font.semibold, fontSize: 10, color: '#fff' }}>pro</Text>
               </View>

@@ -325,9 +325,9 @@ export default function MealScreen() {
                     </View>
                   ) : null}
                   {meal.allergens && meal.allergens.length > 0 ? (
-                    <View style={{ borderWidth: 1, borderColor: '#F59E0B', backgroundColor: '#FFFBEB', borderRadius: 12, padding: 12, gap: 4 }}>
+                    <View style={{ borderWidth: 1, borderColor: Palette.amber, backgroundColor: '#FFFBEB', borderRadius: 12, padding: 12, gap: 4 }}>
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-                        <AlertTriangle size={13} color="#F59E0B" />
+                        <AlertTriangle size={13} color={Palette.amber} />
                         <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: '#B45309' }}>Contains allergens</Text>
                       </View>
                       <Text style={{ fontFamily: Font.body, fontSize: 13, color: '#92400E', lineHeight: 19 }}>

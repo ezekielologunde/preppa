@@ -322,7 +322,7 @@ export default function OrdersScreen() {
             {tab === 'active' && paymentsOn && activeOrders.some((o) => o.status === 'pending' && o.paymentStatus !== 'succeeded' && o.paymentStatus !== 'refunded') && (
               <View style={{
                 backgroundColor: '#FEF3C7',
-                borderColor: '#F59E0B',
+                borderColor: Palette.amber,
                 borderWidth: 1,
                 borderRadius: 10,
                 padding: 12,

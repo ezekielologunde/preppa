@@ -36,7 +36,7 @@ const INK = Palette.ink;
 const DIET_ACCENT: Record<string, { label: string; color: string }> = {
   vegan:     { label: 'plant-based', color: '#8B5CF6' },
   healthy:   { label: 'clean',       color: '#22C55E' },
-  breakfast: { label: 'breakfast',   color: '#F59E0B' },
+  breakfast: { label: 'breakfast',   color: Palette.amber },
   lunch:     { label: 'lunch',       color: '#06B6D4' },
   dinner:    { label: 'dinner',      color: ORANGE },
 };

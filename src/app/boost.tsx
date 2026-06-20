@@ -154,8 +154,8 @@ export default function BoostScreen() {
           </View>
           <MotiView from={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', damping: 18, stiffness: 200 }}
             style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 36, gap: 16 }}>
-            <View style={{ width: 72, height: 72, borderRadius: 36, backgroundColor: '#F59E0B22', alignItems: 'center', justifyContent: 'center' }}>
-              <Crown size={40} color="#F59E0B" />
+            <View style={{ width: 72, height: 72, borderRadius: 36, backgroundColor: Palette.amber + '22', alignItems: 'center', justifyContent: 'center' }}>
+              <Crown size={40} color={Palette.amber} />
             </View>
             <Text style={{ fontFamily: Font.display, fontSize: 26, color: INK, letterSpacing: -0.6, textAlign: 'center' }}>Boost is a Pro feature</Text>
             <Text style={{ fontFamily: Font.body, fontSize: 14.5, color: '#78716C', textAlign: 'center', lineHeight: 22 }}>

@@ -194,9 +194,9 @@ export default function PrepperScreen() {
                 </Text>
                 {p?.verified ? <BadgeCheck size={22} color={Palette.brand} fill={Palette.brand} strokeWidth={1.5} /> : null}
                 {p?.isPro ? (
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: '#F59E0B18', borderRadius: 8, paddingHorizontal: 6, paddingVertical: 2 }}>
-                    <Crown size={11} color="#F59E0B" fill="#F59E0B" />
-                    <Text style={{ fontFamily: Font.semibold, fontSize: 10, color: '#F59E0B' }}>pro</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: Palette.amber + '18', borderRadius: 8, paddingHorizontal: 6, paddingVertical: 2 }}>
+                    <Crown size={11} color={Palette.amber} fill={Palette.amber} />
+                    <Text style={{ fontFamily: Font.semibold, fontSize: 10, color: Palette.amber }}>pro</Text>
                   </View>
                 ) : null}
               </>
@@ -332,7 +332,7 @@ export default function PrepperScreen() {
         {cookSchedule ? <KitchenHoursCard schedule={cookSchedule} isOpen={isOpen} /> : null}
 
         {!isOpen && cookSchedule ? (
-          <View style={{ marginHorizontal: 16, marginTop: 10, backgroundColor: '#FEF3C7', borderRadius: 14, padding: 14, borderWidth: 1, borderColor: '#F59E0B40' }}>
+          <View style={{ marginHorizontal: 16, marginTop: 10, backgroundColor: '#FEF3C7', borderRadius: 14, padding: 14, borderWidth: 1, borderColor: Palette.amber + '40' }}>
             <Text style={{ fontFamily: Font.semibold, fontSize: 13.5, color: '#92400E' }}>This kitchen is currently closed</Text>
             {closedNextOpen ? <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: '#B45309', marginTop: 3 }}>{closedNextOpen}</Text> : null}
             <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: '#92400E', marginTop: 4 }}>You can still browse meals and save for later</Text>

@@ -254,7 +254,7 @@ export function RequestDetailSheet({
                       }}
                       disabled={cancel.isPending}
                       accessibilityRole="button" accessibilityLabel="Confirm cancel"
-                      style={{ flex: 1, height: 44, borderRadius: Radius.pill, backgroundColor: '#DC2626', alignItems: 'center', justifyContent: 'center', opacity: cancel.isPending ? 0.7 : 1 }}>
+                      style={{ flex: 1, height: 44, borderRadius: Radius.pill, backgroundColor: Palette.danger, alignItems: 'center', justifyContent: 'center', opacity: cancel.isPending ? 0.7 : 1 }}>
                       {cancel.isPending
                         ? <ActivityIndicator color="#fff" size="small" />
                         : <Text style={{ fontFamily: Font.heading, fontSize: 14, color: '#fff' }}>Yes, cancel</Text>}

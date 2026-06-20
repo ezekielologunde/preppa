@@ -40,7 +40,7 @@ const CHEF_PALETTES: [string, string][] = [
 const DIET_TAG: Record<string, { label: string; color: string }> = {
   vegan:     { label: 'Plant-Based', color: '#8B5CF6' },
   healthy:   { label: 'Clean',       color: '#22C55E' },
-  breakfast: { label: 'Breakfast',   color: '#F59E0B' },
+  breakfast: { label: 'Breakfast',   color: Palette.amber },
   lunch:     { label: 'Lunch',       color: '#06B6D4' },
   dinner:    { label: 'Dinner',      color: ORANGE },
 };

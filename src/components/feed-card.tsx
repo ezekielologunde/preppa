@@ -233,9 +233,9 @@ export function FeedCard({ item, height, bottomInset, followSet }: { item: FeedI
             <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: 'rgba(255,255,255,0.95)' }}>{item.prepper}</Text>
             {item.verified ? <BadgeCheck size={14} color="#fff" fill={ORANGE} stroke="#fff" /> : null}
             {item.isPro ? (
-              <View accessibilityLabel="Pro kitchen" accessibilityRole="image" style={{ flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: '#F59E0B18', borderRadius: 8, paddingHorizontal: 6, paddingVertical: 2 }}>
-                <Crown size={11} color="#F59E0B" fill="#F59E0B" />
-                <Text style={{ fontFamily: Font.semibold, fontSize: 10, color: '#F59E0B' }}>pro</Text>
+              <View accessibilityLabel="Pro kitchen" accessibilityRole="image" style={{ flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: Palette.amber + '18', borderRadius: 8, paddingHorizontal: 6, paddingVertical: 2 }}>
+                <Crown size={11} color={Palette.amber} fill={Palette.amber} />
+                <Text style={{ fontFamily: Font.semibold, fontSize: 10, color: Palette.amber }}>pro</Text>
               </View>
             ) : null}
           </PressableScale>
