@@ -60,8 +60,10 @@ export function usePushNotificationListeners() {
 
     const response = Notifications.addNotificationResponseReceivedListener(res => {
       const data = res.notification.request.content.data as Record<string, unknown>;
-      // Edge functions send { route: string } — navigate directly.
-      if (typeof data?.route === 'string') {
+      // Allowlist of routes our edge functions may emit — blocks open-redirect
+      // attacks via crafted notification payloads (no schemes, no external hosts).
+      const ALLOWED_ROUTES = new Set(['/', '/specials', '/prepper-orders', '/explore', '/orders', '/experiences']);
+      if (typeof data?.route === 'string' && ALLOWED_ROUTES.has(data.route)) {
         router.push(data.route as never);
         return;
       }
