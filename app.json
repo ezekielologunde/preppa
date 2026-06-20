@@ -11,7 +11,9 @@
       "supportsTablet": true,
       "bundleIdentifier": "live.preppa.app",
       "infoPlist": {
-        "NSUserNotificationsUsageDescription": "Preppa sends you updates about your orders, new meal drops from kitchens you follow, and messages from preppers."
+        "NSUserNotificationsUsageDescription": "Preppa sends you updates about your orders, new meal drops from kitchens you follow, and messages from preppers.",
+        "NSCameraUsageDescription": "Preppa uses your camera to photograph meals and your profile.",
+        "NSPhotoLibraryAddUsageDescription": "Preppa saves photos taken in the app to your photo library."
       }
     },
     "android": {
@@ -33,7 +35,8 @@
       "predictiveBackGestureEnabled": false,
       "permissions": [
         "NOTIFICATIONS",
-        "VIBRATE"
+        "VIBRATE",
+        "CAMERA"
       ]
     },
     "web": {
@@ -77,7 +80,13 @@
         }
       ],
       ["expo-brightness"],
-      "expo-image-picker"
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Preppa accesses your photo library to upload meal and profile images.",
+          "cameraPermission": "Preppa uses your camera to photograph meals and your profile."
+        }
+      ]
     ],
     "runtimeVersion": {
       "policy": "appVersion"
