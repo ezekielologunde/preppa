@@ -203,7 +203,7 @@ function RequestModal({ available, prepperId, stripeActive, onClose }: ModalProp
             accessibilityRole="button"
             accessibilityLabel="Submit payout request"
             style={{
-              backgroundColor: amountOk ? ORANGE : '#EDE9E4',
+              backgroundColor: amountOk ? ORANGE : Palette.border,
               borderRadius: Radius.pill,
               height: 52,
               alignItems: 'center',
@@ -315,7 +315,7 @@ export default function PrepperPayoutsScreen() {
                   accessibilityLabel="Request payout"
                   style={{
                     marginTop: 8,
-                    backgroundColor: available >= MIN_PAYOUT ? ORANGE : '#EDE9E4',
+                    backgroundColor: available >= MIN_PAYOUT ? ORANGE : Palette.border,
                     borderRadius: Radius.pill,
                     height: 50,
                     flexDirection: 'row',

@@ -394,7 +394,7 @@ export default function PrepperPremiumScreen() {
 
           {/* Billing toggle */}
           <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280, delay: 80 }}>
-            <View style={{ flexDirection: 'row', backgroundColor: '#EDE9E4', borderRadius: Radius.md, padding: 4, gap: 4 }}>
+            <View style={{ flexDirection: 'row', backgroundColor: Palette.border, borderRadius: Radius.md, padding: 4, gap: 4 }}>
               <MotiView animate={{ backgroundColor: !yearly ? ORANGE : '#FFFFFF' }} transition={{ type: 'timing', duration: 200 }} style={{ flex: 1, borderRadius: Radius.sm, overflow: 'hidden' }}>
                 <PressableScale onPress={() => { feedback.tap(); setYearly(false); }} accessibilityRole="button" accessibilityLabel="Monthly billing" accessibilityState={{ selected: !yearly }}
                   style={{ flex: 1, height: 44, alignItems: 'center', justifyContent: 'center' }}>

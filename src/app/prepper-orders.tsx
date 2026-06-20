@@ -326,7 +326,7 @@ export default function PrepperOrdersScreen() {
                   ))}
                 </View>
               </ScrollView>
-              <View style={{ width: 1, backgroundColor: '#EDE9E4', marginVertical: 8 }} />
+              <View style={{ width: 1, backgroundColor: Palette.border, marginVertical: 8 }} />
               <View style={{ flex: 6 }}>
                 {selectedOrder ? (
                   <OrderDetailPanel

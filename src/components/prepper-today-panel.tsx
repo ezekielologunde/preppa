@@ -19,7 +19,7 @@ const S1      = { shadowColor: Palette.ink, shadowOffset: { width: 0, height: 1 
 const GREEN   = '#22c55e';
 const AMBER   = Palette.amber;
 const RED     = '#ef4444';
-const DIVIDER = '#EDE9E4';
+const DIVIDER = Palette.border;
 
 function timeAgo(iso: string): string {
   const diffMs = Date.now() - new Date(iso).getTime();
