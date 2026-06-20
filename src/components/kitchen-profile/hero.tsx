@@ -138,12 +138,12 @@ export function KitchenHero({
                   position: 'absolute',
                   bottom: -4,
                   alignSelf: 'center',
-                  backgroundColor: '#EF4444',
+                  backgroundColor: Palette.danger,
                   borderRadius: 6,
                   paddingHorizontal: 8,
                   paddingVertical: 2,
                   borderWidth: 1.5,
-                  borderColor: '#fff',
+                  borderColor: Palette.surface,
                 }}>
                 <Text style={{ fontFamily: Font.semibold, fontSize: 10, color: '#fff', letterSpacing: 0.5 }}>LIVE</Text>
               </MotiView>

@@ -211,7 +211,7 @@ export default function PrepperAnalyticsScreen() {
           </View>
           <View style={{ flexDirection: 'row', gap: 4 }}>
             {PERIODS.map((p) => (
-              <PressableScale key={p.key} onPress={() => { feedback.tap(); setPeriod(p.key); }} accessibilityRole="button" accessibilityState={{ selected: period === p.key }}
+              <PressableScale key={p.key} onPress={() => { feedback.tap(); setPeriod(p.key); }} accessibilityRole="button" accessibilityLabel={`${p.label} period`} accessibilityState={{ selected: period === p.key }}
                 style={{ backgroundColor: period === p.key ? Palette.brandTint : Palette.chip, borderRadius: 8, paddingHorizontal: 9, paddingVertical: 5, minHeight: 44, justifyContent: 'center', alignItems: 'center' }}>
                 <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: period === p.key ? ORANGE : Palette.textSecondary }}>{p.label}</Text>
               </PressableScale>

@@ -25,7 +25,7 @@ const ORANGE = Palette.brand;
 const CARD   = '#FFFFFF';
 const BG     = '#F8F6F3';
 const INK    = '#1A1714';
-const MUTED  = '#78716C';
+const MUTED  = Palette.textSecondary;
 const BORDER = '#EDE9E4';
 
 // ─── Pricing ────────────────────────────────────────────────────────────────
@@ -149,7 +149,7 @@ function SocialProofBlock() {
           <View style={{ flexDirection: 'row', gap: 2 }}>
             {[0, 1, 2, 3, 4].map((s) => <Star key={s} size={11} color={ORANGE} fill={ORANGE} />)}
           </View>
-          <Text style={{ fontFamily: Font.body, fontSize: 13.5, color: '#44403C', lineHeight: 20, fontStyle: 'italic' }}>"{t?.quote}"</Text>
+          <Text style={{ fontFamily: Font.body, fontSize: 13.5, color: Palette.inkSoft, lineHeight: 20, fontStyle: 'italic' }}>"{t?.quote}"</Text>
           <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: MUTED }}>— {t?.name}, {t?.city}</Text>
         </MotiView>
         <View style={{ flexDirection: 'row', gap: 6, alignSelf: 'center' }}>
@@ -241,7 +241,7 @@ function PlanCard({
         {plan.features.map((f) => (
           <View key={f} style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8 }}>
             <Check size={14} color={Palette.success} strokeWidth={2.5} style={{ marginTop: 2 }} />
-            <Text style={{ fontFamily: Font.body, fontSize: 13, color: '#44403C', flex: 1, lineHeight: 19 }}>{f}</Text>
+            <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.inkSoft, flex: 1, lineHeight: 19 }}>{f}</Text>
           </View>
         ))}
       </View>

@@ -83,7 +83,7 @@ function ReplyComposer({ reviewId, initialText, onDone }: { reviewId: string; in
       />
       <Text style={{ fontFamily: Font.body, fontSize: 11, color: Palette.textSecondary, textAlign: 'right' }}>{draft.length}/{MAX}</Text>
       <View style={{ flexDirection: 'row', gap: 8 }}>
-        <PressableScale onPress={() => { feedback.tap(); onDone(); }} accessibilityRole="button"
+        <PressableScale onPress={() => { feedback.tap(); onDone(); }} accessibilityRole="button" accessibilityLabel="Cancel reply"
           style={{ paddingHorizontal: 16, paddingVertical: 9, borderRadius: Radius.pill, backgroundColor: Palette.canvas }}>
           <Text style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.textSecondary }}>Cancel</Text>
         </PressableScale>
@@ -257,7 +257,7 @@ export default function ReviewsScreen() {
                   const active = starFilter === key;
                   return (
                     <PressableScale key={key} onPress={() => { feedback.tap(); setStarFilter(key); }}
-                      accessibilityRole="button" accessibilityState={{ selected: active }}
+                      accessibilityRole="button" accessibilityLabel={label} accessibilityState={{ selected: active }}
                       style={{ backgroundColor: active ? color : Palette.surface, borderRadius: Radius.pill, paddingHorizontal: 14, paddingVertical: 8 }}>
                       <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: active ? '#fff' : Palette.textSecondary }}>{label}</Text>
                     </PressableScale>

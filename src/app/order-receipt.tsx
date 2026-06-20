@@ -231,7 +231,8 @@ export default function OrderReceiptScreen() {
         <Pressable
           onPress={() => router.push(`/messages?orderId=${order?.id}` as never)}
           style={{ alignItems: 'center', paddingVertical: 8, marginTop: 4 }}
-          accessibilityRole="button">
+          accessibilityRole="button"
+          accessibilityLabel="Report an issue">
           <Text style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.textSecondary }}>
             Report an issue
           </Text>

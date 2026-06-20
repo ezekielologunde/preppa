@@ -293,7 +293,7 @@ export default function PrepperOrdersScreen() {
               <ScrollView style={{ flex: 4 }} showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={ORANGE} colors={[ORANGE]} />}>
                 <View style={{ flexDirection: 'row', gap: 8, paddingVertical: 10 }}>
                   {(['active', 'history'] as const).map((f) => (
-                    <PressableScale key={f} onPress={() => { feedback.tap(); setOrderFilter(f); setSelectedOrder(null); }} accessibilityRole="button" accessibilityState={{ selected: orderFilter === f }}
+                    <PressableScale key={f} onPress={() => { feedback.tap(); setOrderFilter(f); setSelectedOrder(null); }} accessibilityRole="button" accessibilityLabel={f === 'active' ? 'Active orders' : 'Order history'} accessibilityState={{ selected: orderFilter === f }}
                       style={{ backgroundColor: orderFilter === f ? ORANGE : CARD, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 9, minHeight: 44 }}>
                       <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: orderFilter === f ? '#fff' : '#78716C' }}>
                         {f === 'active' ? `Active${pendingCount > 0 ? ` (${pendingCount})` : ''}` : 'History'}
@@ -360,7 +360,7 @@ export default function PrepperOrdersScreen() {
               {/* Active / History toggle */}
               <View style={{ flexDirection: 'row', gap: 8, paddingHorizontal: 16, paddingVertical: 10 }}>
                 {(['active', 'history'] as const).map((f) => (
-                  <PressableScale key={f} onPress={() => { feedback.tap(); setOrderFilter(f); setStatusFilter('all'); }} accessibilityRole="button" accessibilityState={{ selected: orderFilter === f }}
+                  <PressableScale key={f} onPress={() => { feedback.tap(); setOrderFilter(f); setStatusFilter('all'); }} accessibilityRole="button" accessibilityLabel={f === 'active' ? 'Active orders' : 'Order history'} accessibilityState={{ selected: orderFilter === f }}
                     style={{ backgroundColor: orderFilter === f ? ORANGE : CARD, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 7, minHeight: 44 }}>
                     <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: orderFilter === f ? '#fff' : '#78716C' }}>
                       {f === 'active' ? `Active${pendingCount > 0 ? ` (${pendingCount})` : ''}` : 'History'}

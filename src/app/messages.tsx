@@ -324,7 +324,8 @@ export default function MessagesScreen() {
       <PressableScale
         onPress={() => router.push('/' as never)}
         style={{ marginTop: 16, height: 44, paddingHorizontal: 20, backgroundColor: Palette.brand, borderRadius: 10, alignItems: 'center', justifyContent: 'center' }}
-        accessibilityRole="button">
+        accessibilityRole="button"
+        accessibilityLabel="Browse meals">
         <Text style={{ fontFamily: Font.heading, fontSize: 14, color: '#fff' }}>Browse meals</Text>
       </PressableScale>
     </View>

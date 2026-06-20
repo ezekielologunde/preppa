@@ -173,11 +173,12 @@ export function Onboarding({ onGetStarted, onSignIn }: Props) {
           <Pressable
             onPress={handleStart}
             accessibilityRole="button"
+            accessibilityLabel="Get Started — It's Free"
             style={({ pressed }) => [styles.cta, pressed && styles.ctaPressed]}>
             <Text style={styles.ctaText}>Get Started — It&apos;s Free</Text>
           </Pressable>
 
-          <Pressable onPress={onSignIn} accessibilityRole="button" hitSlop={10}>
+          <Pressable onPress={onSignIn} accessibilityRole="button" accessibilityLabel="Sign in to your account" hitSlop={10}>
             {({ pressed }) => (
               <Text style={[styles.signin, pressed && { opacity: 0.6 }]}>
                 Already a member? <Text style={styles.signinBold}>Sign in →</Text>
