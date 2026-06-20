@@ -41,7 +41,7 @@ export default function KitchenScreen() {
   const totalItemsToday = [
     ...(pendingOrders ?? []),
     ...(confirmedOrders ?? []),
-  ].reduce((sum, o) => sum + (o.item_count ?? 1), 0);
+  ].reduce((sum, o) => sum + o.items.reduce((s, it) => s + it.quantity, 0), 0);
 
   const payoutReady = (earnings?.net_total ?? 0) - 0;
   const stripeActive = stripeConnect?.stripe_account_status === 'active';

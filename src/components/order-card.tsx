@@ -21,7 +21,7 @@ function dateLabel(iso: string): string {
 /** Compact list-row card shown in the customer orders screen. */
 export function OrderListCard({ order, tab, twoCol, reordering, onPress, onReorder, onTrack }: {
   order: OrderSummary;
-  tab: 'active' | 'upcoming' | 'past';
+  tab: 'active' | 'scheduled' | 'completed';
   twoCol: boolean;
   reordering: boolean;
   onPress: () => void;
@@ -33,7 +33,7 @@ export function OrderListCard({ order, tab, twoCol, reordering, onPress, onReord
     <PressableScale
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={tab === 'past' ? `Toggle receipt for order from ${order.prepper}` : `View order status for ${order.prepper}`}
+      accessibilityLabel={tab === 'completed' ? `Toggle receipt for order from ${order.prepper}` : `View order status for ${order.prepper}`}
       style={{ backgroundColor: Palette.surface, borderRadius: 18, padding: 16, marginHorizontal: twoCol ? 0 : 16 }}>
       <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 12 }}>
         {order.items[0]?.image ? (
