@@ -257,11 +257,11 @@ export function MealEditorForm({ draft, setDraft, prepperId, userId, save }: Pro
             <Text style={{ fontFamily: Font.display, fontSize: 20, color: INK, letterSpacing: -0.4 }}>{draft.id ? 'edit meal' : 'new meal'}</Text>
 
             <Field label="NAME">
-              <TextInput value={draft.title} onChangeText={(t) => setDraft((d) => d && { ...d, title: t })} placeholder="e.g. Honey Garlic Salmon Bowl" placeholderTextColor={SUB} style={inputStyle} maxLength={80} />
+              <TextInput value={draft.title} onChangeText={(t) => setDraft((d) => d && { ...d, title: t })} placeholder="e.g. Honey Garlic Salmon Bowl" placeholderTextColor={SUB} style={inputStyle} maxLength={80} accessibilityLabel="Meal name" />
             </Field>
 
             <Field label="PRICE ($)">
-              <TextInput value={priceText} onChangeText={setPriceText} placeholder="14.99" placeholderTextColor={SUB} keyboardType="decimal-pad" style={inputStyle} maxLength={7} />
+              <TextInput value={priceText} onChangeText={setPriceText} placeholder="14.99" placeholderTextColor={SUB} keyboardType="decimal-pad" style={inputStyle} maxLength={7} accessibilityLabel="Meal price in dollars" />
             </Field>
 
             <Field label="CATEGORY">
@@ -280,7 +280,7 @@ export function MealEditorForm({ draft, setDraft, prepperId, userId, save }: Pro
             </Field>
 
             <Field label="DESCRIPTION">
-              <TextInput value={draft.description} onChangeText={(t) => setDraft((d) => d && { ...d, description: t })} placeholder="What makes this meal great?" placeholderTextColor={SUB} multiline style={[inputStyle, { height: 84, paddingTop: 12, textAlignVertical: 'top' }]} maxLength={500} />
+              <TextInput value={draft.description} onChangeText={(t) => setDraft((d) => d && { ...d, description: t })} placeholder="What makes this meal great?" placeholderTextColor={SUB} multiline style={[inputStyle, { height: 84, paddingTop: 12, textAlignVertical: 'top' }]} maxLength={500} accessibilityLabel="Meal description" />
             </Field>
 
             {/* PHOTOS */}
@@ -318,7 +318,7 @@ export function MealEditorForm({ draft, setDraft, prepperId, userId, save }: Pro
                 ) : null}
               </ScrollView>
               {formErr?.includes('permission') || formErr?.includes('URL') ? (
-                <TextInput value={draft.imageUrls[0] ?? ''} onChangeText={(t) => setDraft((d) => d && { ...d, imageUrls: t ? [t] : [] })} placeholder="Or paste image URL as fallback" placeholderTextColor={SUB} autoCapitalize="none" maxLength={500} style={[inputStyle, { marginTop: 8 }]} />
+                <TextInput value={draft.imageUrls[0] ?? ''} onChangeText={(t) => setDraft((d) => d && { ...d, imageUrls: t ? [t] : [] })} placeholder="Or paste image URL as fallback" placeholderTextColor={SUB} autoCapitalize="none" maxLength={500} style={[inputStyle, { marginTop: 8 }]} accessibilityLabel="Paste image URL as fallback" />
               ) : null}
             </Field>
 
@@ -404,12 +404,12 @@ export function MealEditorForm({ draft, setDraft, prepperId, userId, save }: Pro
                 <View style={{ flexDirection: 'row', gap: 10 }}>
                   <View style={{ flex: 1 }}>
                     <Field label="READY IN (MIN)">
-                      <TextInput value={timeText} onChangeText={setTimeText} placeholder="30" placeholderTextColor={SUB} keyboardType="number-pad" style={inputStyle} maxLength={3} />
+                      <TextInput value={timeText} onChangeText={setTimeText} placeholder="30" placeholderTextColor={SUB} keyboardType="number-pad" style={inputStyle} maxLength={3} accessibilityLabel="Ready time in minutes" />
                     </Field>
                   </View>
                   <View style={{ flex: 1 }}>
                     <Field label="~CAL PER SERVING">
-                      <TextInput value={caloriesText} onChangeText={setCaloriesText} placeholder="450" placeholderTextColor={SUB} keyboardType="number-pad" style={inputStyle} maxLength={4} />
+                      <TextInput value={caloriesText} onChangeText={setCaloriesText} placeholder="450" placeholderTextColor={SUB} keyboardType="number-pad" style={inputStyle} maxLength={4} accessibilityLabel="Approximate calories per serving" />
                     </Field>
                   </View>
                 </View>
