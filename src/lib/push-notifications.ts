@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { useEffect } from 'react';
 import { Platform } from 'react-native';
 
+import { Palette } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
 
 if (Platform.OS !== 'web') {
@@ -59,10 +60,14 @@ export function usePushNotificationListeners() {
 
     const response = Notifications.addNotificationResponseReceivedListener(res => {
       const data = res.notification.request.content.data as Record<string, unknown>;
-      if (typeof data?.screen === 'string') {
-        if (data.screen === 'order' && typeof data.orderId === 'string') {
-          router.push(`/order-status?id=${data.orderId}` as never);
-        }
+      // Edge functions send { route: string } — navigate directly.
+      if (typeof data?.route === 'string') {
+        router.push(data.route as never);
+        return;
+      }
+      // Legacy format: { screen: 'order', orderId: string }
+      if (data?.screen === 'order' && typeof data.orderId === 'string') {
+        router.push(`/order-status?id=${data.orderId}` as never);
       }
     });
 
@@ -78,6 +83,6 @@ if (Platform.OS === 'android') {
     name: 'Preppa',
     importance: Notifications.AndroidImportance.MAX,
     vibrationPattern: [0, 250, 250, 250],
-    lightColor: '#E8611A',
+    lightColor: Palette.brand,
   });
 }
