@@ -11,6 +11,7 @@ import { Alert, Platform, Pressable, RefreshControl, ScrollView, Text, View } fr
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { DarkCard, DarkModeRow, RewardsCard, SectionCard, StatChip } from '@/components/profile-sections';
+import { WorkspaceSwitcher } from '@/components/workspace-switcher';
 import { Avatar } from '@/components/ui/avatar';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
@@ -184,6 +185,9 @@ export default function ProfileScreen() {
           </View>
         ) : null}
       </View>
+
+      {/* Workspace switcher — only visible to approved preppers */}
+      <WorkspaceSwitcher />
 
       {/* Bio / tagline */}
       {bio ? (

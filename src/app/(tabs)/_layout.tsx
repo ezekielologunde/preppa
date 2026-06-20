@@ -1,5 +1,5 @@
-import { Tabs, useRouter } from 'expo-router';
-import { ChefHat, CircleUser, Compass, House, ShoppingBag } from 'lucide-react-native';
+import { Tabs, usePathname, useRouter } from 'expo-router';
+import { ChefHat, CircleUser, Compass, House, MessageSquare, ShoppingBag } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import type React from 'react';
 import { Text, useWindowDimensions, View } from 'react-native';
@@ -13,27 +13,31 @@ import { feedback } from '@/lib/feedback';
 import { BP } from '@/lib/layout';
 import { useConversations, useConversationsRealtime } from '@/lib/queries/messages';
 import { usePrepperOrders, useOrdersRealtime } from '@/lib/queries/orders';
-import { useMyPrepperApplication } from '@/lib/queries/preppers';
 import { useNotifications, useNotificationsRealtime } from '@/lib/queries/notifications';
+import { useWorkspace } from '@/lib/workspace';
 import { useAuth } from '@/providers/auth-provider';
 
 type TabDef = {
-  name: string;
   label: string;
   Icon: React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>;
+  routeName?: string;    // tab screen name — navigate() when provided
+  pushPath?: string;     // standalone path — router.push() when provided
+  focusMatch?: string;   // pathname prefix for active detection on pushed routes
 };
 
-const BASE_TABS: TabDef[] = [
-  { name: 'index',   label: 'Home',    Icon: House },
-  { name: 'explore', label: 'Explore', Icon: Compass },
-  { name: 'orders',  label: 'Orders',  Icon: ShoppingBag },
-  { name: 'profile', label: 'Profile', Icon: CircleUser },
+const CUSTOMER_TABS: TabDef[] = [
+  { label: 'Home',    Icon: House,         routeName: 'index' },
+  { label: 'Explore', Icon: Compass,       routeName: 'explore' },
+  { label: 'Orders',  Icon: ShoppingBag,   routeName: 'orders' },
+  { label: 'Profile', Icon: CircleUser,    routeName: 'profile' },
 ];
 
-type TabBarProps = {
-  state: { index: number; routes: { name: string; key: string }[] };
-  navigation: { navigate: (name: string) => void };
-};
+const KITCHEN_TABS: TabDef[] = [
+  { label: 'Kitchen',  Icon: ChefHat,        routeName: 'kitchen' },
+  { label: 'Orders',   Icon: ShoppingBag,    pushPath: '/prepper-orders', focusMatch: '/prepper-orders' },
+  { label: 'Messages', Icon: MessageSquare,  pushPath: '/messages',       focusMatch: '/messages' },
+  { label: 'Profile',  Icon: CircleUser,     routeName: 'profile' },
+];
 
 function TabBarIcon({ Icon, focused }: { Icon: TabDef['Icon']; focused: boolean }) {
   return (
@@ -57,42 +61,65 @@ function TabBarLabel({ label, focused, compact }: { label: string; focused: bool
         fontFamily: focused ? Font.semibold : Font.medium,
         fontSize: compact ? 10.5 : 11.5,
         color: focused ? Palette.brand : Palette.textSecondary,
-        letterSpacing: 0,
       }}>
       {label}
     </Text>
   );
 }
 
+type TabBarProps = {
+  state: { index: number; routes: { name: string; key: string }[] };
+  navigation: { navigate: (name: string) => void };
+};
+
 function PreppaTabBar({ state, navigation }: TabBarProps) {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const router = useRouter();
+  const pathname = usePathname();
   const { user } = useAuth();
-  const { data: prepper } = useMyPrepperApplication(user?.id);
-  const isPrepper = prepper?.status === 'approved';
-  const { data: pendingOrders } = usePrepperOrders(isPrepper ? prepper?.id : undefined, 'pending');
-  const pendingCount = pendingOrders?.length ?? 0;
+  const { workspace, prepperId } = useWorkspace();
+
   useNotificationsRealtime(user?.id);
   useConversationsRealtime(user?.id);
   useOrdersRealtime('customer_id', user?.id);
+
   const { data: notifications } = useNotifications(user?.id);
-  const unreadNotifs = (notifications ?? []).filter((n) => !n.read).length;
   const { data: conversations } = useConversations(user?.id);
+  const { data: pendingOrders } = usePrepperOrders(
+    workspace === 'kitchen' ? (prepperId ?? undefined) : undefined,
+    'pending',
+  );
+
+  const unreadNotifs = (notifications ?? []).filter((n) => !n.read).length;
   const unreadMessages = (conversations ?? []).filter((c) => c.unread).length;
   const profileBadge = unreadNotifs + unreadMessages;
+  const kitchenBadge = pendingOrders?.length ?? 0;
 
-  // Tablet+ uses the AppSidebar rail; hide the bottom bar there.
   if (width >= BP.tablet) return null;
 
   const compact = width < 360;
+  const tabs = workspace === 'kitchen' ? KITCHEN_TABS : CUSTOMER_TABS;
 
-  // Approved preppers see "My Hub" in the orders slot — launcher for the kitchen dashboard.
-  const tabs: TabDef[] = BASE_TABS.map((tab) =>
-    tab.name === 'orders' && isPrepper
-      ? { name: 'orders', label: 'My Hub', Icon: ChefHat }
-      : tab,
-  );
+  function isFocused(tab: TabDef): boolean {
+    if (tab.focusMatch) {
+      return pathname.startsWith(tab.focusMatch);
+    }
+    if (tab.routeName) {
+      const routeIdx = state.routes.findIndex((r) => r.name === tab.routeName);
+      return routeIdx >= 0 && state.index === routeIdx;
+    }
+    return false;
+  }
+
+  function handlePress(tab: TabDef) {
+    feedback.tap();
+    if (tab.pushPath) {
+      router.push(tab.pushPath as never);
+    } else if (tab.routeName) {
+      navigation.navigate(tab.routeName);
+    }
+  }
 
   return (
     <View style={{
@@ -105,22 +132,18 @@ function PreppaTabBar({ state, navigation }: TabBarProps) {
       paddingBottom: Math.max(insets.bottom + 4, 12),
     }}>
       {tabs.map((tab) => {
-        const isHubTab = tab.name === 'orders' && isPrepper;
-        const routeIndex = state.routes.findIndex((r) => r.name === tab.name);
-        const focused = routeIndex >= 0 && state.index === routeIndex;
+        const focused = isFocused(tab);
+        const badge =
+          tab.label === 'Profile' ? profileBadge :
+          tab.label === 'Kitchen' ? kitchenBadge :
+          tab.label === 'Messages' ? unreadMessages :
+          0;
 
         return (
-          <View key={tab.name} style={{ flex: 1, minWidth: 0 }}>
+          <View key={tab.label} style={{ flex: 1, minWidth: 0 }}>
             <PressableScale
-              onPress={() => {
-                feedback.tap();
-                if (isHubTab) {
-                  router.push('/dashboard');
-                } else {
-                  navigation.navigate(tab.name);
-                }
-              }}
-              accessibilityRole="button"
+              onPress={() => handlePress(tab)}
+              accessibilityRole="tab"
               accessibilityState={{ selected: focused }}
               accessibilityLabel={tab.label}
               style={{ width: '100%', minHeight: 48, alignItems: 'center', justifyContent: 'center', paddingTop: 10, paddingHorizontal: 2, gap: 4 }}>
@@ -140,29 +163,17 @@ function PreppaTabBar({ state, navigation }: TabBarProps) {
 
               <View style={{ position: 'relative' }}>
                 <TabBarIcon Icon={tab.Icon} focused={focused} />
-                {isHubTab && pendingCount > 0 ? (
+                {badge > 0 ? (
                   <View style={{
                     position: 'absolute', top: -4, right: -8,
                     minWidth: 16, height: 16, borderRadius: 8,
-                    backgroundColor: Palette.brand, paddingHorizontal: 3,
+                    backgroundColor: tab.label === 'Profile' ? Palette.danger : Palette.brand,
+                    paddingHorizontal: 3,
                     alignItems: 'center', justifyContent: 'center',
                     borderWidth: 1.5, borderColor: Palette.surface,
                   }}>
                     <Text style={{ fontFamily: Font.semibold, fontSize: 9.5, color: '#fff', lineHeight: 13 }}>
-                      {pendingCount > 9 ? '9+' : pendingCount}
-                    </Text>
-                  </View>
-                ) : null}
-                {tab.name === 'profile' && profileBadge > 0 ? (
-                  <View style={{
-                    position: 'absolute', top: -4, right: -8,
-                    minWidth: 16, height: 16, borderRadius: 8,
-                    backgroundColor: Palette.danger, paddingHorizontal: 3,
-                    alignItems: 'center', justifyContent: 'center',
-                    borderWidth: 1.5, borderColor: Palette.surface,
-                  }}>
-                    <Text style={{ fontFamily: Font.semibold, fontSize: 9.5, color: '#fff', lineHeight: 13 }}>
-                      {profileBadge > 9 ? '9+' : profileBadge}
+                      {badge > 9 ? '9+' : badge}
                     </Text>
                   </View>
                 ) : null}
@@ -189,6 +200,7 @@ export default function TabLayout() {
         <Tabs.Screen name="explore" />
         <Tabs.Screen name="orders" />
         <Tabs.Screen name="profile" />
+        <Tabs.Screen name="kitchen" />
       </Tabs>
       <PrepperWelcomeOverlay userId={user?.id} />
     </>
