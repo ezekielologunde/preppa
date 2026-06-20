@@ -173,7 +173,7 @@ function StockBadge({ stockRemaining }: { stockRemaining: number | null | undefi
   }
   if (stockRemaining <= 3) {
     return (
-      <View style={{ alignSelf: 'flex-start', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, backgroundColor: '#FEF3C7' }}>
+      <View style={{ alignSelf: 'flex-start', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, backgroundColor: Palette.amberTint }}>
         <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: '#D97706' }}>Only {stockRemaining} left!</Text>
       </View>
     );

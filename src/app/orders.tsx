@@ -114,7 +114,7 @@ export default function OrdersScreen() {
   }), [tabOrders]);
 
   function statusChipStyle(s: string): { bg: string; fg: string } {
-    if (s === 'pending') return { bg: '#FEF3C7', fg: '#92400E' };
+    if (s === 'pending') return { bg: Palette.amberTint, fg: Palette.amberDeep };
     if (s === 'confirmed') return { bg: '#DBEAFE', fg: '#1D4ED8' };
     if (s === 'preparing') return { bg: '#FED7AA', fg: '#9A3412' };
     if (s === 'ready') return { bg: '#DCFCE7', fg: '#15803D' };
@@ -321,7 +321,7 @@ export default function OrdersScreen() {
             {/* Unpaid orders warning banner */}
             {tab === 'active' && paymentsOn && activeOrders.some((o) => o.status === 'pending' && o.paymentStatus !== 'succeeded' && o.paymentStatus !== 'refunded') && (
               <View style={{
-                backgroundColor: '#FEF3C7',
+                backgroundColor: Palette.amberTint,
                 borderColor: Palette.amber,
                 borderWidth: 1,
                 borderRadius: 10,
@@ -333,7 +333,7 @@ export default function OrdersScreen() {
                 gap: 8,
               }}>
                 <AlertCircle size={16} color="#D97706" />
-                <Text style={{ fontFamily: Font.medium, fontSize: 13, color: '#92400E', flex: 1 }}>
+                <Text style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.amberDeep, flex: 1 }}>
                   You have unpaid orders — complete payment to confirm
                 </Text>
               </View>

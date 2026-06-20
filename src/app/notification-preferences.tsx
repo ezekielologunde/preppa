@@ -209,9 +209,9 @@ export default function NotificationPreferencesScreen() {
               animate={{ opacity: 1, translateY: 0 }}
               transition={{ type: 'timing', duration: 220 }}
               style={{ marginHorizontal: 20 }}>
-              <View style={{ backgroundColor: '#FEF3C7', borderRadius: 12, padding: 12, flexDirection: 'row', alignItems: 'flex-start', gap: 10 }}>
+              <View style={{ backgroundColor: Palette.amberTint, borderRadius: 12, padding: 12, flexDirection: 'row', alignItems: 'flex-start', gap: 10 }}>
                 <Star size={15} color="#92400E" style={{ marginTop: 1 }} />
-                <Text style={{ fontFamily: Font.body, fontSize: 13, color: '#92400E', lineHeight: 19, flex: 1 }}>
+                <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.amberDeep, lineHeight: 19, flex: 1 }}>
                   Disabling "Order updates" means you won't receive real-time delivery status notifications.
                 </Text>
               </View>

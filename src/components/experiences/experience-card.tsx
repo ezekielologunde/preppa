@@ -136,7 +136,7 @@ export function FeaturedExperienceCard({ exp, index }: FeaturedExperienceCardPro
             </View>
             {/* Spots left chip */}
             <View style={{
-              backgroundColor: isLowSpots ? '#FEF3C7' : Palette.chip,
+              backgroundColor: isLowSpots ? Palette.amberTint : Palette.chip,
               borderRadius: Radius.pill,
               paddingHorizontal: 8,
               paddingVertical: 2,

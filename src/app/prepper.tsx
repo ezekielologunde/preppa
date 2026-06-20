@@ -332,10 +332,10 @@ export default function PrepperScreen() {
         {cookSchedule ? <KitchenHoursCard schedule={cookSchedule} isOpen={isOpen} /> : null}
 
         {!isOpen && cookSchedule ? (
-          <View style={{ marginHorizontal: 16, marginTop: 10, backgroundColor: '#FEF3C7', borderRadius: 14, padding: 14, borderWidth: 1, borderColor: Palette.amber + '40' }}>
-            <Text style={{ fontFamily: Font.semibold, fontSize: 13.5, color: '#92400E' }}>This kitchen is currently closed</Text>
+          <View style={{ marginHorizontal: 16, marginTop: 10, backgroundColor: Palette.amberTint, borderRadius: 14, padding: 14, borderWidth: 1, borderColor: Palette.amber + '40' }}>
+            <Text style={{ fontFamily: Font.semibold, fontSize: 13.5, color: Palette.amberDeep }}>This kitchen is currently closed</Text>
             {closedNextOpen ? <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: '#B45309', marginTop: 3 }}>{closedNextOpen}</Text> : null}
-            <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: '#92400E', marginTop: 4 }}>You can still browse meals and save for later</Text>
+            <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: Palette.amberDeep, marginTop: 4 }}>You can still browse meals and save for later</Text>
           </View>
         ) : null}
 

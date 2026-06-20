@@ -105,6 +105,8 @@ export const Palette = {
   dangerTint: '#FEF2F2', // error banner background — red-50 wash
   dangerBorder: '#FECACA', // error banner border — red-200 outline
   dangerDeep: '#991B1B', // error message text on dangerTint — red-800, AA-safe
+  amberTint: '#FEF3C7', // warning banner background — amber-100 wash
+  amberDeep: '#92400E', // warning message text on amberTint — amber-900, AA-safe
 
   // Prepper (dark) app — intentionally an operations tool (kept dark by mandate)
   prepperBg: '#0C0E13',

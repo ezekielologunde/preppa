@@ -330,7 +330,7 @@ export default function MealScreen() {
                         <AlertTriangle size={13} color={Palette.amber} />
                         <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: '#B45309' }}>Contains allergens</Text>
                       </View>
-                      <Text style={{ fontFamily: Font.body, fontSize: 13, color: '#92400E', lineHeight: 19 }}>
+                      <Text style={{ fontFamily: Font.body, fontSize: 13, color: Palette.amberDeep, lineHeight: 19 }}>
                         {meal.allergens.map((a) => { const m = ALLERGENS.find((x) => x.key === a); return m ? `${m.emoji} ${m.label}` : a; }).join(', ')}
                       </Text>
                     </View>
