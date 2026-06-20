@@ -22,13 +22,13 @@ import type { FulfillmentType, OrderStatus } from '@/types/database.types';
 
 const ORANGE  = Palette.brand;
 const GREEN   = Palette.success;
-const CARD    = '#FFFFFF';
+const CARD    = Palette.surface;
 const INK     = Palette.ink;
 const SUB     = Palette.textSecondary;
-const BORDER  = '#EDE9E4';
+const BORDER  = Palette.border;
 const money   = (n: number) => `$${n.toFixed(2)}`;
 
-const S1 = { shadowColor: '#1A1714', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 };
+const S1 = { shadowColor: Palette.ink, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 };
 
 const FULFILLMENT_LABEL: Record<FulfillmentType, string> = {
   pickup: 'Pickup', delivery: 'Delivery', meetup: 'Meet-up', home_cook: 'Home cook',

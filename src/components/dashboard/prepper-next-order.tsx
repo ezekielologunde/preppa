@@ -110,7 +110,7 @@ export function PrepperNextOrder({ next, step, activeCount, statsLoading, advanc
         </View>
       ) : (
         <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }} style={{ marginHorizontal: 20, backgroundColor: CARD, borderRadius: 22, padding: 24, alignItems: 'center', gap: 10 }}>
-          <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: Palette.canvas, alignItems: 'center', justifyContent: 'center', shadowColor: '#1A1714', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 }}>
+          <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: Palette.canvas, alignItems: 'center', justifyContent: 'center', shadowColor: Palette.ink, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 }}>
             <ShoppingBag size={28} color={Palette.textSecondary} />
           </View>
           <Text style={{ fontFamily: Font.heading, fontSize: 15, color: INK, textAlign: 'center' }}>No active preorders</Text>

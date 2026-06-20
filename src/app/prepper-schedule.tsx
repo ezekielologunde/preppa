@@ -24,11 +24,11 @@ import {
 import { useAuth } from '@/providers/auth-provider';
 
 const BG     = Palette.canvas;
-const CARD   = '#FFFFFF';
+const CARD   = Palette.surface;
 const INK    = Palette.ink;
 const MUTED  = Palette.textSecondary;
-const BORDER = '#EDE9E4';
-const S1     = { shadowColor: '#1A1714', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 };
+const BORDER = Palette.border;
+const S1     = { shadowColor: Palette.ink, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 };
 
 const TIMES = genTimes();
 const TZ = Intl.DateTimeFormat().resolvedOptions().timeZone;

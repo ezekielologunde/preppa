@@ -23,11 +23,11 @@ import { useAuth } from '@/providers/auth-provider';
 const ORANGE = Palette.brand;
 const INK    = Palette.ink;
 const BG     = Palette.canvas;
-const CARD   = '#FFFFFF';
-const BORDER = '#EDE9E4';
+const CARD   = Palette.surface;
+const BORDER = Palette.border;
 const MUTED  = Palette.textSecondary;
 const GREEN  = Palette.success;
-const S1     = { shadowColor: '#1A1714', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 };
+const S1     = { shadowColor: Palette.ink, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 };
 
 const ACTIONS = [
   { label: 'manage preorder queue',     desc: 'Review, confirm and advance active preorders',    Icon: Package,     color: '#06b6d4', route: '/prepper-orders' },
@@ -138,7 +138,7 @@ export default function PrepperHubScreen() {
         <Pressable onPress={() => setConfirmClose(false)} accessibilityRole="button" accessibilityLabel="Dismiss"
           style={{ flex: 1, backgroundColor: 'rgba(26,23,20,0.5)', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
           <MotiView from={{ opacity: 0, scale: 0.94 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'spring', damping: 22 }}
-            style={{ backgroundColor: CARD, borderRadius: 24, padding: 28, width: '100%', maxWidth: 360, gap: 16, shadowColor: '#1A1714', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.12, shadowRadius: 20, elevation: 8 }}>
+            style={{ backgroundColor: CARD, borderRadius: 24, padding: 28, width: '100%', maxWidth: 360, gap: 16, shadowColor: Palette.ink, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.12, shadowRadius: 20, elevation: 8 }}>
             <Text style={{ fontFamily: Font.display, fontSize: 20, color: INK, textAlign: 'center', letterSpacing: -0.4 }}>Close your kitchen?</Text>
             <Text style={{ fontFamily: Font.body, fontSize: 14, color: MUTED, textAlign: 'center', lineHeight: 21 }}>
               No new orders will arrive until you reopen. Active orders are unaffected.

@@ -26,13 +26,13 @@ import type { OrderStatus } from '@/types/database.types';
 
 // ── Design tokens (light kitchen theme) ──────────────────────────────────────
 const BG     = Palette.canvas;
-const CARD   = '#FFFFFF';
-const BORDER = '#EDE9E4';
+const CARD   = Palette.surface;
+const BORDER = Palette.border;
 const INK    = Palette.ink;
 const MUTED  = Palette.textSecondary;
 const ORANGE = Palette.brand;
-const S1     = { shadowColor: '#1A1714', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 };
-const S2     = { shadowColor: '#1A1714', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 12, elevation: 4 };
+const S1     = { shadowColor: Palette.ink, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 };
+const S2     = { shadowColor: Palette.ink, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 12, elevation: 4 };
 
 // ── Order status helpers ──────────────────────────────────────────────────────
 const ADVANCE: Partial<Record<OrderStatus, { next: OrderStatus; cta: string }>> = {
@@ -348,7 +348,7 @@ export default function DashboardScreen() {
         </ScrollView>
 
         {/* ── Bottom navigation ─────────────────────────────────────────── */}
-        <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, flexDirection: 'row', backgroundColor: CARD, borderTopWidth: 1, borderTopColor: BORDER, paddingTop: 10, paddingBottom: Math.max(insets.bottom, 16), shadowColor: '#1A1714', shadowOffset: { width: 0, height: -2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 8 }}>
+        <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, flexDirection: 'row', backgroundColor: CARD, borderTopWidth: 1, borderTopColor: BORDER, paddingTop: 10, paddingBottom: Math.max(insets.bottom, 16), shadowColor: Palette.ink, shadowOffset: { width: 0, height: -2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 8 }}>
           {([
             { label: 'Home',    Icon: Home,          route: '/',                active: false, badge: undefined as number | undefined },
             { label: 'Orders',  Icon: Package,       route: '/prepper-orders',  active: false, badge: newCount as number | undefined },

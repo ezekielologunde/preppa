@@ -5,10 +5,10 @@ import { Font } from '@/constants/fonts';
 import { Palette } from '@/constants/theme';
 
 const ORANGE  = Palette.brand;
-const CARD    = '#FFFFFF';
+const CARD    = Palette.surface;
 const INK     = Palette.ink;
 const MUTED   = Palette.textSecondary;
-const BORDER  = '#EDE9E4';
+const BORDER  = Palette.border;
 
 type Tier = 'starter' | 'pro' | 'elite';
 

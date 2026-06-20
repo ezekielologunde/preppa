@@ -36,7 +36,7 @@ export function PrepperInsightsCard({ prepperId }: Props) {
   const { data, isLoading } = usePrepperInsights(prepperId);
 
   return (
-    <View style={{ backgroundColor: '#FFFFFF', borderRadius: 18, padding: 20, borderLeftWidth: 3, borderLeftColor: Palette.brand, gap: 14, shadowColor: '#1A1714', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 }}>
+    <View style={{ backgroundColor: Palette.surface, borderRadius: 18, padding: 20, borderLeftWidth: 3, borderLeftColor: Palette.brand, gap: 14, shadowColor: Palette.ink, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
         <Text style={{ fontFamily: Font.display, fontSize: 15, color: INK, letterSpacing: -0.3 }}>
           your performance

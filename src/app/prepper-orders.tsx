@@ -133,10 +133,10 @@ export default function PrepperOrdersScreen() {
             onPress={() => { feedback.tap(); if (router.canGoBack()) { router.back(); } else { router.replace('/dashboard'); } }}
             accessibilityRole="button"
             accessibilityLabel="Go back"
-            style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center', shadowColor: '#1A1714', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 4, elevation: 2 }}>
+            style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center', shadowColor: Palette.ink, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 4, elevation: 2 }}>
             <ChevronLeft size={22} color="#1A1714" />
           </PressableScale>
-          <Text style={{ fontFamily: Font.display, fontSize: 22, color: '#1A1714', letterSpacing: -0.6, flex: 1 }}>
+          <Text style={{ fontFamily: Font.display, fontSize: 22, color: Palette.ink, letterSpacing: -0.6, flex: 1 }}>
             {tab === 'homecook' ? 'home cook jobs' : tab === 'experiences' ? 'experience jobs' : 'kitchen orders'}
           </Text>
           {tab === 'preorders' && activeOrders.length > 0 ? (
@@ -147,7 +147,7 @@ export default function PrepperOrdersScreen() {
         </View>
 
         {/* Tab bar */}
-        <View style={{ flexDirection: 'row', marginHorizontal: 16, marginBottom: 8, backgroundColor: CARD, borderRadius: 14, padding: 4, gap: 4, shadowColor: '#1A1714', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 4, elevation: 2 }}>
+        <View style={{ flexDirection: 'row', marginHorizontal: 16, marginBottom: 8, backgroundColor: CARD, borderRadius: 14, padding: 4, gap: 4, shadowColor: Palette.ink, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 4, elevation: 2 }}>
           {([['preorders', 'Preorders', pendingCount], ['homecook', 'Home Cook', homeCookJobs?.length ?? 0], ['experiences', 'Experiences', expJobs?.length ?? 0]] as const).map(([key, label, badge]) => {
             const active = tab === key;
             const accentColor = key === 'homecook' ? HC : ORANGE;
@@ -192,10 +192,10 @@ export default function PrepperOrdersScreen() {
             </MotiView>
           ) : !expJobs?.length ? (
             <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280 }} style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 10 }}>
-              <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center', shadowColor: '#1A1714', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 }}>
+              <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center', shadowColor: Palette.ink, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 }}>
                 <Ticket size={28} color={Palette.textSecondary} />
               </View>
-              <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#1A1714' }}>No experience jobs yet</Text>
+              <Text style={{ fontFamily: Font.heading, fontSize: 16, color: Palette.ink }}>No experience jobs yet</Text>
               <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center', lineHeight: 20 }}>
                 When customers accept your bid on an experience request, the job appears here.
               </Text>
@@ -215,7 +215,7 @@ export default function PrepperOrdersScreen() {
                             <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: Palette.success }}>Booked</Text>
                           </View>
                         </View>
-                        <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#1A1714' }}>{job.title}</Text>
+                        <Text style={{ fontFamily: Font.heading, fontSize: 15, color: Palette.ink }}>{job.title}</Text>
                       </View>
                       <Text style={{ fontFamily: Font.display, fontSize: 20, color: ORANGE, letterSpacing: -0.4 }}>${job.amount.toLocaleString('en-US')}</Text>
                     </View>
@@ -265,10 +265,10 @@ export default function PrepperOrdersScreen() {
             <ListSkeleton count={4} rowHeight={110} />
           ) : ordersError ? (
             <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }} style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 10 }}>
-              <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center', shadowColor: '#1A1714', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 }}>
+              <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center', shadowColor: Palette.ink, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 }}>
                 <ShoppingBag size={28} color={Palette.textSecondary} />
               </View>
-              <Text style={{ fontFamily: Font.heading, fontSize: 16, color: '#1A1714' }}>Couldn't load preorders</Text>
+              <Text style={{ fontFamily: Font.heading, fontSize: 16, color: Palette.ink }}>Couldn't load preorders</Text>
               <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center' }}>Check your connection and try again.</Text>
               <PressableScale onPress={() => { feedback.tap(); void refetch(); }} accessibilityRole="button" accessibilityLabel="Retry loading preorders"
                 style={{ marginTop: 4, paddingHorizontal: 22, height: 48, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
@@ -280,7 +280,7 @@ export default function PrepperOrdersScreen() {
               <View style={{ width: 80, height: 80, borderRadius: 24, backgroundColor: ORANGE + '14', alignItems: 'center', justifyContent: 'center' }}>
                 <ShoppingBag size={40} color={ORANGE} />
               </View>
-              <Text style={{ fontFamily: Font.heading, fontSize: 18, color: '#1A1714', textAlign: 'center' }}>No preorders yet</Text>
+              <Text style={{ fontFamily: Font.heading, fontSize: 18, color: Palette.ink, textAlign: 'center' }}>No preorders yet</Text>
               <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center', lineHeight: 21 }}>Share your kitchen to start getting orders</Text>
               <PressableScale onPress={() => { feedback.tap(); router.push('/prepper-profile-edit'); }} accessibilityRole="button" accessibilityLabel="Edit your kitchen profile"
                 style={{ marginTop: 4, backgroundColor: ORANGE, borderRadius: Radius.pill, paddingHorizontal: 24, paddingVertical: 12 }}>
@@ -315,7 +315,7 @@ export default function PrepperOrdersScreen() {
                       <PressableScale onPress={() => { feedback.tap(); setSelectedOrder(o); }} accessibilityRole="button" accessibilityLabel={`View order from ${o.customer}`}
                         style={{ backgroundColor: selectedOrder?.id === o.id ? ORANGE + '22' : CARD, borderRadius: 14, padding: 14, borderWidth: 1, borderColor: selectedOrder?.id === o.id ? ORANGE + '66' : 'transparent', minHeight: 44 }}>
                         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-                          <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: '#1A1714', flex: 1 }} numberOfLines={1}>{o.customer}</Text>
+                          <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: Palette.ink, flex: 1 }} numberOfLines={1}>{o.customer}</Text>
                           <Text style={{ fontFamily: Font.display, fontSize: 14, color: ORANGE }}>${o.total.toFixed(2)}</Text>
                         </View>
                         <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.textSecondary, marginTop: 3 }} numberOfLines={1}>

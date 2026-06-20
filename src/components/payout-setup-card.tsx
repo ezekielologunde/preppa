@@ -11,7 +11,7 @@ import { useStripeConnect } from '@/lib/queries/stripe-connect';
 
 const ORANGE = Palette.brand;
 const GREEN  = Palette.success;
-const CARD   = '#FFFFFF';
+const CARD   = Palette.surface;
 const INK    = Palette.ink;
 const MUTED  = Palette.textSecondary;
 
@@ -82,7 +82,7 @@ export function PayoutSetupCard() {
 
   if (status === 'pending') {
     return (
-      <View style={{ backgroundColor: CARD, borderRadius: 16, padding: 14, gap: 10, shadowColor: '#1A1714', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 }}>
+      <View style={{ backgroundColor: CARD, borderRadius: 16, padding: 14, gap: 10, shadowColor: Palette.ink, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <Wallet size={17} color={ORANGE} />
           <Text style={{ fontFamily: Font.semibold, fontSize: 13.5, color: INK }}>Payout setup in progress</Text>
@@ -102,7 +102,7 @@ export function PayoutSetupCard() {
 
   // 'not_connected' or null
   return (
-    <View style={{ backgroundColor: CARD, borderRadius: 16, padding: 14, gap: 10, shadowColor: '#1A1714', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 }}>
+    <View style={{ backgroundColor: CARD, borderRadius: 16, padding: 14, gap: 10, shadowColor: Palette.ink, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
         <Wallet size={17} color={ORANGE} />
         <Text style={{ fontFamily: Font.semibold, fontSize: 13.5, color: INK }}>Get paid faster</Text>

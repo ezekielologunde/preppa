@@ -22,7 +22,7 @@ import { useAuth } from '@/providers/auth-provider';
 
 const ORANGE = Palette.brand;
 const BG = Palette.canvas;
-const S1 = { shadowColor: '#1A1714', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 };
+const S1 = { shadowColor: Palette.ink, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 };
 
 const DISCOUNTS = ['10%', '15%', '20%', 'Custom'];
 const WINDOWS = [

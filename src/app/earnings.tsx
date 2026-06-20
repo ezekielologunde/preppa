@@ -18,11 +18,11 @@ import { useStripeConnect } from '@/lib/queries/stripe-connect';
 const ORANGE = Palette.brand;
 const GREEN  = Palette.success;
 const RED    = Palette.danger;
-const CARD   = '#FFFFFF';
+const CARD   = Palette.surface;
 const BG     = Palette.canvas;
 const INK    = Palette.ink;
 const MUTED  = Palette.textSecondary;
-const BORDER = '#EDE9E4';
+const BORDER = Palette.border;
 
 const money = (n: number) => `$${(n ?? 0).toFixed(2)}`;
 const shortDate = (iso: string) => {

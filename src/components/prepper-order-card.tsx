@@ -15,14 +15,14 @@ import type { OrderStatus } from '@/types/database.types';
 export const HC      = '#7C3AED';
 export const HC_TINT = Palette.homeCookTint;
 export const ORANGE  = Palette.brand;
-export const CARD    = '#FFFFFF';
+export const CARD    = Palette.surface;
 export const BG      = Palette.canvas;
 export const money   = (n: number) => `$${n.toFixed(2)}`;
 
 const INK    = Palette.ink;
 const SUB    = Palette.textSecondary;
-const BORDER = '#EDE9E4';
-const S2     = { shadowColor: '#1A1714', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.07, shadowRadius: 10, elevation: 3 };
+const BORDER = Palette.border;
+const S2     = { shadowColor: Palette.ink, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.07, shadowRadius: 10, elevation: 3 };
 
 // ── Status pipeline ───────────────────────────────────────────────────────────
 
@@ -140,7 +140,7 @@ export function FilterEmptyState({ filter }: { filter: StatusFilter }) {
   const { icon: Icon, title, body } = EMPTY_COPY[filter];
   return (
     <View style={{ alignItems: 'center', paddingVertical: 48, paddingHorizontal: 32, gap: 10 }}>
-      <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center', shadowColor: '#1A1714', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 }}>
+      <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center', shadowColor: Palette.ink, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 }}>
         <Icon size={28} color={SUB} strokeWidth={1.5} />
       </View>
       <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK, textAlign: 'center' }}>{title}</Text>

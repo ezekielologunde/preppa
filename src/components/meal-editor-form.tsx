@@ -15,11 +15,11 @@ import { useMealCategories, useSaveMeal, type MealDraft } from '@/lib/queries/my
 import { useTodaySingleStock, useSetMealStock } from '@/lib/queries/stock';
 
 const ORANGE = Palette.brand;
-const CARD   = '#FFFFFF';
+const CARD   = Palette.surface;
 const BG     = Palette.canvas;
 const INK    = Palette.ink;
 const SUB    = Palette.textSecondary;
-const BORDER = '#EDE9E4';
+const BORDER = Palette.border;
 
 const DROP_DURATIONS = [
   { key: '24h', label: '24 hours', hours: 24 },

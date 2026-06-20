@@ -28,11 +28,11 @@ import { useStripeConnect } from '@/lib/queries/stripe-connect';
 import { useAuth } from '@/providers/auth-provider';
 
 const ORANGE  = Palette.brand;
-const CARD    = '#FFFFFF';
+const CARD    = Palette.surface;
 const BG      = Palette.canvas;
 const INK     = Palette.ink;
 const MUTED   = Palette.textSecondary;
-const BORDER  = '#EDE9E4';
+const BORDER  = Palette.border;
 const MIN_PAYOUT = 50;
 
 const money = (n: number) => `$${(n ?? 0).toFixed(2)}`;
@@ -59,7 +59,7 @@ function StatusChip({ status }: { status: PayoutRequest['status'] }) {
 
 function HistoryRow({ item }: { item: PayoutRequest }) {
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: CARD, borderRadius: 14, padding: 14, shadowColor: '#1A1714', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 1 }}>
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: CARD, borderRadius: 14, padding: 14, shadowColor: Palette.ink, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 1 }}>
       <View style={{ flex: 1 }}>
         <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: MUTED }}>{shortDate(item.createdAt)}</Text>
       </View>
@@ -109,7 +109,7 @@ function RequestModal({ available, prepperId, stripeActive, onClose }: ModalProp
   } as const;
 
   const inputStyle = {
-    backgroundColor: '#F8F6F3',
+    backgroundColor: Palette.canvas,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: BORDER,
@@ -172,7 +172,7 @@ function RequestModal({ available, prepperId, stripeActive, onClose }: ModalProp
             available: {money(available)} · min {money(MIN_PAYOUT)}
           </Text>
 
-          <View style={{ backgroundColor: '#F8F6F3', borderRadius: 10, padding: 12, marginBottom: 20, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <View style={{ backgroundColor: Palette.canvas, borderRadius: 10, padding: 12, marginBottom: 20, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <Text style={{ fontFamily: Font.medium, fontSize: 13, color: Palette.success }}>✓</Text>
             <Text style={{ fontFamily: Font.body, fontSize: 13, color: MUTED, flex: 1 }}>
               Deposited to your Stripe-linked bank · 3–5 business days
@@ -191,7 +191,7 @@ function RequestModal({ available, prepperId, stripeActive, onClose }: ModalProp
           />
 
           {parsedAmount > 0 && amountOk && (
-            <View style={{ backgroundColor: '#F8F6F3', borderRadius: 10, padding: 12, marginBottom: 16, flexDirection: 'row', justifyContent: 'space-between' }}>
+            <View style={{ backgroundColor: Palette.canvas, borderRadius: 10, padding: 12, marginBottom: 16, flexDirection: 'row', justifyContent: 'space-between' }}>
               <Text style={{ fontFamily: Font.body, fontSize: 13, color: MUTED }}>You receive</Text>
               <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: INK }}>{money(parsedAmount)}</Text>
             </View>
@@ -256,7 +256,7 @@ export default function PrepperPayoutsScreen() {
         {/* Header */}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingTop: 8, paddingBottom: 8 }}>
           <PressableScale onPress={goBack} accessibilityRole="button" accessibilityLabel="Go back"
-            style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center', shadowColor: '#1A1714', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 4, elevation: 2 }}>
+            style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center', shadowColor: Palette.ink, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 4, elevation: 2 }}>
             <ChevronLeft size={22} color={INK} />
           </PressableScale>
           <Text style={{ fontFamily: Font.display, fontSize: 24, color: INK, letterSpacing: -0.6, flex: 1 }}>payouts</Text>
@@ -275,7 +275,7 @@ export default function PrepperPayoutsScreen() {
 
             {/* Balance card */}
             <MotiView from={{ opacity: 0, translateY: 12 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 300, delay: 60 }}>
-              <View style={{ backgroundColor: CARD, borderRadius: 20, padding: 24, gap: 8, shadowColor: '#1A1714', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 }}>
+              <View style={{ backgroundColor: CARD, borderRadius: 20, padding: 24, gap: 8, shadowColor: Palette.ink, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                   <Wallet size={16} color={MUTED} />
                   <Text style={{ fontFamily: Font.body, fontSize: 13, color: MUTED }}>Available balance</Text>
@@ -346,7 +346,7 @@ export default function PrepperPayoutsScreen() {
             ) : history.length === 0 ? (
               <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }}
                 style={{ alignItems: 'center', paddingVertical: 32, gap: 10 }}>
-                <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center', shadowColor: '#1A1714', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 }}>
+                <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center', shadowColor: Palette.ink, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 }}>
                   <ArrowDownToLine size={22} color={MUTED} />
                 </View>
                 <Text style={{ fontFamily: Font.heading, fontSize: 15, color: INK }}>No payouts yet</Text>

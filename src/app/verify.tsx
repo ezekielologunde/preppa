@@ -48,7 +48,7 @@ export default function VerifyScreen() {
   const color = state === 'ok' ? Palette.success : state === 'fail' ? Palette.danger : ORANGE;
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#F8F6F3' }}>
+    <View style={{ flex: 1, backgroundColor: Palette.canvas }}>
       <SafeAreaView style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 16 }}>
         {loading || (user && state === 'working') ? (
           <>

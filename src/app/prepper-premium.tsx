@@ -22,11 +22,11 @@ import { useMyPrepperApplication } from '@/lib/queries/preppers';
 import { useAuth } from '@/providers/auth-provider';
 
 const ORANGE = Palette.brand;
-const CARD   = '#FFFFFF';
+const CARD   = Palette.surface;
 const BG     = Palette.canvas;
 const INK    = Palette.ink;
 const MUTED  = Palette.textSecondary;
-const BORDER = '#EDE9E4';
+const BORDER = Palette.border;
 
 // ─── Pricing ────────────────────────────────────────────────────────────────
 const PRO_MONTHLY = 29;

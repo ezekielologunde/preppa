@@ -17,11 +17,11 @@ import { useMyPrepperApplication } from '@/lib/queries/preppers';
 import { useAuth } from '@/providers/auth-provider';
 
 const ORANGE = Palette.brand;
-const CARD   = '#FFFFFF';
+const CARD   = Palette.surface;
 const BG     = Palette.canvas;
 const INK    = Palette.ink;
 const SUB    = Palette.textSecondary;
-const BORDER = '#EDE9E4';
+const BORDER = Palette.border;
 const money  = (n: number) => `$${n.toFixed(2)}`;
 
 type CustomerOrder = { id: string; title: string; itemCount: number; total: number; status: string; created_at: string };

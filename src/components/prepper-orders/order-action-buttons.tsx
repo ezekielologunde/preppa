@@ -11,7 +11,7 @@ import type { HomeCookRequest } from '@/lib/queries/home-cook';
 
 const INK    = Palette.ink;
 const SUB    = Palette.textSecondary;
-const BORDER = '#EDE9E4';
+const BORDER = Palette.border;
 
 // ── Decline confirmation modal ──────────────────────────────────────────────
 export interface DeclineModalProps {
@@ -102,7 +102,7 @@ export function VerifyHandoffModal({ order, pin, setPin, verifyMsg, setVerifyMsg
             maxLength={3}
             autoFocus
             accessibilityLabel="Enter 3-digit pickup code"
-            style={{ height: 64, borderRadius: 16, backgroundColor: '#F8F6F3', borderWidth: 1, borderColor: BORDER, textAlign: 'center', fontSize: 30, letterSpacing: 16, fontFamily: Font.display, color: INK }}
+            style={{ height: 64, borderRadius: 16, backgroundColor: Palette.canvas, borderWidth: 1, borderColor: BORDER, textAlign: 'center', fontSize: 30, letterSpacing: 16, fontFamily: Font.display, color: INK }}
           />
           {verifyMsg ? <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: Palette.danger, textAlign: 'center' }}>{verifyMsg}</Text> : null}
           <PressableScale
@@ -168,7 +168,7 @@ export function ProposeTermsModal({ target, cookingFee, setCookingFee, travelFee
               placeholderTextColor={SUB}
               keyboardType="numeric"
               maxLength={7}
-              style={{ height: 50, borderRadius: 13, backgroundColor: '#F8F6F3', borderWidth: 1, borderColor: BORDER, paddingHorizontal: 14, fontFamily: Font.body, fontSize: 15, color: INK }}
+              style={{ height: 50, borderRadius: 13, backgroundColor: Palette.canvas, borderWidth: 1, borderColor: BORDER, paddingHorizontal: 14, fontFamily: Font.body, fontSize: 15, color: INK }}
               accessibilityLabel="Cooking fee"
             />
             <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: INK }}>
@@ -182,7 +182,7 @@ export function ProposeTermsModal({ target, cookingFee, setCookingFee, travelFee
               placeholderTextColor={SUB}
               keyboardType="numeric"
               maxLength={7}
-              style={{ height: 50, borderRadius: 13, backgroundColor: '#F8F6F3', borderWidth: 1, borderColor: BORDER, paddingHorizontal: 14, fontFamily: Font.body, fontSize: 15, color: INK }}
+              style={{ height: 50, borderRadius: 13, backgroundColor: Palette.canvas, borderWidth: 1, borderColor: BORDER, paddingHorizontal: 14, fontFamily: Font.body, fontSize: 15, color: INK }}
               accessibilityLabel="Travel or transport fee"
             />
           </View>

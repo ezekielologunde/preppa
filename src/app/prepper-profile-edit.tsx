@@ -31,10 +31,10 @@ import { useAuth } from '@/providers/auth-provider';
 // ── Constants ──────────────────────────────────────────────────────────────────
 
 const BG     = Palette.canvas;
-const CARD   = '#FFFFFF';
+const CARD   = Palette.surface;
 const INK    = Palette.ink;
 const MUTED  = Palette.textSecondary;
-const BORDER = '#EDE9E4';
+const BORDER = Palette.border;
 const ORANGE = Palette.brand;
 
 const CUISINE_OPTIONS = ['Nigerian', 'West African', 'Caribbean', 'Soul Food', 'African', 'Other'];

@@ -12,8 +12,8 @@ import type { HomeCookRequest } from '@/lib/queries/home-cook';
 
 const INK    = Palette.ink;
 const SUB    = Palette.textSecondary;
-const BORDER = '#EDE9E4';
-const S1     = { shadowColor: '#1A1714', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 };
+const BORDER = Palette.border;
+const S1     = { shadowColor: Palette.ink, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 };
 
 export interface HomeCookTabProps {
   prepperId: string | undefined;
@@ -118,7 +118,7 @@ export function HomeCookTab({ prepperId, homeCookJobs, refreshing, onRefresh, on
                 </View>
 
                 {isNegotiating && job.cookingFee != null ? (
-                  <View style={{ backgroundColor: '#F8F6F3', borderRadius: 11, padding: 10, gap: 3 }}>
+                  <View style={{ backgroundColor: Palette.canvas, borderRadius: 11, padding: 10, gap: 3 }}>
                     <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: HC }}>Terms proposed — awaiting customer</Text>
                     <Text style={{ fontFamily: Font.body, fontSize: 12, color: SUB }}>
                       Cooking: ${job.cookingFee} · Travel: ${job.travelFee ?? 0} · Customer total: ${job.ingredientBudget + job.cookingFee + (job.travelFee ?? 0)}

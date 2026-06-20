@@ -69,7 +69,7 @@ function PlanCard({
   const cycleLabel = plan.frequency === 'weekly' ? '/wk' : plan.frequency === 'biweekly' ? '/2wk' : '/mo';
   const subscribers = stats?.activeSubscribers ?? 0;
   return (
-    <View style={{ backgroundColor: Palette.surface, borderRadius: 20, padding: 16, gap: 12, shadowColor: '#1A1714', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 }}>
+    <View style={{ backgroundColor: Palette.surface, borderRadius: 20, padding: 16, gap: 12, shadowColor: Palette.ink, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 }}>
       <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10 }}>
         <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: plan.active ? Palette.brandTint : Palette.chip, alignItems: 'center', justifyContent: 'center' }}>
           <RefreshCw size={17} color={plan.active ? ORANGE : Palette.textSecondary} />
@@ -265,7 +265,7 @@ export default function PrepperMealPlansScreen() {
           ) : (plans ?? []).length === 0 ? (
             <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260 }}
               style={{ alignItems: 'center', paddingTop: 60, gap: 10 }}>
-              <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center', shadowColor: '#1A1714', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 }}>
+              <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center', shadowColor: Palette.ink, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 }}>
                 <RefreshCw size={28} color={Palette.textSecondary} strokeWidth={1.5} />
               </View>
               <Text style={{ fontFamily: Font.heading, fontSize: 18, color: INK }}>no plans yet</Text>

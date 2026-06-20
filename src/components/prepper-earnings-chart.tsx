@@ -6,7 +6,7 @@ import { Font } from '@/constants/fonts';
 import { Palette } from '@/constants/theme';
 import { usePrepperEarningsChart } from '@/lib/queries/payouts';
 
-const CARD      = '#FFFFFF';
+const CARD      = Palette.surface;
 const BRAND     = Palette.brand;
 const INK       = Palette.ink;
 const BAR_MAX_H = 90;
@@ -26,7 +26,7 @@ export function PrepperEarningsChart({ prepperId }: Props) {
   }
 
   return (
-    <View style={{ backgroundColor: CARD, borderRadius: 16, padding: 16, gap: 12, shadowColor: '#1A1714', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 }}>
+    <View style={{ backgroundColor: CARD, borderRadius: 16, padding: 16, gap: 12, shadowColor: Palette.ink, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 }}>
       {/* Header row */}
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
         <Text style={{ fontFamily: Font.semibold, fontSize: 13, color: TEXT_MUTED }}>

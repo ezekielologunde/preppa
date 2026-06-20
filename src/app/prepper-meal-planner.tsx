@@ -21,10 +21,10 @@ const DAY_LABELS: Record<string, string> = {
 };
 
 const BG     = Palette.canvas;
-const CARD   = '#FFFFFF';
+const CARD   = Palette.surface;
 const INK    = Palette.ink;
 const MUTED  = Palette.textSecondary;
-const BORDER = '#EDE9E4';
+const BORDER = Palette.border;
 
 // ── Day chip ──────────────────────────────────────────────────────────────────
 
@@ -154,7 +154,7 @@ export default function PrepperMealPlannerScreen() {
         {/* Header */}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingTop: 8, paddingBottom: 12 }}>
           <PressableScale onPress={goBack} accessibilityRole="button" accessibilityLabel="Go back"
-            style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center', shadowColor: '#1A1714', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 4, elevation: 2 }}>
+            style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center', shadowColor: Palette.ink, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 4, elevation: 2 }}>
             <ChevronLeft size={22} color={INK} />
           </PressableScale>
           <View style={{ flex: 1 }}>
@@ -214,7 +214,7 @@ export default function PrepperMealPlannerScreen() {
             }
             ListEmptyComponent={
               <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: 48, gap: 10 }}>
-                <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center', shadowColor: '#1A1714', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 }}>
+                <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center', shadowColor: Palette.ink, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 }}>
                   <CalendarDays size={28} color={MUTED} />
                 </View>
                 <Text style={{ fontFamily: Font.semibold, fontSize: 15, color: INK }}>No meals yet</Text>

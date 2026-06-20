@@ -18,11 +18,11 @@ import { useAuth } from '@/providers/auth-provider';
 import type { MealStatus } from '@/types/database.types';
 
 const ORANGE = Palette.brand;
-const CARD   = '#FFFFFF';
+const CARD   = Palette.surface;
 const BG     = Palette.canvas;
 const INK    = Palette.ink;
 const SUB    = Palette.textSecondary;
-const BORDER = '#EDE9E4';
+const BORDER = Palette.border;
 const money  = (n: number) => `$${n.toFixed(2)}`;
 
 const STATUS_STYLE: Record<MealStatus, { label: string; color: string }> = {
@@ -155,7 +155,7 @@ export default function MealEditorScreen() {
         ) : isError ? (
           <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }}
             style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
-            <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center', shadowColor: '#1A1714', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 }}>
+            <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center', shadowColor: Palette.ink, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 }}>
               <UtensilsCrossed size={28} color={SUB} />
             </View>
             <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>couldn&apos;t load your menu</Text>
@@ -168,7 +168,7 @@ export default function MealEditorScreen() {
         ) : !meals?.length ? (
           <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280 }}
             style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
-            <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center', shadowColor: '#1A1714', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 }}>
+            <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center', shadowColor: Palette.ink, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 }}>
               <UtensilsCrossed size={28} color={SUB} />
             </View>
             <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>Your menu is empty</Text>

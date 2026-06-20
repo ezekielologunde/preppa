@@ -13,9 +13,9 @@ import { useAdvanceOrder, useCancelOrder, useTodayOrders } from '@/lib/queries/o
 
 const ORANGE  = Palette.brand;
 const INK     = Palette.ink;
-const CARD    = '#FFFFFF';
+const CARD    = Palette.surface;
 const MUTED   = Palette.textSecondary;
-const S1      = { shadowColor: '#1A1714', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 };
+const S1      = { shadowColor: Palette.ink, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 };
 const GREEN   = '#22c55e';
 const AMBER   = Palette.amber;
 const RED     = '#ef4444';
