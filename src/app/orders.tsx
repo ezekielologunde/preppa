@@ -118,7 +118,7 @@ export default function OrdersScreen() {
     if (s === 'confirmed') return { bg: '#DBEAFE', fg: '#1D4ED8' };
     if (s === 'preparing') return { bg: '#FED7AA', fg: '#9A3412' };
     if (s === 'ready') return { bg: '#DCFCE7', fg: '#15803D' };
-    if (s === 'out_for_delivery') return { bg: '#EDE9FE', fg: '#5B21B6' };
+    if (s === 'out_for_delivery') return { bg: Palette.homeCookTint, fg: Palette.homeCook };
     if (s === 'completed') return { bg: Palette.canvas, fg: Palette.textSecondary };
     return { bg: '#FEE2E2', fg: '#B91C1C' }; // cancelled
   }

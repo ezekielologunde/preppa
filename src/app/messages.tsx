@@ -47,7 +47,7 @@ function notify(o: OrderSummary): { Icon: LucideIcon; color: string; bg: string;
     confirmed: { Icon: CircleCheck, color: Palette.success, bg: Palette.success + '1A', title: `${by} accepted your preorder` },
     preparing: { Icon: ChefHat, color: ORANGE, bg: Palette.brandTint, title: 'Your food is being prepped' },
     ready: { Icon: UtensilsCrossed, color: ORANGE, bg: Palette.brandTint, title: 'Your preorder is ready for pickup' },
-    out_for_delivery: { Icon: Bike, color: '#8b5cf6', bg: '#EDE9FE', title: 'Your preorder is on the way' },
+    out_for_delivery: { Icon: Bike, color: '#8b5cf6', bg: Palette.homeCookTint, title: 'Your preorder is on the way' },
     completed: { Icon: Star, color: Palette.amber, bg: Palette.amber + '1A', title: 'Complete — leave a review' },
     cancelled: { Icon: CircleX, color: Palette.danger, bg: Palette.danger + '1A', title: 'Preorder cancelled & refunded' },
   };
@@ -102,7 +102,7 @@ function NotificationRow({ o, onPress }: { o: OrderSummary; onPress: () => void 
 const NOTIF_STYLE: Record<AppNotification['type'], { Icon: LucideIcon; color: string; bg: string }> = {
   order: { Icon: MessageSquareQuote, color: ORANGE, bg: Palette.brandTint },
   payment: { Icon: Package, color: Palette.success, bg: Palette.success + '1A' },
-  chat: { Icon: MessageCircle, color: '#8b5cf6', bg: '#EDE9FE' },
+  chat: { Icon: MessageCircle, color: '#8b5cf6', bg: Palette.homeCookTint },
   follow: { Icon: Heart, color: Palette.danger, bg: Palette.danger + '1A' },
   review: { Icon: Star, color: Palette.amber, bg: Palette.amber + '1A' },
   promotion: { Icon: CalendarCheck, color: ORANGE, bg: Palette.brandTint },

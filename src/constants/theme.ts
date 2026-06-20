@@ -107,6 +107,8 @@ export const Palette = {
   dangerDeep: '#991B1B', // error message text on dangerTint — red-800, AA-safe
   amberTint: '#FEF3C7', // warning banner background — amber-100 wash
   amberDeep: '#92400E', // warning message text on amberTint — amber-900, AA-safe
+  homeCook: '#5B21B6', // Home Cook feature accent — purple-700, 4.5:1 on white
+  homeCookTint: '#EDE9FE', // Home Cook chip/banner background — purple-50 wash
 
   // Prepper (dark) app — intentionally an operations tool (kept dark by mandate)
   prepperBg: '#0C0E13',

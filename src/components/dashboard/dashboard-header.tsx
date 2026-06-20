@@ -67,15 +67,15 @@ export function DashboardHeader({ size, displayName, avatarUrl, newCount, isOpen
                 </PressableScale>
               </MotiView>
 
-              <MotiView animate={{ backgroundColor: isHomeCookAvailable ? '#EDE9FE' : Palette.chip }} transition={{ type: 'timing', duration: 200 }} style={{ borderRadius: Radius.pill, overflow: 'hidden' }}>
+              <MotiView animate={{ backgroundColor: isHomeCookAvailable ? Palette.homeCookTint : Palette.chip }} transition={{ type: 'timing', duration: 200 }} style={{ borderRadius: Radius.pill, overflow: 'hidden' }}>
                 <PressableScale
                   onPress={onToggleHomeCook}
                   accessibilityRole="switch" accessibilityState={{ checked: isHomeCookAvailable }}
                   accessibilityLabel={isHomeCookAvailable ? 'Home cooking on — tap to disable' : 'Home cooking off — tap to enable'}
                   style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 10, paddingVertical: 4 }}
                 >
-                  <ChefHat size={11} color={isHomeCookAvailable ? '#5B21B6' : Palette.textSecondary} />
-                  <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: isHomeCookAvailable ? '#5B21B6' : Palette.textSecondary }}>Home cook</Text>
+                  <ChefHat size={11} color={isHomeCookAvailable ? Palette.homeCook : Palette.textSecondary} />
+                  <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: isHomeCookAvailable ? Palette.homeCook : Palette.textSecondary }}>Home cook</Text>
                 </PressableScale>
               </MotiView>
             </View>

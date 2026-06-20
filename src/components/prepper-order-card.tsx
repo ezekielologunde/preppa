@@ -13,7 +13,7 @@ import type { OrderStatus } from '@/types/database.types';
 
 // ── Design tokens (light kitchen theme) ──────────────────────────────────────
 export const HC      = '#7C3AED';
-export const HC_TINT = '#EDE9FE';
+export const HC_TINT = Palette.homeCookTint;
 export const ORANGE  = Palette.brand;
 export const CARD    = '#FFFFFF';
 export const BG      = '#F8F6F3';

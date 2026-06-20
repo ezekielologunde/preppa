@@ -183,7 +183,7 @@ export default function ProfileScreen() {
           </View>
         ) : null}
         {isAdmin ? (
-          <View style={{ backgroundColor: '#EDE9FE', borderRadius: Radius.pill, paddingHorizontal: 9, paddingVertical: 3 }}>
+          <View style={{ backgroundColor: Palette.homeCookTint, borderRadius: Radius.pill, paddingHorizontal: 9, paddingVertical: 3 }}>
             <Text style={{ fontFamily: Font.semibold, fontSize: 11.5, color: '#7C3AED' }}>admin</Text>
           </View>
         ) : null}

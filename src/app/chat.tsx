@@ -18,8 +18,8 @@ import { useAuth } from '@/providers/auth-provider';
 
 const cleanBlock = (s: string) => s.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
 
-const HC = '#5B21B6';
-const HC_TINT = '#EDE9FE';
+const HC = Palette.homeCook;
+const HC_TINT = Palette.homeCookTint;
 
 const ORANGE = Palette.brand;
 const INK = Palette.ink;

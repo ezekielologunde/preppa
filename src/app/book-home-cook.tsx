@@ -15,8 +15,8 @@ import { useCustomerMembership } from '@/lib/queries/memberships';
 import { usePrepperProfile } from '@/lib/queries/preppers';
 import { useAuth } from '@/providers/auth-provider';
 
-const HC = '#5B21B6';
-const HC_TINT = '#EDE9FE';
+const HC = Palette.homeCook;
+const HC_TINT = Palette.homeCookTint;
 const INK = Palette.ink;
 
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];

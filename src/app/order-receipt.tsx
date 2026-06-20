@@ -24,7 +24,7 @@ function statusStyle(s: string): { bg: string; fg: string } {
   if (s === 'confirmed') return { bg: '#DBEAFE', fg: '#1D4ED8' };
   if (s === 'preparing') return { bg: '#FED7AA', fg: '#9A3412' };
   if (s === 'ready') return { bg: '#D1FAE5', fg: '#065F46' };
-  if (s === 'out_for_delivery') return { bg: '#EDE9FE', fg: '#5B21B6' };
+  if (s === 'out_for_delivery') return { bg: Palette.homeCookTint, fg: Palette.homeCook };
   return { bg: Palette.chip, fg: Palette.textSecondary };
 }
 

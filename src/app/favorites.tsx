@@ -148,7 +148,7 @@ export default function FavoritesScreen() {
         ) : prepperIds.length === 0 ? (
           <MotiView from={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 260 }}
             style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
-            <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: '#EDE9FE', alignItems: 'center', justifyContent: 'center' }}>
+            <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: Palette.homeCookTint, alignItems: 'center', justifyContent: 'center' }}>
               <Users size={28} color="#8b5cf6" />
             </View>
             <Text style={{ fontFamily: Font.heading, fontSize: 17, color: INK }}>no kitchens followed</Text>
