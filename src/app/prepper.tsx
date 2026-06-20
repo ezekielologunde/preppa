@@ -281,7 +281,7 @@ export default function PrepperScreen() {
         {p?.verified ? (
           <View style={{ marginHorizontal: 16, marginTop: 12, backgroundColor: Palette.success + '14', borderRadius: Radius.md, padding: 12, flexDirection: 'row', alignItems: 'center', gap: 9 }}>
             <ShieldCheck size={18} color={Palette.success} />
-            <Text style={{ flex: 1, fontFamily: Font.medium, fontSize: 12.5, color: '#15803d' }}>Verified kitchen — ID and food-safety checked by Preppa.</Text>
+            <Text style={{ flex: 1, fontFamily: Font.medium, fontSize: 12.5, color: Palette.successDark }}>Verified kitchen — ID and food-safety checked by Preppa.</Text>
           </View>
         ) : null}
 
@@ -300,7 +300,7 @@ export default function PrepperScreen() {
                 {p.certifications.map((c) => (
                   <View key={c} style={{ flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: Palette.success + '14', borderRadius: Radius.pill, paddingHorizontal: 11, height: 30 }}>
                     <Award size={12} color={Palette.success} />
-                    <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: '#15803d' }}>{c}</Text>
+                    <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: Palette.successDark }}>{c}</Text>
                   </View>
                 ))}
               </View>

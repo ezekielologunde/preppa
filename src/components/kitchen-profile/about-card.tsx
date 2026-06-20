@@ -81,7 +81,7 @@ export function AboutKitchenCard({ bio, city, specialties, memberSinceIso, certi
         {certified ? (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <Award size={14} color={Palette.success} />
-            <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: '#15803d' }}>Food handler certified</Text>
+            <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: Palette.successDark }}>Food handler certified</Text>
           </View>
         ) : null}
       </View>

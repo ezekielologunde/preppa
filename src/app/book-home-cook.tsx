@@ -244,7 +244,7 @@ export default function BookHomeCookScreen() {
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={{ fontFamily: Font.heading, fontSize: 13.5, color: HC }}>How it works</Text>
-                  <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: '#4C1D95', lineHeight: 18 }}>
+                  <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: Palette.homeCookDeep, lineHeight: 18 }}>
                     Submit this form → {prepperName} proposes their fee → you confirm → they cook at your home on the agreed date. Payment is released only after the session is complete.
                   </Text>
                 </View>

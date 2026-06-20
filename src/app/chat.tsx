@@ -155,7 +155,7 @@ export default function ChatScreen() {
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={{ fontFamily: Font.heading, fontSize: 13, color: HC }}>Home cook booking</Text>
-                  <Text style={{ fontFamily: Font.body, fontSize: 11.5, color: '#4C1D95' }}>
+                  <Text style={{ fontFamily: Font.body, fontSize: 11.5, color: Palette.homeCookDeep }}>
                     {hc.status === 'pending' ? 'Awaiting terms from prepper' : termsReady ? 'Terms proposed — review and confirm' : 'Negotiating…'}
                   </Text>
                 </View>
@@ -175,18 +175,18 @@ export default function ChatScreen() {
                 </View>
                 <View style={{ height: 1, backgroundColor: HC + '20', marginVertical: 3 }} />
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                  <Text style={{ fontFamily: Font.body, fontSize: 12, color: '#4C1D95' }}>Ingredients budget</Text>
+                  <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.homeCookDeep }}>Ingredients budget</Text>
                   <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: INK }}>${hc.ingredientBudget}</Text>
                 </View>
                 {hc.cookingFee != null ? (
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                    <Text style={{ fontFamily: Font.body, fontSize: 12, color: '#4C1D95' }}>Cooking fee</Text>
+                    <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.homeCookDeep }}>Cooking fee</Text>
                     <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: INK }}>${hc.cookingFee}</Text>
                   </View>
                 ) : null}
                 {hc.travelFee != null && hc.travelFee > 0 ? (
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                    <Text style={{ fontFamily: Font.body, fontSize: 12, color: '#4C1D95' }}>Travel</Text>
+                    <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.homeCookDeep }}>Travel</Text>
                     <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: INK }}>${hc.travelFee}</Text>
                   </View>
                 ) : null}
@@ -379,11 +379,11 @@ export default function ChatScreen() {
             {ctx?.homeCookRequest && cookingFeeInput ? (
               <View style={{ backgroundColor: HC_TINT, borderRadius: 11, padding: 12, gap: 4 }}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                  <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: '#4C1D95' }}>Ingredients (customer's)</Text>
+                  <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: Palette.homeCookDeep }}>Ingredients (customer's)</Text>
                   <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: INK }}>${ctx.homeCookRequest.ingredientBudget}</Text>
                 </View>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                  <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: '#4C1D95' }}>Cooking fee</Text>
+                  <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: Palette.homeCookDeep }}>Cooking fee</Text>
                   <Text style={{ fontFamily: Font.semibold, fontSize: 12.5, color: INK }}>${parseFloat(cookingFeeInput) || 0}</Text>
                 </View>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>

@@ -246,7 +246,7 @@ export default function BidRequestsScreen() {
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                           <View style={{
                             borderRadius: Radius.pill, paddingHorizontal: 8, paddingVertical: 3,
-                            backgroundColor: expiry.expired ? Palette.divider : expiry.urgent ? '#FEF3C7' : Palette.chip,
+                            backgroundColor: expiry.expired ? Palette.divider : expiry.urgent ? Palette.amberTint : Palette.chip,
                           }}>
                             <Text style={{ fontFamily: Font.semibold, fontSize: 10.5, color: expiry.expired ? Palette.textSecondary : expiry.urgent ? '#B45309' : Palette.textSecondary }}>
                               {expiry.expired ? 'expired' : `⏱ ${expiry.label}`}
