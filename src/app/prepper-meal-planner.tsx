@@ -87,11 +87,11 @@ function MealRow({ meal, day, onToggle, isPending }: MealRowProps) {
           ) : null}
         </View>
         <MotiView
-          animate={{ backgroundColor: isAvailable ? '#D1FAE5' : '#F0EDEA', borderColor: isAvailable ? '#065F46' : BORDER }}
+          animate={{ backgroundColor: isAvailable ? Palette.successTint : '#F0EDEA', borderColor: isAvailable ? Palette.successDark : BORDER }}
           transition={{ type: 'timing', duration: 200 }}
           style={{ borderRadius: Radius.pill, borderWidth: 1.5, overflow: 'hidden' }}>
           <View style={{ paddingHorizontal: 12, paddingVertical: 5 }}>
-            <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: isAvailable ? '#065F46' : MUTED }}>
+            <Text style={{ fontFamily: Font.semibold, fontSize: 12, color: isAvailable ? Palette.successDark : MUTED }}>
               {isAvailable ? `✓ Available ${dayLabel}` : `+ Add for ${dayLabel}`}
             </Text>
           </View>

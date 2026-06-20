@@ -109,6 +109,8 @@ export const Palette = {
   amberDeep: '#92400E', // warning message text on amberTint — amber-900, AA-safe
   homeCook: '#5B21B6', // Home Cook feature accent — purple-700, 4.5:1 on white
   homeCookTint: '#EDE9FE', // Home Cook chip/banner background — purple-50 wash
+  successTint: '#DCFCE7', // success chip/status background — green-100 wash
+  successDark: '#15803D', // success text on successTint — green-700, 5.1:1 AA-safe
 
   // Prepper (dark) app — intentionally an operations tool (kept dark by mandate)
   prepperBg: '#0C0E13',
