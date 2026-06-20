@@ -19,8 +19,8 @@ const ORANGE = Palette.brand;
 const GREEN  = Palette.success;
 const RED    = Palette.danger;
 const CARD   = '#FFFFFF';
-const BG     = '#F8F6F3';
-const INK    = '#1A1714';
+const BG     = Palette.canvas;
+const INK    = Palette.ink;
 const MUTED  = Palette.textSecondary;
 const BORDER = '#EDE9E4';
 

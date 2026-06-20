@@ -21,8 +21,8 @@ import { useAuth } from '@/providers/auth-provider';
 
 // ── Design tokens (light kitchen theme) ──────────────────────────────────────
 const ORANGE = Palette.brand;
-const INK    = '#1A1714';
-const BG     = '#F8F6F3';
+const INK    = Palette.ink;
+const BG     = Palette.canvas;
 const CARD   = '#FFFFFF';
 const BORDER = '#EDE9E4';
 const MUTED  = Palette.textSecondary;

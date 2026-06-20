@@ -19,10 +19,10 @@ const orderDate = (iso: string) =>
 
 function statusStyle(s: string): { bg: string; fg: string } {
   if (s === 'completed') return { bg: Palette.successTint, fg: Palette.successDark };
-  if (s === 'cancelled') return { bg: '#FEE2E2', fg: '#991B1B' };
+  if (s === 'cancelled') return { bg: Palette.cancelledTint, fg: Palette.dangerDeep };
   if (s === 'pending') return { bg: Palette.amberTint, fg: Palette.amberDeep };
-  if (s === 'confirmed') return { bg: '#DBEAFE', fg: '#1D4ED8' };
-  if (s === 'preparing') return { bg: '#FED7AA', fg: '#9A3412' };
+  if (s === 'confirmed') return { bg: Palette.confirmedTint, fg: Palette.confirmedDark };
+  if (s === 'preparing') return { bg: Palette.preparingTint, fg: Palette.preparingDark };
   if (s === 'ready') return { bg: Palette.successTint, fg: Palette.successDark };
   if (s === 'out_for_delivery') return { bg: Palette.homeCookTint, fg: Palette.homeCook };
   return { bg: Palette.chip, fg: Palette.textSecondary };

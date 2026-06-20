@@ -166,7 +166,7 @@ function StockBadge({ stockRemaining }: { stockRemaining: number | null | undefi
 
   if (stockRemaining <= 0) {
     return (
-      <View style={{ alignSelf: 'flex-start', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, backgroundColor: '#FEE2E2' }}>
+      <View style={{ alignSelf: 'flex-start', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, backgroundColor: Palette.cancelledTint }}>
         <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: Palette.danger }}>Sold out</Text>
       </View>
     );

@@ -20,9 +20,9 @@ const DAY_LABELS: Record<string, string> = {
   thursday: 'Thu', friday: 'Fri', saturday: 'Sat', sunday: 'Sun',
 };
 
-const BG     = '#F8F6F3';
+const BG     = Palette.canvas;
 const CARD   = '#FFFFFF';
-const INK    = '#1A1714';
+const INK    = Palette.ink;
 const MUTED  = Palette.textSecondary;
 const BORDER = '#EDE9E4';
 

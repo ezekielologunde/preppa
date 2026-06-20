@@ -6,7 +6,7 @@ import { Palette } from '@/constants/theme';
 
 const ORANGE  = Palette.brand;
 const CARD    = '#FFFFFF';
-const INK     = '#1A1714';
+const INK     = Palette.ink;
 const MUTED   = Palette.textSecondary;
 const BORDER  = '#EDE9E4';
 

@@ -12,7 +12,7 @@ import { useStripeConnect } from '@/lib/queries/stripe-connect';
 const ORANGE = Palette.brand;
 const GREEN  = Palette.success;
 const CARD   = '#FFFFFF';
-const INK    = '#1A1714';
+const INK    = Palette.ink;
 const MUTED  = Palette.textSecondary;
 
 export function PayoutSetupCard() {

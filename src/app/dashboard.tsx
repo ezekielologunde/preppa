@@ -25,10 +25,10 @@ import { useAuth } from '@/providers/auth-provider';
 import type { OrderStatus } from '@/types/database.types';
 
 // ── Design tokens (light kitchen theme) ──────────────────────────────────────
-const BG     = '#F8F6F3';
+const BG     = Palette.canvas;
 const CARD   = '#FFFFFF';
 const BORDER = '#EDE9E4';
-const INK    = '#1A1714';
+const INK    = Palette.ink;
 const MUTED  = Palette.textSecondary;
 const ORANGE = Palette.brand;
 const S1     = { shadowColor: '#1A1714', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 };

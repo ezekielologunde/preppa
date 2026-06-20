@@ -12,7 +12,7 @@ import { feedback } from '@/lib/feedback';
 import { useAdvanceOrder, useCancelOrder, useTodayOrders } from '@/lib/queries/orders';
 
 const ORANGE  = Palette.brand;
-const INK     = '#1A1714';
+const INK     = Palette.ink;
 const CARD    = '#FFFFFF';
 const MUTED   = Palette.textSecondary;
 const S1      = { shadowColor: '#1A1714', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 };

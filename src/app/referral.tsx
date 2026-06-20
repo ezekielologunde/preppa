@@ -25,7 +25,7 @@ type ChipStatus = 'pending' | 'completed' | 'paid';
 const STATUS_META: Record<ChipStatus, { label: string; bg: string; color: string }> = {
   pending:   { label: 'pending',   bg: Palette.chip,           color: Palette.textSecondary },
   completed: { label: 'completed', bg: Palette.success + '1A', color: Palette.success       },
-  paid:      { label: 'paid',      bg: '#DBEAFE',              color: '#1D4ED8'             },
+  paid:      { label: 'paid',      bg: Palette.confirmedTint,  color: Palette.confirmedDark },
 };
 
 function StatusChip({ status }: { status: ChipStatus }) {

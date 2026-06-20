@@ -9,7 +9,7 @@ import { HC, CARD, ORANGE, money } from '@/components/prepper-order-card';
 import type { OrderSummary } from '@/lib/queries/orders';
 import type { HomeCookRequest } from '@/lib/queries/home-cook';
 
-const INK    = '#1A1714';
+const INK    = Palette.ink;
 const SUB    = Palette.textSecondary;
 const BORDER = '#EDE9E4';
 

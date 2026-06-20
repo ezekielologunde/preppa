@@ -8,7 +8,7 @@ import { usePrepperEarningsChart } from '@/lib/queries/payouts';
 
 const CARD      = '#FFFFFF';
 const BRAND     = Palette.brand;
-const INK       = '#1A1714';
+const INK       = Palette.ink;
 const BAR_MAX_H = 90;
 const TEXT_MUTED = Palette.textSecondary;
 

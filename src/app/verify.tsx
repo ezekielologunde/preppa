@@ -13,7 +13,7 @@ import { useVerifyHandoffToken } from '@/lib/queries/orders';
 import { useAuth } from '@/providers/auth-provider';
 
 const ORANGE = Palette.brand;
-const INK    = '#1A1714';
+const INK    = Palette.ink;
 const SUB    = Palette.textSecondary;
 
 /**

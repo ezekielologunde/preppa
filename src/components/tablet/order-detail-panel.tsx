@@ -23,7 +23,7 @@ import type { FulfillmentType, OrderStatus } from '@/types/database.types';
 const ORANGE  = Palette.brand;
 const GREEN   = Palette.success;
 const CARD    = '#FFFFFF';
-const INK     = '#1A1714';
+const INK     = Palette.ink;
 const SUB     = Palette.textSecondary;
 const BORDER  = '#EDE9E4';
 const money   = (n: number) => `$${n.toFixed(2)}`;

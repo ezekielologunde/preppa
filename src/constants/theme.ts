@@ -112,6 +112,11 @@ export const Palette = {
   homeCookDeep: '#4C1D95', // Home Cook label text on homeCookTint — purple-900, AA-safe
   successTint: '#DCFCE7', // success chip/status background — green-100 wash
   successDark: '#15803D', // success text on successTint — green-700, 5.1:1 AA-safe
+  confirmedTint: '#DBEAFE', // confirmed order chip bg — blue-100 wash
+  confirmedDark: '#1D4ED8', // confirmed chip text — blue-700, AA-safe on confirmedTint
+  preparingTint: '#FED7AA', // preparing order chip bg — orange-200 wash
+  preparingDark: '#9A3412', // preparing chip text — orange-800, AA-safe on preparingTint
+  cancelledTint: '#FEE2E2', // cancelled order chip bg — red-100 wash (dangerTint is red-50)
 
   // Prepper (dark) app — intentionally an operations tool (kept dark by mandate)
   prepperBg: '#0C0E13',
