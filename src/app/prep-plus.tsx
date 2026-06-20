@@ -175,7 +175,7 @@ export default function PrepPlusScreen() {
           <MotiView from={{ opacity: 0, translateY: 6 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 240, delay: 380 }}>
             <View style={{ backgroundColor: Palette.brandTint, borderRadius: Radius.md, padding: 16, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
               <View style={{ flexDirection: 'row' }}>
-                {['#E8611A', '#f59e0b', '#8b5cf6', '#ec4899'].map((c, i) => (
+                {[Palette.brand, Palette.amber, '#8b5cf6', '#ec4899'].map((c, i) => (
                   <View key={c} style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: c, borderWidth: 2, borderColor: Palette.canvas, marginLeft: i > 0 ? -8 : 0 }} />
                 ))}
               </View>

@@ -376,7 +376,7 @@ export default function PrepperPremiumScreen() {
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 20, gap: 22, paddingBottom: 40 }}>
           {/* Hero */}
           <MotiView from={{ opacity: 0, translateY: 12 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 300 }}>
-            <LinearGradient colors={['#FF9A5A', '#E8611A']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+            <LinearGradient colors={['#FF9A5A', Palette.brand]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
               style={{ borderRadius: 24, padding: 24, gap: 12 }}>
               <Text style={{ fontFamily: Font.display, fontSize: 28, color: '#fff', letterSpacing: -0.8 }}>Preppa Pro & Elite</Text>
               <Text style={{ fontFamily: Font.body, fontSize: 15, color: 'rgba(255,255,255,0.82)', lineHeight: 22 }}>

@@ -52,7 +52,7 @@ export function KitchenHero({
         <Skeleton width="100%" height={COVER_H} radius={0} />
       ) : (
         <LinearGradient
-          colors={['#FF8C42', '#E8611A']}
+          colors={['#FF8C42', Palette.brand]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={{ height: COVER_H }}>

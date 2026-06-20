@@ -82,7 +82,7 @@ export function AddCardSheet({
         stripeRef.current = stripe;
         setClientSecret(data.clientSecret);
         const card = stripe.elements().create('card', {
-          style: { base: { fontSize: '16px', color: '#1C1A18', '::placeholder': { color: '#B8B0A8' } } },
+          style: { base: { fontSize: '16px', color: Palette.ink, '::placeholder': { color: Palette.textMuted } } },
         });
         cardRef.current = card;
         if (hostRef.current) {

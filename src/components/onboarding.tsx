@@ -134,7 +134,7 @@ export function Onboarding({ onGetStarted, onSignIn }: Props) {
   return (
     <View style={styles.root}>
       <LinearGradient
-        colors={['#FF9A3C', '#E8611A', '#D9430F', '#B5260A']}
+        colors={['#FF9A3C', Palette.brand, '#D9430F', '#B5260A']}
         locations={[0, 0.4, 0.74, 1]}
         start={{ x: 0.1, y: 0 }}
         end={{ x: 0.9, y: 1 }}
