@@ -282,9 +282,9 @@ export default function PrepperOrdersScreen() {
               </View>
               <Text style={{ fontFamily: Font.heading, fontSize: 18, color: '#1A1714', textAlign: 'center' }}>No preorders yet</Text>
               <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center', lineHeight: 21 }}>Share your kitchen to start getting orders</Text>
-              <PressableScale onPress={() => { feedback.tap(); router.push('/post-video'); }} accessibilityRole="button" accessibilityLabel="Share your kitchen"
+              <PressableScale onPress={() => { feedback.tap(); router.push('/prepper-profile-edit'); }} accessibilityRole="button" accessibilityLabel="Edit your kitchen profile"
                 style={{ marginTop: 4, backgroundColor: ORANGE, borderRadius: Radius.pill, paddingHorizontal: 24, paddingVertical: 12 }}>
-                <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: '#fff' }}>share your kitchen</Text>
+                <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: '#fff' }}>edit your kitchen</Text>
               </PressableScale>
             </MotiView>
           ) : isTablet ? (

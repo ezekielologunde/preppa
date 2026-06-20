@@ -1,11 +1,10 @@
 import { useRouter } from 'expo-router';
-import { CalendarDays, ChefHat, ChevronLeft, ChevronRight, Clock, Coffee, DollarSign, Flame, MessageSquare, Package, Sparkles, TrendingUp, Utensils, Video, Wallet } from 'lucide-react-native';
+import { CalendarDays, ChefHat, ChevronLeft, ChevronRight, Clock, Coffee, DollarSign, Flame, MessageSquare, Package, Sparkles, TrendingUp, Utensils, Wallet } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useState } from 'react';
 import { Modal, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { LiveSessionBanner } from '@/components/live-session-banner';
 import { PrepperEarningsChart } from '@/components/prepper-earnings-chart';
 import { PrepperInsightsCard } from '@/components/prepper-insights-card';
 import { PrepperTodayPanel } from '@/components/prepper-today-panel';
@@ -38,7 +37,6 @@ const ACTIONS = [
   { label: 'reply to reviews',          desc: 'Responding boosts your ranking score',            Icon: MessageSquare,color: '#8b5cf6', route: '/reviews' },
   { label: 'meal planner',              desc: 'Set which days each meal is available for the week',Icon: CalendarDays,color: Palette.brand, route: '/prepper-meal-planner' },
   { label: 'edit kitchen profile',      desc: 'Update your name, photo, bio and specialties',   Icon: ChefHat,     color: Palette.brand, route: '/prepper-profile-edit' },
-  { label: 'bid requests',              desc: 'View and bid on open meal requests from customers',Icon: Sparkles,   color: Palette.amber, route: '/bid-requests' },
 ];
 
 const TIPS = [
@@ -388,26 +386,6 @@ export default function PrepperHubScreen() {
                 ))}
               </View>
             </MotiView>
-
-            {/* Create content */}
-            <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 320 }}>
-              <Text style={{ fontFamily: Font.display, fontSize: 15, color: INK, letterSpacing: -0.3, marginBottom: 12 }}>create content</Text>
-              <PressableScale onPress={() => { feedback.tap(); router.push('/post-video' as any); }} accessibilityRole="button" accessibilityLabel="Post Video"
-                style={{ backgroundColor: CARD, borderRadius: 16, height: 80, alignItems: 'center', justifyContent: 'center', gap: 6, ...S1 }}>
-                <View style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: ORANGE + '18', alignItems: 'center', justifyContent: 'center' }}>
-                  <Video size={16} color={ORANGE} />
-                </View>
-                <Text style={{ fontFamily: Font.heading, fontSize: 13, color: INK }}>Post Video</Text>
-                <Text style={{ fontFamily: Font.body, fontSize: 11, color: MUTED }}>share a meal drop</Text>
-              </PressableScale>
-            </MotiView>
-
-            {/* Live session */}
-            {application?.id ? (
-              <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 340 }}>
-                <LiveSessionBanner prepperId={application.id} />
-              </MotiView>
-            ) : null}
 
             {/* Daily tip */}
             <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 360 }}>

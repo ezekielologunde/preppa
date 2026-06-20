@@ -40,13 +40,11 @@ const ROUTE_CLASS: [string, WidthClass][] = [
   ['/meal-plans', 'content'],
   ['/experiences', 'content'],
   ['/rewards', 'content'],
-  ['/bid-requests', 'content'],
   ['/cart', 'content'],
   ['/settings', 'form'],
   ['/edit-profile', 'form'],
   ['/addresses', 'form'],
   ['/payment-methods', 'form'],
-  ['/post-video', 'form'],
   ['/become-prepper', 'form'],
   // Bare meal detail widens for the desktop gallery + details two-pane.
   // (After /meal-editor and /meal-plans so those still match first.)

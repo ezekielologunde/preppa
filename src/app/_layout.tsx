@@ -12,7 +12,7 @@ Sentry.init({
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFonts } from 'expo-font';
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider, usePathname, useRouter } from 'expo-router';
-import { CircleUser, Compass, House, MonitorPlay, ShoppingBag, Ticket } from 'lucide-react-native';
+import { CircleUser, Compass, House, ShoppingBag, Ticket } from 'lucide-react-native';
 import { MotiView, MotiText } from 'moti';
 import { useEffect, useState, type ReactNode } from 'react';
 import { Platform, Text, useColorScheme, useWindowDimensions, View } from 'react-native';
@@ -84,7 +84,6 @@ const DARK_BY_DESIGN = ['/prepper-orders', '/earnings', '/admin', '/prepper', '/
 const SIDEBAR_ITEMS = [
   { href: '/',             label: 'Home',        Icon: House },
   { href: '/explore',      label: 'Explore',     Icon: Compass },
-  { href: '/feeds',        label: 'Feeds',       Icon: MonitorPlay },
   { href: '/experiences',  label: 'Experiences', Icon: Ticket },
   { href: '/cart',         label: 'Cart',        Icon: ShoppingBag },
   { href: '/profile',      label: 'Profile',     Icon: CircleUser },
@@ -325,7 +324,6 @@ function RootLayout() {
                 <Stack.Screen name="notification-settings" options={{ presentation: 'modal' }} />
                 <Stack.Screen name="notification-preferences" options={{ presentation: 'modal' }} />
                 <Stack.Screen name="dietary-preferences" options={{ presentation: 'modal' }} />
-                <Stack.Screen name="boost" options={{ presentation: 'modal' }} />
                 <Stack.Screen name="onboarding" options={{ headerShown: false, gestureEnabled: false, animation: 'fade' }} />
               </Stack>
               <FloatingCartBar />

@@ -319,8 +319,7 @@ export function FollowingKitchensSection({ userId }: { userId: string }) {
   return (
     <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }}
       transition={{ type: 'timing', duration: 260, delay: 100 }}>
-      <SectionHeader title="from kitchens you follow" linkLabel="see feed →" Icon={Sparkles}
-        onLink={() => { feedback.tap(); router.push('/feeds'); }} />
+      <SectionHeader title="from kitchens you follow" Icon={Sparkles} />
       {isLoading ? <CardRowSkeleton count={3} width={140} /> : items.length > 0 ? (
         <ScrollView horizontal showsHorizontalScrollIndicator={false}
           contentContainerStyle={{ paddingHorizontal: 20, gap: 12, paddingBottom: 4 }}>

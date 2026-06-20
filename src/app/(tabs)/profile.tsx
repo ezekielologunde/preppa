@@ -3,7 +3,7 @@ import { useRouter } from 'expo-router';
 import {
   BadgeCheck, Bell, BellRing, Bookmark, CalendarCheck, Camera, ChefHat, ChevronRight, Clock, Copy, CreditCard, Crown,
   Gift, Heart, LifeBuoy, MapPin, Package, Settings, ShieldCheck, Share2, Sparkles, Ticket,
-  TrendingUp, Users, Video, Wallet,
+  TrendingUp, Users, Wallet,
 } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useState } from 'react';
@@ -258,7 +258,6 @@ export default function ProfileScreen() {
     { label: 'Preorders',       sub: 'View and manage preorders',       Icon: Package,     route: '/prepper-orders'      },
     { label: 'Payouts',         sub: 'Balance, bank & withdrawals',     Icon: Wallet,      route: '/prepper-payouts'     },
     { label: 'Earnings',        sub: 'Sales, reach & performance',      Icon: TrendingUp,  route: '/earnings'            },
-    { label: 'Post a video',    sub: 'Share a kitchen clip',            Icon: Video,       route: '/post-video'          },
   ];
   const kitchenEl = isApprovedPrepper ? (
     <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280, delay: 60 }}>

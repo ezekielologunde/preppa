@@ -290,10 +290,10 @@ export function FeedCard({ item, height, bottomInset, followSet }: { item: FeedI
               transition={{ type: 'spring', damping: 20, stiffness: 240 }}
               style={{ borderRadius: Radius.pill, borderWidth: 1, minWidth: 130 }}>
               <PressableScale
-                onPress={item.isLive ? () => { feedback.tap(); if (item.prepper_id) router.push(`/watch-live?prepperId=${item.prepper_id}` as never); } : handleAddToCart}
+                onPress={handleAddToCart}
                 disabled={addState === 'adding'}
                 accessibilityRole="button"
-                accessibilityLabel={item.isLive ? `View ${item.title} live drop` : addState === 'added' ? 'Added to cart' : addState === 'error' ? 'Failed to add — tap to retry' : `Add ${item.title} to cart`}
+                accessibilityLabel={addState === 'added' ? 'Added to cart' : addState === 'error' ? 'Failed to add — tap to retry' : `Add ${item.title} to cart`}
                 style={{ height: 44, paddingHorizontal: 18, flexDirection: 'row', alignItems: 'center', gap: 7 }}>
                 {addState === 'adding' ? (
                   <ActivityIndicator size="small" color="#fff" />

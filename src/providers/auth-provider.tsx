@@ -189,7 +189,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         break;
       }
       case 'bid_accepted':
-        router.push('/bid-requests' as never);
+        router.push('/orders' as never);
         break;
       case 'order_update': {
         const id = safeId(data.order_id);
