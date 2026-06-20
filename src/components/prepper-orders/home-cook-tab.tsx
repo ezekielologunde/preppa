@@ -150,7 +150,7 @@ export function HomeCookTab({ prepperId, homeCookJobs, refreshing, onRefresh, on
                     </View>
                   ) : job.status === 'accepted' ? (
                     <View style={{ flex: 1, height: 44, borderRadius: Radius.pill, backgroundColor: '#DCFCE7', alignItems: 'center', justifyContent: 'center' }}>
-                      <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: '#16A34A' }}>Accepted — coordinate via chat</Text>
+                      <Text style={{ fontFamily: Font.medium, fontSize: 13.5, color: Palette.success }}>Accepted — coordinate via chat</Text>
                     </View>
                   ) : (
                     <View style={{ flex: 1, height: 44, borderRadius: Radius.pill, backgroundColor: '#F0EDEA', alignItems: 'center', justifyContent: 'center' }}>

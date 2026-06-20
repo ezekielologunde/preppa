@@ -27,7 +27,7 @@ const BG     = '#F8F6F3';
 const CARD   = '#FFFFFF';
 const BORDER = '#EDE9E4';
 const MUTED  = '#78716C';
-const GREEN  = '#16A34A';
+const GREEN  = Palette.success;
 const S1     = { shadowColor: '#1A1714', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 };
 
 const ACTIONS = [

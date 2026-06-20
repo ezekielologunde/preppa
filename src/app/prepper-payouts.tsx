@@ -44,7 +44,7 @@ const shortDate = (iso: string) => {
 const STATUS_STYLES: Record<PayoutRequest['status'], { bg: string; text: string; label: string }> = {
   pending:    { bg: '#FEF3C7', text: '#D97706', label: 'pending' },
   processing: { bg: '#EFF6FF', text: '#2563EB', label: 'processing' },
-  paid:       { bg: '#DCFCE7', text: '#16A34A', label: 'paid' },
+  paid:       { bg: Palette.success + '22', text: Palette.success, label: 'paid' },
   rejected:   { bg: Palette.danger + '15', text: Palette.danger, label: 'rejected' },
 };
 

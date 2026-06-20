@@ -41,7 +41,7 @@ const STATUS_LABEL: Record<OrderStatus, string> = {
 
 const STATUS_CHIP_COLOR: Record<string, string> = {
   New: '#D97706', Confirmed: '#2563EB', Preparing: '#2563EB',
-  Ready: '#16A34A', 'On the way': '#2563EB',
+  Ready: Palette.success, 'On the way': '#2563EB',
   Complete: SUB, Cancelled: SUB,
 };
 
@@ -71,7 +71,7 @@ interface FilterChipDef {
 const FILTER_CHIPS: FilterChipDef[] = [
   { key: 'pending',  label: 'Pending',  color: '#D97706', statuses: ['pending'] },
   { key: 'prepping', label: 'Prepping', color: '#2563EB', statuses: ['confirmed', 'preparing', 'out_for_delivery'] },
-  { key: 'ready',    label: 'Ready',    color: '#16A34A', statuses: ['ready'] },
+  { key: 'ready',    label: 'Ready',    color: Palette.success, statuses: ['ready'] },
   { key: 'done',     label: 'Done',     color: SUB,       statuses: ['completed', 'cancelled'] },
 ];
 

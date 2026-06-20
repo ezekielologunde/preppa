@@ -49,7 +49,7 @@ const BUCKETS: Bucket[] = [
     title: 'Help & Support',
     sub: 'FAQs, contact Preppa, message your chef',
     Icon: LifeBuoy,
-    tint: '#16A34A',
+    tint: Palette.success,
     route: '/settings-help',
   },
   {
