@@ -160,7 +160,7 @@ function EmptyState({ filtered }: { filtered: boolean }) {
       </Text>
       {!filtered ? (
         <PressableScale
-          onPress={() => { feedback.tap(); router.push('/(tabs)/explore' as never); }}
+          onPress={() => { feedback.tap(); router.push('/'); }}
           accessibilityRole="button"
           accessibilityLabel="Browse kitchens"
           style={{ marginTop: 6, backgroundColor: Palette.brand, borderRadius: Radius.pill, paddingHorizontal: 24, paddingVertical: 12 }}

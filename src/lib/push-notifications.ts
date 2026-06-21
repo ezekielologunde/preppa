@@ -62,7 +62,7 @@ export function usePushNotificationListeners() {
       const data = res.notification.request.content.data as Record<string, unknown>;
       // Allowlist of routes our edge functions may emit — blocks open-redirect
       // attacks via crafted notification payloads (no schemes, no external hosts).
-      const ALLOWED_ROUTES = new Set(['/', '/specials', '/prepper-orders', '/explore', '/orders', '/experiences']);
+      const ALLOWED_ROUTES = new Set(['/', '/prepper-orders', '/explore', '/orders', '/experiences', '/dashboard']);
       if (typeof data?.route === 'string' && ALLOWED_ROUTES.has(data.route)) {
         router.push(data.route as never);
         return;

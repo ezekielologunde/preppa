@@ -19,8 +19,6 @@ export type FeedItem = {
   expiresAt?: string | null;
   /** true = is_limited meal; drives countdown badge in FeedCard. */
   isLimited?: boolean;
-  /** Currently airing live kitchen session — shows LIVE badge and routes to prepper page. */
-  isLive?: boolean;
   /** true = standalone prepper post (feed_posts), false = live meal listing */
   isPost?: boolean;
   /** ISO created_at — used as pagination cursor; not rendered. */
@@ -171,45 +169,6 @@ export function useFeed() {
       );
     },
     getNextPageParam: (lastPage) => lastPage[lastPage.length - 1]?.created_at ?? undefined,
-  });
-}
-
-/**
- * Live kitchen sessions — polls every 30s, surfaces currently-airing sessions
- * as FeedItems with isLive=true so the feed can prepend them at the top.
- */
-export function useLiveFeedItems() {
-  return useQuery({
-    queryKey: ['live-feed-items'],
-    staleTime: 15_000,
-    refetchInterval: 30_000,
-    queryFn: async (): Promise<FeedItem[]> => {
-      const { data } = await supabase
-        .from('live_sessions')
-        .select('id, prepper_id, title, viewer_count, started_at, prepper_profiles!inner(display_name, verified)')
-        .is('ended_at', null)
-        .order('started_at', { ascending: false })
-        .limit(10);
-
-      if (!data?.length) return [];
-
-      return (data as any[]).map((s): FeedItem => ({
-        id: s.id,
-        title: s.title ?? 'Live cooking',
-        price: 0,
-        prepper: (s.prepper_profiles as any)?.display_name ?? 'Chef',
-        prepper_id: s.prepper_id,
-        verified: (s.prepper_profiles as any)?.verified ?? false,
-        isPro: (s.prepper_profiles as any)?.is_pro ?? false,
-        rating: 0,
-        reviews: 0,
-        image: '',
-        videoUrl: null,
-        thumbnail: null,
-        isLive: true,
-        isPost: true,
-      }));
-    },
   });
 }
 

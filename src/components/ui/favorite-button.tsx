@@ -3,19 +3,22 @@ import { MotiView } from 'moti';
 import { Pressable } from 'react-native';
 
 import { Palette } from '@/constants/theme';
+import { supabase } from '@/lib/supabase';
 import { toggleFavorite, useFavorite } from '@/lib/favorites';
+import { useAuth } from '@/providers/auth-provider';
 
 /**
  * The heart that lives on every card. Persistent (favorites store), springs
  * when toggled, and stops touch propagation so hearting never opens the card.
  */
 export function FavoriteButton({ id, size = 30 }: { id: string; size?: number }) {
+  const { user } = useAuth();
   const on = useFavorite(id);
   return (
     <Pressable
       onPress={(e) => {
         e.stopPropagation();
-        toggleFavorite(id);
+        toggleFavorite(id, user?.id, supabase);
       }}
       hitSlop={12}
       accessibilityState={{ selected: on }}

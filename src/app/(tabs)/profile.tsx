@@ -1,7 +1,7 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import {
-  BadgeCheck, Bell, Bookmark, CalendarCheck, Camera, ChefHat, ChevronRight, Clock, CreditCard, Crown,
+  BadgeCheck, Bell, Bookmark, CalendarCheck, ChefHat, ChevronRight, Clock, CreditCard, Crown,
   Gift, Heart, LifeBuoy, MapPin, Package, Settings, ShieldCheck, Share2, Sparkles, Ticket,
   TrendingUp, Users, Wallet,
 } from 'lucide-react-native';
@@ -10,9 +10,8 @@ import { useState } from 'react';
 import { Alert, Platform, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { DarkCard, DarkModeRow, RewardsCard, SectionCard, StatChip } from '@/components/profile-sections';
+import { DarkCard, DarkModeRow, KitchenGatewayCard, RewardsCard, SectionCard, StatChip } from '@/components/profile-sections';
 import { WorkspaceSwitcher } from '@/components/workspace-switcher';
-import { Avatar } from '@/components/ui/avatar';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
 import { Palette, Radius, Shadow } from '@/constants/theme';
@@ -22,8 +21,10 @@ import { useConversations } from '@/lib/queries/messages';
 import { useCustomerMembership } from '@/lib/queries/memberships';
 import { useMySubscriptions } from '@/lib/queries/meal-plans';
 import { useNotifications } from '@/lib/queries/notifications';
-import { useMyOrders } from '@/lib/queries/orders';
+import { useMyOrders, usePrepperOrders } from '@/lib/queries/orders';
 import { useFollowedPreppers, useMyPrepperApplication } from '@/lib/queries/preppers';
+import { usePayoutBalance } from '@/lib/queries/payouts';
+import { useWorkspace } from '@/lib/workspace';
 import { usePaymentMethods } from '@/lib/queries/payment-methods';
 import { useRewards } from '@/lib/queries/rewards';
 import { useDarkMode } from '@/lib/theme-mode';
@@ -41,6 +42,12 @@ export default function ProfileScreen() {
   const { data: myPrepper, refetch: refetchPrepper } = useMyPrepperApplication(user?.id);
   const isApprovedPrepper = myPrepper?.status === 'approved';
   const isPendingPrepper = myPrepper?.status === 'pending';
+  const { prepperId, switchWorkspace } = useWorkspace();
+  const { data: activePrepperOrders } = usePrepperOrders(
+    isApprovedPrepper ? prepperId : null,
+    ['pending', 'confirmed', 'preparing', 'ready', 'out_for_delivery'],
+  );
+  const { data: payoutBalance } = usePayoutBalance(isApprovedPrepper ? prepperId : null);
   const { data: followedPreppers, refetch: refetchFollowed } = useFollowedPreppers(user?.id);
   const rewards = useRewards(user?.id);
   const { data: notifications, refetch: refetchNotifications } = useNotifications(user?.id);
@@ -129,31 +136,6 @@ export default function ProfileScreen() {
       animate={{ opacity: 1, translateY: 0 }}
       transition={{ type: 'spring', damping: 20, stiffness: 200, delay: 0 }}
       style={{ alignItems: 'center', gap: 8, paddingHorizontal: 20 }}>
-      {/* Avatar with brand ring */}
-      <PressableScale onPress={() => { feedback.tap(); router.push('/edit-profile'); }}
-        accessibilityRole="button" accessibilityLabel="Edit your profile">
-        <View style={{ width: 88, height: 88, borderRadius: 44, borderWidth: 2.5, borderColor: Palette.brand, alignItems: 'center', justifyContent: 'center' }}>
-          <Avatar name={displayName} url={user?.user_metadata?.avatar_url as string | undefined} size={80} />
-          {!user?.user_metadata?.avatar_url && (
-            <View style={{
-              position: 'absolute',
-              bottom: 0,
-              right: 0,
-              width: 24,
-              height: 24,
-              borderRadius: 12,
-              backgroundColor: Palette.brand,
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderWidth: 2,
-              borderColor: Palette.canvas,
-            }}>
-              <Camera size={12} color="#fff" />
-            </View>
-          )}
-        </View>
-      </PressableScale>
-
       {/* Display name */}
       <Text
         numberOfLines={1}
@@ -224,13 +206,22 @@ export default function ProfileScreen() {
     </View>
   );
 
-  // ─── Role cards ──────────────────────────────────────────────────────────────
+  // ─── Kitchen gateway (approved preppers only) — above stats ─────────────────
+  const kitchenGatewayEl = isApprovedPrepper ? (
+    <KitchenGatewayCard
+      activeOrders={activePrepperOrders?.length ?? 0}
+      available={payoutBalance?.available ?? 0}
+      onPress={() => {
+        feedback.heavy();
+        switchWorkspace('kitchen');
+        router.push('/dashboard');
+      }}
+    />
+  ) : null;
+
+  // ─── Role cards (admin console / become-prepper / pending) ───────────────────
   const roleCardsEl = (
     <View>
-      {isApprovedPrepper ? (
-        <DarkCard Icon={ChefHat} title="my kitchen" sub="meals, preorders, earnings & go live"
-          onPress={() => { feedback.tap(); router.push('/dashboard'); }} accessibilityLabel="Open my kitchen" />
-      ) : null}
       {isAdmin ? (
         <DarkCard Icon={ShieldCheck} title="admin console" sub="approvals, orders, earnings & features"
           onPress={() => { feedback.tap(); router.push('/admin'); }} accessibilityLabel="Open admin console" />
@@ -373,6 +364,7 @@ export default function ProfileScreen() {
           contentContainerStyle={{ paddingTop: isWide ? 16 : 8, paddingBottom: 120, gap: 16, ...(isWide ? { maxWidth: 600, alignSelf: 'center', width: '100%' } : {}) }}>
           {navBarEl}
           {heroEl}
+          {kitchenGatewayEl}
           {statsEl}
           {roleCardsEl}
           {kitchenEl}

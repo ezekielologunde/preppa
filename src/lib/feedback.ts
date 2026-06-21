@@ -62,6 +62,11 @@ export const feedback = {
     if (isWeb) vibrate(12);
     else void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
   },
+  /** Heavy press — context-shifting actions (workspace switch). */
+  heavy() {
+    if (isWeb) vibrate(20);
+    else void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+  },
   /** Confirmation — added to cart, payment captured. Rising two-note. */
   success() {
     if (isWeb) {

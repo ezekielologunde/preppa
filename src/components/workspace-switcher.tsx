@@ -1,3 +1,4 @@
+import { useRouter } from 'expo-router';
 import { ChefHat, CircleUser } from 'lucide-react-native';
 import { Pressable, Text, View } from 'react-native';
 
@@ -7,6 +8,7 @@ import { feedback } from '@/lib/feedback';
 import { type Workspace, useWorkspace } from '@/lib/workspace';
 
 export function WorkspaceSwitcher() {
+  const router = useRouter();
   const { workspace, switchWorkspace, canUseKitchen } = useWorkspace();
 
   if (!canUseKitchen) return null;
@@ -14,6 +16,7 @@ export function WorkspaceSwitcher() {
   function press(w: Workspace) {
     feedback.tap();
     switchWorkspace(w);
+    if (w === 'kitchen') router.push('/dashboard' as never);
   }
 
   return (

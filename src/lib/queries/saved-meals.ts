@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
+import { removeFavoriteLocal } from '@/lib/favorites';
 import { supabase } from '@/lib/supabase';
 
 export type SavedMealItem = {
@@ -68,6 +69,7 @@ export function useUnsaveMeal(userId?: string | null) {
       await supabase.from('saved_meals').delete().eq('user_id', userId!).eq('meal_id', mealId);
     },
     onSuccess: (_data, mealId) => {
+      removeFavoriteLocal(`meal:${mealId}`);
       qc.invalidateQueries({ queryKey: ['saved-meals', userId ?? 'anon'] });
       qc.invalidateQueries({ queryKey: ['saved-meal', userId, mealId] });
     },

@@ -15,7 +15,8 @@ import { PressableScale } from '@/components/ui/pressable-scale';
 import { ListSkeleton } from '@/components/ui/skeleton';
 import { Font } from '@/constants/fonts';
 import { Palette, Radius } from '@/constants/theme';
-import { useAddToCart, useEmbeddedCheckout, useRefundOrder, useStripeCheckout, type EmbeddedPay } from '@/lib/queries/cart';
+import { CartTabContent } from '@/components/orders/cart-tab';
+import { useAddToCart, useCart, useEmbeddedCheckout, useRefundOrder, useStripeCheckout, type EmbeddedPay } from '@/lib/queries/cart';
 import { useFeatureEnabled } from '@/lib/queries/feature-flags';
 import { feedback } from '@/lib/feedback';
 import { useStartConversation } from '@/lib/queries/messages';
@@ -26,6 +27,7 @@ import { useAuth } from '@/providers/auth-provider';
 
 const ORANGE = Palette.brand;
 const INK = Palette.ink;
+const grp = (iso: string) => { const d = Math.floor((new Date(iso).setHours(0,0,0,0) - new Date().setHours(0,0,0,0)) / 86_400_000); return d < 1 ? 'Today' : d === 1 ? 'Tomorrow' : d <= 7 ? 'This Week' : 'Upcoming'; };
 
 export default function OrdersScreen() {
   const router = useRouter();
@@ -33,6 +35,7 @@ export default function OrdersScreen() {
   const { width } = useWindowDimensions();
   const twoCol = Platform.OS === 'web' && width >= BP.desktop;
   const { data: orders, isLoading, isError, refetch } = useMyOrders(user?.id);
+  const { data: cart } = useCart(user?.id);
   const [refreshing, setRefreshing] = useState(false);
   async function handleRefresh() { setRefreshing(true); await refetch(); setRefreshing(false); }
   const cancelOrder = useCancelOrder();
@@ -69,20 +72,20 @@ export default function OrdersScreen() {
   const addToCart = useAddToCart();
   const [reorderingId, setReorderingId] = useState<string | null>(null);
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
-  const [tab, setTab] = useState<'active' | 'upcoming' | 'past'>('active');
+  const [tab, setTab] = useState<'cart' | 'active' | 'scheduled' | 'completed'>('active');
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
 
   const activeOrders = (orders ?? []).filter(
     (o) => (ACTIVE_STATUSES as readonly string[]).includes(o.status) && !o.scheduled_at,
   );
-  const upcomingOrders = (orders ?? []).filter(
+  const scheduledOrders = (orders ?? []).filter(
     (o) => !!o.scheduled_at && o.status !== 'completed' && o.status !== 'cancelled',
   ).sort((a, b) => new Date(a.scheduled_at!).getTime() - new Date(b.scheduled_at!).getTime());
-  const pastOrders = (orders ?? []).filter(
+  const completedOrders = (orders ?? []).filter(
     (o) => o.status === 'completed' || o.status === 'cancelled',
   );
-  const tabOrders = tab === 'active' ? activeOrders : tab === 'upcoming' ? upcomingOrders : pastOrders;
+  const tabOrders = tab === 'active' ? activeOrders : tab === 'scheduled' ? scheduledOrders : completedOrders;
 
   const filtered = useMemo(() => {
     let result = tabOrders;
@@ -189,14 +192,14 @@ export default function OrdersScreen() {
           <PressableScale onPress={goBack} accessibilityRole="button" accessibilityLabel="Go back" style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center' }}>
             <ChevronLeft size={22} color={INK} />
           </PressableScale>
-          <Text style={{ fontFamily: Font.display, fontSize: 24, color: INK, letterSpacing: -0.6 }}>your preorders</Text>
+          <Text style={{ fontFamily: Font.display, fontSize: 24, color: INK, letterSpacing: -0.6 }}>My Orders</Text>
         </View>
 
         {/* Tab bar */}
         {user && !isLoading && !isError ? (
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, gap: 8, paddingBottom: 10 }}>
-            {(['active', 'upcoming', 'past'] as const).map((t) => {
-              const count = t === 'active' ? activeOrders.length : t === 'upcoming' ? upcomingOrders.length : pastOrders.length;
+            {(['cart', 'active', 'scheduled', 'completed'] as const).map((t) => {
+              const count = t === 'cart' ? (cart?.count ?? 0) : t === 'active' ? activeOrders.length : t === 'scheduled' ? scheduledOrders.length : completedOrders.length;
               const active = tab === t;
               return (
                 <PressableScale
@@ -217,8 +220,8 @@ export default function OrdersScreen() {
           </ScrollView>
         ) : null}
 
-        {/* Search + filter chips — shown once data is loaded */}
-        {user && !isLoading && !isError ? (
+        {/* Search + filter chips — shown once data is loaded, not on cart tab */}
+        {user && !isLoading && !isError && tab !== 'cart' ? (
           <OrderFilters
             searchQuery={searchQuery}
             onSearchChange={(q) => { setSearchQuery(q); }}
@@ -271,15 +274,17 @@ export default function OrdersScreen() {
               <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#fff' }}>retry</Text>
             </PressableScale>
           </MotiView>
+        ) : tab === 'cart' ? (
+          <CartTabContent />
         ) : (
           <ScrollView
             showsVerticalScrollIndicator={false}
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={ORANGE} colors={[ORANGE]} />}
             contentContainerStyle={{ paddingTop: 4, paddingBottom: 48 }}>
 
-            {/* Past tab stats bar */}
-            {tab === 'past' && pastOrders.filter((o) => o.status === 'completed').length > 0 ? (() => {
-              const done = pastOrders.filter((o) => o.status === 'completed');
+            {/* Completed tab stats bar */}
+            {tab === 'completed' && completedOrders.filter((o) => o.status === 'completed').length > 0 ? (() => {
+              const done = completedOrders.filter((o) => o.status === 'completed');
               const spent = done.reduce((s, o) => s + o.total, 0);
               const freqs: Record<string, number> = {};
               done.forEach((o) => { freqs[o.prepper] = (freqs[o.prepper] ?? 0) + 1; });
@@ -344,7 +349,7 @@ export default function OrdersScreen() {
                 ) : statusFilter !== 'all' ? (
                   <>
                     <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK, textAlign: 'center' }}>
-                      No {statusFilter} orders in {tab === 'active' ? 'active' : tab === 'upcoming' ? 'upcoming' : 'past'}
+                      No {statusFilter} orders in {tab === 'active' ? 'active' : tab === 'scheduled' ? 'scheduled' : 'completed'}
                     </Text>
                     <PressableScale onPress={() => { feedback.tap(); setStatusFilter('all'); }} accessibilityRole="button" accessibilityLabel="View all orders"
                       style={{ marginTop: 4, paddingHorizontal: 22, height: 44, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
@@ -354,17 +359,17 @@ export default function OrdersScreen() {
                 ) : (
                   <>
                     <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK, textAlign: 'center' }}>
-                      {tab === 'active' ? 'No active orders' : tab === 'upcoming' ? 'Nothing scheduled' : 'No past orders'}
+                      {tab === 'active' ? 'No active orders' : tab === 'scheduled' ? 'Nothing scheduled' : 'No completed orders'}
                     </Text>
                     <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center', maxWidth: 240 }}>
                       {tab === 'active'
                         ? 'Your in-progress preorders will appear here.'
-                        : tab === 'upcoming'
+                        : tab === 'scheduled'
                         ? 'Schedule a preorder to see it here.'
                         : 'Completed and cancelled orders will show here.'}
                     </Text>
-                    {tab !== 'past' ? (
-                      <PressableScale onPress={() => { feedback.tap(); router.replace('/explore'); }} accessibilityRole="button" accessibilityLabel="Browse meals"
+                    {tab !== 'completed' ? (
+                      <PressableScale onPress={() => { feedback.tap(); router.replace('/'); }} accessibilityRole="button" accessibilityLabel="Browse meals"
                         style={{ marginTop: 4, paddingHorizontal: 22, height: 44, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
                         <Text style={{ fontFamily: Font.heading, fontSize: 14, color: '#fff' }}>Browse meals</Text>
                       </PressableScale>
@@ -374,20 +379,24 @@ export default function OrdersScreen() {
               </MotiView>
             ) : (
               <View style={twoCol ? { flexDirection: 'row', flexWrap: 'wrap', gap: 12, paddingHorizontal: 16 } : { gap: 12 }}>
-                {filtered.map((o, i) => (
+                {filtered.map((o, i) => {
+                  const hdr = tab === 'scheduled' && o.scheduled_at
+                    && (i === 0 || grp(o.scheduled_at) !== grp(filtered[i - 1].scheduled_at!)) ? grp(o.scheduled_at) : null;
+                  return (
                   <MotiView key={o.id}
                     from={{ opacity: 0, translateY: 8 }}
                     animate={{ opacity: 1, translateY: 0 }}
                     transition={{ type: 'timing', duration: 220, delay: i * 45 }}
                     style={twoCol ? { width: '48.5%' } : undefined}>
+                    {hdr ? <View style={{ paddingHorizontal: 16, paddingTop: i === 0 ? 4 : 16, paddingBottom: 6 }}><Text style={{ fontFamily: Font.semibold, fontSize: 11.5, color: Palette.textSecondary, letterSpacing: 0.5, textTransform: 'uppercase' }}>{hdr}</Text></View> : null}
                     <OrderListCard
                       order={o}
-                      tab={tab}
+                      tab={tab as 'active' | 'scheduled' | 'completed'}
                       twoCol={twoCol}
                       reordering={reorderingId === o.id}
                       onPress={() => {
                         feedback.tap();
-                        if (tab === 'past') {
+                        if (tab === 'completed') {
                           setExpandedOrderId((prev) => (prev === o.id ? null : o.id));
                         } else {
                           router.push(`/order-status?id=${o.id}` as never);
@@ -396,8 +405,8 @@ export default function OrdersScreen() {
                       onReorder={() => reorder(o)}
                       onTrack={() => { feedback.tap(); router.push(`/orders/${o.id}` as never); }}
                     />
-                    {/* Inline receipt panel — past orders only, toggled by tapping the card header */}
-                    {tab === 'past' && expandedOrderId === o.id ? (
+                    {/* Inline receipt panel — completed orders only, toggled by tapping the card header */}
+                    {tab === 'completed' && expandedOrderId === o.id ? (
                       <View style={{ marginHorizontal: twoCol ? 0 : 16 }}>
                         <OrderReceiptPanel order={o} />
                         <PressableScale
@@ -436,7 +445,8 @@ export default function OrdersScreen() {
                       />
                     </View>
                   </MotiView>
-                ))}
+                  );
+                })}
               </View>
             )}
           </ScrollView>

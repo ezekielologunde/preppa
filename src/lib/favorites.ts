@@ -90,6 +90,15 @@ export async function hydrateFromServer(userId: string, supabaseClient: Supabase
   }
 }
 
+/** Remove a key from the local store only — no server sync, no feedback. Used by useUnsaveMeal. */
+export function removeFavoriteLocal(key: string) {
+  if (!favorites.has(key)) return;
+  favorites = new Set(favorites);
+  favorites.delete(key);
+  persist();
+  listeners.forEach((l) => l());
+}
+
 /** Is this item hearted? Re-renders on toggle from anywhere in the app. */
 export function useFavorite(key: string): boolean {
   return useSyncExternalStore(subscribe, () => favorites.has(key));

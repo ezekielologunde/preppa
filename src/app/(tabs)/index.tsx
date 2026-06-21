@@ -7,15 +7,15 @@ import {
 import { Platform, RefreshControl, ScrollView, Text, View, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { LocationGate } from '@/components/location-gate';
+import { OmniSearch } from '@/components/omni-search';
 import {
-  ActionSplitter, CategoryIconsRow, MyPlansSection,
-  RewardsBanner, SurpriseMeBanner,
+  CategoryIconsRow, MyPlansSection, RewardsBanner,
 } from '@/components/home-extras';
 import {
-  ChefsInActionFeed, FreshDropsSection, FollowingKitchensSection, MealPlansDiscoverySection,
-  TrendingSection,
+  FreshDropsSection, FollowingKitchensSection, TrendingSection,
 } from '@/components/home-feed';
-import { FeaturedKitchensSection, ForYouSection, RecentlyViewedSection, TrendingNowSection } from '@/components/home-sections';
+import { FeaturedKitchensSection, ForYouSection, RecentlyViewedSection } from '@/components/home-sections';
 import { BecomePrepperNudge } from '@/components/home-nudges';
 import { Font } from '@/constants/fonts';
 import { PressableScale } from '@/components/ui/pressable-scale';
@@ -96,8 +96,7 @@ function ActiveOrderBanner({ order }: { order: NonNullable<ReturnType<typeof use
   );
 }
 
-function RushBanner() {
-  const router = useRouter();
+function RushBanner({ onOpen }: { onOpen: () => void }) {
   const hour = new Date().getHours();
   const minute = new Date().getMinutes();
   const urgency = getRushUrgency(hour, minute);
@@ -112,7 +111,7 @@ function RushBanner() {
   const tip = isLive ? win.buyerTip : `${win.label} starts in ~${minsAway} min — browse kitchens ahead of the rush.`;
   return (
     <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 260, delay: 40 }}>
-      <PressableScale onPress={() => { feedback.tap(); router.push('/search'); }} accessibilityRole="button"
+      <PressableScale onPress={() => { feedback.tap(); onOpen(); }} accessibilityRole="button"
         accessibilityLabel={isLive ? `${win.label} is on now — preorder now` : `${win.label} starting soon`}
         style={{ marginHorizontal: 20, marginTop: 16, backgroundColor: accent + '12', borderRadius: Radius.lg, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12, borderWidth: 1, borderColor: accent + '28' }}>
         <MotiView
@@ -139,7 +138,7 @@ export default function HomeScreen() {
   const { user } = useAuth();
   const { width } = useWindowDimensions();
   const isTablet = width >= BP.tablet;
-  const cols = useHomeColumns();
+  const cols = useHomeColumns({ rail: 280, minMain: 440 });
 
   const rawFirst = (user?.user_metadata?.full_name as string | undefined)?.trim().split(/\s+/)[0];
   const firstName = rawFirst ? rawFirst.toLowerCase() : null;
@@ -147,6 +146,11 @@ export default function HomeScreen() {
   const { data: addresses = [] } = useAddresses(user?.id);
   const { loc, requestDeviceLocation } = useDeviceLocation();
   const locCapturing = loc.status === 'requesting';
+  const locationGateVisible =
+    Platform.OS !== 'web' &&
+    !!user &&
+    loc.status === 'denied' &&
+    addresses.length === 0;
   usePurgeGpsAddresses(user?.id);
 
   // Location: city for discovery feed filtering + display label
@@ -179,6 +183,7 @@ export default function HomeScreen() {
   const cartCount = cart?.count ?? 0;
 
   const [refreshing, setRefreshing] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   async function handleRefresh() {
     setRefreshing(true);
     await Promise.all([refetchMeals(), refetchOrders(), refetchNotifs(), refetchCart()]);
@@ -194,18 +199,19 @@ export default function HomeScreen() {
   }
 
   const headerPad = isTablet ? 28 : 20;
+  const greetingSize = cols.twoCol ? 34 : isTablet ? 30 : 28;
   const greet = greeting();
   const uid = user?.id;
 
   const headerEl = (
-    <View style={{ paddingTop: 24 }}>
+    <View style={{ paddingTop: cols.twoCol ? 32 : 24 }}>
       {/* ── Greeting row + icon buttons ── */}
       <MotiView from={{ opacity: 0, translateY: -10 }} animate={{ opacity: 1, translateY: 0 }}
         transition={{ type: 'spring', damping: 18, stiffness: 180 }}>
         <View style={{ flexDirection: 'row', alignItems: 'flex-start', paddingHorizontal: headerPad, gap: 12 }}>
           {/* Left: greeting + location */}
           <View style={{ flex: 1 }}>
-            <Text numberOfLines={1} style={{ fontFamily: Font.display, fontSize: 28, color: INK, letterSpacing: -0.5, lineHeight: 33 }}>
+            <Text numberOfLines={1} style={{ fontFamily: Font.display, fontSize: greetingSize, color: INK, letterSpacing: -0.5, lineHeight: greetingSize + 5 }}>
               {`${greet}, `}{firstName ?? 'there'}
             </Text>
             <PressableScale onPress={handleLocationTap} accessibilityRole="button"
@@ -242,7 +248,7 @@ export default function HomeScreen() {
   const searchEl = (
     <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }}
       transition={{ type: 'spring', damping: 18, stiffness: 200, delay: 130 }}>
-      <PressableScale onPress={() => { feedback.tap(); router.push('/search'); }} accessibilityRole="search"
+      <PressableScale onPress={() => { feedback.tap(); setSearchOpen(true); }} accessibilityRole="search"
         accessibilityLabel="Search meals, kitchens"
         style={{ marginHorizontal: 20, marginTop: 12 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', height: 44, borderRadius: 22, backgroundColor: Palette.surface, paddingHorizontal: 16, gap: 10, ...Shadow.card }}>
@@ -259,74 +265,78 @@ export default function HomeScreen() {
   // ─── Desktop two-column layout ────────────────────────────────────────────
   if (cols.twoCol) {
     return (
-      <View style={{ flex: 1, backgroundColor: Palette.canvas }}>
-        <SafeAreaView edges={['top']} style={{ flex: 1 }}>
-          <View style={{ flex: 1, flexDirection: 'row', paddingHorizontal: 12, gap: cols.gap, justifyContent: 'center' }}>
-            <View style={{ width: cols.main, maxWidth: cols.main }}>
-              <ScrollView showsVerticalScrollIndicator={false}
-                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={ORANGE} colors={[ORANGE]} />}
-                contentContainerStyle={{ paddingTop: 12, paddingBottom: 48 }}>
-                {headerEl}
-                {searchEl}
-                <CategoryIconsRow />
-                <View style={{ marginTop: 4 }}><TrendingSection meals={meals} isLoading={mealsLoading} isTablet={false} /></View>
-                <View style={{ marginTop: 24 }}><FeaturedKitchensSection /></View>
-                {!activeOrder ? <RushBanner /> : null}
-                {activeOrder ? <ActiveOrderBanner order={activeOrder} /> : null}
-                {activeOrder ? <View style={{ height: 8 }} /> : null}
-                <ActionSplitter planImage={meals[0]?.image} dropImage={meals[1]?.image} />
-                <ChefsInActionFeed />
-                <View style={{ marginTop: 24 }}><FreshDropsSection /></View>
-                <View style={{ marginTop: 24 }}><RecentlyViewedSection /></View>
-                {uid ? <View style={{ marginTop: 24 }}><FollowingKitchensSection userId={uid} /></View> : null}
-                <View style={{ marginTop: 24 }}><ForYouSection userId={uid} firstName={firstName} /></View>
-                <View style={{ marginTop: 24 }}><TrendingNowSection /></View>
-              </ScrollView>
+      <>
+        <View style={{ flex: 1, backgroundColor: Palette.canvas }}>
+          <SafeAreaView edges={['top']} style={{ flex: 1 }}>
+            <View style={{ flex: 1, flexDirection: 'row', paddingHorizontal: 12, gap: cols.gap, justifyContent: 'center' }}>
+              <View style={{ width: cols.main, maxWidth: cols.main }}>
+                <ScrollView showsVerticalScrollIndicator={false}
+                  refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={ORANGE} colors={[ORANGE]} />}
+                  contentContainerStyle={{ paddingTop: 12, paddingBottom: 48 }}>
+                  {headerEl}
+                  {searchEl}
+                  <CategoryIconsRow />
+                  <View style={{ marginTop: 4 }}><TrendingSection meals={meals} isLoading={mealsLoading} isTablet={cols.main >= BP.tablet} contentWidth={cols.main} /></View>
+                  <View style={{ marginTop: 24 }}><FeaturedKitchensSection /></View>
+                  {!activeOrder ? <RushBanner onOpen={() => setSearchOpen(true)} /> : null}
+                  {activeOrder ? <ActiveOrderBanner order={activeOrder} /> : null}
+                  {activeOrder ? <View style={{ height: 8 }} /> : null}
+                  <View style={{ marginTop: 24 }}><FreshDropsSection /></View>
+                  <View style={{ marginTop: 24 }}><RecentlyViewedSection /></View>
+                  {uid ? <View style={{ marginTop: 24 }}><FollowingKitchensSection userId={uid} /></View> : null}
+                  <View style={{ marginTop: 24 }}><ForYouSection userId={uid} firstName={firstName} /></View>
+                </ScrollView>
+              </View>
+              <View style={{ width: cols.rail }}>
+                <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 48, gap: 4 }}>
+                  {uid ? <View style={{ marginTop: 24 }}><MyPlansSection userId={uid} /></View> : null}
+                  <View style={{ marginTop: 16 }}><RewardsBanner /></View>
+                  <View style={{ marginTop: 16 }}><BecomePrepperNudge /></View>
+                </ScrollView>
+              </View>
             </View>
-            <View style={{ width: cols.rail }}>
-              <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 12, paddingBottom: 48, gap: 4 }}>
-                {uid ? <View style={{ marginTop: 24 }}><MyPlansSection userId={uid} /></View> : null}
-                <View style={{ marginTop: 16 }}><RewardsBanner /></View>
-                <View style={{ marginTop: 24 }}><MealPlansDiscoverySection /></View>
-                <View style={{ marginTop: 24 }}><SurpriseMeBanner /></View>
-                <View style={{ marginTop: 16 }}><BecomePrepperNudge /></View>
-              </ScrollView>
-            </View>
-          </View>
-        </SafeAreaView>
-      </View>
+          </SafeAreaView>
+        </View>
+        <OmniSearch visible={searchOpen} onClose={() => setSearchOpen(false)} />
+        <LocationGate visible={locationGateVisible} onGranted={() => { /* loc context auto-updates */ }} />
+      </>
     );
   }
 
-  // ─── Mobile / single column ───────────────────────────────────────────────
+  // ─── Mobile / single column (also tablet portrait) ───────────────────────
+  const tabletWrap: import('react-native').ViewStyle | undefined = isTablet
+    ? { maxWidth: 700, alignSelf: 'center', width: '100%' }
+    : undefined;
+
   return (
-    <View style={{ flex: 1, backgroundColor: Palette.canvas }}>
-      <SafeAreaView edges={['top']} style={{ flex: 1 }}>
-        <ScrollView showsVerticalScrollIndicator={false}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={ORANGE} colors={[ORANGE]} />}
-          contentContainerStyle={{ paddingTop: Platform.OS === 'web' ? 12 : 0, paddingBottom: 40 }}>
-          {headerEl}
-          {searchEl}
-          <CategoryIconsRow />
-          <View style={{ marginTop: 4 }}><TrendingSection meals={meals} isLoading={mealsLoading} isTablet={isTablet} /></View>
-          <View style={{ marginTop: 24 }}><FeaturedKitchensSection /></View>
-          {!activeOrder ? <RushBanner /> : null}
-          {activeOrder ? <ActiveOrderBanner order={activeOrder} /> : null}
-          {activeOrder ? <View style={{ height: 8 }} /> : null}
-          <ActionSplitter planImage={meals[0]?.image} dropImage={meals[1]?.image} />
-          <ChefsInActionFeed />
-          <View style={{ marginTop: 24 }}><FreshDropsSection /></View>
-          <View style={{ marginTop: 24 }}><RecentlyViewedSection /></View>
-          {uid ? <View style={{ marginTop: 24 }}><FollowingKitchensSection userId={uid} /></View> : null}
-          <View style={{ marginTop: 24 }}><ForYouSection userId={uid} firstName={firstName} /></View>
-          <View style={{ marginTop: 24 }}><TrendingNowSection /></View>
-          {uid ? <View style={{ marginTop: 24 }}><MyPlansSection userId={uid} /></View> : null}
-          <View style={{ marginTop: 24 }}><MealPlansDiscoverySection /></View>
-          <View style={{ marginTop: 24 }}><SurpriseMeBanner /></View>
-          <View style={{ marginTop: 16 }}><RewardsBanner /></View>
-          <View style={{ marginTop: 16 }}><BecomePrepperNudge /></View>
-        </ScrollView>
-      </SafeAreaView>
-    </View>
+    <>
+      <View style={{ flex: 1, backgroundColor: Palette.canvas }}>
+        <SafeAreaView edges={['top']} style={{ flex: 1 }}>
+          <ScrollView showsVerticalScrollIndicator={false}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={ORANGE} colors={[ORANGE]} />}
+            contentContainerStyle={{ paddingTop: Platform.OS === 'web' ? 12 : 0, paddingBottom: 40 }}>
+            <View style={tabletWrap}>
+              {headerEl}
+              {searchEl}
+              <CategoryIconsRow />
+              <View style={{ marginTop: 16 }}><RewardsBanner /></View>
+              <View style={{ marginTop: 4 }}><TrendingSection meals={meals} isLoading={mealsLoading} isTablet={isTablet} /></View>
+              <View style={{ marginTop: 24 }}><FeaturedKitchensSection /></View>
+              {!activeOrder ? <RushBanner onOpen={() => setSearchOpen(true)} /> : null}
+              {activeOrder ? <ActiveOrderBanner order={activeOrder} /> : null}
+              {activeOrder ? <View style={{ height: 8 }} /> : null}
+              <View style={{ marginTop: 24 }}><FreshDropsSection /></View>
+              <View style={{ marginTop: 24 }}><RecentlyViewedSection /></View>
+              {uid ? <View style={{ marginTop: 24 }}><FollowingKitchensSection userId={uid} /></View> : null}
+              <View style={{ marginTop: 24 }}><ForYouSection userId={uid} firstName={firstName} /></View>
+              {uid ? <View style={{ marginTop: 24 }}><MyPlansSection userId={uid} /></View> : null}
+              <View style={{ marginTop: 16 }}><BecomePrepperNudge /></View>
+            </View>
+          </ScrollView>
+        </SafeAreaView>
+      </View>
+      <OmniSearch visible={searchOpen} onClose={() => setSearchOpen(false)} />
+      <LocationGate visible={locationGateVisible} onGranted={() => { /* loc context auto-updates */ }} />
+    </>
   );
 }

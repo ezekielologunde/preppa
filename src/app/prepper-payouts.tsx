@@ -60,12 +60,11 @@ function StatusChip({ status }: { status: PayoutRequest['status'] }) {
 }
 
 function HistoryRow({ item }: { item: PayoutRequest }) {
-  const isStripe = item.bankName === 'stripe_connect';
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: CARD, borderRadius: 14, padding: 14, shadowColor: Palette.ink, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 1 }}>
       <View style={{ flex: 1 }}>
         <Text style={{ fontFamily: Font.body, fontSize: 12.5, color: MUTED }}>{shortDate(item.createdAt)}</Text>
-        {isStripe ? <Text style={{ fontFamily: Font.body, fontSize: 11, color: MUTED, marginTop: 1 }}>via Stripe</Text> : null}
+        <Text style={{ fontFamily: Font.body, fontSize: 11, color: MUTED, marginTop: 1 }}>via Stripe</Text>
       </View>
       <Text style={{ fontFamily: Font.heading, fontSize: 15, color: INK }}>{money(item.amount)}</Text>
       <StatusChip status={item.status} />
@@ -92,12 +91,7 @@ function RequestModal({ available, prepperId, stripeActive, onClose, onSetupPayo
     if (!amountOk) return;
     feedback.tap();
     try {
-      await requestPayout.mutateAsync({
-        amount: parsedAmount,
-        bankName: 'stripe_connect',
-        accountNumber: 'stripe_connect',
-        accountName: 'stripe_connect',
-      });
+      await requestPayout.mutateAsync({ amount: parsedAmount });
       feedback.success();
       onClose();
     } catch {
