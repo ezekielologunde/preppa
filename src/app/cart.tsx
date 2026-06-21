@@ -127,10 +127,10 @@ export default function CartScreen() {
 
   // Group cart items by prepperId
   const kitchenGroups = useMemo(() => {
-    const map = new Map<string, { id: string; name: string; items: import('@/lib/queries/cart').CartItem[] }>();
+    const map = new Map<string, { id: string; name: string; deliveryMinOrder: number; items: import('@/lib/queries/cart').CartItem[] }>();
     for (const it of cart?.items ?? []) {
       const key = it.prepperId ?? it.prepper;
-      if (!map.has(key)) map.set(key, { id: key, name: it.prepper, items: [] });
+      if (!map.has(key)) map.set(key, { id: key, name: it.prepper, deliveryMinOrder: it.deliveryMinOrder, items: [] });
       map.get(key)!.items.push(it);
     }
     return [...map.values()];
@@ -279,7 +279,7 @@ export default function CartScreen() {
   const subtotal = cart?.subtotal ?? 0;
   const deliveryFee = method === 'delivery' ? deliveryFeeAmt : 0;
   const deliveryMinOrder = cart?.deliveryMinOrder ?? 0;
-  const minOrderWarn = method === 'delivery' && deliveryMinOrder > 0 && subtotal < deliveryMinOrder
+  const minOrderWarn = !mixed && method === 'delivery' && deliveryMinOrder > 0 && subtotal < deliveryMinOrder
     ? `${prepper} requires a ${money(deliveryMinOrder)} minimum for delivery`
     : null;
   const discount = promo ? computeDiscount(promo, subtotal) : 0;
@@ -332,6 +332,9 @@ export default function CartScreen() {
             items={group.items}
             userId={user!.id}
             startIndex={itemsBefore}
+            mixed={mixed}
+            deliveryMinOrder={group.deliveryMinOrder}
+            method={method}
           />
         );
       })}
@@ -493,12 +496,12 @@ export default function CartScreen() {
                 <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>Payment canceled</Text>
                 <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center', lineHeight: 20, maxWidth: 300 }}>Your preorder is saved. You can finish paying for it any time in your preorders.</Text>
                 <PressableScale onPress={() => { feedback.tap(); router.replace('/orders'); }} accessibilityRole="button" accessibilityLabel="Go to preorders" style={{ marginTop: 4, paddingHorizontal: 22, height: 48, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}><Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#fff' }}>Go to preorders</Text></PressableScale>
-                <PressableScale onPress={() => { feedback.tap(); router.replace('/explore'); }} accessibilityRole="button" accessibilityLabel="Browse meals" style={{ paddingHorizontal: 22, height: 44, alignItems: 'center', justifyContent: 'center' }}><Text style={{ fontFamily: Font.semibold, fontSize: 15, color: Palette.textSecondary }}>Browse meals</Text></PressableScale>
+                <PressableScale onPress={() => { feedback.tap(); router.replace('/'); }} accessibilityRole="button" accessibilityLabel="Browse meals" style={{ paddingHorizontal: 22, height: 44, alignItems: 'center', justifyContent: 'center' }}><Text style={{ fontFamily: Font.semibold, fontSize: 15, color: Palette.textSecondary }}>Browse meals</Text></PressableScale>
               </>
             ) : (
               <>
                 <Text style={{ fontFamily: Font.heading, fontSize: 16, color: INK }}>Your cart is empty</Text>
-                <PressableScale onPress={() => { feedback.tap(); router.replace('/explore'); }} accessibilityRole="button" accessibilityLabel="Browse meals" style={{ marginTop: 4, paddingHorizontal: 22, height: 48, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}><Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#fff' }}>Browse meals</Text></PressableScale>
+                <PressableScale onPress={() => { feedback.tap(); router.replace('/'); }} accessibilityRole="button" accessibilityLabel="Browse meals" style={{ marginTop: 4, paddingHorizontal: 22, height: 48, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}><Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#fff' }}>Browse meals</Text></PressableScale>
               </>
             )}
           </View>

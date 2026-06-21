@@ -140,7 +140,7 @@ function EmptyState() {
         Tap the bookmark icon on any meal to save it here.
       </Text>
       <PressableScale
-        onPress={() => { feedback.tap(); router.push('/(tabs)/explore'); }}
+        onPress={() => { feedback.tap(); router.push('/'); }}
         accessibilityRole="button"
         accessibilityLabel="Browse meals"
         style={{ marginTop: 6, backgroundColor: Palette.brand, borderRadius: Radius.pill, paddingHorizontal: 24, paddingVertical: 12 }}>

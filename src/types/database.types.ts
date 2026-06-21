@@ -388,11 +388,6 @@ export interface Database {
           prepper_id: string;
           amount: number;
           status: 'pending' | 'processing' | 'paid' | 'rejected';
-          bank_name: string | null;
-          account_number: string | null;
-          account_number_encrypted: string | null;
-          account_number_masked: string | null;
-          account_name: string | null;
           note: string | null;
           created_at: string;
           processed_at: string | null;
@@ -402,17 +397,11 @@ export interface Database {
           prepper_id: string;
           amount: number;
           status?: 'pending' | 'processing' | 'paid' | 'rejected';
-          bank_name?: string | null;
-          account_number?: string | null;
-          account_name?: string | null;
           note?: string | null;
         };
         Update: Partial<{
           amount: number;
           status: 'pending' | 'processing' | 'paid' | 'rejected';
-          bank_name: string | null;
-          account_number: string | null;
-          account_name: string | null;
           note: string | null;
           processed_at: string | null;
         }>;
@@ -428,6 +417,7 @@ export interface Database {
     Views: Record<string, never>;
     Functions: {
       create_order: { Args: { p_fulfillment?: FulfillmentType; p_address_id?: string | null; p_note?: string | null; p_tip?: number; p_scheduled_at?: string | null; p_gift_card_code?: string | null; p_gift_card_amount?: number; p_idempotency_key?: string | null }; Returns: string };
+      create_multi_kitchen_order: { Args: { p_orders: Json }; Returns: string[] };
       update_delivery_settings: { Args: { p_delivers: boolean; p_pickup: boolean; p_delivery_fee: number; p_delivery_min_order: number; p_delivery_radius_km: number | null; p_delivery_days: number[] | null; p_delivery_window_start: string | null; p_delivery_window_end: string | null }; Returns: undefined };
       advance_order: { Args: { p_order_id: string; p_next: OrderStatus }; Returns: undefined };
       cancel_order: { Args: { p_order_id: string }; Returns: undefined };

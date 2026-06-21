@@ -1,5 +1,5 @@
 import { Tabs, usePathname, useRouter } from 'expo-router';
-import { ChefHat, CircleUser, Compass, House, MessageSquare, ShoppingBag } from 'lucide-react-native';
+import { ChefHat, CircleUser, House, Inbox, MessageSquare, Rss, ShoppingBag } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import type React from 'react';
 import { Text, useWindowDimensions, View } from 'react-native';
@@ -27,15 +27,16 @@ type TabDef = {
 
 const CUSTOMER_TABS: TabDef[] = [
   { label: 'Home',    Icon: House,         routeName: 'index' },
-  { label: 'Explore', Icon: Compass,       routeName: 'explore' },
+  { label: 'Feed',    Icon: Rss,           routeName: 'feed' },
   { label: 'Orders',  Icon: ShoppingBag,   routeName: 'orders' },
   { label: 'Profile', Icon: CircleUser,    routeName: 'profile' },
 ];
 
 const KITCHEN_TABS: TabDef[] = [
   { label: 'Kitchen',  Icon: ChefHat,        routeName: 'kitchen' },
-  { label: 'Orders',   Icon: ShoppingBag,    pushPath: '/prepper-orders', focusMatch: '/prepper-orders' },
-  { label: 'Messages', Icon: MessageSquare,  pushPath: '/messages',       focusMatch: '/messages' },
+  { label: 'Orders',   Icon: ShoppingBag,    pushPath: '/prepper-orders',  focusMatch: '/prepper-orders' },
+  { label: 'Gigs',     Icon: Inbox,          pushPath: '/opportunities',   focusMatch: '/opportunities' },
+  { label: 'Messages', Icon: MessageSquare,  pushPath: '/messages',        focusMatch: '/messages' },
   { label: 'Profile',  Icon: CircleUser,     routeName: 'profile' },
 ];
 
@@ -197,7 +198,8 @@ export default function TabLayout() {
         backBehavior="history"
         screenOptions={{ headerShown: false }}>
         <Tabs.Screen name="index" />
-        <Tabs.Screen name="explore" />
+        <Tabs.Screen name="explore" options={{ href: null }} />
+        <Tabs.Screen name="feed" />
         <Tabs.Screen name="orders" />
         <Tabs.Screen name="profile" />
         <Tabs.Screen name="kitchen" />

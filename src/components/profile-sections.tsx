@@ -1,5 +1,5 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { CalendarCheck, ChevronRight, Crown, Gift, Moon, type LucideIcon } from 'lucide-react-native';
+import { CalendarCheck, ChefHat, ChevronRight, Crown, Gift, Moon, type LucideIcon } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { ScrollView, Text, View } from 'react-native';
 
@@ -118,6 +118,62 @@ export function DarkCard({ Icon, title, sub, onPress, accessibilityLabel }: {
       </View>
       <ChevronRight size={18} color={Palette.textSecondary} />
     </PressableScale>
+  );
+}
+
+// ─── KitchenGatewayCard ──────────────────────────────────────────────────────
+
+export function KitchenGatewayCard({
+  activeOrders,
+  available,
+  onPress,
+}: {
+  activeOrders: number;
+  available: number;
+  onPress: () => void;
+}) {
+  const parts = [
+    activeOrders > 0 ? `${activeOrders} active order${activeOrders !== 1 ? 's' : ''}` : null,
+    available > 0 ? `$${available.toFixed(2)} available` : null,
+  ].filter(Boolean);
+  const stat = parts.length > 0 ? parts.join(' · ') : 'meals, earnings & live orders';
+
+  return (
+    <MotiView
+      from={{ opacity: 0, scale: 0.97, translateY: 8 }}
+      animate={{ opacity: 1, scale: 1, translateY: 0 }}
+      transition={{ type: 'spring', damping: 18, stiffness: 220 }}
+      style={{ marginHorizontal: 20, marginTop: 4 }}>
+      <PressableScale
+        onPress={onPress}
+        accessibilityRole="button"
+        accessibilityLabel="Open Kitchen Dashboard"
+        style={{ borderRadius: 20, overflow: 'hidden' }}>
+        <LinearGradient
+          colors={['#1C1A18', '#2E2A24']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={{ padding: 18, flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+          <View style={{
+            width: 46, height: 46, borderRadius: 14,
+            backgroundColor: 'rgba(232,97,26,0.18)',
+            borderWidth: 1, borderColor: 'rgba(232,97,26,0.35)',
+            alignItems: 'center', justifyContent: 'center',
+          }}>
+            <ChefHat size={22} color={Palette.brand} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontFamily: Font.heading, fontSize: 15, color: '#FFFFFF', letterSpacing: -0.2 }}>
+              Kitchen Dashboard
+            </Text>
+            <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.brand, marginTop: 3 }}>
+              {stat}
+            </Text>
+          </View>
+          <ChevronRight size={18} color={Palette.brand} />
+        </LinearGradient>
+      </PressableScale>
+    </MotiView>
   );
 }
 

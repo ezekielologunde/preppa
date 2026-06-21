@@ -123,7 +123,7 @@ export default function FavoritesScreen() {
               Tap the heart on any meal to save it here for quick access.
             </Text>
             <PressableScale
-              onPress={() => { feedback.tap(); router.push('/explore'); }}
+              onPress={() => { feedback.tap(); router.push('/'); }}
               accessibilityRole="button"
               accessibilityLabel="Browse meals"
               style={{ marginTop: 6, backgroundColor: ORANGE, borderRadius: Radius.pill, paddingHorizontal: 24, paddingVertical: 12 }}>
@@ -155,7 +155,7 @@ export default function FavoritesScreen() {
             <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.textSecondary, textAlign: 'center', maxWidth: 260, lineHeight: 20 }}>
               Follow a kitchen on the prepper page to keep it here.
             </Text>
-            <PressableScale onPress={() => { feedback.tap(); router.push('/explore'); }} accessibilityRole="button" accessibilityLabel="Discover kitchens"
+            <PressableScale onPress={() => { feedback.tap(); router.push('/'); }} accessibilityRole="button" accessibilityLabel="Discover kitchens"
               style={{ marginTop: 6, backgroundColor: ORANGE, borderRadius: Radius.pill, paddingHorizontal: 24, paddingVertical: 12 }}>
               <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: '#fff' }}>discover kitchens</Text>
             </PressableScale>

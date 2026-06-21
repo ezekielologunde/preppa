@@ -8,9 +8,6 @@ export type PayoutRequest = {
   id: string;
   amount: number;
   status: 'pending' | 'processing' | 'paid' | 'rejected';
-  bankName: string | null;
-  accountNumberMasked: string | null;
-  accountName: string | null;
   note: string | null;
   createdAt: string;
   processedAt: string | null;
@@ -84,9 +81,6 @@ export function usePayoutHistory(prepperId?: string | null) {
         id: r.id,
         amount: r.amount,
         status: r.status as PayoutRequest['status'],
-        bankName: r.bank_name,
-        accountNumberMasked: r.account_number_masked ?? null,
-        accountName: r.account_name,
         note: r.note,
         createdAt: r.created_at,
         processedAt: r.processed_at,
@@ -136,18 +130,10 @@ export function usePrepperEarningsChart(prepperId?: string | null) {
 export function useRequestPayout(prepperId?: string | null) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (data: {
-      amount: number;
-      bankName: string;
-      accountNumber: string;
-      accountName: string;
-    }) => {
+    mutationFn: async (data: { amount: number }) => {
       const { error } = await supabase.from('payout_requests').insert({
         prepper_id: prepperId!,
         amount: data.amount,
-        bank_name: data.bankName,
-        account_number: data.accountNumber,
-        account_name: data.accountName,
       });
       if (error) throw error;
     },

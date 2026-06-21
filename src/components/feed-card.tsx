@@ -1,21 +1,21 @@
-import { BlurView } from 'expo-blur';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { BadgeCheck, CheckCircle, Crown, Heart, Play, Share2, ShoppingCart, Star, UserCheck, UserPlus, Zap } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Share, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Modal, Share, Text, View } from 'react-native';
 
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
 import { Palette, Radius } from '@/constants/theme';
 import { toggleFavorite, useFavorite } from '@/lib/favorites';
 import { feedback } from '@/lib/feedback';
-import { useAddToCart } from '@/lib/queries/cart';
+import { useAddToCart, useCart } from '@/lib/queries/cart';
 import type { FeedItem } from '@/lib/queries/feed';
 import { useToggleFollow } from '@/lib/queries/preppers';
 import { useAuth } from '@/providers/auth-provider';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const ORANGE = Palette.brand;
 
@@ -108,19 +108,21 @@ function useCountdownLabel(expiresAt?: string | null): string | null {
 export function FeedCard({ item, height, bottomInset, followSet }: { item: FeedItem; height: number; bottomInset: number; followSet: Set<string> }) {
   const router = useRouter();
   const { user } = useAuth();
+  const insets = useSafeAreaInsets();
   const isSaved = useFavorite(`meal:${item.id}`);
   const [addState, setAddState] = useState<'idle' | 'adding' | 'added' | 'error'>('idle');
-  const [pillPressed, setPillPressed] = useState(false);
+  const [showMultiChefSheet, setShowMultiChefSheet] = useState(false);
   const addToCart = useAddToCart();
+  const { data: cart } = useCart(user?.id);
   const source = item.thumbnail ?? item.image;
   const countdown = useCountdownLabel(item.isLimited && !item.isPost ? (item.expiresAt ?? null) : null);
+  const anchorPrepperId = cart?.items[0]?.prepperId ?? null;
+  const anchorKitchenName = cart?.items[0]?.prepper ?? null;
 
-  async function handleAddToCart() {
-    if (!user) { feedback.tap(); router.push('/auth?mode=signup'); return; }
-    feedback.tap();
+  async function doAddToCart() {
     setAddState('adding');
     try {
-      await addToCart.mutateAsync({ userId: user.id, mealId: item.id, price: item.price });
+      await addToCart.mutateAsync({ userId: user!.id, mealId: item.id, price: item.price });
       feedback.success();
       setAddState('added');
       setTimeout(() => setAddState('idle'), 1800);
@@ -129,6 +131,15 @@ export function FeedCard({ item, height, bottomInset, followSet }: { item: FeedI
       setAddState('error');
       setTimeout(() => setAddState('idle'), 1800);
     }
+  }
+
+  function handleAddToCart() {
+    if (!user) { feedback.tap(); router.push('/auth?mode=signup'); return; }
+    const cartHasItems = (cart?.items.length ?? 0) > 0;
+    const differentKitchen = item.prepper_id && anchorPrepperId && item.prepper_id !== anchorPrepperId;
+    if (cartHasItems && differentKitchen) { feedback.tap(); setShowMultiChefSheet(true); return; }
+    feedback.tap();
+    void doAddToCart();
   }
 
   async function handleShare() {
@@ -163,24 +174,14 @@ export function FeedCard({ item, height, bottomInset, followSet }: { item: FeedI
         style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
       />
 
-      {item.videoUrl && !item.isLive ? (
+      {item.videoUrl ? (
         <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' }} pointerEvents="none">
           <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: 'rgba(0,0,0,0.42)', alignItems: 'center', justifyContent: 'center' }}>
             <Play size={28} color="#fff" fill="#fff" />
           </View>
         </View>
       ) : null}
-      {item.isLive ? (
-        <MotiView
-          from={{ opacity: 0.55 }}
-          animate={{ opacity: 1 }}
-          transition={{ type: 'timing', duration: 700, loop: true, repeatReverse: true }}
-          style={{ position: 'absolute', top: 56, left: 14, flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: Palette.danger, borderRadius: 8, paddingHorizontal: 9, paddingVertical: 5 }}
-          pointerEvents="none">
-          <View style={{ width: 5, height: 5, borderRadius: 3, backgroundColor: Palette.surface }} />
-          <Text style={{ fontFamily: Font.semibold, fontSize: 11, color: '#fff', letterSpacing: 0.7 }}>LIVE</Text>
-        </MotiView>
-      ) : countdown && item.expiresAt ? (
+      {countdown && item.expiresAt ? (
         <View
           style={{ position: 'absolute', top: 56, left: 14, flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: urgencyColor(item.expiresAt) + 'DD', borderRadius: 8, paddingHorizontal: 9, paddingVertical: 5 }}
           pointerEvents="none">
@@ -195,37 +196,6 @@ export function FeedCard({ item, height, bottomInset, followSet }: { item: FeedI
         <ActionBtn icon={Share2} label="Share" caption="share" onPress={handleShare} />
       </View>
 
-      {/* Floating add-to-cart pill — only for meal listings (not plain posts) */}
-      {!item.isPost ? (
-        <View style={[styles.pillWrap, { bottom: bottomInset + 16 }]}>
-          <BlurView intensity={60} tint="dark" style={styles.pill}>
-            <Text style={styles.pillName} numberOfLines={1}>{item.title}</Text>
-            <Text style={styles.pillPrice}>${item.price.toFixed(2)}</Text>
-            <MotiView
-              animate={{ scale: pillPressed ? 0.84 : 1 }}
-              transition={{ type: 'spring', damping: 14, stiffness: 280 }}>
-              <PressableScale
-                onPress={() => {
-                  setPillPressed(true);
-                  setTimeout(() => setPillPressed(false), 160);
-                  void handleAddToCart();
-                }}
-                disabled={addState === 'adding'}
-                accessibilityRole="button"
-                accessibilityLabel={`Add ${item.title} to cart`}
-                style={[
-                  styles.pillBtn,
-                  addState === 'added' && { backgroundColor: Palette.success },
-                  addState === 'error' && { backgroundColor: Palette.danger },
-                ]}>
-                {addState === 'adding'
-                  ? <ActivityIndicator size="small" color="#fff" />
-                  : <Text style={styles.pillBtnLabel}>{addState === 'added' ? '✓' : '+'}</Text>}
-              </PressableScale>
-            </MotiView>
-          </BlurView>
-        </View>
-      ) : null}
 
       <View style={{ position: 'absolute', left: 16, right: 80, bottom: item.isPost ? bottomInset + 16 : bottomInset + 88, gap: 9 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
@@ -278,84 +248,59 @@ export function FeedCard({ item, height, bottomInset, followSet }: { item: FeedI
             <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: '#fff' }}>View kitchen</Text>
           </PressableScale>
         ) : (
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
-            <Text style={{ fontFamily: Font.display, fontSize: 24, color: '#fff', fontVariant: ['tabular-nums'], letterSpacing: -0.4, flexShrink: 0 }}>
-              ${item.price.toFixed(2)}
-            </Text>
-            <MotiView
-              animate={{
-                backgroundColor: addState === 'added' ? Palette.success : addState === 'error' ? Palette.danger : 'rgba(0,0,0,0.48)',
-                borderColor: addState === 'added' || addState === 'error' ? 'rgba(255,255,255,0)' : 'rgba(255,255,255,0.22)',
-              }}
-              transition={{ type: 'spring', damping: 20, stiffness: 240 }}
-              style={{ borderRadius: Radius.pill, borderWidth: 1, minWidth: 130 }}>
-              <PressableScale
-                onPress={handleAddToCart}
-                disabled={addState === 'adding'}
-                accessibilityRole="button"
-                accessibilityLabel={addState === 'added' ? 'Added to cart' : addState === 'error' ? 'Failed to add — tap to retry' : `Add ${item.title} to cart`}
-                style={{ height: 44, paddingHorizontal: 18, flexDirection: 'row', alignItems: 'center', gap: 7 }}>
-                {addState === 'adding' ? (
-                  <ActivityIndicator size="small" color="#fff" />
-                ) : addState === 'added' ? (
-                  <CheckCircle size={15} color="#fff" />
-                ) : addState === 'error' ? null : item.isLive ? (
-                  <Play size={14} color="#fff" fill="#fff" />
-                ) : (
-                  <ShoppingCart size={15} color="#fff" />
-                )}
-                <Text style={{ fontFamily: Font.semibold, fontSize: 14, color: '#fff', letterSpacing: -0.1 }}>
-                  {addState === 'added' ? 'added' : addState === 'adding' ? 'adding…' : addState === 'error' ? 'retry' : item.isLive ? 'join drop' : 'add to cart'}
-                </Text>
-              </PressableScale>
-            </MotiView>
-          </View>
+          <Text style={{ fontFamily: Font.display, fontSize: 24, color: '#fff', fontVariant: ['tabular-nums'], letterSpacing: -0.4 }}>
+            ${item.price.toFixed(2)}
+          </Text>
         )}
       </View>
+
+      {/* Add-to-cart FAB — bottom-right, outside video/scroll tap zone */}
+      {!item.isPost ? (
+        <MotiView
+          animate={{ scale: addState === 'adding' ? 0.92 : 1, backgroundColor: addState === 'added' ? Palette.success : addState === 'error' ? Palette.danger : Palette.brand }}
+          transition={{ type: 'spring', damping: 14, stiffness: 280 }}
+          style={{ position: 'absolute', right: 14, bottom: bottomInset + 16, width: 44, height: 44, borderRadius: 22, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.35, shadowRadius: 4, elevation: 4 }}>
+          <PressableScale
+            onPress={handleAddToCart}
+            disabled={addState === 'adding'}
+            accessibilityRole="button"
+            accessibilityLabel={addState === 'added' ? 'Added to cart' : `Add ${item.title} to cart`}
+            style={{ flex: 1, alignItems: 'center', justifyContent: 'center', borderRadius: 22 }}>
+            {addState === 'adding'
+              ? <ActivityIndicator size="small" color="#fff" />
+              : addState === 'added'
+              ? <CheckCircle size={20} color="#fff" />
+              : <ShoppingCart size={20} color="#fff" />}
+          </PressableScale>
+        </MotiView>
+      ) : null}
+
+      {/* Multi-chef disclosure sheet */}
+      <Modal visible={showMultiChefSheet} transparent animationType="slide" presentationStyle="overFullScreen" onRequestClose={() => setShowMultiChefSheet(false)}>
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }}>
+          <View style={{ backgroundColor: Palette.canvas, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, paddingBottom: insets.bottom + 24 }}>
+            <View style={{ width: 36, height: 4, borderRadius: 2, backgroundColor: Palette.border, alignSelf: 'center', marginBottom: 20 }} />
+            <Text style={{ fontFamily: Font.display, fontSize: 20, color: Palette.ink, letterSpacing: -0.3, marginBottom: 8 }}>Adding from a different kitchen</Text>
+            <Text style={{ fontFamily: Font.body, fontSize: 14.5, color: Palette.textSecondary, lineHeight: 22, marginBottom: 24 }}>
+              Your cart has items from {anchorKitchenName}. Adding from {item.prepper} will create a separate preorder — each kitchen fulfils and prices independently.
+            </Text>
+            <PressableScale
+              onPress={() => { setShowMultiChefSheet(false); void doAddToCart(); }}
+              accessibilityRole="button"
+              accessibilityLabel={`Add from ${item.prepper}`}
+              style={{ height: 52, borderRadius: Radius.pill, backgroundColor: Palette.brand, alignItems: 'center', justifyContent: 'center', marginBottom: 10 }}>
+              <Text style={{ fontFamily: Font.semibold, fontSize: 15.5, color: '#fff' }}>Add from {item.prepper}</Text>
+            </PressableScale>
+            <PressableScale
+              onPress={() => setShowMultiChefSheet(false)}
+              accessibilityRole="button"
+              accessibilityLabel="Keep current cart"
+              style={{ height: 48, alignItems: 'center', justifyContent: 'center' }}>
+              <Text style={{ fontFamily: Font.semibold, fontSize: 15, color: Palette.textSecondary }}>Keep my current cart</Text>
+            </PressableScale>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  pillWrap: {
-    position: 'absolute',
-    left: 16,
-    right: 16,
-    height: 56,
-    borderRadius: 28,
-    overflow: 'hidden',
-  },
-  pill: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    gap: 10,
-  },
-  pillName: {
-    flex: 1,
-    fontFamily: Font.heading,
-    fontSize: 14,
-    color: '#fff',
-  },
-  pillPrice: {
-    fontFamily: Font.display,
-    fontSize: 15,
-    color: '#fff',
-    letterSpacing: -0.3,
-  },
-  pillBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: Palette.brand,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  pillBtnLabel: {
-    fontFamily: Font.heading,
-    fontSize: 20,
-    color: '#fff',
-    lineHeight: 22,
-  },
-});

@@ -14,6 +14,7 @@ type DeviceLocation = {
 type LocationContextType = {
   loc: DeviceLocation;
   requestDeviceLocation: () => Promise<DeviceLocation['status']>;
+  setManualLocation: (city: string, state: string, coords: { lat: number; lng: number }) => void;
 };
 
 const LOCATION_STALE_MS = 30 * 60 * 1000; // 30 minutes
@@ -92,8 +93,15 @@ export function LocationProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  function setManualLocation(city: string, state: string, coords: { lat: number; lng: number }) {
+    const fetchedAt = Date.now();
+    setLoc({ city, state, coords, status: 'granted', fetchedAt });
+    const cache: LocationCache = { city, state, coords, fetchedAt };
+    AsyncStorage.setItem(LOCATION_CACHE_KEY, JSON.stringify(cache)).catch(() => {});
+  }
+
   return (
-    <LocationContext.Provider value={{ loc, requestDeviceLocation }}>
+    <LocationContext.Provider value={{ loc, requestDeviceLocation, setManualLocation }}>
       {children}
     </LocationContext.Provider>
   );

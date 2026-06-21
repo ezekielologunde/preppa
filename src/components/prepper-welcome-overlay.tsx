@@ -41,7 +41,7 @@ export function PrepperWelcomeOverlay({ userId }: { userId?: string | null }) {
 
   async function goSetUp() {
     await dismiss();
-    router.push('/meal-editor');
+    router.push('/dashboard');
   }
 
   if (!visible) return null;

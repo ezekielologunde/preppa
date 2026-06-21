@@ -1,18 +1,15 @@
-import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { Camera, Check, ChevronLeft, ChevronRight, Globe, MapPin, Salad, User } from 'lucide-react-native';
+import { Check, ChevronLeft, ChevronRight, Globe, MapPin, Salad, User } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import { useCallback, useState, type ReactNode } from 'react';
 import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Avatar } from '@/components/ui/avatar';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Font } from '@/constants/fonts';
 import { Palette, Radius } from '@/constants/theme';
 import { feedback } from '@/lib/feedback';
 import { supabase } from '@/lib/supabase';
-import { pickAndUploadImage, pickAndUploadImageNative } from '@/lib/upload';
 import { useAuth } from '@/providers/auth-provider';
 
 const cleanLine = (s: string) => s.replace(/[\x00-\x1F\x7F]/g, '');
@@ -75,15 +72,10 @@ export default function EditProfileScreen() {
   });
   const [original] = useState<Fields>({ ...fields });
   const [errors, setErrors] = useState<Errors>({});
-  const [avatarUrl, setAvatarUrl] = useState<string | null>((meta.avatar_url as string | null) ?? null);
-  const [originalAvatarUrl] = useState<string | null>((meta.avatar_url as string | null) ?? null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [uploadError, setUploadError] = useState<string | null>(null);
 
-  const hasChanges =
-    (Object.keys(fields) as (keyof Fields)[]).some((k) => fields[k] !== original[k]) ||
-    avatarUrl !== originalAvatarUrl;
+  const hasChanges = (Object.keys(fields) as (keyof Fields)[]).some((k) => fields[k] !== original[k]);
   const hasErrors = Object.values(errors).some(Boolean);
 
   const set = useCallback((key: keyof Fields, val: string) => {
@@ -108,15 +100,11 @@ export default function EditProfileScreen() {
     const fullName = cleanLine(fields.full_name).trim();
     const { error } = await supabase.auth.updateUser({
       data: { full_name: fullName, username: fields.username.trim(), bio: cleanBlock(fields.bio).trim(),
-              location: cleanLine(fields.location).trim(), website: cleanLine(fields.website).trim(),
-              ...(avatarUrl ? { avatar_url: avatarUrl } : {}) },
+              location: cleanLine(fields.location).trim(), website: cleanLine(fields.website).trim() },
     });
     if (error) { setSaving(false); feedback.error(); setErrors((e) => ({ ...e, full_name: error.message })); return; }
-    // Mirror the public identity to the profiles row: the app's own screens read
-    // user_metadata, but everyone else (preppers on orders, order emails) reads
-    // profiles.full_name/avatar_url. Best-effort — the primary update already succeeded.
     if (user?.id) {
-      await supabase.from('profiles').update({ full_name: fullName, ...(avatarUrl ? { avatar_url: avatarUrl } : {}) }).eq('id', user.id);
+      await supabase.from('profiles').update({ full_name: fullName }).eq('id', user.id);
     }
     setSaving(false);
     feedback.success();
@@ -124,21 +112,6 @@ export default function EditProfileScreen() {
     setTimeout(() => router.back(), 1000);
   }
 
-  async function handlePickAvatar() {
-    setUploadError(null);
-    try {
-      const uid = user?.id ?? 'anon';
-      const url = Platform.OS === 'web'
-        ? await pickAndUploadImage('avatars', uid)
-        : await pickAndUploadImageNative('avatars', uid);
-      if (url) setAvatarUrl(url);
-    } catch (e) {
-      feedback.error();
-      setUploadError(e instanceof Error ? e.message : 'Upload failed');
-    }
-  }
-
-  const displayName = fields.full_name || user?.email?.split('@')[0] || 'you';
 
   return (
     <View style={{ flex: 1, backgroundColor: Palette.canvas }}>
@@ -159,19 +132,6 @@ export default function EditProfileScreen() {
 
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
           <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 48, paddingTop: 24 }}>
-
-            {/* Avatar */}
-            <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 300 }}
-              style={{ alignItems: 'center', marginBottom: 28 }}>
-              <LinearGradient colors={['#FF9A5A', Palette.brand]} style={{ width: 92, height: 92, borderRadius: 46, padding: 3, alignItems: 'center', justifyContent: 'center' }}>
-                <Avatar name={displayName} url={avatarUrl} size={80} />
-                <PressableScale onPress={() => { feedback.tap(); handlePickAvatar(); }} accessibilityRole="button" accessibilityLabel="Change photo"
-                  style={{ position: 'absolute', bottom: 0, right: 0, width: 30, height: 30, borderRadius: 15, backgroundColor: Palette.brand, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: Palette.canvas }}>
-                  <Camera size={14} color="#fff" />
-                </PressableScale>
-              </LinearGradient>
-              {uploadError ? <Text style={{ fontFamily: Font.body, fontSize: 12, color: Palette.danger, marginTop: 8, textAlign: 'center', paddingHorizontal: 24 }}>{uploadError}</Text> : null}
-            </MotiView>
 
             {/* Fields */}
             <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 300, delay: 40 }}

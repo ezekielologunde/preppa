@@ -19,6 +19,7 @@ export type CartItem = {
   prepperId: string | null;
   prepTime: number | null;
   available: boolean;
+  deliveryMinOrder: number;
 };
 
 type PrepperCol = { id: string; display_name: string; delivery_fee: number | null; delivery_min_order: number | null; delivers: boolean; pickup: boolean };
@@ -77,6 +78,7 @@ export function useCart(userId?: string | null) {
           prepperId: prepper?.id ?? null,
           prepTime: r.meal?.prep_time_min ?? null,
           available: r.meal?.status === 'published',
+          deliveryMinOrder: prepper?.delivery_min_order ?? 0,
         };
       });
       const subtotal = items.reduce((s, i) => s + i.price_snapshot * i.quantity, 0);
@@ -233,10 +235,9 @@ export type MultiOrderGroup = {
 export type MultiOrderResult = { prepperId: string; prepperName: string; orderId: string };
 
 /**
- * Place one sub-order per kitchen group sequentially.
- * Each group calls create_order once; results are returned in order.
- * On failure, throws with a `failedKitchen` property so the caller
- * can show which kitchen failed and allow retry.
+ * Place all kitchen groups atomically via create_multi_kitchen_order.
+ * All orders are created in a single DB transaction — if any kitchen fails
+ * (unavailable meal, self-order, etc.) the entire batch rolls back.
  */
 export function usePlaceMultipleOrders() {
   const qc = useQueryClient();
@@ -246,36 +247,39 @@ export function usePlaceMultipleOrders() {
       groups: MultiOrderGroup[];
       onProgress?: (completed: number, total: number, kitchenName: string) => void;
     }): Promise<MultiOrderResult[]> => {
-      const results: MultiOrderResult[] = [];
-      for (let i = 0; i < v.groups.length; i++) {
+      const { data, error } = await supabase.rpc('create_multi_kitchen_order', {
+        p_orders: v.groups.map((g) => ({
+          cart_item_ids: g.items.map((it) => it.id),
+          fulfillment: g.fulfillment,
+          address_id: g.addressId ?? null,
+          note: g.note ?? null,
+          tip: g.tip ?? 0,
+          scheduled_at: g.scheduledAt ?? null,
+          idempotency_key: crypto.randomUUID(),
+        })),
+      });
+      if (error) throw error;
+      const orderIds = (data ?? []) as string[];
+      if (orderIds.length !== v.groups.length) {
+        throw new Error('Server returned unexpected number of order IDs');
+      }
+      const results: MultiOrderResult[] = v.groups.map((g, i) => ({
+        prepperId: g.prepperId,
+        prepperName: g.prepperName,
+        orderId: orderIds[i],
+      }));
+      for (let i = 0; i < results.length; i++) {
         const g = v.groups[i];
-        v.onProgress?.(i, v.groups.length, g.prepperName);
-        const { data, error } = await supabase.rpc('create_order', {
-          p_fulfillment: g.fulfillment,
-          p_address_id: g.addressId ?? null,
-          p_note: g.note ?? null,
-          p_tip: g.tip ?? 0,
-          p_scheduled_at: g.scheduledAt ?? null,
-          p_idempotency_key: crypto.randomUUID(),
-        });
-        if (error) {
-          const err = new Error(`Could not place order with ${g.prepperName}: ${error.message}`) as Error & { failedKitchen: string };
-          err.failedKitchen = g.prepperName;
-          throw err;
-        }
-        const orderId = data as string;
-        supabase.rpc('record_event', { p_event: 'order_created', p_props: { order_id: orderId, fulfillment: g.fulfillment, prepper_id: g.prepperId } }).then(() => {}, () => {});
-        // Fire-and-forget push notification to the prepper.
+        supabase.rpc('record_event', { p_event: 'order_created', p_props: { order_id: results[i].orderId, fulfillment: g.fulfillment, prepper_id: g.prepperId } }).then(() => {}, () => {});
         void supabase.functions.invoke('notify-order-placed', {
           body: {
-            order_id: orderId,
+            order_id: results[i].orderId,
             prepper_id: g.prepperId,
             customer_name: 'A customer',
             meal_count: g.items.reduce((s, it) => s + it.quantity, 0),
             total: g.items.reduce((s, it) => s + it.price_snapshot * it.quantity, 0),
           },
         });
-        results.push({ prepperId: g.prepperId, prepperName: g.prepperName, orderId });
       }
       return results;
     },

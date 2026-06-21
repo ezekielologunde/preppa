@@ -68,7 +68,7 @@ export default function RecentlyViewedScreen() {
               Meals you view will show up here so you can easily find them again.
             </Text>
             <PressableScale
-              onPress={() => { feedback.tap(); router.push('/explore'); }}
+              onPress={() => { feedback.tap(); router.push('/'); }}
               accessibilityRole="button"
               accessibilityLabel="Browse meals"
               style={{ marginTop: 6, backgroundColor: ORANGE, borderRadius: Radius.pill, paddingHorizontal: 24, paddingVertical: 12 }}>

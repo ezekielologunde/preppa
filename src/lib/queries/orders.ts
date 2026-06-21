@@ -189,18 +189,20 @@ export function useOrderItems(orderId?: string | null) {
   });
 }
 
-/** Incoming orders for a prepper's kitchen, newest first (optionally filtered by status). */
-export function usePrepperOrders(prepperId?: string | null, status?: OrderStatus) {
+/** Incoming orders for a prepper's kitchen, newest first (optionally filtered by status or array of statuses). */
+export function usePrepperOrders(prepperId?: string | null, status?: OrderStatus | OrderStatus[]) {
+  const statusKey = Array.isArray(status) ? status.join(',') : (status ?? 'all');
   return useQuery({
-    queryKey: ['orders', 'prepper', prepperId ?? 'none', status ?? 'all'],
+    queryKey: ['orders', 'prepper', prepperId ?? 'none', statusKey],
     enabled: !!prepperId,
     refetchInterval: (query) => {
-      if (query.state.errorUpdateCount > 3) return false; // stop polling after 3 errors
+      if (query.state.errorUpdateCount > 3) return false;
       return 20_000;
     },
     queryFn: async (): Promise<OrderSummary[]> => {
       let q = supabase.from('orders').select(SELECT).eq('prepper_id', prepperId!).order('created_at', { ascending: false });
-      if (status) q = q.eq('status', status);
+      if (Array.isArray(status)) q = q.in('status', status);
+      else if (status) q = q.eq('status', status);
       const { data, error } = await q;
       if (error) throw error;
       return ((data ?? []) as unknown as Row[]).map(toSummary);

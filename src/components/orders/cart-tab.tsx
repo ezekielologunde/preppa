@@ -52,7 +52,7 @@ export function CartTabContent() {
           Browse kitchens and add meals to start your order.
         </Text>
         <PressableScale
-          onPress={() => { feedback.tap(); router.replace('/explore'); }}
+          onPress={() => { feedback.tap(); router.replace('/'); }}
           accessibilityRole="button"
           accessibilityLabel="Browse meals"
           style={{ marginTop: 4, paddingHorizontal: 22, height: 44, borderRadius: Radius.pill, backgroundColor: Palette.brand, alignItems: 'center', justifyContent: 'center' }}>

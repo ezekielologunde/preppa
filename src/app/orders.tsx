@@ -27,6 +27,7 @@ import { useAuth } from '@/providers/auth-provider';
 
 const ORANGE = Palette.brand;
 const INK = Palette.ink;
+const grp = (iso: string) => { const d = Math.floor((new Date(iso).setHours(0,0,0,0) - new Date().setHours(0,0,0,0)) / 86_400_000); return d < 1 ? 'Today' : d === 1 ? 'Tomorrow' : d <= 7 ? 'This Week' : 'Upcoming'; };
 
 export default function OrdersScreen() {
   const router = useRouter();
@@ -368,7 +369,7 @@ export default function OrdersScreen() {
                         : 'Completed and cancelled orders will show here.'}
                     </Text>
                     {tab !== 'completed' ? (
-                      <PressableScale onPress={() => { feedback.tap(); router.replace('/explore'); }} accessibilityRole="button" accessibilityLabel="Browse meals"
+                      <PressableScale onPress={() => { feedback.tap(); router.replace('/'); }} accessibilityRole="button" accessibilityLabel="Browse meals"
                         style={{ marginTop: 4, paddingHorizontal: 22, height: 44, borderRadius: Radius.pill, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' }}>
                         <Text style={{ fontFamily: Font.heading, fontSize: 14, color: '#fff' }}>Browse meals</Text>
                       </PressableScale>
@@ -378,12 +379,16 @@ export default function OrdersScreen() {
               </MotiView>
             ) : (
               <View style={twoCol ? { flexDirection: 'row', flexWrap: 'wrap', gap: 12, paddingHorizontal: 16 } : { gap: 12 }}>
-                {filtered.map((o, i) => (
+                {filtered.map((o, i) => {
+                  const hdr = tab === 'scheduled' && o.scheduled_at
+                    && (i === 0 || grp(o.scheduled_at) !== grp(filtered[i - 1].scheduled_at!)) ? grp(o.scheduled_at) : null;
+                  return (
                   <MotiView key={o.id}
                     from={{ opacity: 0, translateY: 8 }}
                     animate={{ opacity: 1, translateY: 0 }}
                     transition={{ type: 'timing', duration: 220, delay: i * 45 }}
                     style={twoCol ? { width: '48.5%' } : undefined}>
+                    {hdr ? <View style={{ paddingHorizontal: 16, paddingTop: i === 0 ? 4 : 16, paddingBottom: 6 }}><Text style={{ fontFamily: Font.semibold, fontSize: 11.5, color: Palette.textSecondary, letterSpacing: 0.5, textTransform: 'uppercase' }}>{hdr}</Text></View> : null}
                     <OrderListCard
                       order={o}
                       tab={tab as 'active' | 'scheduled' | 'completed'}
@@ -440,7 +445,8 @@ export default function OrdersScreen() {
                       />
                     </View>
                   </MotiView>
-                ))}
+                  );
+                })}
               </View>
             )}
           </ScrollView>

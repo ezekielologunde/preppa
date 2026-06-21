@@ -155,10 +155,11 @@ function TrendingMealCard({
 // ─── TrendingSection ──────────────────────────────────────────────────────────
 
 export function TrendingSection({
-  meals, isLoading, isTablet,
-}: { meals: Meal[] | undefined; isLoading: boolean; isTablet: boolean }) {
+  meals, isLoading, isTablet, contentWidth: contentWidthProp,
+}: { meals: Meal[] | undefined; isLoading: boolean; isTablet: boolean; contentWidth?: number }) {
   const router = useRouter();
-  const contentWidth = useContentWidth();
+  const defaultContentWidth = useContentWidth();
+  const contentWidth = contentWidthProp ?? defaultContentWidth;
   const pad = usePagePadding();
   const carouselCardWidth = useCarouselCardWidth();
   const list = meals ?? [];
