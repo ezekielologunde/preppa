@@ -1,5 +1,0 @@
--- 0031 — Notification event system. Writes real notification rows for the
--- cross-cutting events orders don't cover: new experience bids, reviews, and
--- follows (SECURITY DEFINER triggers + notify() helper). Plus
--- mark_notifications_read(p_id) RPC. RLS already restricts read/update to owner;
--- inserts only via definer. Canonical bodies live in the DB (apply_migration).

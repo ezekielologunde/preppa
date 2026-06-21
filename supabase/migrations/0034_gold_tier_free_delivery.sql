@@ -1,3 +1,0 @@
--- 0034 — Gold-tier rewards perk made real: $500+ lifetime completed spend →
--- free delivery, computed server-side in create_order (client can't fake it).
--- Mirrors the tier thresholds in src/lib/queries/rewards.ts. Canonical body in DB.
