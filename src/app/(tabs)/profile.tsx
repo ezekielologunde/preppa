@@ -18,6 +18,7 @@ import {
   MapPin,
   ShieldCheck,
   Star,
+  ChefHat,
 } from 'lucide-react-native';
 
 import { Font } from '@/constants/fonts';
@@ -167,6 +168,15 @@ export default function ProfileScreen() {
             </TouchableOpacity>
           </View>
         )}
+
+        {/* ── Prepper mode ─────────────────────────────────────── */}
+        <SettingsSection title="seller">
+          <SettingsRow
+            icon={<ChefHat size={17} color={Palette.brand} strokeWidth={1.8} />}
+            label="kitchen dashboard"
+            onPress={() => router.push('/prepper' as never)}
+          />
+        </SettingsSection>
 
         {/* ── Account ──────────────────────────────────────────── */}
         <SettingsSection title="account">
