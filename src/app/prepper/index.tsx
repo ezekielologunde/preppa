@@ -175,16 +175,23 @@ export default function PrepperDashboard() {
           <StatCard label="pending" value={String(stats?.pending ?? 0)} sub="need action" />
         </View>
 
-        {/* ── Health score ───────────────────────────────────────── */}
-        <View style={styles.healthCard}>
+        {/* ── Health score / ratings link ────────────────────────── */}
+        <TouchableOpacity
+          onPress={() => router.push('/prepper/reviews' as never)}
+          activeOpacity={0.78}
+          style={styles.healthCard}
+        >
           <View style={styles.healthLeft}>
             <Star size={18} color={Palette.amberDeep} strokeWidth={1.8} />
             <Text style={styles.healthLabel}>health score</Text>
           </View>
-          <Text style={[styles.healthScore, { color: (kitchen.health_score ?? 0) >= 80 ? Palette.successDark : Palette.amberDeep }]}>
-            {score}
-          </Text>
-        </View>
+          <View style={styles.healthRight}>
+            <Text style={[styles.healthScore, { color: (kitchen.health_score ?? 0) >= 80 ? Palette.successDark : Palette.amberDeep }]}>
+              {score}
+            </Text>
+            <Text style={styles.seeAll}>ratings →</Text>
+          </View>
+        </TouchableOpacity>
 
         {/* ── Active orders ──────────────────────────────────────── */}
         {activeOrders.length > 0 && (
@@ -268,6 +275,7 @@ const styles = StyleSheet.create({
     backgroundColor: Palette.surface, borderRadius: 16, padding: 16, marginBottom: 20, ...Shadow.card,
   },
   healthLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  healthRight: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   healthLabel: { fontFamily: Font.semibold, fontSize: Type.label, color: Palette.ink },
   healthScore: { fontFamily: Font.display, fontSize: Type.title },
 

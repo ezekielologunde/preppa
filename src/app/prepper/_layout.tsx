@@ -59,6 +59,13 @@ export default function PrepperLayout() {
           tabBarIcon: ({ color }) => <Settings size={22} color={color} />,
         }}
       />
+      <Tabs.Screen
+        name="reviews"
+        options={{
+          title: 'Reviews',
+          href: null, // hidden from tab bar — navigated to from Dashboard
+        }}
+      />
     </Tabs>
   );
 }
