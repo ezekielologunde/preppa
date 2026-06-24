@@ -4,7 +4,7 @@ import { Palette } from '@/constants/theme';
 
 /** Statuses that represent an order still in flight (not terminal). */
 export const ACTIVE_STATUSES: readonly OrderStatus[] = [
-  'pending', 'confirmed', 'preparing', 'ready', 'out_for_delivery',
+  'pending', 'confirmed', 'preparing', 'ready', 'in_transit',
 ];
 
 /** Customer-facing status labels. */
@@ -13,9 +13,10 @@ export const STATUS_LABEL_CUSTOMER: Record<OrderStatus, string> = {
   confirmed:        'Confirmed',
   preparing:        'Prepping',
   ready:            'Ready!',
-  out_for_delivery: 'On the way',
-  completed:        'Complete',
+  in_transit:       'On the way',
+  delivered:        'Complete',
   cancelled:        'Cancelled',
+  refunded:         'Refunded',
 };
 
 /** Prepper-facing status labels (shorter, ops-optimised). */
@@ -24,9 +25,10 @@ export const STATUS_LABEL_PREPPER: Record<OrderStatus, string> = {
   confirmed:        'Confirmed',
   preparing:        'Preparing',
   ready:            'Ready',
-  out_for_delivery: 'On the way',
-  completed:        'Complete',
+  in_transit:       'On the way',
+  delivered:        'Complete',
   cancelled:        'Cancelled',
+  refunded:         'Refunded',
 };
 
 /** bg / fg token pair for customer-facing status chips and badges. */
@@ -36,9 +38,10 @@ export function statusChip(status: OrderStatus): { bg: string; fg: string } {
     case 'confirmed':        return { bg: Palette.confirmedTint, fg: Palette.confirmedDark };
     case 'preparing':        return { bg: Palette.preparingTint, fg: Palette.preparingDark };
     case 'ready':            return { bg: Palette.successTint,   fg: Palette.successDark };
-    case 'out_for_delivery': return { bg: Palette.homeCookTint,  fg: Palette.homeCook };
-    case 'completed':        return { bg: Palette.successTint,   fg: Palette.successDark };
+    case 'in_transit': return { bg: Palette.homeCookTint,  fg: Palette.homeCook };
+    case 'delivered':        return { bg: Palette.successTint,   fg: Palette.successDark };
     case 'cancelled':        return { bg: Palette.cancelledTint, fg: Palette.dangerDeep };
+    case 'refunded':         return { bg: Palette.chip,           fg: Palette.textSecondary };
   }
 }
 
@@ -49,9 +52,10 @@ export function statusColor(status: OrderStatus): string {
     case 'confirmed':        return Palette.cyan;
     case 'preparing':        return Palette.violet;
     case 'ready':            return Palette.success;
-    case 'out_for_delivery': return Palette.leafGreen;
-    case 'completed':        return Palette.success;
+    case 'in_transit':       return Palette.leafGreen;
+    case 'delivered':        return Palette.success;
     case 'cancelled':        return Palette.textSecondary;
+    case 'refunded':         return Palette.textMuted;
   }
 }
 
@@ -60,8 +64,8 @@ export const NEXT: Partial<Record<OrderStatus, { next: OrderStatus; cta: string 
   pending:          { next: 'confirmed', cta: 'Confirm preorder' },
   confirmed:        { next: 'preparing', cta: 'Start prepping' },
   preparing:        { next: 'ready',     cta: 'Mark ready' },
-  ready:            { next: 'completed', cta: 'Mark complete' },
-  out_for_delivery: { next: 'completed', cta: 'Mark complete' },
+  ready:            { next: 'delivered', cta: 'Mark complete' },
+  in_transit: { next: 'delivered', cta: 'Mark complete' },
 };
 
 export const FULFILLMENT_LABEL: Record<FulfillmentType, string> = {

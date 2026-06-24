@@ -17,6 +17,7 @@ import { Font } from '@/constants/fonts';
 import { Palette, Radius, Shadow, Space, Type } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
 import { usePrepper } from '@/lib/use-prepper';
+import { StatCard } from '@/components/ui/stat-card';
 
 type DayStats = {
   orderCount: number;
@@ -31,16 +32,6 @@ type ActiveOrder = {
   created_at: string;
   customer_email: string | null;
 };
-
-function StatCard({ label, value, sub, accent }: { label: string; value: string; sub?: string; accent?: boolean }) {
-  return (
-    <View style={[styles.statCard, accent && { backgroundColor: Palette.brand }]}>
-      <Text style={[styles.statValue, accent && { color: Palette.surface }]}>{value}</Text>
-      <Text style={[styles.statLabel, accent && { color: Palette.brandTint }]}>{label}</Text>
-      {sub ? <Text style={[styles.statSub, accent && { color: Palette.brandTint }]}>{sub}</Text> : null}
-    </View>
-  );
-}
 
 export default function PrepperDashboard() {
   const router = useRouter();
@@ -143,7 +134,12 @@ export default function PrepperDashboard() {
             <Text style={styles.greeting}>prep dashboard</Text>
             <Text style={styles.kitchenName} numberOfLines={1}>{kitchen.display_name}</Text>
           </View>
-          <TouchableOpacity onPress={() => router.replace('/(tabs)' as never)} style={styles.exitBtn} hitSlop={8}>
+          <TouchableOpacity
+            onPress={() => router.replace('/(tabs)' as never)}
+            style={styles.exitBtn}
+            accessibilityLabel="Switch to customer mode"
+            accessibilityRole="button"
+          >
             <ArrowLeft size={18} color={Palette.textSecondary} strokeWidth={2} />
             <Text style={styles.exitBtnText}>customer</Text>
           </TouchableOpacity>
@@ -180,6 +176,8 @@ export default function PrepperDashboard() {
           onPress={() => router.push('/prepper/reviews' as never)}
           activeOpacity={0.78}
           style={styles.healthCard}
+          accessibilityLabel={`Health score ${score}, tap to view ratings`}
+          accessibilityRole="button"
         >
           <View style={styles.healthLeft}>
             <Star size={18} color={Palette.amberDeep} strokeWidth={1.8} />
@@ -208,6 +206,8 @@ export default function PrepperDashboard() {
                 onPress={() => router.push(`/prepper/orders` as never)}
                 activeOpacity={0.78}
                 style={styles.orderCard}
+                accessibilityLabel={`Order ${o.status}, placed at ${new Date(o.created_at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}, £${(o.total_pence / 100).toFixed(2)}`}
+                accessibilityRole="button"
               >
                 <View style={styles.orderLeft}>
                   <View style={[styles.orderStatusDot, {
@@ -265,10 +265,6 @@ const styles = StyleSheet.create({
   seeAll: { fontFamily: Font.semibold, fontSize: Type.micro, color: Palette.brand },
 
   statsRow: { flexDirection: 'row', gap: 10, marginBottom: 16 },
-  statCard: { flex: 1, backgroundColor: Palette.surface, borderRadius: 16, padding: 14, alignItems: 'center', ...Shadow.card },
-  statValue: { fontFamily: Font.display, fontSize: Type.title, color: Palette.ink },
-  statLabel: { fontFamily: Font.body, fontSize: Type.micro, color: Palette.textSecondary, marginTop: 2 },
-  statSub: { fontFamily: Font.body, fontSize: 9, color: Palette.textMuted, marginTop: 1 },
 
   healthCard: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',

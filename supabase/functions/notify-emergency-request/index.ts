@@ -27,7 +27,10 @@ Deno.serve(async (req) => {
       .select('user_id')
       .eq('status', 'approved')
       .limit(500);
-    if (prepperErr) return errorResponse(prepperErr.message, 500, req);
+    if (prepperErr) {
+      console.error('[notify-emergency-request] prepper query error:', prepperErr.message);
+      return errorResponse('internal_error', 500, req);
+    }
     if (!preppers || preppers.length === 0) return json({ ok: true, sent: 0, reason: 'No approved preppers' }, 200, req);
 
     const userIds = (preppers as { user_id: string }[]).map((p) => p.user_id).filter(Boolean);
@@ -38,7 +41,10 @@ Deno.serve(async (req) => {
       .select('token, notification_prefs!left(push_enabled)')
       .in('user_id', userIds)
       .limit(500);
-    if (tokenErr) return errorResponse(tokenErr.message, 500, req);
+    if (tokenErr) {
+      console.error('[notify-emergency-request] token query error:', tokenErr.message);
+      return errorResponse('internal_error', 500, req);
+    }
     if (!rows || rows.length === 0) return json({ ok: true, sent: 0, reason: 'No push tokens found' }, 200, req);
 
     const eligibleTokens = (rows as any[])
@@ -65,16 +71,24 @@ Deno.serve(async (req) => {
 
     let sent = 0;
     for (const chunk of chunks) {
-      await fetch('https://exp.host/--/api/v2/push/send', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify(chunk),
-      });
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 30_000);
+      try {
+        await fetch('https://exp.host/--/api/v2/push/send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify(chunk),
+          signal: controller.signal,
+        });
+      } finally {
+        clearTimeout(timer);
+      }
       sent += chunk.length;
     }
 
     return json({ ok: true, sent }, 200, req);
   } catch (e) {
-    return json({ error: e instanceof Error ? e.message : 'Notify failed' }, 500, req);
+    console.error('[notify-emergency-request] error:', e instanceof Error ? e.message : e);
+    return json({ error: 'internal_error' }, 500, req);
   }
 });

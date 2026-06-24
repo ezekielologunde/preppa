@@ -1,6 +1,7 @@
 import { Tabs } from 'expo-router';
 import { BarChart2, ChefHat, LayoutDashboard, List, Settings } from 'lucide-react-native';
 
+import { Font } from '@/constants/fonts';
 import { Palette } from '@/constants/theme';
 
 export default function PrepperLayout() {
@@ -18,8 +19,8 @@ export default function PrepperLayout() {
           paddingTop: 8,
         },
         tabBarLabelStyle: {
-          fontSize: 10,
-          fontFamily: 'Poppins-SemiBold',
+          fontSize: 10, // intentionally sub-scale — tab labels are decorative
+          fontFamily: Font.semibold,
           marginTop: 2,
         },
       }}

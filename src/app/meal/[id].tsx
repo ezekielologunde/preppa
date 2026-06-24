@@ -14,7 +14,7 @@ import { ArrowLeft, Clock, Heart, Share2, Users } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { Font } from '@/constants/fonts';
-import { Palette, Radius, Shadow, Space, Type } from '@/constants/theme';
+import { Gradients, Palette, Radius, Shadow, Space, Type } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/providers/auth-provider';
 
@@ -42,11 +42,11 @@ type Listing = {
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 const GRADIENTS = [
-  ['#E8611A', '#C84E10'],
-  ['#FF8C42', '#B94010'],
-  ['#F5A623', '#C77800'],
-  ['#78C850', '#2A5A00'],
-  ['#4DB6E3', '#006A8E'],
+  Gradients.brand,
+  Gradients.mealWarm,
+  Gradients.mealGold,
+  Gradients.mealGreen,
+  Gradients.mealBlue,
 ] as const;
 
 function pickGradient(id: string): readonly [string, string] {
@@ -107,7 +107,7 @@ export default function MealDetailScreen() {
     }
   }, [listing, user, qty, router]);
 
-  const gradients = listing ? pickGradient(listing.id) : (['#E8611A', '#C84E10'] as const);
+  const gradients = listing ? pickGradient(listing.id) : Gradients.brand;
   const kitchen   = listing ? resolveKitchen(listing.kitchen) : null;
   const price     = listing ? `£${(listing.price_pence / 100).toFixed(2)}` : '—';
   const total     = listing ? `£${((listing.price_pence * qty) / 100).toFixed(2)}` : '—';

@@ -13,7 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowUpRight, AlertCircle, CheckCircle, Clock } from 'lucide-react-native';
 
 import { Font } from '@/constants/fonts';
-import { Palette, Radius, Shadow, Space, Type } from '@/constants/theme';
+import { Palette, Radius, Shadow, Space, TouchTarget, Type } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/providers/auth-provider';
 import { usePrepper } from '@/lib/use-prepper';
@@ -200,7 +200,7 @@ export default function PrepperEarningsScreen() {
 
         {/* ── Summary card ─────────────────────────────────────── */}
         {loading ? (
-          <View style={{ paddingVertical: 32, alignItems: 'center' }}><ActivityIndicator color={Palette.brand} /></View>
+          <View style={{ paddingVertical: Space.xxl, alignItems: 'center' }}><ActivityIndicator color={Palette.brand} /></View>
         ) : summary && (
           <View style={styles.summaryCard}>
             <Text style={styles.summaryHero}>£{(summary.prepperPayoutPence / 100).toFixed(2)}</Text>
@@ -233,7 +233,7 @@ export default function PrepperEarningsScreen() {
           </>
         )}
 
-        <View style={{ height: 32 }} />
+        <View style={{ height: Space.xxl }} />
       </ScrollView>
     </SafeAreaView>
   );
@@ -244,33 +244,33 @@ export default function PrepperEarningsScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: Palette.canvas },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  scroll: { paddingHorizontal: Space.xl, paddingTop: 8, paddingBottom: 32 },
-  headerTitle: { fontFamily: Font.display, fontSize: Type.displayLg, color: Palette.ink, letterSpacing: -0.8, marginBottom: 16 },
+  scroll: { paddingHorizontal: Space.xl, paddingTop: Space.md, paddingBottom: Space.xxl },
+  headerTitle: { fontFamily: Font.display, fontSize: Type.displayLg, color: Palette.ink, letterSpacing: -0.8, marginBottom: Space.lg },
 
-  connectCard: { flexDirection: 'row', alignItems: 'center', gap: 12, borderRadius: 16, padding: 14, marginBottom: 16 },
+  connectCard: { flexDirection: 'row', alignItems: 'center', gap: 12, borderRadius: Radius.lg, padding: 14, marginBottom: Space.lg },
   connectTitle: { fontFamily: Font.display, fontSize: Type.label, marginBottom: 2 },
   connectSub: { fontFamily: Font.body, fontSize: Type.micro, lineHeight: 16 },
-  connectBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: Palette.brand, borderRadius: Radius.pill, paddingHorizontal: 12, paddingVertical: 7 },
+  connectBtn: { flexDirection: 'row', alignItems: 'center', gap: Space.sm, backgroundColor: Palette.brand, borderRadius: Radius.pill, paddingHorizontal: 12, paddingVertical: 7 },
   connectBtnText: { fontFamily: Font.display, fontSize: Type.micro, color: Palette.surface },
 
-  periodRow: { flexDirection: 'row', gap: 8, marginBottom: 16 },
-  periodChip: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: Radius.pill, backgroundColor: Palette.chip },
+  periodRow: { flexDirection: 'row', gap: Space.md, marginBottom: Space.lg },
+  periodChip: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: Radius.pill, backgroundColor: Palette.chip, minHeight: TouchTarget, justifyContent: 'center' },
   periodChipActive: { backgroundColor: Palette.brand },
   periodLabel: { fontFamily: Font.semibold, fontSize: Type.label, color: Palette.inkSoft },
   periodLabelActive: { color: Palette.surface },
 
-  summaryCard: { backgroundColor: Palette.surface, borderRadius: 20, padding: 20, marginBottom: 20, ...Shadow.card },
-  summaryHero: { fontFamily: Font.display, fontSize: 40, color: Palette.ink, letterSpacing: -1 },
-  summaryHeroLabel: { fontFamily: Font.body, fontSize: Type.label, color: Palette.textSecondary, marginBottom: 16 },
-  divider: { height: 1, backgroundColor: Palette.border, marginBottom: 4 },
+  summaryCard: { backgroundColor: Palette.surface, borderRadius: Radius.avatar, padding: 20, marginBottom: 20, ...Shadow.card },
+  summaryHero: { fontFamily: Font.display, fontSize: Type.heroLg, color: Palette.ink, letterSpacing: -1 },
+  summaryHeroLabel: { fontFamily: Font.body, fontSize: Type.label, color: Palette.textSecondary, marginBottom: Space.lg },
+  divider: { height: 1, backgroundColor: Palette.border, marginBottom: Space.sm },
 
   sectionTitle: { fontFamily: Font.semibold, fontSize: Type.micro, color: Palette.textSecondary, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10 },
 
-  payoutRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: Palette.surface, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12, marginBottom: 8, ...Shadow.card },
+  payoutRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: Palette.surface, borderRadius: Radius.sm, paddingHorizontal: 14, paddingVertical: 12, marginBottom: Space.md, ...Shadow.card },
   payoutLeft: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   payoutDate: { fontFamily: Font.body, fontSize: Type.label, color: Palette.textSecondary },
-  payoutRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  payoutRight: { flexDirection: 'row', alignItems: 'center', gap: Space.md },
   payoutAmount: { fontFamily: Font.display, fontSize: Type.label, color: Palette.ink },
-  payoutBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: Radius.pill },
+  payoutBadge: { paddingHorizontal: Space.md, paddingVertical: 3, borderRadius: Radius.pill },
   payoutBadgeText: { fontFamily: Font.semibold, fontSize: 9 },
 });

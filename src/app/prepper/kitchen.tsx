@@ -4,7 +4,6 @@ import {
   Alert,
   ScrollView,
   StyleSheet,
-  Switch,
   Text,
   TextInput,
   TouchableOpacity,
@@ -12,50 +11,13 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { AlertTriangle, ChevronRight, MapPin, Clock, Users } from 'lucide-react-native';
+import { AlertTriangle, MapPin, Clock, Users } from 'lucide-react-native';
 
 import { Font } from '@/constants/fonts';
 import { Palette, Radius, Shadow, Space, Type } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
 import { usePrepper } from '@/lib/use-prepper';
-
-// ── Sub-components ───────────────────────────────────────────────────────────
-
-function SettingsRow({ icon, label, value, onPress, isSwitch, switchValue, onSwitchChange, danger }: {
-  icon: React.ReactNode;
-  label: string;
-  value?: string;
-  onPress?: () => void;
-  isSwitch?: boolean;
-  switchValue?: boolean;
-  onSwitchChange?: (v: boolean) => void;
-  danger?: boolean;
-}) {
-  return (
-    <TouchableOpacity
-      onPress={onPress}
-      activeOpacity={isSwitch ? 1 : 0.75}
-      style={styles.settingsRow}
-      disabled={isSwitch}
-    >
-      <View style={[styles.settingsIcon, danger && styles.settingsIconDanger]}>{icon}</View>
-      <Text style={[styles.settingsLabel, danger && { color: Palette.danger }]} numberOfLines={1}>{label}</Text>
-      {isSwitch ? (
-        <Switch
-          value={switchValue}
-          onValueChange={onSwitchChange}
-          trackColor={{ true: Palette.brand, false: Palette.border }}
-          thumbColor={Palette.surface}
-        />
-      ) : (
-        <View style={styles.settingsRight}>
-          {value ? <Text style={styles.settingsValue} numberOfLines={1}>{value}</Text> : null}
-          <ChevronRight size={14} color={Palette.textMuted} strokeWidth={2} />
-        </View>
-      )}
-    </TouchableOpacity>
-  );
-}
+import { SettingsRow } from '@/components/ui/settings-row';
 
 // ── Screen ───────────────────────────────────────────────────────────────────
 
@@ -215,7 +177,7 @@ export default function PrepperKitchenScreen() {
           </TouchableOpacity>
         )}
 
-        <View style={{ height: 32 }} />
+        <View style={{ height: Space.xxl }} />
       </ScrollView>
     </SafeAreaView>
   );
@@ -226,36 +188,29 @@ export default function PrepperKitchenScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: Palette.canvas },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  scroll: { paddingHorizontal: Space.xl, paddingTop: 8, paddingBottom: 32 },
-  headerTitle: { fontFamily: Font.display, fontSize: Type.displayLg, color: Palette.ink, letterSpacing: -0.8, marginBottom: 16 },
+  scroll: { paddingHorizontal: Space.xl, paddingTop: Space.md, paddingBottom: Space.xxl },
+  headerTitle: { fontFamily: Font.display, fontSize: Type.displayLg, color: Palette.ink, letterSpacing: -0.8, marginBottom: Space.lg },
 
-  kitchenHeader: { flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: Palette.surface, borderRadius: 18, padding: 16, marginBottom: 16, ...Shadow.card },
-  kitchenInitial: { width: 52, height: 52, borderRadius: 16, backgroundColor: Palette.brand, alignItems: 'center', justifyContent: 'center' },
+  kitchenHeader: { flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: Palette.surface, borderRadius: Radius.card, padding: Space.lg, marginBottom: Space.lg, ...Shadow.card },
+  kitchenInitial: { width: 52, height: 52, borderRadius: Radius.lg, backgroundColor: Palette.brand, alignItems: 'center', justifyContent: 'center' },
   kitchenInitialText: { fontFamily: Font.display, fontSize: 22, color: Palette.surface },
   kitchenName: { fontFamily: Font.display, fontSize: Type.body, color: Palette.ink },
   kitchenHealth: { fontFamily: Font.body, fontSize: Type.micro, color: Palette.textSecondary, marginTop: 2 },
 
-  card: { backgroundColor: Palette.surface, borderRadius: 18, padding: 16, marginBottom: 16, ...Shadow.card },
-  fieldLabel: { fontFamily: Font.semibold, fontSize: Type.micro, color: Palette.textSecondary, textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 8 },
+  card: { backgroundColor: Palette.surface, borderRadius: Radius.card, padding: Space.lg, marginBottom: Space.lg, ...Shadow.card },
+  fieldLabel: { fontFamily: Font.semibold, fontSize: Type.micro, color: Palette.textSecondary, textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: Space.md },
   bioInput: { fontFamily: Font.body, fontSize: Type.body, color: Palette.ink, lineHeight: 22, minHeight: 72, textAlignVertical: 'top' },
-  charCount: { fontFamily: Font.body, fontSize: Type.micro, color: Palette.textMuted, textAlign: 'right', marginTop: 4 },
+  charCount: { fontFamily: Font.body, fontSize: Type.micro, color: Palette.textMuted, textAlign: 'right', marginTop: Space.sm },
 
-  section: { marginBottom: 16 },
-  sectionTitle: { fontFamily: Font.semibold, fontSize: Type.micro, color: Palette.textSecondary, textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 8, marginLeft: 4 },
-  sectionCard: { backgroundColor: Palette.surface, borderRadius: 18, overflow: 'hidden', ...Shadow.card },
-
-  settingsRow: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 16, paddingVertical: 14, minHeight: 56 },
-  settingsIcon: { width: 34, height: 34, borderRadius: 10, backgroundColor: Palette.brandTint, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-  settingsIconDanger: { backgroundColor: Palette.dangerTint },
-  settingsLabel: { flex: 1, fontFamily: Font.semibold, fontSize: Type.body, color: Palette.ink },
-  settingsRight: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  settingsValue: { fontFamily: Font.body, fontSize: Type.label, color: Palette.textSecondary, maxWidth: 140 },
+  section: { marginBottom: Space.lg },
+  sectionTitle: { fontFamily: Font.semibold, fontSize: Type.micro, color: Palette.textSecondary, textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: Space.md, marginLeft: Space.sm },
+  sectionCard: { backgroundColor: Palette.surface, borderRadius: Radius.card, overflow: 'hidden', ...Shadow.card },
 
   rowDivider: { height: 1, backgroundColor: Palette.border, marginLeft: 64 },
 
-  vacationBanner: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, backgroundColor: Palette.amberTint, borderRadius: 12, padding: 12, marginTop: 8 },
+  vacationBanner: { flexDirection: 'row', alignItems: 'flex-start', gap: Space.md, backgroundColor: Palette.amberTint, borderRadius: Radius.md, padding: 12, marginTop: Space.md },
   vacationText: { flex: 1, fontFamily: Font.body, fontSize: Type.micro, color: Palette.amberDeep, lineHeight: 18 },
 
-  saveBtn: { backgroundColor: Palette.brand, borderRadius: Radius.pill, paddingVertical: 16, alignItems: 'center', marginTop: 8 },
+  saveBtn: { backgroundColor: Palette.brand, borderRadius: Radius.pill, paddingVertical: Space.lg, alignItems: 'center', marginTop: Space.md },
   saveBtnText: { fontFamily: Font.display, fontSize: Type.body, color: Palette.surface },
 });

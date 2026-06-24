@@ -14,9 +14,10 @@ import { useRouter } from 'expo-router';
 import { Pause, Play, Archive, Plus } from 'lucide-react-native';
 
 import { Font } from '@/constants/fonts';
-import { Palette, Radius, Shadow, Space, Type } from '@/constants/theme';
+import { Palette, Radius, Shadow, Space, TouchTarget, Type } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
 import { usePrepper } from '@/lib/use-prepper';
+import { EmptyState } from '@/components/ui/empty-state';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -98,18 +99,36 @@ function ListingCard({ listing, kitchenId, onMutate }: {
       {listing.status !== 'archived' && (
         <View style={styles.actions}>
           {listing.status === 'active' ? (
-            <TouchableOpacity onPress={() => setStatus('paused')} activeOpacity={0.8} style={styles.actionBtn}>
+            <TouchableOpacity
+              onPress={() => setStatus('paused')}
+              activeOpacity={0.8}
+              style={styles.actionBtn}
+              accessibilityLabel={`Pause ${listing.name}`}
+              accessibilityRole="button"
+            >
               <Pause size={14} color={Palette.amberDeep} strokeWidth={2} />
               <Text style={[styles.actionText, { color: Palette.amberDeep }]}>pause</Text>
             </TouchableOpacity>
           ) : listing.status === 'paused' ? (
-            <TouchableOpacity onPress={() => setStatus('active')} activeOpacity={0.8} style={styles.actionBtn}>
+            <TouchableOpacity
+              onPress={() => setStatus('active')}
+              activeOpacity={0.8}
+              style={styles.actionBtn}
+              accessibilityLabel={`Make ${listing.name} live`}
+              accessibilityRole="button"
+            >
               <Play size={14} color={Palette.successDark} strokeWidth={2} />
               <Text style={[styles.actionText, { color: Palette.successDark }]}>go live</Text>
             </TouchableOpacity>
           ) : null}
           {listing.status !== 'archived' && (
-            <TouchableOpacity onPress={archive} activeOpacity={0.8} style={styles.actionBtn}>
+            <TouchableOpacity
+              onPress={archive}
+              activeOpacity={0.8}
+              style={styles.actionBtn}
+              accessibilityLabel={`Archive ${listing.name}`}
+              accessibilityRole="button"
+            >
               <Archive size={14} color={Palette.textMuted} strokeWidth={2} />
               <Text style={[styles.actionText, { color: Palette.textMuted }]}>archive</Text>
             </TouchableOpacity>
@@ -198,14 +217,10 @@ export default function PrepperListingsScreen() {
           showsVerticalScrollIndicator={false}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Palette.brand} />}
           ListEmptyComponent={
-            <View style={styles.empty}>
-              <Text style={styles.emptyTitle}>no {filter} meals</Text>
-              {filter === 'active' && (
-                <TouchableOpacity onPress={() => router.push('/create-listing' as never)} activeOpacity={0.85} style={styles.emptyBtn}>
-                  <Text style={styles.emptyBtnText}>create your first meal</Text>
-                </TouchableOpacity>
-              )}
-            </View>
+            <EmptyState
+              title={`no ${filter} meals`}
+              action={filter === 'active' ? { label: 'create your first meal', onPress: () => router.push('/create-listing' as never) } : undefined}
+            />
           }
           renderItem={({ item }) => (
             <ListingCard listing={item} kitchenId={kitchen!.id} onMutate={fetchListings} />
@@ -227,15 +242,15 @@ const styles = StyleSheet.create({
   addBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: Palette.brand, borderRadius: Radius.pill, paddingHorizontal: 14, paddingVertical: 9 },
   addBtnText: { fontFamily: Font.display, fontSize: Type.label, color: Palette.surface },
 
-  filterRow: { flexDirection: 'row', paddingHorizontal: Space.xl, gap: 8, marginBottom: 16 },
-  filterChip: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: Radius.pill, backgroundColor: Palette.chip },
+  filterRow: { flexDirection: 'row', paddingHorizontal: Space.xl, gap: Space.md, marginBottom: Space.lg },
+  filterChip: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: Radius.pill, backgroundColor: Palette.chip, minHeight: TouchTarget, justifyContent: 'center' },
   filterChipActive: { backgroundColor: Palette.brand },
   filterLabel: { fontFamily: Font.semibold, fontSize: Type.label, color: Palette.inkSoft },
   filterLabelActive: { color: Palette.surface },
 
-  list: { paddingHorizontal: Space.xl, paddingBottom: 32 },
+  list: { paddingHorizontal: Space.xl, paddingBottom: Space.xxl },
 
-  card: { backgroundColor: Palette.surface, borderRadius: 18, padding: 16, marginBottom: 12, ...Shadow.card },
+  card: { backgroundColor: Palette.surface, borderRadius: Radius.card, padding: Space.lg, marginBottom: 12, ...Shadow.card },
   cardTop: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 6 },
   cardInfo: { flex: 1, marginRight: 12 },
   cardName: { fontFamily: Font.display, fontSize: Type.body, color: Palette.ink },
@@ -248,12 +263,7 @@ const styles = StyleSheet.create({
   tagRow: { flexDirection: 'row', gap: 4, flexWrap: 'wrap', marginBottom: 12 },
   tag: { backgroundColor: Palette.brandTint, borderRadius: Radius.pill, paddingHorizontal: 8, paddingVertical: 2 },
   tagText: { fontFamily: Font.semibold, fontSize: 9, color: Palette.brandPressed },
-  actions: { flexDirection: 'row', gap: 8, borderTopWidth: 1, borderTopColor: Palette.border, paddingTop: 12 },
-  actionBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 12, paddingVertical: 6, borderRadius: Radius.pill, backgroundColor: Palette.chip },
+  actions: { flexDirection: 'row', gap: Space.md, borderTopWidth: 1, borderTopColor: Palette.border, paddingTop: 12 },
+  actionBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 12, paddingVertical: 12, borderRadius: Radius.pill, backgroundColor: Palette.chip, minHeight: TouchTarget, justifyContent: 'center' },
   actionText: { fontFamily: Font.semibold, fontSize: Type.micro },
-
-  empty: { alignItems: 'center', paddingTop: 60, gap: 16 },
-  emptyTitle: { fontFamily: Font.display, fontSize: Type.title, color: Palette.ink, letterSpacing: -0.3 },
-  emptyBtn: { backgroundColor: Palette.brand, borderRadius: Radius.pill, paddingHorizontal: 24, paddingVertical: 12 },
-  emptyBtnText: { fontFamily: Font.display, fontSize: Type.label, color: Palette.surface },
 });

@@ -9,18 +9,15 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ArrowLeft, ChefHat, CheckCircle, Clock, MapPin, XCircle } from 'lucide-react-native';
+import { ArrowLeft, ChefHat, CheckCircle, Clock, MapPin, ShieldCheck, XCircle } from 'lucide-react-native';
 
 import { Font } from '@/constants/fonts';
 import { Palette, Radius, Shadow, Space, Type } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/providers/auth-provider';
+import type { EscrowStatus, OrderStatus } from '@/types/database.types';
 
 // ── Types ────────────────────────────────────────────────────────────────────
-
-type OrderStatus =
-  | 'pending' | 'confirmed' | 'preparing' | 'ready'
-  | 'in_transit' | 'delivered' | 'cancelled' | 'refunded';
 
 type OrderItem = {
   id: string;
@@ -37,6 +34,8 @@ type OrderDetail = {
   notes: string | null;
   created_at: string;
   updated_at: string;
+  is_verified: boolean;
+  escrow_status: EscrowStatus | null;
   kitchen: { display_name: string } | { display_name: string }[] | null;
   items: OrderItem[];
 };
@@ -203,6 +202,7 @@ export default function OrderDetailScreen() {
       .from('orders')
       .select(
         'id, status, total_pence, platform_fee_pence, notes, created_at, updated_at,' +
+        'is_verified, escrow_status,' +
         'kitchen:kitchens(display_name),' +
         'items:order_items(id, listing_name, quantity, unit_pence)',
       )
@@ -218,6 +218,8 @@ export default function OrderDetailScreen() {
   const total    = order ? `£${(order.total_pence / 100).toFixed(2)}` : '—';
   const kitchen  = order ? kitchenName(order.kitchen) : '';
   const canRefund = order && ['delivered'].includes(order.status);
+  const showVerify = order && !order.is_verified &&
+    ['confirmed', 'preparing', 'ready', 'in_transit'].includes(order.status);
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
@@ -299,6 +301,16 @@ export default function OrderDetailScreen() {
           )}
 
           {/* ── Actions ──────────────────────────────────────── */}
+          {showVerify && (
+            <TouchableOpacity
+              onPress={() => router.push(`/order/verify/${order.id}` as never)}
+              activeOpacity={0.85}
+              style={styles.verifyBtn}
+            >
+              <ShieldCheck size={16} color={Palette.surface} strokeWidth={2} />
+              <Text style={styles.verifyBtnText}>verify handoff</Text>
+            </TouchableOpacity>
+          )}
           {canRefund && (
             <TouchableOpacity
               onPress={() => router.push('/support' as never)}
@@ -382,6 +394,13 @@ const styles = StyleSheet.create({
   },
   totalLabel: { fontFamily: Font.semibold, fontSize: Type.label, color: Palette.textSecondary },
   totalValue: { fontFamily: Font.display, fontSize: Type.title, color: Palette.ink },
+
+  verifyBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+    backgroundColor: Palette.brand, borderRadius: Radius.md,
+    paddingVertical: 14, marginBottom: 8,
+  },
+  verifyBtnText: { fontFamily: Font.semibold, fontSize: Type.label, color: Palette.surface },
 
   refundBtn: {
     borderWidth: 1, borderColor: Palette.dangerBorder,

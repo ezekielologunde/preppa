@@ -16,12 +16,10 @@ import { Font } from '@/constants/fonts';
 import { Palette, Radius, Shadow, Space, Type } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/providers/auth-provider';
+import { TabSwitcher } from '@/components/ui/tab-switcher';
+import type { OrderStatus } from '@/types/database.types';
 
 // ── Types ────────────────────────────────────────────────────────────────────
-
-type OrderStatus =
-  | 'pending' | 'confirmed' | 'preparing' | 'ready'
-  | 'in_transit' | 'delivered' | 'cancelled' | 'refunded';
 
 type OrderRow = {
   id: string;
@@ -191,17 +189,12 @@ export default function OrdersScreen() {
       )}
 
       {/* ── Tab switcher ─────────────────────────────────────────── */}
-      <View style={styles.tabRow}>
-        {(['active', 'past'] as const).map((t) => (
-          <TouchableOpacity
-            key={t}
-            onPress={() => setTab(t)}
-            activeOpacity={0.7}
-            style={[styles.tabBtn, tab === t && styles.tabBtnActive]}
-          >
-            <Text style={[styles.tabLabel, tab === t && styles.tabLabelActive]}>{t}</Text>
-          </TouchableOpacity>
-        ))}
+      <View style={styles.tabContainer}>
+        <TabSwitcher
+          tabs={[{ key: 'active', label: 'active' }, { key: 'past', label: 'past' }]}
+          selected={tab}
+          onSelect={(key) => setTab(key as 'active' | 'past')}
+        />
       </View>
 
       {/* ── Content ──────────────────────────────────────────────── */}
@@ -255,15 +248,7 @@ const styles = StyleSheet.create({
     fontFamily: Font.semibold, fontSize: Type.label, color: Palette.successDark,
   },
 
-  tabRow: {
-    flexDirection: 'row',
-    marginHorizontal: Space.xl, marginBottom: 16,
-    backgroundColor: Palette.chip, borderRadius: Radius.md, padding: 4,
-  },
-  tabBtn: { flex: 1, paddingVertical: 9, borderRadius: 10, alignItems: 'center' },
-  tabBtnActive: { backgroundColor: Palette.surface, ...Shadow.card },
-  tabLabel: { fontFamily: Font.semibold, fontSize: Type.label, color: Palette.textSecondary },
-  tabLabelActive: { color: Palette.ink },
+  tabContainer: { marginHorizontal: Space.xl, marginBottom: 16 },
 
   list: { paddingHorizontal: Space.xl, paddingBottom: 32 },
   skeletons: { paddingHorizontal: Space.xl, gap: 12 },

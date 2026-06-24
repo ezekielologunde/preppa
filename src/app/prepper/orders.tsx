@@ -16,10 +16,8 @@ import { Font } from '@/constants/fonts';
 import { Palette, Radius, Shadow, Space, Type } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
 import { usePrepper } from '@/lib/use-prepper';
-
-// ── Types ────────────────────────────────────────────────────────────────────
-
-type OrderStatus = 'pending' | 'confirmed' | 'preparing' | 'ready' | 'delivered' | 'cancelled';
+import type { OrderStatus } from '@/types/database.types';
+import { TabSwitcher } from '@/components/ui/tab-switcher';
 
 type QueueItem = {
   id: string;
@@ -116,7 +114,13 @@ function OrderCard({ order, kitchenId, onStatusChange }: {
       {action && (
         <View style={styles.cardActions}>
           {order.status === 'pending' && (
-            <TouchableOpacity onPress={cancelOrder} activeOpacity={0.8} style={styles.rejectBtn}>
+            <TouchableOpacity
+              onPress={cancelOrder}
+              activeOpacity={0.8}
+              style={styles.rejectBtn}
+              accessibilityLabel="Reject order"
+              accessibilityRole="button"
+            >
               <X size={15} color={Palette.danger} strokeWidth={2} />
               <Text style={styles.rejectBtnText}>reject</Text>
             </TouchableOpacity>
@@ -125,6 +129,9 @@ function OrderCard({ order, kitchenId, onStatusChange }: {
             onPress={advanceStatus}
             activeOpacity={0.85}
             style={[styles.acceptBtn, loading && { opacity: 0.6 }]}
+            accessibilityLabel={action.label}
+            accessibilityRole="button"
+            disabled={loading}
           >
             {loading
               ? <ActivityIndicator size="small" color={Palette.surface} />
@@ -185,12 +192,8 @@ export default function PrepperOrdersScreen() {
       </View>
 
       {/* ── Tab bar ─────────────────────────────────────────────── */}
-      <View style={styles.tabRow}>
-        {TABS.map((t) => (
-          <TouchableOpacity key={t.key} onPress={() => setTab(t.key)} activeOpacity={0.7} style={[styles.tabBtn, tab === t.key && styles.tabBtnActive]}>
-            <Text style={[styles.tabLabel, tab === t.key && styles.tabLabelActive]}>{t.label}</Text>
-          </TouchableOpacity>
-        ))}
+      <View style={styles.tabContainer}>
+        <TabSwitcher tabs={TABS} selected={tab} onSelect={(key) => setTab(key as TabKey)} />
       </View>
 
       {loading ? (
@@ -231,11 +234,7 @@ const styles = StyleSheet.create({
   headerTitle: { fontFamily: Font.display, fontSize: Type.displayLg, color: Palette.ink, letterSpacing: -0.8 },
   headerCount: { backgroundColor: Palette.brand, borderRadius: Radius.pill, paddingHorizontal: 8, paddingVertical: 2, fontFamily: Font.semibold, fontSize: Type.micro, color: Palette.surface, overflow: 'hidden' },
 
-  tabRow: { flexDirection: 'row', marginHorizontal: Space.xl, marginBottom: 16, backgroundColor: Palette.chip, borderRadius: Radius.md, padding: 3 },
-  tabBtn: { flex: 1, paddingVertical: 8, borderRadius: 10, alignItems: 'center' },
-  tabBtnActive: { backgroundColor: Palette.surface, ...Shadow.card },
-  tabLabel: { fontFamily: Font.semibold, fontSize: 10, color: Palette.textSecondary },
-  tabLabelActive: { color: Palette.ink },
+  tabContainer: { marginHorizontal: Space.xl, marginBottom: 16 },
 
   list: { paddingHorizontal: Space.xl, paddingBottom: 32 },
 
@@ -250,9 +249,9 @@ const styles = StyleSheet.create({
   noteText: { fontFamily: Font.body, fontSize: Type.micro, color: Palette.amberDeep },
 
   cardActions: { flexDirection: 'row', gap: 8, marginTop: 14 },
-  rejectBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, borderWidth: 1, borderColor: Palette.dangerBorder, borderRadius: Radius.md, paddingHorizontal: 16, paddingVertical: 10 },
+  rejectBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, borderWidth: 1, borderColor: Palette.dangerBorder, borderRadius: Radius.md, paddingHorizontal: 16, paddingVertical: 12 },
   rejectBtnText: { fontFamily: Font.semibold, fontSize: Type.label, color: Palette.danger },
-  acceptBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: Palette.brand, borderRadius: Radius.md, paddingVertical: 10 },
+  acceptBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: Palette.brand, borderRadius: Radius.md, paddingVertical: 12 },
   acceptBtnText: { fontFamily: Font.display, fontSize: Type.label, color: Palette.surface },
 
   empty: { alignItems: 'center', paddingTop: 60, gap: 12 },

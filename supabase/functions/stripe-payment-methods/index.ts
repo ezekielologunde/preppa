@@ -142,6 +142,7 @@ Deno.serve(async (req) => {
 
     return errorResponse('Unknown action', 400, req);
   } catch (e) {
-    return json({ error: e instanceof Error ? e.message : 'Request failed' }, 500, req);
+    console.error('[stripe-payment-methods] error:', e instanceof Error ? e.message : e);
+    return json({ error: 'internal_error' }, 500, req);
   }
 });

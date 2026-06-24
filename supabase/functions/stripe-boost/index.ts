@@ -66,6 +66,7 @@ Deno.serve(async (req) => {
 
     return json({ url: session.url }, 200, req);
   } catch (e) {
-    return errorResponse(e instanceof Error ? e.message : 'Boost checkout failed', 500, req);
+    console.error('[stripe-boost] error:', e instanceof Error ? e.message : e);
+    return errorResponse('internal_error', 500, req);
   }
 });

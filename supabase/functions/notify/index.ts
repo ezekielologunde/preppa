@@ -50,7 +50,10 @@ Deno.serve(async (req) => {
     const { data: rows, error } = userIds.length === 1
       ? await supabase.from('push_tokens').select('token').eq('user_id', userIds[0])
       : await supabase.from('push_tokens').select('token').in('user_id', userIds);
-    if (error) return errorResponse(error.message, 500, req);
+    if (error) {
+      console.error('[notify] token fetch error:', error.message);
+      return errorResponse('internal_error', 500, req);
+    }
     if (!rows || rows.length === 0) return json({ ok: true, sent: 0 }, 200, req);
 
     const messages = (rows as { token: string }[]).map((r) => ({
@@ -61,14 +64,22 @@ Deno.serve(async (req) => {
       sound: 'default',
     }));
 
-    await fetch('https://exp.host/--/api/v2/push/send', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(messages.length === 1 ? messages[0] : messages),
-    });
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 30_000);
+    try {
+      await fetch('https://exp.host/--/api/v2/push/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(messages.length === 1 ? messages[0] : messages),
+        signal: controller.signal,
+      });
+    } finally {
+      clearTimeout(timer);
+    }
 
     return json({ ok: true, sent: messages.length }, 200, req);
   } catch (e) {
-    return json({ error: e instanceof Error ? e.message : 'Notify failed' }, 500, req);
+    console.error('[notify] error:', e instanceof Error ? e.message : e);
+    return json({ error: 'internal_error' }, 500, req);
   }
 });

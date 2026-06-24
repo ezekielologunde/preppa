@@ -105,12 +105,19 @@ function shell(heading: string, intro: string, p: Payload, rows: string, cta?: {
 
 async function sendEmail(to: string, subject: string, html: string) {
   if (!RESEND_KEY) return;
-  const res = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${RESEND_KEY}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ from: FROM, to: [to], subject, html }),
-  });
-  if (!res.ok) console.error('resend send failed', to, res.status, await res.text());
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 30_000);
+  try {
+    const res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${RESEND_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ from: FROM, to: [to], subject, html }),
+      signal: controller.signal,
+    });
+    if (!res.ok) console.error('[stripe-webhook] resend send failed', to, res.status);
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 async function sendOrderEmails(supabase: SupabaseClient, orderId: string) {
@@ -495,6 +502,7 @@ Deno.serve(async (req) => {
     }
     return new Response('ok', { status: 200 });
   } catch (e) {
-    return new Response(e instanceof Error ? e.message : 'error', { status: 500 });
+    console.error('[stripe-webhook] handler error:', e instanceof Error ? e.message : e);
+    return new Response('internal_error', { status: 500 });
   }
 });

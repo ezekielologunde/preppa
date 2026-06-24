@@ -86,7 +86,10 @@ Deno.serve(async (req) => {
       .eq('notification_prefs.promotions', true)
       .limit(500);
 
-    if (error) return errorResponse(error.message, 500, req);
+    if (error) {
+      console.error('[notify-rush-hour] token query error:', error.message);
+      return errorResponse('internal_error', 500, req);
+    }
     if (!tokenRows || tokenRows.length === 0) {
       return json({ ok: true, sent: 0, reason: 'No opted-in tokens found' }, 200, req);
     }
@@ -107,16 +110,24 @@ Deno.serve(async (req) => {
 
     let sent = 0;
     for (const chunk of chunks) {
-      await fetch('https://exp.host/--/api/v2/push/send', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify(chunk),
-      });
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 30_000);
+      try {
+        await fetch('https://exp.host/--/api/v2/push/send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify(chunk),
+          signal: controller.signal,
+        });
+      } finally {
+        clearTimeout(timer);
+      }
       sent += chunk.length;
     }
 
     return json({ ok: true, sent, rush: rush.id }, 200, req);
   } catch (e) {
-    return json({ error: e instanceof Error ? e.message : 'Rush notify failed' }, 500, req);
+    console.error('[notify-rush-hour] error:', e instanceof Error ? e.message : e);
+    return json({ error: 'internal_error' }, 500, req);
   }
 });

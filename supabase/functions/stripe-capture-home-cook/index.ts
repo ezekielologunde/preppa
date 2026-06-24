@@ -76,7 +76,7 @@ Deno.serve(async (req) => {
 
     return json({ captured: true, paymentIntentId: captured.id }, 200, req);
   } catch (err) {
-    const msg = err instanceof Error ? err.message : 'Internal error';
-    return errorResponse(msg, 500, req);
+    console.error('[stripe-capture-home-cook] error:', err instanceof Error ? err.message : err);
+    return errorResponse('internal_error', 500, req);
   }
 });

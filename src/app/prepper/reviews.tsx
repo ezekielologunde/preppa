@@ -18,6 +18,7 @@ import { Palette, Radius, Shadow, Space, Type } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/providers/auth-provider';
 import { usePrepper } from '@/lib/use-prepper';
+import { Stars } from '@/components/ui/stars';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -42,23 +43,6 @@ type ListingRating = {
 };
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
-
-function Stars({ value, size = 14 }: { value: number | null; size?: number }) {
-  const filled = Math.round((value ?? 0) * 2) / 2; // nearest 0.5
-  return (
-    <View style={{ flexDirection: 'row', gap: 2 }}>
-      {[1, 2, 3, 4, 5].map((n) => (
-        <Star
-          key={n}
-          size={size}
-          color={filled >= n ? '#F59E0B' : Palette.border}
-          fill={filled >= n ? '#F59E0B' : 'transparent'}
-          strokeWidth={1.5}
-        />
-      ))}
-    </View>
-  );
-}
 
 function StatChip({ label, value }: { label: string; value: string }) {
   return (
@@ -154,7 +138,13 @@ export default function PrepperReviewsScreen() {
       >
         {/* ── Back + header ──────────────────────────────────────── */}
         <View style={styles.topRow}>
-          <TouchableOpacity onPress={() => router.back()} activeOpacity={0.7} style={styles.backBtn}>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            activeOpacity={0.7}
+            style={styles.backBtn}
+            accessibilityLabel="Go back"
+            accessibilityRole="button"
+          >
             <ArrowLeft size={20} color={Palette.ink} strokeWidth={2} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>ratings</Text>

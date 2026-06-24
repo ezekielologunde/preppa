@@ -11,24 +11,26 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import {
   Bell,
-  ChevronRight,
+  ChefHat,
+  Clock,
   CreditCard,
   HelpCircle,
   LogOut,
   MapPin,
   ShieldCheck,
   Star,
-  ChefHat,
 } from 'lucide-react-native';
 
 import { Font } from '@/constants/fonts';
-import { Palette, Radius, Shadow, Space, Type } from '@/constants/theme';
+import { Palette, Radius, Shadow, Space, TouchTarget, Type } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/providers/auth-provider';
+import { SettingsRow } from '@/components/ui/settings-row';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
 type Stats = { orderCount: number; memberSince: string };
+type AppStatus = 'pending' | 'approved' | 'rejected' | 'suspended' | null;
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -50,38 +52,46 @@ function Avatar({ email }: { email: string }) {
   );
 }
 
-function SettingsRow({
-  icon,
-  label,
-  onPress,
-  danger,
-  value,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  onPress: () => void;
-  danger?: boolean;
-  value?: string;
-}) {
-  return (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.75} style={styles.settingsRow}>
-      <View style={[styles.settingsIcon, danger && styles.settingsIconDanger]}>
-        {icon}
-      </View>
-      <Text style={[styles.settingsLabel, danger && styles.settingsLabelDanger]}>{label}</Text>
-      <View style={styles.settingsRight}>
-        {value ? <Text style={styles.settingsValue}>{value}</Text> : null}
-        {!danger && <ChevronRight size={15} color={Palette.textMuted} strokeWidth={2} />}
-      </View>
-    </TouchableOpacity>
-  );
-}
-
 function SettingsSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>{title}</Text>
       <View style={styles.sectionCard}>{children}</View>
+    </View>
+  );
+}
+
+function PrepperPromo({ onPress }: { onPress: () => void }) {
+  return (
+    <View style={styles.promoCard}>
+      <View style={styles.promoIconWrap}>
+        <ChefHat size={22} color={Palette.brand} strokeWidth={1.8} />
+      </View>
+      <Text style={styles.promoTitle}>Got culinary skills?</Text>
+      <Text style={styles.promoSub}>
+        Turn your kitchen into a business. Set your own menu, hours, and prices.
+      </Text>
+      <TouchableOpacity
+        style={styles.promoBtn}
+        onPress={onPress}
+        activeOpacity={0.85}
+        accessibilityRole="button"
+        accessibilityLabel="Apply to become a Preppa"
+      >
+        <Text style={styles.promoBtnText}>Become a Preppa</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+function PendingBadge() {
+  return (
+    <View style={styles.pendingCard}>
+      <Clock size={16} color={Palette.amberDeep} strokeWidth={2} />
+      <View style={styles.pendingText}>
+        <Text style={styles.pendingTitle}>Application under review</Text>
+        <Text style={styles.pendingSub}>Our team will respond within 3–5 business days.</Text>
+      </View>
     </View>
   );
 }
@@ -93,6 +103,7 @@ export default function ProfileScreen() {
   const router = useRouter();
 
   const [stats, setStats] = useState<Stats | null>(null);
+  const [appStatus, setAppStatus] = useState<AppStatus | 'loading'>('loading');
 
   useEffect(() => {
     if (!user) return;
@@ -106,6 +117,12 @@ export default function ProfileScreen() {
           memberSince: memberSince(user.created_at ?? new Date().toISOString()),
         });
       });
+    supabase
+      .from('prepper_applications')
+      .select('status')
+      .eq('user_id', user.id)
+      .maybeSingle()
+      .then(({ data }) => setAppStatus((data?.status as AppStatus) ?? null));
   }, [user]);
 
   const handleSignOut = () => {
@@ -169,14 +186,20 @@ export default function ProfileScreen() {
           </View>
         )}
 
-        {/* ── Prepper mode ─────────────────────────────────────── */}
-        <SettingsSection title="seller">
-          <SettingsRow
-            icon={<ChefHat size={17} color={Palette.brand} strokeWidth={1.8} />}
-            label="kitchen dashboard"
-            onPress={() => router.push('/prepper' as never)}
-          />
-        </SettingsSection>
+        {/* ── Prepper section — gated by application status ─────── */}
+        {appStatus === 'approved' && (
+          <SettingsSection title="seller">
+            <SettingsRow
+              icon={<ChefHat size={17} color={Palette.brand} strokeWidth={1.8} />}
+              label="kitchen dashboard"
+              onPress={() => router.push('/prepper' as never)}
+            />
+          </SettingsSection>
+        )}
+        {appStatus === 'pending' && <PendingBadge />}
+        {(appStatus === null || appStatus === 'rejected') && (
+          <PrepperPromo onPress={() => router.push('/apply' as never)} />
+        )}
 
         {/* ── Account ──────────────────────────────────────────── */}
         <SettingsSection title="account">
@@ -297,20 +320,51 @@ const styles = StyleSheet.create({
     backgroundColor: Palette.surface, borderRadius: 18, ...Shadow.card, overflow: 'hidden',
   },
 
-  settingsRow: {
-    flexDirection: 'row', alignItems: 'center', gap: 14,
-    paddingHorizontal: 16, paddingVertical: 14, minHeight: 56,
-  },
-  settingsIcon: {
-    width: 34, height: 34, borderRadius: 10,
-    backgroundColor: Palette.brandTint,
-    alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-  },
-  settingsIconDanger: { backgroundColor: Palette.dangerTint },
-  settingsLabel: { flex: 1, fontFamily: Font.semibold, fontSize: Type.body, color: Palette.ink },
-  settingsLabelDanger: { color: Palette.danger },
-  settingsRight: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  settingsValue: { fontFamily: Font.body, fontSize: Type.label, color: Palette.textSecondary },
-
   rowDivider: { height: 1, backgroundColor: Palette.border, marginLeft: 64 },
+
+  // Prepper promo card
+  promoCard: {
+    backgroundColor: Palette.brandTint,
+    borderRadius: 18,
+    padding: Space.xl,
+    marginBottom: 16,
+    alignItems: 'flex-start',
+    ...Shadow.card,
+  },
+  promoIconWrap: {
+    width: 40, height: 40, borderRadius: Radius.sm,
+    backgroundColor: Palette.surface, alignItems: 'center', justifyContent: 'center',
+    marginBottom: Space.md,
+  },
+  promoTitle: {
+    fontFamily: Font.heading, fontSize: Type.title,
+    color: Palette.ink, marginBottom: Space.sm,
+  },
+  promoSub: {
+    fontFamily: Font.body, fontSize: Type.label,
+    color: Palette.inkSoft, lineHeight: 20, marginBottom: Space.lg,
+  },
+  promoBtn: {
+    height: TouchTarget, borderRadius: Radius.pill,
+    backgroundColor: Palette.brand,
+    paddingHorizontal: Space.xl,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  promoBtnText: { fontFamily: Font.semibold, fontSize: Type.body, color: Palette.surface },
+
+  // Pending application badge
+  pendingCard: {
+    flexDirection: 'row', alignItems: 'flex-start', gap: Space.md,
+    backgroundColor: Palette.amberTint, borderRadius: 18,
+    padding: Space.lg, marginBottom: 16,
+  },
+  pendingText: { flex: 1 },
+  pendingTitle: {
+    fontFamily: Font.semibold, fontSize: Type.label,
+    color: Palette.amberDeep, marginBottom: 2,
+  },
+  pendingSub: {
+    fontFamily: Font.body, fontSize: Type.micro,
+    color: Palette.amberDeep, lineHeight: 18,
+  },
 });

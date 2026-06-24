@@ -15,8 +15,9 @@ import { ArrowLeft, Search, X } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { Font } from '@/constants/fonts';
-import { Palette, Radius, Shadow, Space, Type } from '@/constants/theme';
+import { Gradients, Palette, Radius, Shadow, Space, Type } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
+import { EmptyState } from '@/components/ui/empty-state';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -42,11 +43,11 @@ const CATEGORIES = [
 
 // Deterministic gradient per listing (avoids same colour for every card)
 const GRADIENTS = [
-  ['#E8611A', '#C84E10'],
-  ['#FF8C42', '#B94010'],
-  ['#F5A623', '#C77800'],
-  ['#78C850', '#2A5A00'],
-  ['#4DB6E3', '#006A8E'],
+  Gradients.brand,
+  Gradients.mealWarm,
+  Gradients.mealGold,
+  Gradients.mealGreen,
+  Gradients.mealBlue,
 ] as const;
 
 function pickGradient(id: string): readonly [string, string] {
@@ -214,16 +215,12 @@ export default function SearchScreen() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
           ListEmptyComponent={
-            <View style={styles.empty}>
-              <Text style={styles.emptyTitle}>
-                {query.trim() ? `no results for "${query}"` : 'what are you craving?'}
-              </Text>
-              <Text style={styles.emptySub}>
-                {query.trim()
-                  ? 'try different words or browse a category above'
-                  : 'start typing to find meals and kitchens near you'}
-              </Text>
-            </View>
+            <EmptyState
+              title={query.trim() ? `no results for "${query}"` : 'what are you craving?'}
+              sub={query.trim()
+                ? 'try different words or browse a category above'
+                : 'start typing to find meals and kitchens near you'}
+            />
           }
           renderItem={({ item }) => (
             <ResultRow
@@ -302,13 +299,4 @@ const styles = StyleSheet.create({
   tagText: { fontFamily: Font.semibold, fontSize: 9, color: Palette.brandPressed },
   rowPrice: { fontFamily: Font.display, fontSize: Type.label, color: Palette.brand, flexShrink: 0 },
 
-  empty: { paddingTop: 60, alignItems: 'center', paddingHorizontal: Space.xl },
-  emptyTitle: {
-    fontFamily: Font.display, fontSize: Type.title,
-    color: Palette.ink, marginBottom: 8, textAlign: 'center', letterSpacing: -0.3,
-  },
-  emptySub: {
-    fontFamily: Font.body, fontSize: Type.body,
-    color: Palette.textSecondary, textAlign: 'center', lineHeight: 22,
-  },
 });
