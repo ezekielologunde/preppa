@@ -135,10 +135,12 @@ export const Palette = {
 
 export type PaletteToken = keyof typeof Palette;
 
-export const Radius = { sm: 14, md: 12, lg: 16, pill: 999 } as const;
+export const Radius = { sm: 14, md: 12, lg: 16, card: 18, avatar: 20, pill: 999 } as const;
 
 /** Font sizes for the type scale (families live in constants/fonts.ts). */
 export const Type = {
+  hero: 48,
+  heroLg: 40,
   displayXl: 32,
   displayLg: 24,
   display: 22,
@@ -192,3 +194,20 @@ export const Space = {
 
 /** Standard min touch target (Apple HIG 44pt / Material 48dp). */
 export const TouchTarget = 44;
+
+/** Named gradient stop pairs — use with LinearGradient colors prop. */
+export const Gradients = {
+  mealWarm:   [Palette.brandLight, Palette.brand]         as const,
+  mealGold:   ['#F59E0B', '#D97706']                       as const,
+  mealGreen:  [Palette.leafGreen, Palette.success]         as const,
+  mealBlue:   [Palette.cyan, '#0891B2']                    as const,
+  brand:      [Palette.brandLight, Palette.brandPressed]   as const,
+  avatarWarm:        [Palette.brand, Palette.amberDeep]           as const,
+  avatarPlaceholder: ['#C8A882', '#E8D5B7']                       as const,
+  surpriseBanner:    ['#88D858', '#184808']                       as const,
+} as const;
+
+/** Hairline dividers. */
+export const Divider = {
+  standard: { height: 1 as const, backgroundColor: Palette.border },
+} as const;

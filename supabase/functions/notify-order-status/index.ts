@@ -87,14 +87,23 @@ Deno.serve(async (req) => {
       sound: 'default',
     }));
 
-    const res = await fetch(EXPO_PUSH_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify(messages.length === 1 ? messages[0] : messages),
-    });
-    const result = await res.json();
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 30_000);
+    let result: unknown;
+    try {
+      const res = await fetch(EXPO_PUSH_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify(messages.length === 1 ? messages[0] : messages),
+        signal: controller.signal,
+      });
+      result = await res.json();
+    } finally {
+      clearTimeout(timer);
+    }
     return json({ sent: true, result }, 200, req);
   } catch (e) {
-    return errorResponse(e instanceof Error ? e.message : 'notify-order-status failed', 500, req);
+    console.error('[notify-order-status] error:', e instanceof Error ? e.message : e);
+    return errorResponse('internal_error', 500, req);
   }
 });

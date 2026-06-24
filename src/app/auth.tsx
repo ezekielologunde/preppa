@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, Pressable, Text, TextInput, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Font } from '@/constants/fonts';
-import { Palette } from '@/constants/theme';
+import { Palette, Radius, Space, TouchTarget, Type } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
 
 export default function AuthScreen() {
@@ -23,11 +23,9 @@ export default function AuthScreen() {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: Palette.canvas }}>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, justifyContent: 'center', padding: 24, gap: 16 }}>
-        <Text style={{ fontFamily: Font.display, fontSize: 28, color: Palette.ink, textAlign: 'center' }}>
-          Preppa
-        </Text>
+    <SafeAreaView style={styles.root}>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.inner}>
+        <Text style={styles.title}>Preppa</Text>
         <TextInput
           value={email}
           onChangeText={setEmail}
@@ -35,7 +33,7 @@ export default function AuthScreen() {
           keyboardType="email-address"
           autoCapitalize="none"
           placeholderTextColor={Palette.textSecondary}
-          style={{ height: 50, borderRadius: 12, borderWidth: 1, borderColor: Palette.border, paddingHorizontal: 16, fontFamily: Font.body, fontSize: 15, color: Palette.ink, backgroundColor: Palette.surface }}
+          style={styles.input}
         />
         <TextInput
           value={password}
@@ -43,18 +41,25 @@ export default function AuthScreen() {
           placeholder="Password"
           secureTextEntry
           placeholderTextColor={Palette.textSecondary}
-          style={{ height: 50, borderRadius: 12, borderWidth: 1, borderColor: Palette.border, paddingHorizontal: 16, fontFamily: Font.body, fontSize: 15, color: Palette.ink, backgroundColor: Palette.surface }}
+          style={styles.input}
         />
         <Pressable
           onPress={handleSubmit}
           disabled={loading}
-          style={{ height: 50, borderRadius: 12, backgroundColor: Palette.brand, alignItems: 'center', justifyContent: 'center', opacity: loading ? 0.6 : 1 }}>
-          <Text style={{ fontFamily: Font.semibold, fontSize: 16, color: '#fff' }}>
+          style={[styles.submitBtn, loading && styles.submitBtnDisabled]}
+          accessibilityRole="button"
+          accessibilityLabel={mode === 'signin' ? 'Sign in' : 'Create account'}
+        >
+          <Text style={styles.submitBtnText}>
             {loading ? 'Loading…' : mode === 'signin' ? 'Sign in' : 'Create account'}
           </Text>
         </Pressable>
-        <Pressable onPress={() => setMode(mode === 'signin' ? 'signup' : 'signin')} style={{ alignItems: 'center' }}>
-          <Text style={{ fontFamily: Font.body, fontSize: 14, color: Palette.brand }}>
+        <Pressable
+          onPress={() => setMode(mode === 'signin' ? 'signup' : 'signin')}
+          style={styles.switchBtn}
+          accessibilityRole="button"
+        >
+          <Text style={styles.switchBtnText}>
             {mode === 'signin' ? 'No account? Sign up' : 'Have an account? Sign in'}
           </Text>
         </Pressable>
@@ -62,3 +67,31 @@ export default function AuthScreen() {
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  root: { flex: 1, backgroundColor: Palette.canvas },
+  inner: { flex: 1, justifyContent: 'center', padding: Space.xl, gap: Space.lg },
+  title: { fontFamily: Font.display, fontSize: Type.displayLg, color: Palette.ink, textAlign: 'center' },
+  input: {
+    height: TouchTarget,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: Palette.border,
+    paddingHorizontal: Space.lg,
+    fontFamily: Font.body,
+    fontSize: Type.body,
+    color: Palette.ink,
+    backgroundColor: Palette.surface,
+  },
+  submitBtn: {
+    height: TouchTarget,
+    borderRadius: Radius.md,
+    backgroundColor: Palette.brand,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  submitBtnDisabled: { opacity: 0.6 },
+  submitBtnText: { fontFamily: Font.semibold, fontSize: Type.body, color: Palette.surface },
+  switchBtn: { alignItems: 'center' },
+  switchBtnText: { fontFamily: Font.body, fontSize: Type.label, color: Palette.brand },
+});

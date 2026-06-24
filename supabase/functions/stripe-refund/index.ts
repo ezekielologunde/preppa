@@ -41,14 +41,13 @@ Deno.serve(async (req) => {
     if (!order) return errorResponse('Order not found', 404, req);
 
     const prepper = Array.isArray(order.prepper) ? order.prepper[0] : order.prepper;
-    const { data: adminRows } = await supabase
-      .from('user_roles')
-      .select('roles(key)')
-      .eq('user_id', user.id);
-    const isAdmin = (adminRows ?? []).some((r: { roles: { key?: string } | { key?: string }[] | null }) => {
-      const roles = Array.isArray(r.roles) ? r.roles : r.roles ? [r.roles] : [];
-      return roles.some((x) => x.key === 'admin');
-    });
+    // AR-1: use is_admin() RPC (live DB check) instead of broken roles(key) join
+    const userSupabase = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_ANON_KEY')!,
+      { global: { headers: { Authorization: req.headers.get('Authorization') ?? '' } } },
+    );
+    const { data: isAdmin } = await userSupabase.rpc('is_admin');
     const isAllowed = order.customer_id === user.id || prepper?.user_id === user.id || isAdmin;
     if (!isAllowed) return errorResponse('Not allowed', 403, req);
 
@@ -61,10 +60,23 @@ Deno.serve(async (req) => {
       return json({ refunded: false, reason: 'nothing to refund' }, 200, req);
     }
 
-    await stripe.refunds.create({ payment_intent: payment.transaction_id });
-    await supabase.rpc('record_refund', { p_order_id: orderId, p_amount: Number(payment.amount), p_reason: 'order cancelled' });
+    const { error: rpcError } = await supabase.rpc('record_refund', {
+      p_order_id: orderId,
+      p_amount: Number(payment.amount),
+      p_reason: 'order cancelled',
+    });
+    if (rpcError) {
+      console.error('[stripe-refund] record_refund failed:', rpcError.message);
+      return errorResponse('Failed to record refund', 500, req);
+    }
+
+    await stripe.refunds.create(
+      { payment_intent: payment.transaction_id },
+      { idempotencyKey: `refund-${orderId}` },
+    );
     return json({ refunded: true }, 200, req);
   } catch (e) {
-    return json({ error: e instanceof Error ? e.message : 'Refund failed' }, 500, req);
+    console.error('[stripe-refund] error:', e instanceof Error ? e.message : e);
+    return json({ error: 'internal_error' }, 500, req);
   }
 });

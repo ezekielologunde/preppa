@@ -93,13 +93,24 @@ function contentFor(status: string, p: Payload) {
   }
 }
 
+const MAX_HOOK_BYTES = 64 * 1024; // 64 KB — webhook payloads are small
+
 Deno.serve(async (req) => {
   if (req.headers.get('x-hook-secret') !== HOOK_SECRET) {
     return new Response('forbidden', { status: 401 });
   }
+
+  // Body size guard before parsing
+  const contentLength = parseInt(req.headers.get('content-length') ?? '0', 10);
+  if (contentLength > MAX_HOOK_BYTES) {
+    return new Response('payload_too_large', { status: 413 });
+  }
+
   let orderId = '', status = '';
   try {
-    const b = await req.json();
+    const text = await req.text();
+    if (text.length > MAX_HOOK_BYTES) return new Response('payload_too_large', { status: 413 });
+    const b = JSON.parse(text);
     orderId = b.order_id ?? b.record?.id ?? '';
     status = b.status ?? b.record?.status ?? '';
   } catch {
@@ -120,11 +131,18 @@ Deno.serve(async (req) => {
   const intro = `${greet ? 'Hi ' + esc(greet) + ' — ' : ''}${content.intro}`;
   const html = shell(content.heading, intro, p, noteRow, content.cta);
 
-  const res = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${RESEND_KEY}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ from: FROM, to: [p.customer_email], subject: content.subject, html }),
-  });
-  if (!res.ok) console.error('resend send failed', res.status, await res.text());
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 30_000);
+  try {
+    const res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${RESEND_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ from: FROM, to: [p.customer_email], subject: content.subject, html }),
+      signal: controller.signal,
+    });
+    if (!res.ok) console.error('[order-status-email] resend failed', res.status);
+  } finally {
+    clearTimeout(timer);
+  }
   return new Response('ok', { status: 200 });
 });
