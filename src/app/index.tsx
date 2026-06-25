@@ -62,6 +62,10 @@ export default function SplashScreen() {
     transform: [{ translateY: textTranslateY.value }],
   }));
 
+  if (!loading && session) {
+    return null;
+  }
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" />
