@@ -172,6 +172,72 @@ async function onListingStatusChanged(event: DomainEvent, db: DB): Promise<void>
   )
 }
 
+// ── Escrow release → Stripe transfer ───────────────────────────────────────
+// Delegates the actual Stripe call to the dedicated stripe-transfer function so
+// the DB-first release ledger (payment_operations) lives in one place. A failure
+// here throws, so the event flows through the existing retry/dead-letter path.
+
+const FUNCTIONS_BASE = `${SUPABASE_URL}/functions/v1`
+
+async function invokeStripeTransfer(orderId: string): Promise<void> {
+  const res = await fetch(`${FUNCTIONS_BASE}/stripe-transfer`, {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${SUPABASE_SERVICE_KEY}` },
+    body:    JSON.stringify({ order_id: orderId }),
+  })
+  if (!res.ok) {
+    throw new Error(`stripe-transfer failed: ${res.status} ${await res.text()}`)
+  }
+}
+
+async function onEscrowAutoReleasing(event: DomainEvent, _db: DB): Promise<void> {
+  const { order_id } = event.payload as { order_id?: string }
+  if (!order_id) return
+  await invokeStripeTransfer(order_id)
+}
+
+async function onDisputeResolved(event: DomainEvent, _db: DB): Promise<void> {
+  const { order_id, resolution } = event.payload as { order_id?: string; resolution?: string }
+  if (!order_id) return
+  // Only prepper-favourable resolutions release funds; refunds are handled elsewhere.
+  if (resolution === 'for_customer') return
+  await invokeStripeTransfer(order_id)
+}
+
+// ── Lifecycle notifications ─────────────────────────────────────────────────
+
+async function onOrderPaid(event: DomainEvent, db: DB): Promise<void> {
+  const { order_id } = event.payload as { order_id?: string }
+  const id = order_id ?? event.aggregate_id
+  const { data: order } = await db.from('orders').select('customer_id').eq('id', id).single()
+  if (!order) return
+  if (await isNotificationEnabled(db, order.customer_id, 'payment')) {
+    await db.from('notifications').insert({
+      user_id:  order.customer_id,
+      type:     'payment',
+      title:    'Payment confirmed',
+      body:     'Your payment is securely held until you confirm handoff.',
+      data:     { order_id: id },
+      priority: 'normal',
+    })
+  }
+}
+
+async function onPrepperApproved(event: DomainEvent, db: DB): Promise<void> {
+  const { user_id } = event.payload as { user_id?: string }
+  if (!user_id) return
+  if (await isNotificationEnabled(db, user_id, 'application_status')) {
+    await db.from('notifications').insert({
+      user_id,
+      type:     'application_status',
+      title:    "You're approved!",
+      body:     'Your kitchen is live. Set up payouts in Earnings to start selling.',
+      data:     { application_id: event.payload['application_id'] ?? null },
+      priority: 'high',
+    })
+  }
+}
+
 // ── Router ────────────────────────────────────────────────────────────────
 
 type Handler = (event: DomainEvent, db: DB) => Promise<void>
@@ -180,6 +246,10 @@ const HANDLERS: Record<string, Handler> = {
   'order.created':          onOrderCreated,
   'order.status_changed':   onOrderStatusChanged,
   'listing.status_changed': onListingStatusChanged,
+  'escrow.auto_releasing':  onEscrowAutoReleasing,
+  'dispute.resolved':       onDisputeResolved,
+  'order.paid':             onOrderPaid,
+  'prepper.approved':       onPrepperApproved,
 }
 
 // ── Retry / Dead Letter ───────────────────────────────────────────────────

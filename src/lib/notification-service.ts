@@ -10,7 +10,12 @@ export type NotificationType =
   | 'new_follower'
   | 'listing_update'
   | 'capacity_warning'
-  | 'system';
+  | 'system'
+  | 'payment'
+  | 'payout'
+  | 'payout_failed'
+  | 'account_status'
+  | 'application_status';
 
 export type NotificationPriority = 'low' | 'normal' | 'high' | 'urgent';
 

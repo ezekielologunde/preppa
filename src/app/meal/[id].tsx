@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
-  Linking,
+  Alert,
   ScrollView,
   StyleSheet,
   Text,
@@ -15,6 +15,9 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 import { Font } from '@/constants/fonts';
 import { Gradients, Palette, Radius, Shadow, Space, Type } from '@/constants/theme';
+import { formatMoney } from '@/lib/currency';
+import { createOrder, orderErrorMessage } from '@/lib/orders/create-order';
+import { stashPin } from '@/lib/orders/pin-store';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/providers/auth-provider';
 
@@ -95,13 +98,14 @@ export default function MealDetailScreen() {
     if (!user) { router.push('/auth' as never); return; }
     setOrdering(true);
     try {
-      const { data, error } = await supabase.functions.invoke('stripe-checkout', {
-        body: { listing_id: listing.id, quantity: qty },
-      });
-      if (error) throw error;
-      if (data?.url) await Linking.openURL(data.url);
+      const result = await createOrder({ listingId: listing.id, quantity: qty });
+      // The PIN is an escrow credential — never put it in the URL. Stash it in
+      // memory; the order detail screen consumes it once. (It is also never
+      // re-fetchable from the DB, which stores only the bcrypt hash.)
+      stashPin(result.order_id, result.pin);
+      router.replace(`/order/${result.order_id}?justOrdered=1` as never);
     } catch (e) {
-      console.error('[meal] checkout:', e);
+      Alert.alert('Order not placed', orderErrorMessage(e));
     } finally {
       setOrdering(false);
     }
@@ -109,8 +113,8 @@ export default function MealDetailScreen() {
 
   const gradients = listing ? pickGradient(listing.id) : Gradients.brand;
   const kitchen   = listing ? resolveKitchen(listing.kitchen) : null;
-  const price     = listing ? `£${(listing.price_pence / 100).toFixed(2)}` : '—';
-  const total     = listing ? `£${((listing.price_pence * qty) / 100).toFixed(2)}` : '—';
+  const price     = listing ? formatMoney(listing.price_pence) : '—';
+  const total     = listing ? formatMoney(listing.price_pence * qty) : '—';
 
   return (
     <View style={styles.root}>

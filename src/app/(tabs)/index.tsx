@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import {
+  ActivityIndicator,
   FlatList,
   Pressable,
   ScrollView,
@@ -10,12 +11,17 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { useQuery } from '@tanstack/react-query';
 import { Bell, ChevronDown, ChevronRight, MapPin, Search } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { Font } from '@/constants/fonts';
 import { Gradients, Palette, Radius, Shadow, Space, Type } from '@/constants/theme';
 import { greeting } from '@/lib/greeting';
+import { searchListings } from '@/lib/search-service';
+import { useResponsive } from '@/hooks/use-responsive';
+import { MealGrid } from '@/components/meal-grid';
+import { EmptyState } from '@/components/ui/empty-state';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -26,18 +32,7 @@ type Category = {
   query: string;
 };
 
-type MealCard = {
-  id: string;
-  name: string;
-  kitchen: string;
-  time: string;
-  pricePence: number;
-  tag: string;
-  tagColor: string;
-  foodColor: readonly [string, string];
-};
-
-// ── Static data (replace with React Query from searchListings() once live) ───
+// ── Static data ──────────────────────────────────────────────────────────────
 
 const CATEGORIES: Category[] = [
   { id: 'breakfast', emoji: '☀️', label: 'breakfast', query: 'breakfast' },
@@ -45,39 +40,6 @@ const CATEGORIES: Category[] = [
   { id: 'dinner',    emoji: '🍲', label: 'dinner',    query: 'dinner' },
   { id: 'healthy',   emoji: '🌿', label: 'healthy',   query: 'healthy' },
   { id: 'vegan',     emoji: '🌸', label: 'vegan',     query: 'vegan' },
-];
-
-const MEAL_CARDS: MealCard[] = [
-  {
-    id: '1',
-    name: 'honey garlic salmon',
-    kitchen: "kelsi's kitchen",
-    time: '30–40 min',
-    pricePence: 1499,
-    tag: '🔥 popular',
-    tagColor: Palette.brand,
-    foodColor: Gradients.mealWarm,
-  },
-  {
-    id: '2',
-    name: 'creamy jerk pasta',
-    kitchen: 'island bites',
-    time: '25–35 min',
-    pricePence: 1349,
-    tag: '✓ new',
-    tagColor: Palette.success,
-    foodColor: Gradients.mealGold,
-  },
-  {
-    id: '3',
-    name: 'wellness bowl',
-    kitchen: 'green plates',
-    time: '20–30 min',
-    pricePence: 1249,
-    tag: '✓ healthy',
-    tagColor: Palette.success,
-    foodColor: Gradients.mealGreen,
-  },
 ];
 
 // ── Sub-components ───────────────────────────────────────────────────────────
@@ -105,45 +67,19 @@ function CategoryPill({
   );
 }
 
-function MealCardItem({ item }: { item: MealCard }) {
-  const router = useRouter();
-  const price = (item.pricePence / 100).toFixed(2);
-
-  return (
-    <TouchableOpacity
-      onPress={() => router.push(`/meal/${item.id}` as never)}
-      activeOpacity={0.82}
-      style={styles.mealCard}
-    >
-      <View style={styles.mealPhoto}>
-        <LinearGradient
-          colors={item.foodColor}
-          start={{ x: 0.3, y: 0.2 }}
-          end={{ x: 0.8, y: 0.8 }}
-          style={StyleSheet.absoluteFill}
-        />
-        <View style={styles.mealTag}>
-          <Text style={styles.mealTagText}>{item.tag}</Text>
-        </View>
-      </View>
-      <View style={styles.mealInfo}>
-        <Text style={styles.mealName} numberOfLines={2}>{item.name}</Text>
-        <Text style={styles.mealKitchen} numberOfLines={1}>by {item.kitchen}</Text>
-        <View style={styles.mealMeta}>
-          <Text style={styles.mealTime}>{item.time}</Text>
-          <Text style={styles.mealPrice}>${price}</Text>
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
-}
-
 // ── Main screen ──────────────────────────────────────────────────────────────
 
 export default function HomeScreen() {
   const router = useRouter();
   const [activeCategory, setActiveCategory] = useState('breakfast');
   const greet = greeting();
+  const { contentMaxWidth } = useResponsive();
+
+  // Live "recommended" feed — newest published listings across the marketplace.
+  const { data: recommended = [], isLoading, isError, refetch } = useQuery({
+    queryKey: ['home-recommended'],
+    queryFn: () => searchListings({}, 10),
+  });
 
   const handleSearch = () => router.push('/search' as never);
   const handleSurpriseMe = () => router.push('/search' as never);
@@ -154,7 +90,7 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
       <ScrollView
-        contentContainerStyle={styles.scroll}
+        contentContainerStyle={[styles.scroll, { maxWidth: contentMaxWidth, width: '100%', alignSelf: 'center' }]}
         showsVerticalScrollIndicator={false}
       >
         {/* ── Header ──────────────────────────────────────────────────── */}
@@ -195,7 +131,7 @@ export default function HomeScreen() {
           style={styles.locationRow}
         >
           <MapPin size={13} color={Palette.brand} fill={Palette.brand} />
-          <Text style={styles.locationText}>New York, NY</Text>
+          <Text style={styles.locationText}>London</Text>
           <ChevronDown size={14} color={Palette.textSecondary} strokeWidth={2} />
         </TouchableOpacity>
 
@@ -258,14 +194,28 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
 
-        <FlatList
-          data={MEAL_CARDS}
-          keyExtractor={(m) => m.id}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.mealList}
-          renderItem={({ item }) => <MealCardItem item={item} />}
-        />
+        {isLoading ? (
+          <View style={styles.feedState}>
+            <ActivityIndicator color={Palette.brand} />
+          </View>
+        ) : isError ? (
+          <View style={styles.feedState}>
+            <Text style={styles.feedStateText}>couldn't load meals right now</Text>
+            <TouchableOpacity onPress={() => refetch()} style={styles.retryBtn} activeOpacity={0.85}>
+              <Text style={styles.retryText}>try again</Text>
+            </TouchableOpacity>
+          </View>
+        ) : recommended.length === 0 ? (
+          <EmptyState
+            title="no meals nearby yet"
+            sub="new kitchens are joining all the time — check back soon"
+          />
+        ) : (
+          <MealGrid
+            listings={recommended}
+            onPressItem={(l) => router.push(`/meal/${l.id}` as never)}
+          />
+        )}
 
         {/* ── Rewards banner ───────────────────────────────────────────── */}
         <TouchableOpacity
@@ -432,43 +382,17 @@ const styles = StyleSheet.create({
     fontFamily: Font.semibold, fontSize: Type.label, color: Palette.brand,
   },
 
-  // Meal cards
-  mealList: { paddingLeft: Space.xl, paddingRight: 8, marginBottom: 22 },
-  mealCard: {
-    width: 164, borderRadius: 18,
-    backgroundColor: Palette.surface,
-    marginRight: 12, overflow: 'hidden',
-    ...Shadow.card,
+  // Recommended feed states (loading / error)
+  feedState: { paddingVertical: 32, alignItems: 'center', gap: 12 },
+  feedStateText: {
+    fontFamily: Font.body, fontSize: Type.body, color: Palette.textSecondary,
   },
-  mealPhoto: {
-    height: 130, borderRadius: 0, overflow: 'hidden', position: 'relative',
+  retryBtn: {
+    backgroundColor: Palette.ink, borderRadius: Radius.pill,
+    paddingHorizontal: 18, paddingVertical: 10,
   },
-  mealTag: {
-    position: 'absolute', top: 10, left: 10,
-    backgroundColor: 'rgba(0,0,0,0.48)', borderRadius: Radius.pill,
-    paddingHorizontal: 10, paddingVertical: 4,
-  },
-  mealTagText: {
-    fontFamily: Font.display, fontSize: 11, color: Palette.surface,
-  },
-  mealInfo: { padding: 12, gap: 3 },
-  mealName: {
-    fontFamily: Font.display, fontSize: 14,
-    color: Palette.ink, lineHeight: 18,
-  },
-  mealKitchen: {
-    fontFamily: Font.body, fontSize: Type.micro,
-    color: Palette.textSecondary,
-  },
-  mealMeta: {
-    flexDirection: 'row', justifyContent: 'space-between',
-    marginTop: 4,
-  },
-  mealTime: {
-    fontFamily: Font.body, fontSize: Type.micro, color: Palette.textSecondary,
-  },
-  mealPrice: {
-    fontFamily: Font.display, fontSize: Type.label, color: Palette.brand,
+  retryText: {
+    fontFamily: Font.display, fontSize: Type.label, color: Palette.surface,
   },
 
   // Rewards banner

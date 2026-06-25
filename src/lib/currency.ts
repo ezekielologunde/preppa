@@ -1,30 +1,31 @@
-// All monetary values are stored as integers (cents) in the DB.
-// These utilities ensure safe arithmetic and display formatting.
+// All monetary values are stored as integers (pence) in the DB and the
+// platform currency is GBP (£). These utilities ensure safe integer arithmetic
+// and consistent display formatting — never format pence as USD.
 
-// Format cents as a USD dollar string: 1299 → "$12.99"
-export function formatMoney(cents: number): string {
-  if (!Number.isFinite(cents)) return '$0.00';
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(cents / 100);
+// Format pence as a GBP string: 1299 → "£12.99"
+export function formatMoney(pence: number): string {
+  if (!Number.isFinite(pence)) return '£0.00';
+  return new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(pence / 100);
 }
 
-// Convert a dollar string/number to cents: "12.99" → 1299
-export function toCents(dollars: number | string): number {
-  const n = typeof dollars === 'string' ? parseFloat(dollars) : dollars;
-  if (!Number.isFinite(n)) throw new Error(`Invalid dollar amount: ${dollars}`);
+// Convert a pounds string/number to pence: "12.99" → 1299
+export function toPence(pounds: number | string): number {
+  const n = typeof pounds === 'string' ? parseFloat(pounds) : pounds;
+  if (!Number.isFinite(n)) throw new Error(`Invalid pound amount: ${pounds}`);
   return Math.round(n * 100);
 }
 
-// Add cents safely: avoids 0.1 + 0.2 float error by keeping integers
-export function addCents(...amounts: number[]): number {
+// Add pence safely: avoids 0.1 + 0.2 float error by keeping integers
+export function addPence(...amounts: number[]): number {
   return amounts.reduce((sum, a) => {
-    if (!Number.isInteger(a)) throw new Error(`Expected integer cents, got: ${a}`);
+    if (!Number.isInteger(a)) throw new Error(`Expected integer pence, got: ${a}`);
     return sum + a;
   }, 0);
 }
 
-// Apply a percentage fee: 1000 cents * 0.15 → 150 cents (rounded)
-export function applyFee(cents: number, feeRate: number): number {
-  return Math.round(cents * feeRate);
+// Apply a percentage fee: 1000 pence * 0.15 → 150 pence (rounded)
+export function applyFee(pence: number, feeRate: number): number {
+  return Math.round(pence * feeRate);
 }
 
 // Mask account number: "123456789" → "****6789"

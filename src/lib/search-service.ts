@@ -3,6 +3,7 @@ import type { Listing } from '@/types/database.types';
 
 export type ListingWithCover = Listing & {
   cover_url: string | null;
+  kitchen_name: string | null;
 };
 
 export type SearchFilters = {
@@ -21,7 +22,8 @@ const LISTING_FIELDS = `
   service_types, available_days,
   use_cases, dietary_tags, allergens,
   published_at,
-  listing_photos ( storage_path, display_order )
+  listing_photos ( storage_path, display_order ),
+  kitchen:kitchens ( display_name )
 `;
 
 const BUCKET = 'listing-photos';
@@ -31,12 +33,21 @@ function coverUrl(storagePath: string | null): string | null {
   return supabase.storage.from(BUCKET).getPublicUrl(storagePath).data.publicUrl;
 }
 
+function kitchenName(k: unknown): string | null {
+  // PostgREST returns an embedded to-one relation as an object, but the typed
+  // client can surface it as an array — handle both shapes defensively.
+  if (!k) return null;
+  const row = Array.isArray(k) ? k[0] : k;
+  return (row as { display_name: string | null } | undefined)?.display_name ?? null;
+}
+
 function attachCover(row: Record<string, unknown>): ListingWithCover {
   const photos = (row.listing_photos as { storage_path: string; display_order: number }[] | null) ?? [];
   const sorted = [...photos].sort((a, b) => a.display_order - b.display_order);
   return {
     ...(row as unknown as Listing),
     cover_url: sorted[0] ? coverUrl(sorted[0].storage_path) : null,
+    kitchen_name: kitchenName(row.kitchen),
   };
 }
 

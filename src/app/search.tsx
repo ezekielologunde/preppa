@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   FlatList,
   Keyboard,
@@ -11,35 +11,34 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useQuery } from '@tanstack/react-query';
 import { ArrowLeft, Search, X } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { Font } from '@/constants/fonts';
 import { Gradients, Palette, Radius, Shadow, Space, Type } from '@/constants/theme';
-import { supabase } from '@/lib/supabase';
+import { formatMoney } from '@/lib/currency';
+import { searchListings, type ListingWithCover, type SearchFilters } from '@/lib/search-service';
 import { EmptyState } from '@/components/ui/empty-state';
-
-// ── Types ────────────────────────────────────────────────────────────────────
-
-type SearchListing = {
-  id: string;
-  name: string;
-  tagline: string | null;
-  price_pence: number;
-  dietary_tags: string[] | null;
-  kitchen: { display_name: string } | { display_name: string }[] | null;
-};
 
 // ── Static data ──────────────────────────────────────────────────────────────
 
 const CATEGORIES = [
-  { id: 'all',       label: 'all',       query: '' },
-  { id: 'breakfast', label: 'breakfast', query: 'breakfast' },
-  { id: 'lunch',     label: 'lunch',     query: 'lunch' },
-  { id: 'dinner',    label: 'dinner',    query: 'dinner' },
-  { id: 'healthy',   label: 'healthy',   query: 'healthy' },
-  { id: 'vegan',     label: 'vegan',     query: 'vegan' },
-];
+  { id: 'all',       label: 'all' },
+  { id: 'breakfast', label: 'breakfast' },
+  { id: 'lunch',     label: 'lunch' },
+  { id: 'dinner',    label: 'dinner' },
+  { id: 'healthy',   label: 'healthy' },
+  { id: 'vegan',     label: 'vegan' },
+] as const;
+
+// Map a category chip to structured filters (vegan → dietary tag, the rest →
+// use-case facets that match how listings are tagged in the DB).
+function categoryFilter(cat: string): Partial<SearchFilters> {
+  if (cat === 'all') return {};
+  if (cat === 'vegan') return { dietaryTags: ['vegan'] };
+  return { useCases: [cat] };
+}
 
 // Deterministic gradient per listing (avoids same colour for every card)
 const GRADIENTS = [
@@ -55,19 +54,11 @@ function pickGradient(id: string): readonly [string, string] {
   return GRADIENTS[hash % GRADIENTS.length];
 }
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
-
-function kitchenName(k: SearchListing['kitchen']): string {
-  if (!k) return '';
-  if (Array.isArray(k)) return k[0]?.display_name ?? '';
-  return k.display_name;
-}
-
 // ── Sub-components ───────────────────────────────────────────────────────────
 
-function ResultRow({ item, onPress }: { item: SearchListing; onPress: () => void }) {
-  const price    = `£${(item.price_pence / 100).toFixed(2)}`;
-  const kitchen  = kitchenName(item.kitchen);
+function ResultRow({ item, onPress }: { item: ListingWithCover; onPress: () => void }) {
+  const price    = formatMoney(item.price_pence);
+  const kitchen  = item.kitchen_name;
   const tags     = (item.dietary_tags ?? []).slice(0, 3);
   const gradient = pickGradient(item.id);
 
@@ -110,35 +101,25 @@ export default function SearchScreen() {
 
   const [query, setQuery]       = useState(params.q ?? '');
   const [category, setCategory] = useState('all');
-  const [results, setResults]   = useState<SearchListing[]>([]);
-  const [loading, setLoading]   = useState(false);
 
-  const search = useCallback(async (q: string, cat: string) => {
-    setLoading(true);
-    let builder = supabase
-      .from('listings')
-      .select('id, name, tagline, price_pence, dietary_tags, kitchen:kitchens(display_name)')
-      .eq('status', 'active');
-
-    if (q.trim()) {
-      builder = builder.ilike('name', `%${q.trim()}%`);
-    }
-    if (cat && cat !== 'all') {
-      const catQuery = CATEGORIES.find((c) => c.id === cat)?.query ?? '';
-      if (catQuery) builder = builder.ilike('name', `%${catQuery}%`);
-    }
-
-    const { data } = await builder.order('name').limit(30);
-    setResults((data as SearchListing[]) ?? []);
-    setLoading(false);
-  }, []);
-
-  // Debounce text input; immediate on category change
+  // Debounce the free-text query so we don't fire a request per keystroke.
+  const [debouncedQuery, setDebouncedQuery] = useState(query);
   useEffect(() => {
     const delay = query.trim() ? 350 : 0;
-    const t = setTimeout(() => search(query, category), delay);
+    const t = setTimeout(() => setDebouncedQuery(query), delay);
     return () => clearTimeout(t);
-  }, [query, category, search]);
+  }, [query]);
+
+  const filters = useMemo<SearchFilters>(() => ({
+    query: debouncedQuery.trim() || undefined,
+    ...categoryFilter(category),
+  }), [debouncedQuery, category]);
+
+  const { data: results = [], isFetching } = useQuery({
+    queryKey: ['search-listings', filters],
+    queryFn: () => searchListings(filters, 30),
+  });
+  const loading = isFetching;
 
   // Auto-focus after first paint
   useEffect(() => {

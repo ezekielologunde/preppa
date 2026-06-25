@@ -21,7 +21,18 @@ import { EmptyState } from '@/components/ui/empty-state';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
-type ListingStatus = 'active' | 'paused' | 'archived' | 'draft';
+// Mirrors the DB listing_status enum subset this screen manages.
+// 'published' is the live state (no 'active' value exists in the enum).
+type ListingStatus = 'published' | 'paused' | 'archived' | 'draft';
+
+type FilterStatus = 'published' | 'paused' | 'archived';
+
+// Filter-pill labels: the enum value 'published' reads as "live" to preppers.
+const FILTER_LABEL: Record<FilterStatus, string> = {
+  published: 'live',
+  paused:    'paused',
+  archived:  'archived',
+};
 
 type Listing = {
   id: string;
@@ -36,7 +47,7 @@ type Listing = {
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 const STATUS_CFG: Record<ListingStatus, { label: string; bg: string; text: string }> = {
-  active:   { label: 'live',     bg: Palette.successTint,   text: Palette.successDark   },
+  published: { label: 'live',    bg: Palette.successTint,   text: Palette.successDark   },
   paused:   { label: 'paused',   bg: Palette.amberTint,     text: Palette.amberDeep     },
   archived: { label: 'archived', bg: Palette.cancelledTint, text: Palette.textSecondary  },
   draft:    { label: 'draft',    bg: Palette.chip,          text: Palette.textSecondary  },
@@ -98,7 +109,7 @@ function ListingCard({ listing, kitchenId, onMutate }: {
 
       {listing.status !== 'archived' && (
         <View style={styles.actions}>
-          {listing.status === 'active' ? (
+          {listing.status === 'published' ? (
             <TouchableOpacity
               onPress={() => setStatus('paused')}
               activeOpacity={0.8}
@@ -111,7 +122,7 @@ function ListingCard({ listing, kitchenId, onMutate }: {
             </TouchableOpacity>
           ) : listing.status === 'paused' ? (
             <TouchableOpacity
-              onPress={() => setStatus('active')}
+              onPress={() => setStatus('published')}
               activeOpacity={0.8}
               style={styles.actionBtn}
               accessibilityLabel={`Make ${listing.name} live`}
@@ -121,18 +132,17 @@ function ListingCard({ listing, kitchenId, onMutate }: {
               <Text style={[styles.actionText, { color: Palette.successDark }]}>go live</Text>
             </TouchableOpacity>
           ) : null}
-          {listing.status !== 'archived' && (
-            <TouchableOpacity
-              onPress={archive}
-              activeOpacity={0.8}
-              style={styles.actionBtn}
-              accessibilityLabel={`Archive ${listing.name}`}
-              accessibilityRole="button"
-            >
-              <Archive size={14} color={Palette.textMuted} strokeWidth={2} />
-              <Text style={[styles.actionText, { color: Palette.textMuted }]}>archive</Text>
-            </TouchableOpacity>
-          )}
+          {/* Outer guard already excludes archived listings; archive is always available here. */}
+          <TouchableOpacity
+            onPress={archive}
+            activeOpacity={0.8}
+            style={styles.actionBtn}
+            accessibilityLabel={`Archive ${listing.name}`}
+            accessibilityRole="button"
+          >
+            <Archive size={14} color={Palette.textMuted} strokeWidth={2} />
+            <Text style={[styles.actionText, { color: Palette.textMuted }]}>archive</Text>
+          </TouchableOpacity>
         </View>
       )}
     </View>
@@ -147,7 +157,7 @@ export default function PrepperListingsScreen() {
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [filter, setFilter] = useState<'active' | 'paused' | 'archived'>('active');
+  const [filter, setFilter] = useState<FilterStatus>('published');
 
   const fetchListings = useCallback(async () => {
     if (!kitchen) return;
@@ -195,14 +205,14 @@ export default function PrepperListingsScreen() {
 
       {/* ── Filter pills ─────────────────────────────────────────── */}
       <View style={styles.filterRow}>
-        {(['active', 'paused', 'archived'] as const).map((f) => (
+        {(['published', 'paused', 'archived'] as const).map((f) => (
           <TouchableOpacity
             key={f}
             onPress={() => setFilter(f)}
             activeOpacity={0.7}
             style={[styles.filterChip, filter === f && styles.filterChipActive]}
           >
-            <Text style={[styles.filterLabel, filter === f && styles.filterLabelActive]}>{f}</Text>
+            <Text style={[styles.filterLabel, filter === f && styles.filterLabelActive]}>{FILTER_LABEL[f]}</Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -218,8 +228,8 @@ export default function PrepperListingsScreen() {
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Palette.brand} />}
           ListEmptyComponent={
             <EmptyState
-              title={`no ${filter} meals`}
-              action={filter === 'active' ? { label: 'create your first meal', onPress: () => router.push('/create-listing' as never) } : undefined}
+              title={`no ${FILTER_LABEL[filter]} meals`}
+              action={filter === 'published' ? { label: 'create your first meal', onPress: () => router.push('/create-listing' as never) } : undefined}
             />
           }
           renderItem={({ item }) => (
