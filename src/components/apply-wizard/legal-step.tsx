@@ -191,7 +191,7 @@ export function LegalStep({ form, update }: Props) {
         checked={form.natashsLawAcknowledged}
         onToggle={() => toggle('natashsLawAcknowledged')}
       >
-        I understand my legal obligation under Natasha's Law to provide full ingredient and allergen information for every meal I list.
+        {"I understand my legal obligation under Natasha's Law to provide full ingredient and allergen information for every meal I list."}
       </CheckRow>
     </ScrollView>
   );

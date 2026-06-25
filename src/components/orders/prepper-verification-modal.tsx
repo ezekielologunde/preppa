@@ -216,7 +216,7 @@ export function PrepperVerificationModal({ visible, orderId, customerName, onClo
               {customerName ? (
                 <Text style={styles.sheetSub}>Enter the PIN shown by {customerName}</Text>
               ) : (
-                <Text style={styles.sheetSub}>Enter the customer's 4-digit PIN to release payment</Text>
+                <Text style={styles.sheetSub}>{"Enter the customer's 4-digit PIN to release payment"}</Text>
               )}
             </View>
             {stage !== 'loading' && stage !== 'success' && (

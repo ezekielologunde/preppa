@@ -24,7 +24,7 @@ export function BasicsStep({ form, update }: Props) {
       showsVerticalScrollIndicator={false}
     >
       <Text style={styles.heading}>Meal details</Text>
-      <Text style={styles.sub}>Tell customers what you're cooking up.</Text>
+      <Text style={styles.sub}>{"Tell customers what you're cooking up."}</Text>
 
       <View style={styles.field}>
         <Text style={styles.label}>Meal name <Text style={styles.required}>*</Text></Text>
